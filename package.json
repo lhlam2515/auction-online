@@ -6,9 +6,23 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "commit": "git-cz"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@commitlint/cz-commitlint": "^20.1.0",
+    "commitizen": "^4.3.1",
+    "husky": "^9.1.7",
+    "inquirer": "9",
+    "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1",
     "turbo": "latest"
