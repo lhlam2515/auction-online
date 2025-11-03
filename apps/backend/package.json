@@ -5,17 +5,20 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon --exec \"node -r esbuild-register ./src/index.ts\" -e .ts",
-    "start": "node -r esbuild-register ./src/index.ts"
+    "start": "node -r esbuild-register ./src/index.ts",
+    "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
     "@types/express": "^5.0.5",
     "@types/node": "^22",
     "esbuild": "^0.25.12",
     "esbuild-register": "^3.6.0",
+    "eslint": "^9.39.0",
     "nodemon": "^3.1.10",
     "typescript": "^5.9.2"
   }
