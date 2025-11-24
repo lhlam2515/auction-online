@@ -6,17 +6,23 @@
     "build": "tsc",
     "dev": "tsx watch ./src/index.ts",
     "start": "tsx ./src/index.ts",
-    "lint": "eslint \"src/**/*.ts\""
+    "lint": "eslint \"src/**/*.ts\"",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "express": "^5.1.0"
+    "drizzle-orm": "^0.44.7",
+    "express": "^5.1.0",
+    "postgres": "^3.4.7"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/lint-staged-config": "workspace:*",
     "@types/express": "^5.0.5",
     "@types/node": "^22",
+    "drizzle-kit": "^0.31.7",
     "esbuild": "^0.25.12",
     "esbuild-register": "^3.6.0",
     "eslint": "^9.39.0",
