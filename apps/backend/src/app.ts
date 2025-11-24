@@ -5,6 +5,9 @@ import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
+import { errorHandler, notFound } from "@/middlewares/error-handler";
+import { ResponseHandler } from "@/utils/response";
+
 const app = express();
 
 app.use(helmet());
@@ -22,7 +25,14 @@ app.use(
 app.get("/", (req, res) => {
   logger.info("Hello from Auction Online Backend!");
 
-  res.status(200).send("Hello from Auction Online Backend!");
+  ResponseHandler.sendSuccess(res, {
+    message: "Hello from Auction Online Backend!",
+    timestamp: new Date().toISOString(),
+  });
 });
+
+// Error handling middleware (must be last)
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;
