@@ -8,9 +8,11 @@ import {
 
 export default [
   // 1. Marketing / Public Group (Main Layout)
-  index("routes/_root/home/route.tsx"), // Homepage
-  route("search", "routes/_root/search/route.tsx"),
-  route("products/:id", "routes/_root/products.$id/route.tsx"),
+  layout("components/layouts/MainLayout.tsx", [
+    index("routes/_root/home/route.tsx"), // Homepage
+    route("search", "routes/_root/search/route.tsx"),
+    route("products/:id", "routes/_root/products.$id/route.tsx"),
+  ]),
 
   // 2. Auth Group (Layout wrapper)
   layout("routes/_auth/layout.tsx", [
