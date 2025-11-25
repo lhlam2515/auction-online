@@ -1,116 +1,124 @@
-import pino from "pino";
-
-// Type definitions for better TypeScript support
+// Type definitions
 export interface LogContext {
   [key: string]: unknown;
 }
 
-export interface ErrorContext extends LogContext {
-  userId?: string;
-  path?: string;
-  action?: string;
-}
-
-export interface ApiCallContext extends LogContext {
-  requestId?: string;
-  userId?: string;
-  requestBody?: unknown;
-  responseBody?: unknown;
-}
-
-// Environment variables for logger configuration
-const isEdge = import.meta.env.VITE_RUNTIME_ENV === "edge";
+// Environment check
+const isDev = import.meta.env.DEV;
 const isProduction = import.meta.env.PROD;
-const logLevel =
-  import.meta.env.VITE_LOG_LEVEL || (isProduction ? "warn" : "debug");
 
-// Browser-specific configuration
-const logger = pino({
-  level: logLevel,
-  base: {
-    service: "auction-frontend",
-    environment: import.meta.env.MODE || "development",
-    version: "1.0.0",
-  },
-  transport:
-    !isEdge && !isProduction
-      ? {
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-            translateTime: "SYS:standard",
-            ignore: "pid,hostname",
-          },
-        }
-      : undefined,
-  timestamp: pino.stdTimeFunctions.isoTime,
-  formatters: {
-    level: (label: string) => ({ level: label }),
-  },
-  browser: {
-    asObject: true,
-    serialize: true,
-    formatters: {
-      level: (label: string) => ({ level: label }),
-    },
-  },
-});
+// Log levels
+type LogLevel = "debug" | "info" | "warn" | "error";
 
-// Helper functions for structured logging
-export const createLogger = (context: string | LogContext) => {
-  const contextObj = typeof context === "string" ? { context } : context;
-  return logger.child(contextObj);
+// Color codes for browser console
+const colors = {
+  debug: "color: #A78BFA; font-weight: normal;", // Light Purple - for debugging
+  info: "color: #22C55E; font-weight: bold;", // Bright Green - success/info
+  warn: "color: #FBB040; font-weight: bold;", // Bright Orange - warnings
+  error:
+    // Bright Red with dark background - critical errors
+    "color: #FF5555; font-weight: bold; background: #2D0A0A; padding: 2px 4px;",
+  timestamp: "color: #64748B; font-weight: normal;", // Medium Gray
+  context: "color: #06B6D4; font-weight: normal;", // Cyan - for context data
 };
 
-// Utility functions for common logging patterns
-export const logError = (error: Error | unknown, context?: ErrorContext) => {
-  const errorDetails = {
-    ...context,
-    error: {
-      name: error instanceof Error ? error.name : "Unknown Error",
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    },
-  };
-  logger.error(errorDetails, "Error occurred");
-};
+class SimpleLogger {
+  private shouldLog(level: LogLevel): boolean {
+    if (isProduction && level === "debug") return false;
+    return true;
+  }
 
-export const logApiCall = (
-  method: string,
-  url: string,
-  status?: number,
-  duration?: number,
-  details?: ApiCallContext
-) => {
-  const logData = {
-    method,
-    url,
-    status,
-    duration,
-    ...details,
-  };
+  private formatMessage(
+    level: LogLevel,
+    message: string,
+    context?: LogContext
+  ): [string, ...string[]] {
+    const timestamp = new Date().toISOString();
 
-  if (status && status >= 400) {
-    logger.error(logData, `API call failed: ${method} ${url}`);
-  } else {
-    logger.info(logData, `API call: ${method} ${url}`);
+    if (context && Object.keys(context).length > 0) {
+      const contextStr = JSON.stringify(context, null, 2);
+      return [
+        `%c[${timestamp}]%c [${level.toUpperCase()}]%c ${message}\n%cContext:%c\n${contextStr}`,
+        colors.timestamp,
+        colors[level],
+        "color: inherit;",
+        colors.context,
+        "color: inherit;",
+      ];
+    }
+
+    return [
+      `%c[${timestamp}]%c [${level.toUpperCase()}]%c ${message}`,
+      colors.timestamp,
+      colors[level],
+      "color: inherit;",
+    ];
+  }
+
+  debug(message: string, context?: LogContext) {
+    if (!this.shouldLog("debug")) return;
+    const [format, ...styles] = this.formatMessage("debug", message, context);
+    console.debug(format, ...styles);
+  }
+
+  info(message: string, context?: LogContext) {
+    if (!this.shouldLog("info")) return;
+    const [format, ...styles] = this.formatMessage("info", message, context);
+    console.info(format, ...styles);
+  }
+
+  warn(message: string, context?: LogContext) {
+    if (!this.shouldLog("warn")) return;
+    const [format, ...styles] = this.formatMessage("warn", message, context);
+    console.warn(format, ...styles);
+  }
+
+  error(message: string, error?: unknown, context?: LogContext) {
+    if (!this.shouldLog("error")) return;
+
+    const errorDetails =
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : error;
+
+    const fullContext = {
+      error: errorDetails,
+      ...context,
+    };
+
+    const [format, ...styles] = this.formatMessage(
+      "error",
+      message,
+      fullContext
+    );
+    console.error(format, ...styles);
+  }
+}
+
+// Singleton instance
+const logger = new SimpleLogger();
+
+// Export default logger
+export default logger;
+
+/**
+ * Helper function to log errors (only in development)
+ */
+export const logError = (error: Error | unknown, context?: LogContext) => {
+  if (isDev) {
+    logger.error("Error occurred", error, context);
   }
 };
 
-export const logPageView = (
-  path: string,
-  userId?: string,
-  details?: LogContext
-) => {
-  logger.info(
-    {
-      path,
-      userId,
-      ...details,
-    },
-    `Page view: ${path}`
-  );
+/**
+ * Helper function to log page views (only in development)
+ */
+export const logPageView = (path: string, context?: LogContext) => {
+  if (isDev) {
+    logger.debug(`Page view: ${path}`, context);
+  }
 };
-
-// Export the main logger
-export default logger;

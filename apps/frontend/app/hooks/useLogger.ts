@@ -1,33 +1,23 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useLocation } from "react-router";
-
-import logger, {
-  createLogger,
-  logPageView,
-  type LogContext,
-} from "@/lib/logger";
+import logger, { logPageView, type LogContext } from "@/lib/logger";
 
 /**
- * Hook để tự động log page views và tạo logger với context
+ * Hook to automatically log page views
+ * Simplified version - only logs page views in development
  */
-export function useLogger(context?: string | LogContext) {
+export function useLogger(context?: LogContext) {
   const location = useLocation();
 
-  // Tạo logger với context nếu có
-  const contextLogger = useMemo(() => {
-    if (context) {
-      return createLogger(context);
-    }
-    return logger;
-  }, [context]);
-
-  // Tự động log page view khi location thay đổi
+  // Automatically log page view when location changes
   useEffect(() => {
-    logPageView(location.pathname, undefined, {
+    logPageView(location.pathname, {
       search: location.search,
       hash: location.hash,
+      ...context,
     });
-  }, [location]);
+  }, [location, context]);
 
-  return contextLogger;
+  // Return logger for manual logging if needed
+  return logger;
 }
