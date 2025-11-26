@@ -1,276 +1,310 @@
-# Backend Directory - Auction Online
+# 🎯 Auction Online Backend - Implementation Complete
 
-Backend server cho ứng dụng đấu giá trực tuyến được xây dựng với Express.js, TypeScript, và Drizzle ORM.
+## ✅ Cấu Trúc Hoàn Chỉnh
 
-## 📁 Cấu trúc thư mục
+Backend đã được tổ chức đầy đủ với **70+ endpoints** sẵn sàng implement.
+
+---
+
+## 📚 Tài Liệu Chính
+
+| File                                                    | Mục Đích                                      |
+| ------------------------------------------------------- | --------------------------------------------- |
+| **[BACKEND_STRUCTURE.md](./docs/BACKEND_STRUCTURE.md)** | Chi tiết kiến trúc, design patterns, workflow |
+| **[QUICK_START.md](./docs/QUICK_START.md)**             | Templates nhanh, hướng dẫn tạo endpoints mới  |
+| **[ENDPOINT_MAPPING.md](./docs/ENDPOINT_MAPPING.md)**   | Mapping đầy đủ endpoints → files              |
+| **[API_ENDPOINTS.md](./docs/API_ENDPOINTS.md)**         | Danh sách tất cả API endpoints                |
+
+---
+
+## 🗂️ Cấu Trúc Files
+
+### Routes (12 files) ✅
 
 ```text
-backend/
-├── src/                     # Source code chính
-│   ├── config/             # Configuration files (database, logger, etc.)
-│   ├── controllers/        # Express controllers xử lý business logic
-│   ├── middlewares/        # Express middlewares (auth, validation, error handling)
-│   ├── models/            # Drizzle ORM schema definitions
-│   ├── routes/            # API route definitions
-│   ├── types/             # TypeScript type definitions
-│   ├── utils/             # Utility functions và helpers
-│   ├── validations/       # Zod validation schemas
-│   ├── app.ts             # Express app configuration
-│   ├── index.ts           # Application entry point
-│   └── server.ts          # HTTP server setup
-├── supabase/              # Database migrations và schemas
-├── drizzle.config.ts      # Drizzle ORM configuration
-├── package.json           # Dependencies và scripts
-├── tsconfig.json          # TypeScript configuration
-└── README.md             # File này
+src/routes/
+├── index.ts              # Main router
+├── auth.routes.ts        # Authentication (10 endpoints)
+├── user.routes.ts        # User management (9 endpoints)
+├── category.routes.ts    # Categories (2 endpoints)
+├── product.routes.ts     # Products (11 endpoints)
+├── seller.routes.ts      # Seller (2 endpoints)
+├── bid.routes.ts         # Bidding (7 endpoints)
+├── question.routes.ts    # Q&A (4 endpoints)
+├── order.routes.ts       # Orders (8 endpoints)
+├── chat.routes.ts        # Chat (4 endpoints)
+├── rating.routes.ts      # Ratings (3 endpoints)
+└── admin.routes.ts       # Admin (14 endpoints)
 ```
+
+### Controllers (12 files) ✅
+
+```text
+src/controllers/
+├── auth.controller.ts
+├── user.controller.ts
+├── category.controller.ts
+├── product.controller.ts
+├── seller.controller.ts
+├── bid.controller.ts
+├── question.controller.ts
+├── order.controller.ts
+├── chat.controller.ts
+├── rating.controller.ts
+└── admin.controller.ts
+```
+
+### Validations (12 files) ✅
+
+```text
+src/validations/
+├── auth.validation.ts
+├── user.validation.ts
+├── category.validation.ts
+├── product.validation.ts
+├── seller.validation.ts
+├── bid.validation.ts
+├── question.validation.ts
+├── order.validation.ts
+├── chat.validation.ts
+├── rating.validation.ts
+└── admin.validation.ts
+```
+
+### Models ✅
+
+```text
+src/models/
+├── users.model.ts             # Users, upgrade requests
+├── products.model.ts          # Products, categories, images
+├── auction.model.ts           # Bids, auto-bids
+├── interactions.model.ts      # Ratings, chat, Q&A
+├── order.model.ts             # Orders
+├── enums.model.ts             # PostgreSQL enums
+└── index.ts
+```
+
+### Middlewares ✅
+
+```text
+src/middlewares/
+├── auth.ts                    # authenticate, authorize
+├── validate.ts                # Request validation
+└── error-handler.ts           # Error handling
+```
+
+---
+
+## 🎯 Các Module Chính
+
+### 1. Authentication (10 endpoints) ✅
+
+- Register, Login, Logout
+- Refresh Token
+- Password Reset (Forgot, OTP, Reset)
+- Google OAuth
+- Email Verification
+
+### 2. User Management (9 endpoints) ✅
+
+- Profile (Get, Update)
+- Change Password
+- Public Profile & Rating Summary
+- Watchlist (Add/Remove, Get)
+- Bidding History
+- Upgrade Request
+
+### 3. Products (11 endpoints) ✅
+
+- Search & Filter
+- Top Listing
+- Details, Images, Related
+- Description Updates
+- Create, Delete
+- Update Description
+- Auto-extend Toggle
+- Upload Images
+
+### 4. Bidding (7 endpoints) ✅
+
+- Bidding History
+- Place Bid
+- Kick Bidder
+- Auto-bid (Create, Get, Update, Delete)
+
+### 5. Q&A (4 endpoints) ✅
+
+- Public Questions
+- Private Questions
+- Ask Question
+- Answer Question
+
+### 6. Orders (8 endpoints) ✅
+
+- Get Orders, Details
+- Mark Paid
+- Update Payment Info
+- Ship Order
+- Receive Order
+- Cancel Order
+- Feedback
+
+### 7. Chat (4 endpoints) ✅
+
+- Chat History
+- Send Message
+- Mark as Read
+- Unread Count
+
+### 8. Ratings (3 endpoints) ✅
+
+- Create Rating
+- Rating History
+- Rating Summary
+
+### 9. Admin (14 endpoints) ✅
+
+- Dashboard Stats
+- User Management (List, Ban, Reset Password)
+- Upgrade Requests (List, Approve, Reject)
+- Product Management (List, Approve, Reject, Suspend)
+- Category Management (Create, Update, Delete)
+
+---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Node.js (v18+)
-- PostgreSQL database
-- pnpm package manager
-
-### Installation
+### 1. Cài Đặt
 
 ```bash
-# Clone và install dependencies
 pnpm install
+```
 
-# Copy environment variables
+### 2. Setup Environment
+
+```bash
 cp .env.example .env
-
-# Configure database connection trong .env file
-DATABASE_URL="YOUR_DATABASE_URL"
-
-# Generate và run migrations
-pnpm run db:generate
-pnpm run db:migrate
-
-# Start development server
-pnpm run dev
+# Edit .env với database URL và config
 ```
 
-### Available Scripts
+### 3. Database Migration
 
 ```bash
-# Development
-pnpm run dev          # Start development server với hot reload
-pnpm run build        # Build TypeScript to JavaScript
-pnpm run start        # Start production server
-
-# Database
-pnpm run db:generate  # Generate Drizzle migrations
-pnpm run db:migrate   # Run database migrations
-pnpm run db:studio    # Open Drizzle Studio (database GUI)
-
-# Code Quality
-pnpm run lint         # Run ESLint
-pnpm run type-check   # Run TypeScript type checking
+pnpm db:push
 ```
 
-## 🏗️ Architecture Overview
+### 4. Start Development
 
-### Tech Stack
-
-- **Framework**: Express.js với TypeScript
-- **Database**: PostgreSQL với Drizzle ORM
-- **Validation**: Zod schemas
-- **Authentication**: JWT tokens (planned)
-- **Logging**: Winston logger
-- **Error Handling**: Custom error classes với global handler
-
-### Design Patterns
-
-- **MVC Pattern**: Controllers handle HTTP, Services handle business logic
-- **Repository Pattern**: Data access layer với Drizzle ORM
-- **Middleware Pattern**: Express middlewares cho cross-cutting concerns
-- **Factory Pattern**: Error classes và response handlers
-
-## 📚 Directory Guides
-
-Mỗi thư mục có file README.md riêng với chi tiết conventions:
-
-| Thư mục                                     | Mục đích              | Convention File        |
-| ------------------------------------------- | --------------------- | ---------------------- |
-| [config/](./src/config/README.md)           | App configurations    | Configuration patterns |
-| [controllers/](./src/controllers/README.md) | HTTP request handlers | Controller conventions |
-| [middlewares/](./src/middlewares/README.md) | Express middlewares   | Middleware patterns    |
-| [models/](./src/models/README.md)           | Database schemas      | Drizzle ORM schemas    |
-| [routes/](./src/routes/README.md)           | API endpoints         | RESTful routing        |
-| [types/](./src/types/README.md)             | TypeScript types      | Type definitions       |
-| [utils/](./src/utils/README.md)             | Utility functions     | Helper functions       |
-| [validations/](./src/validations/README.md) | Zod schemas           | Input validation       |
-
-## 🔧 Development Guidelines
-
-### Code Style
-
-- **TypeScript**: Strict mode enabled
-- **ESLint**: Configured với custom rules
-- **Prettier**: Code formatting
-- **Naming**: camelCase cho functions, PascalCase cho classes
-
-### API Design
-
-- **RESTful**: Follow REST principles
-- **JSON**: All requests/responses in JSON
-- **HTTP Status**: Proper status codes
-- **Error Handling**: Consistent error format
-- **Validation**: Input validation với Zod
-
-### Database
-
-- **Tables**: camelCase names (e.g., `userProfiles`)
-- **Columns**: snake_case names (e.g., `created_at`)
-- **Foreign Keys**: Proper relationships
-- **Migrations**: Version controlled
-
-## 📝 API Documentation
-
-### Base URL
-
-```plaintext
-Development: http://localhost:3000/api/v1
-Production: https://api.auction-online.com/v1
+```bash
+pnpm dev
 ```
 
-### Response Format
+---
 
-#### Success Response
+## 📖 Cách Implement Endpoint
 
-```json
-{
-  "success": true,
-  "data": { ... },
-  "message": "Optional success message",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
+### Bước 1: Tìm file tương ứng
 
-#### Error Response
+Xem **[ENDPOINT_MAPPING.md](./ENDPOINT_MAPPING.md)** để biết endpoint nằm ở đâu.
 
-```json
-{
-  "success": false,
-  "error": {
-    "name": "ValidationError",
-    "message": "Invalid input data",
-    "code": "VALIDATION_ERROR",
-    "statusCode": 400,
-    "details": [...],
-    "timestamp": "2024-01-01T00:00:00.000Z",
-    "path": "/api/v1/users"
+### Bước 2: Implement Controller
+
+```typescript
+// File: src/controllers/feature.controller.ts
+
+export const functionName = async (req, res, next) => {
+  try {
+    // 1. Extract data
+    const data = req.body;
+    const userId = req.user?.id;
+
+    // 2. Business logic
+    // TODO: Add your logic here
+
+    // 3. Database operations
+    // const result = await db.select()...
+
+    // 4. Return response
+    ResponseHandler.sendSuccess(res, { result });
+  } catch (error) {
+    next(error);
   }
-}
+};
 ```
 
-### Authentication
+### Bước 3: Test
 
 ```bash
-# Include JWT token trong headers
-Authorization: Bearer <jwt_token>
+# Sử dụng Postman, Thunder Client, hoặc curl
+curl http://localhost:3000/api/endpoint
 ```
 
-## 🔒 Security
+Xem chi tiết trong **[QUICK_START.md](./QUICK_START.md)**
 
-### Implemented
+---
 
-- **Helmet**: Security headers
-- **CORS**: Cross-origin resource sharing
-- **Input Validation**: Zod schema validation
-- **Error Handling**: Secure error messages
-- **Logging**: Request/response logging
+## 🛠️ Tech Stack
 
-### Planned
+- **Runtime:** Node.js 20+
+- **Framework:** Express.js
+- **Language:** TypeScript
+- **Database:** PostgreSQL (Supabase)
+- **ORM:** Drizzle ORM
+- **Validation:** Zod
+- **Authentication:** JWT (planned)
+- **Logging:** Winston
 
-- **JWT Authentication**: User authentication
-- **Rate Limiting**: API rate limiting
-- **Password Hashing**: bcrypt password hashing
-- **Data Sanitization**: Input sanitization
-- **SQL Injection Protection**: Drizzle ORM parameterized queries
+---
 
-## 📊 Monitoring & Logging
+## 📊 Implementation Status
 
-### Logging Levels
+### ✅ Hoàn Thành
 
-- **error**: Application errors
-- **warn**: Warning conditions
-- **info**: General information
-- **debug**: Debug information
+- [x] 70+ route definitions
+- [x] 12 controller files
+- [x] 12 validation files
+- [x] Database models
+- [x] Middlewares (auth, validate, error)
+- [x] Error handling system
+- [x] Response utilities
+- [x] Full documentation
 
-### Log Format
+### 🚧 Cần Implement
 
-```json
-{
-  "level": "info",
-  "message": "User created successfully",
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "meta": {
-    "userId": "123",
-    "action": "create_user"
-  }
-}
-```
+- [ ] Controller business logic
+- [ ] JWT authentication
+- [ ] File upload
+- [ ] Email service
+- [ ] WebSocket (real-time)
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] API docs (Swagger)
 
-## 🚀 Deployment
+---
 
-### Environment Variables
+## 🎓 Learning Resources
 
-```bash
-# Server
-NODE_ENV=production
-PORT=3000
+Đọc các file documentation theo thứ tự:
 
-# Database
-DATABASE_URL="postgresql://..."
+1. **BACKEND_STRUCTURE.md** - Hiểu cấu trúc tổng thể
+2. **QUICK_START.md** - Học cách tạo endpoint mới
+3. **ENDPOINT_MAPPING.md** - Tra cứu endpoints
+4. **FULL_API_ENDPOINTS.md** - Xem tất cả APIs
 
-# Logging
-LOG_LEVEL=info
-```
+---
 
-### Production Checklist
+## 📝 Next Steps
 
-- [ ] Environment variables configured
-- [ ] Database migrations run
-- [ ] Security headers enabled
-- [ ] Error handling tested
-- [ ] Logging configured
-- [ ] Health checks implemented
+1. **Implement controllers** - Thay `NotImplementedError` bằng logic thực
+2. **Add database queries** - Sử dụng Drizzle ORM
+3. **Setup JWT** - Implement authentication
+4. **File upload** - Add image upload for products
+5. **Email service** - For notifications and password reset
+6. **WebSocket** - For real-time chat and bidding
+7. **Testing** - Write unit and integration tests
 
-## 🤝 Contributing
+---
 
-### Development Workflow
+**Status:** ✅ Structure 100% complete, ready for implementation
 
-1. **Branch**: Tạo feature branch từ `main`
-2. **Code**: Implement feature theo conventions
-3. **Test**: Write tests cho new code
-4. **Lint**: Run ESLint và fix issues
-5. **Commit**: Use conventional commit messages
-6. **PR**: Create pull request với description
-
-### Commit Messages
-
-```bash
-feat(auth): add JWT authentication
-fix(validation): handle edge case in user validation
-docs(readme): update API documentation
-refactor(controllers): simplify error handling
-```
-
-### Code Review
-
-- **Functionality**: Code works as expected
-- **Tests**: Adequate test coverage
-- **Convention**: Follows project conventions
-- **Performance**: No performance issues
-- **Security**: No security vulnerabilities
-
-## 📞 Support
-
-- **Documentation**: Check directory README files
-- **Issues**: Create GitHub issue
-- **Discussions**: Use GitHub discussions
-- **Code Review**: Request review từ team
+**Date:** November 2025
