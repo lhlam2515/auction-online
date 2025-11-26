@@ -93,9 +93,44 @@ src/middlewares/
 └── error-handler.ts           # Error handling
 ```
 
+### Services (7 files) ✅
+
+```text
+src/services/
+├── index.ts                   # Service exports
+├── auth.service.ts            # Authentication & authorization
+├── user.service.ts            # User management & watchlist
+├── product.service.ts         # Product CRUD & search
+├── bid.service.ts             # Bidding & auto-bid logic
+├── category.service.ts        # Category tree management
+├── order.service.ts           # Post-auction order handling
+├── rating.service.ts          # Seller rating system
+```
+
 ---
 
 ## 🎯 Các Module Chính
+
+### 🔐 Architecture: Service Layer Pattern
+
+Backend sử dụng **Service Layer Pattern** để tách biệt business logic khỏi HTTP layer:
+
+- **Routes** → Định nghĩa endpoints và HTTP methods
+- **Middlewares** → Authentication, validation, error handling
+- **Controllers** → HTTP request/response handlers (thin layer)
+- **Services** → Business logic, domain rules, data operations
+- **Models** → Database schema (Drizzle ORM)
+
+**Flow:** `Route → Middleware → Controller → Service → Database`
+
+**Lợi ích:**
+
+- ✅ Business logic tái sử dụng được (controllers, jobs, sockets cùng dùng services)
+- ✅ Dễ test (services độc lập với Express, HTTP)
+- ✅ Separation of concerns (mỗi layer có trách nhiệm rõ ràng)
+- ✅ Maintainability (thay đổi business logic không ảnh hưởng HTTP layer)
+
+---
 
 ### 1. Authentication (10 endpoints) ✅
 
@@ -207,32 +242,53 @@ pnpm dev
 
 Xem **[ENDPOINT_MAPPING.md](./ENDPOINT_MAPPING.md)** để biết endpoint nằm ở đâu.
 
-### Bước 2: Implement Controller
+### Bước 2: Implement Service Method
+
+```typescript
+// File: src/services/feature.service.ts
+
+export class FeatureService {
+  async methodName(input: InputType): Promise<ReturnType> {
+    // 1. Validate business rules
+    if (!input.isValid) {
+      throw new BadRequestError("Invalid input");
+    }
+
+    // 2. Database operations
+    const result = await db.select().from(table).where(eq(table.id, input.id));
+
+    // 3. Return data (NOT Express response)
+    return result;
+  }
+}
+
+export const featureService = new FeatureService();
+```
+
+### Bước 3: Implement Controller
 
 ```typescript
 // File: src/controllers/feature.controller.ts
+import { featureService } from "@/services";
 
 export const functionName = async (req, res, next) => {
   try {
-    // 1. Extract data
+    // 1. Extract data from request
     const data = req.body;
     const userId = req.user?.id;
 
-    // 2. Business logic
-    // TODO: Add your logic here
+    // 2. Call service
+    const result = await featureService.methodName(data);
 
-    // 3. Database operations
-    // const result = await db.select()...
-
-    // 4. Return response
-    ResponseHandler.sendSuccess(res, { result });
+    // 3. Return HTTP response
+    ResponseHandler.sendSuccess(res, result);
   } catch (error) {
     next(error);
   }
 };
 ```
 
-### Bước 3: Test
+### Bước 4: Test
 
 ```bash
 # Sử dụng Postman, Thunder Client, hoặc curl
@@ -263,7 +319,8 @@ Xem chi tiết trong **[QUICK_START.md](./QUICK_START.md)**
 - [x] 70+ route definitions
 - [x] 12 controller files
 - [x] 12 validation files
-- [x] Database models
+- [x] 7 service files (class-based, singleton pattern)
+- [x] Database models with Vietnamese search optimization
 - [x] Middlewares (auth, validate, error)
 - [x] Error handling system
 - [x] Response utilities
@@ -271,10 +328,10 @@ Xem chi tiết trong **[QUICK_START.md](./QUICK_START.md)**
 
 ### 🚧 Cần Implement
 
-- [ ] Controller business logic
+- [ ] Service business logic implementation
+- [ ] Controller integration with services
 - [ ] JWT authentication
 - [ ] File upload
-- [ ] Email service
 - [ ] WebSocket (real-time)
 - [ ] Unit tests
 - [ ] Integration tests
@@ -295,13 +352,25 @@ Xem chi tiết trong **[QUICK_START.md](./QUICK_START.md)**
 
 ## 📝 Next Steps
 
-1. **Implement controllers** - Thay `NotImplementedError` bằng logic thực
-2. **Add database queries** - Sử dụng Drizzle ORM
-3. **Setup JWT** - Implement authentication
-4. **File upload** - Add image upload for products
-5. **Email service** - For notifications and password reset
-6. **WebSocket** - For real-time chat and bidding
-7. **Testing** - Write unit and integration tests
+1. **Implement service methods** - Thay placeholder logic bằng business rules thực
+2. **Connect controllers to services** - Gọi service methods từ controllers
+3. **Add database queries** - Hoàn thiện Drizzle ORM queries
+4. **Setup JWT** - Implement authentication middleware
+5. **File upload** - Add image upload for products
+6. **Email service** - Integrate nodemailer for notifications
+7. **WebSocket** - For real-time chat and bidding
+8. **Testing** - Write unit tests cho services, integration tests cho endpoints
+
+---
+
+**Priority Order:**
+
+1. 🔥 **AuthService** → Login/Register working
+2. 🔥 **ProductService** → Search & listing
+3. 🔥 **BidService** → Core auction functionality
+4. **UserService** → Profile & watchlist
+5. **OrderService** → Post-auction flow
+6. **RatingService** → Feedback system
 
 ---
 
