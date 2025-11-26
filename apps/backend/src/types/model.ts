@@ -13,11 +13,15 @@ import {
   upgradeRequests,
   users,
   watchLists,
+  orders,
+  orderPayments,
+  orderStatusHistory,
 } from "@/models";
 
 // User types
 export type User = InferSelectModel<typeof users>;
 export type NewUser = InferInsertModel<typeof users>;
+export type UserRole = User["role"];
 
 // Upgrade request types
 export type UpgradeRequest = InferSelectModel<typeof upgradeRequests>;
@@ -66,3 +70,15 @@ export type NewChatMessage = InferInsertModel<typeof chatMessages>;
 // Product question types
 export type ProductQuestion = InferSelectModel<typeof productQuestions>;
 export type NewProductQuestion = InferInsertModel<typeof productQuestions>;
+
+// Order types
+export type Order = InferSelectModel<typeof orders>;
+export type NewOrder = InferInsertModel<typeof orders>;
+
+// Order payment types
+export type OrderPayment = InferSelectModel<typeof orderPayments>;
+export type NewOrderPayment = InferInsertModel<typeof orderPayments>;
+
+// Order status history types
+export type OrderStatusHistory = InferSelectModel<typeof orderStatusHistory>;
+export type NewOrderStatusHistory = InferInsertModel<typeof orderStatusHistory>;

@@ -22,3 +22,29 @@ export const requestStatusEnum = pgEnum("request_status", [
 
 // Enum cho Trạng thái Bid
 export const bidStatusEnum = pgEnum("bid_status", ["VALID", "INVALID"]);
+
+// Enum cho Trạng thái Order
+export const orderStatusEnum = pgEnum("order_status", [
+  "PENDING",
+  "PAID",
+  "SHIPPED",
+  "COMPLETED",
+  "CANCELLED",
+]);
+
+// Enum cho Phương thức Thanh toán
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "COD",
+  "BANK_TRANSFER",
+  "CREDIT_CARD",
+  "EWALLET",
+]);
+
+// Enum cho Nhà vận chuyển
+export const shipmentProviderEnum = pgEnum("shipment_provider", [
+  "VNPOST",
+  "GHN",
+  "GHTK",
+  "JNT",
+  "OTHER",
+]);
