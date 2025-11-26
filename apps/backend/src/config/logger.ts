@@ -1,5 +1,8 @@
+import { config } from "dotenv";
 import winston from "winston";
 import path from "path";
+
+config({ path: ".env" });
 
 const { combine, timestamp, errors, json, printf, colorize, align } =
   winston.format;
