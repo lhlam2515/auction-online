@@ -15,6 +15,13 @@
       "when": 1764116326913,
       "tag": "0001_strange_nuke",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1764153213671,
+      "tag": "0002_thankful_unus",
+      "breakpoints": true
     }
   ]
 }

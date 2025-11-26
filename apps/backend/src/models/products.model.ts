@@ -59,9 +59,14 @@ export const products = pgTable(
   },
   (table) => [
     // Tìm kiếm sản phẩm theo tên (Full-text search)
-    index("idx_products_name_trigram").using(
+    index("idx_products_name_fts").using(
       "gin",
-      sql`to_tsvector('english', ${table.name})`
+      sql`to_tsvector('simple', ${table.name})`
+    ),
+    // Tìm kiếm sản phẩm theo tên (Partial search)
+    index("idx_products_name_trgm").using(
+      "gin",
+      sql`${table.name} gin_trgm_ops`
     ),
     // Lọc sản phẩm theo danh mục và trạng thái
     index("idx_products_cat_status").on(table.categoryId, table.status),
