@@ -1,46 +1,5 @@
 import { toast } from "sonner";
-import { ApiError, type ApiResponse } from "@/types/api";
-
-export async function apiClient<T>(
-  url: string,
-  options?: RequestInit
-): Promise<T> {
-  try {
-    const response = await fetch(url, options);
-    const data: ApiResponse<T> = await response.json();
-
-    if (!data.success || !response.ok) {
-      throw new ApiError(
-        data.error?.statusCode || response.status,
-        data.error?.code || "UNKNOWN_ERROR",
-        data.error?.message || `HTTP Error: ${response.status}`
-      );
-    }
-
-    return data.data!;
-  } catch (error) {
-    // Re-throw if already ApiError
-    if (error instanceof ApiError) {
-      throw error;
-    }
-
-    // Network error
-    if (error instanceof TypeError) {
-      throw new ApiError(
-        0,
-        "NETWORK_ERROR",
-        "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng."
-      );
-    }
-
-    // Unknown error
-    throw new ApiError(
-      500,
-      "UNKNOWN_ERROR",
-      error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định"
-    );
-  }
-}
+import { ApiError } from "@/types/api";
 
 export function showError(error: unknown, customMessage?: string) {
   const message = getErrorMessage(error, customMessage);
