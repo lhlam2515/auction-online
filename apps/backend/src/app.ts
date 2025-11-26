@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 
 import { errorHandler, notFound } from "@/middlewares/error-handler";
 import { ResponseHandler } from "@/utils/response";
+import routes from "@/routes";
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.get("/", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// API Routes
+app.use("/api/v1", routes);
 
 // Error handling middleware (must be last)
 app.use(notFound);
