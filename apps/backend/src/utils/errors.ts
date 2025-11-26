@@ -33,7 +33,7 @@ export class AppError extends Error {
   }
 }
 
-export class ValidationError extends AppError {
+export class BadRequestError extends AppError {
   constructor(message: string, details?: unknown) {
     super({
       message,
@@ -44,7 +44,7 @@ export class ValidationError extends AppError {
   }
 }
 
-export class AuthenticationError extends AppError {
+export class UnauthorizedError extends AppError {
   constructor(message: string = "Authentication required") {
     super({
       message,
@@ -54,7 +54,7 @@ export class AuthenticationError extends AppError {
   }
 }
 
-export class AuthorizationError extends AppError {
+export class ForbiddenError extends AppError {
   constructor(message: string = "Access denied") {
     super({
       message,
@@ -92,6 +92,16 @@ export class DatabaseError extends AppError {
       statusCode: 500,
       code: ErrorCodes.DATABASE_ERROR,
       cause,
+    });
+  }
+}
+
+export class NotImplementedError extends AppError {
+  constructor(message: string = "Not implemented") {
+    super({
+      message,
+      statusCode: 501,
+      code: "NOT_IMPLEMENTED",
     });
   }
 }

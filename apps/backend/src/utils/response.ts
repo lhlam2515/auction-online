@@ -1,39 +1,6 @@
 import { Response } from "express";
 import { ErrorResponse, SuccessResponse } from "@/types/error";
-
-class ApiResponseBuilder {
-  static success<T>(data: T, message?: string): SuccessResponse<T> {
-    return {
-      success: true,
-      data,
-      ...(message && { message }),
-    };
-  }
-
-  static error(
-    name: string,
-    message: string,
-    code: string,
-    statusCode: number,
-    path: string,
-    details?: unknown,
-    stack?: string
-  ): ErrorResponse {
-    return {
-      success: false,
-      error: {
-        name,
-        message,
-        code,
-        statusCode,
-        timestamp: new Date().toISOString(),
-        path,
-        details,
-        ...(process.env.NODE_ENV === "development" && { stack }),
-      },
-    };
-  }
-}
+import { AppError } from "./errors";
 
 export class ResponseHandler {
   static sendSuccess<T>(
@@ -42,34 +9,31 @@ export class ResponseHandler {
     statusCode: number = 200,
     message?: string
   ): Response<SuccessResponse<T>> {
-    return res
-      .status(statusCode)
-      .json(ApiResponseBuilder.success(data, message));
+    return res.status(statusCode).json({
+      success: true,
+      data,
+      ...(message && { message }),
+    });
   }
 
   static sendError(
     res: Response,
-    name: string,
-    message: string,
-    code: string,
-    statusCode: number,
-    path: string,
-    details?: unknown,
-    stack?: string
+    error: AppError,
+    path: string
   ): Response<ErrorResponse> {
-    return res
-      .status(statusCode)
-      .json(
-        ApiResponseBuilder.error(
-          name,
-          message,
-          code,
-          statusCode,
-          path,
-          details,
-          stack
-        )
-      );
+    return res.status(error.statusCode).json({
+      success: false,
+      error: {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        statusCode: error.statusCode,
+        timestamp: new Date().toISOString(),
+        path,
+        details: error.details,
+        ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
+      },
+    });
   }
 
   static sendCreated<T>(
