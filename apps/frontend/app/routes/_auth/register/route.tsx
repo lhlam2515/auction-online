@@ -15,7 +15,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return {};
 }
 
-export default function RegisterComponent() {
+export default function RegisterPage() {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Register</h1>

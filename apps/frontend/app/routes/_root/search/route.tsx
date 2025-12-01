@@ -18,7 +18,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return {};
 }
 
-export default function SearchBrowseComponent() {
+export default function SearchBrowsePage() {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Search & Browse</h1>

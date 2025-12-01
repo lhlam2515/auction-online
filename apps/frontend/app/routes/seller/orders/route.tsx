@@ -15,7 +15,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return {};
 }
 
-export default function SoldOrdersComponent() {
+export default function SoldOrdersPage() {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Sold Orders</h1>

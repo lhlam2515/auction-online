@@ -15,7 +15,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return {};
 }
 
-export default function VerifyOTPComponent() {
+export default function VerifyOTPPage() {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Verify OTP</h1>

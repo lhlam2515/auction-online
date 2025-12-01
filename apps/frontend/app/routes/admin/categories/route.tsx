@@ -18,7 +18,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return {};
 }
 
-export default function ManageCategoriesComponent() {
+export default function ManageCategoriesPage() {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Manage Categories</h1>

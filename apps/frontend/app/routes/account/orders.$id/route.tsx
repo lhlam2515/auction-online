@@ -18,7 +18,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return {};
 }
 
-export default function OrderCheckoutComponent() {
+export default function OrderCheckoutPage() {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Order Checkout</h1>

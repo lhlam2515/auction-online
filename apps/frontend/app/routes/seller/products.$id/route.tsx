@@ -18,7 +18,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return {};
 }
 
-export default function ManageAuctionComponent() {
+export default function ManageAuctionPage() {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Manage Auction</h1>
