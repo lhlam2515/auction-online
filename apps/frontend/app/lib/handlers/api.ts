@@ -1,120 +1,106 @@
-import { ApiError, type ApiResponse, type ErrorResponse } from "@/types/api";
+import axios, { AxiosError } from "axios";
+import type { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
-// Base API URL - can be configured via environment variable
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
-interface RequestConfig extends RequestInit {
-  params?: Record<string, string | number | boolean>;
+// Extend AxiosRequestConfig to include _retry flag
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
 }
 
-// Check if response is an error response
-function isErrorResponse(
-  response: ApiResponse<unknown>
-): response is ErrorResponse {
-  return response.success === false;
-}
+// Create axios instance
+export const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+});
 
-// Main API client
-async function request<T>(
-  endpoint: string,
-  config: RequestConfig = {}
-): Promise<T> {
-  const { params, headers, ...restConfig } = config;
+// Request interceptor - attach auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  // Build URL with query params
-  let url = `${API_BASE_URL}${endpoint}`;
-  if (params) {
-    const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      searchParams.append(key, String(value));
-    });
-    url += `?${searchParams.toString()}`;
+// Response interceptor - handle errors & refresh token
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as CustomAxiosRequestConfig;
+
+    // Handle 401 - try refresh token
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+
+        const { accessToken } = response.data.data;
+        localStorage.setItem("accessToken", accessToken);
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
   }
+);
 
-  // Make request
-  const response = await fetch(url, {
-    ...restConfig,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-  });
-
-  // Parse JSON response
-  const data: ApiResponse<T> = await response.json();
-
-  // Handle error responses
-  if (isErrorResponse(data)) {
-    throw new ApiError(
-      data.error.statusCode,
-      data.error.code,
-      data.error.message,
-      data.error.details
+// Helper to extract error message
+export function getErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    return (
+      error.response?.data?.message || error.message || "An error occurred"
     );
   }
-
-  return data.data;
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "Unknown error occurred";
 }
 
-// Convenience methods
-export const api = {
-  get: <T>(endpoint: string, config?: RequestConfig) =>
-    request<T>(endpoint, { ...config, method: "GET" }),
+// Helper to check if user is authenticated
+export function isAuthenticated(): boolean {
+  return !!localStorage.getItem("accessToken");
+}
 
-  post: <T>(endpoint: string, body?: unknown, config?: RequestConfig) =>
-    request<T>(endpoint, {
-      ...config,
-      method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
+// Helper to get current user from localStorage
+export function getCurrentUser() {
+  const userStr = localStorage.getItem("user");
+  if (!userStr) return null;
 
-  put: <T>(endpoint: string, body?: unknown, config?: RequestConfig) =>
-    request<T>(endpoint, {
-      ...config,
-      method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
+  try {
+    return JSON.parse(userStr);
+  } catch {
+    return null;
+  }
+}
 
-  patch: <T>(endpoint: string, body?: unknown, config?: RequestConfig) =>
-    request<T>(endpoint, {
-      ...config,
-      method: "PATCH",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
-
-  delete: <T>(endpoint: string, config?: RequestConfig) =>
-    request<T>(endpoint, { ...config, method: "DELETE" }),
-};
-
-// Auth token utilities (for when auth is implemented)
-export const authToken = {
-  get: () => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("auth_token");
-  },
-
-  set: (token: string) => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("auth_token", token);
-  },
-
-  remove: () => {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem("auth_token");
-  },
-};
-
-// Helper to add auth header to requests
-export function withAuth(config: RequestConfig = {}): RequestConfig {
-  const token = authToken.get();
-  if (!token) return config;
-
-  return {
-    ...config,
-    headers: {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  };
+// Helper to clear auth data
+export function clearAuth() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
 }
