@@ -1,10 +1,20 @@
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  ApiError as SharedApiError,
+} from "@repo/shared-types";
+
+// Re-export shared types
+export type { ApiResponse, PaginatedResponse };
+
+// Success response - compatible with shared types
 export interface SuccessResponse<T = unknown> {
   success: true;
   data: T;
   message?: string;
 }
 
-// Error response - simplified for frontend
+// Error response - compatible with shared types
 export interface ErrorResponse {
   success: false;
   error: {
@@ -15,9 +25,7 @@ export interface ErrorResponse {
   };
 }
 
-export type ApiResponse<T = unknown> = SuccessResponse<T> | ErrorResponse;
-
-// Pagination types matching backend
+// Legacy pagination types - kept for backward compatibility
 export interface PaginationMeta {
   page: number;
   pageSize: number;
@@ -27,7 +35,7 @@ export interface PaginationMeta {
 
 export interface Paginated<T> {
   items: T[];
-  meta: PaginationMeta;
+  pagination: PaginationMeta;
 }
 
 export type PaginatedSuccessResponse<T> = SuccessResponse<Paginated<T>>;

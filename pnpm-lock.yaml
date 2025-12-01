@@ -41,6 +41,9 @@ importers:
 
   apps/backend:
     dependencies:
+      '@repo/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -132,6 +135,9 @@ importers:
       '@react-router/serve':
         specifier: ^7.9.2
         version: 7.9.5(react-router@7.9.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(typescript@5.9.3)
+      '@repo/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       axios:
         specifier: ^1.13.2
         version: 1.13.2
@@ -237,6 +243,12 @@ importers:
         version: 8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3)
 
   packages/lint-staged-config: {}
+
+  packages/shared-types:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
 packages:
 

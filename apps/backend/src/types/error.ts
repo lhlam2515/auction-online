@@ -1,3 +1,9 @@
+import type { ApiResponse } from "@repo/shared-types";
+
+// Re-export shared types for backward compatibility
+export type { ApiResponse };
+
+// Backend-specific error response (compatible with shared types)
 export interface ErrorResponse {
   success: false;
   error: {
@@ -12,13 +18,17 @@ export interface ErrorResponse {
   };
 }
 
+// Backend success response (compatible with shared types)
 export interface SuccessResponse<T = unknown> {
   success: true;
   data: T;
   message?: string;
 }
 
-export type ApiResponse<T = unknown> = SuccessResponse<T> | ErrorResponse;
+// Backend-specific alias for ApiResponse
+export type BackendApiResponse<T = unknown> =
+  | SuccessResponse<T>
+  | ErrorResponse;
 
 export interface AppErrorOptions {
   message: string;

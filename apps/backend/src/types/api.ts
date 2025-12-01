@@ -1,5 +1,9 @@
-import type { SuccessResponse } from "@/types/error";
+import type { PaginatedResponse } from "@repo/shared-types";
 
+// Re-export for backward compatibility
+export type { PaginatedResponse };
+
+// Legacy pagination metadata structure
 export interface PaginationMeta {
   page: number;
   pageSize: number;
@@ -7,9 +11,8 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+// Legacy paginated data structure - matches backend's current format
 export interface Paginated<T> {
   items: T[];
-  meta: PaginationMeta;
+  pagination: PaginationMeta;
 }
-
-export type PaginatedResponse<T> = SuccessResponse<Paginated<T>>;
