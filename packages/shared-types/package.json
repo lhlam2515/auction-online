@@ -1,0 +1,82 @@
+{
+  "name": "@repo/shared-types",
+  "version": "0.1.0",
+  "description": "Shared TypeScript types for Auction Online - Modular and maintainable type definitions",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "import": "./dist/common/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "import": "./dist/auth/index.js"
+    },
+    "./user": {
+      "types": "./dist/user/index.d.ts",
+      "import": "./dist/user/index.js"
+    },
+    "./category": {
+      "types": "./dist/category/index.d.ts",
+      "import": "./dist/category/index.js"
+    },
+    "./product": {
+      "types": "./dist/product/index.d.ts",
+      "import": "./dist/product/index.js"
+    },
+    "./bid": {
+      "types": "./dist/bid/index.d.ts",
+      "import": "./dist/bid/index.js"
+    },
+    "./question": {
+      "types": "./dist/question/index.d.ts",
+      "import": "./dist/question/index.js"
+    },
+    "./chat": {
+      "types": "./dist/chat/index.d.ts",
+      "import": "./dist/chat/index.js"
+    },
+    "./order": {
+      "types": "./dist/order/index.d.ts",
+      "import": "./dist/order/index.js"
+    },
+    "./rating": {
+      "types": "./dist/rating/index.d.ts",
+      "import": "./dist/rating/index.js"
+    },
+    "./seller": {
+      "types": "./dist/seller/index.d.ts",
+      "import": "./dist/seller/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin/index.d.ts",
+      "import": "./dist/admin/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "types",
+    "typescript",
+    "shared",
+    "auction",
+    "modular"
+  ],
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}
