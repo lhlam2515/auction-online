@@ -1,54 +1,70 @@
-import {
-  boolean,
-  integer,
-  pgTable,
-  real,
-  text,
-  timestamp,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { pgTable, index, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 import { requestStatusEnum, userRoleEnum } from "./enums.model";
-import { InferSelectModel } from "drizzle-orm";
 
 // Bảng Users
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull().unique(),
-  fullName: text("full_name").notNull(),
-  passwordHash: text("password_hash"), // Nullable nếu dùng Social Login
-  role: userRoleEnum("role").default("BIDDER"),
-  address: text("address"),
-  avatarUrl: text("avatar_url"),
+export const users = pgTable(
+  "users",
+  (t) => ({
+    id: t.uuid("id").primaryKey(), // Uses Supabase auth.users.id directly
+    email: t.text("email").notNull(), // Synced from Supabase auth.users.email
+    username: t.text("username").notNull().unique(), // Unique username
+    fullName: t.text("full_name").notNull(),
+    role: userRoleEnum("role").notNull().default("BIDDER"),
+    address: t.text("address"),
+    avatarUrl: t.text("avatar_url"), // Can be synced from Supabase user metadata
 
-  // Điểm tín nhiệm
-  ratingScore: real("rating_score").default(0),
-  ratingCount: integer("rating_count").default(0), // Tổng số lượt đánh giá
-  goodRatingCount: integer("good_rating_count").default(0), // Số lượt +1
+    // Credit scoring - simplified
+    ratingScore: t.real("rating_score").notNull().default(0),
+    ratingCount: t.integer("rating_count").notNull().default(0),
 
-  // Logic bảo mật & Nghiệp vụ
-  isActive: boolean("is_active").default(true),
-  isDeleted: boolean("is_deleted").default(false), // Soft delete
-  sellerExpireDate: timestamp("seller_expire_date", { withTimezone: true }),
-  lockoutEnd: timestamp("lockout_end", { withTimezone: true }),
+    // Business logic only
+    sellerExpireDate: t.timestamp("seller_expire_date", { withTimezone: true }),
 
-  // Social Login
-  socialProvider: text("social_provider"), // 'GOOGLE', 'FACEBOOK'
-  socialId: text("social_id"),
+    createdAt: t
+      .timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: t
+      .timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  }),
+  (table) => [
+    // Essential indexes only
+    index("idx_users_email").on(table.email), // Login lookup
 
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-});
+    // Business logic constraints
+    check(
+      "rating_score_range",
+      sql`${table.ratingScore} >= 0 AND ${table.ratingScore} <= 5`
+    ),
+    check("rating_counts_positive", sql`${table.ratingCount} >= 0`),
+  ]
+);
 
 // Bảng yêu cầu nâng cấp lên Seller
-export const upgradeRequests = pgTable("upgrade_requests", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id),
-  reason: text("reason"),
-  status: requestStatusEnum("status").default("PENDING"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  processedAt: timestamp("processed_at", { withTimezone: true }),
-  adminNote: text("admin_note"),
-});
+export const upgradeRequests = pgTable(
+  "upgrade_requests",
+  (t) => ({
+    id: t.uuid("id").primaryKey().defaultRandom(),
+    userId: t
+      .uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reason: t.text("reason"),
+    status: requestStatusEnum("status").notNull().default("PENDING"),
+    processedBy: t.uuid("processed_by").references(() => users.id), // Admin who processed
+    createdAt: t
+      .timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    processedAt: t.timestamp("processed_at", { withTimezone: true }),
+    adminNote: t.text("admin_note"),
+  }),
+  (table) => [
+    // Essential indexes only
+    index("idx_upgrade_requests_user_status").on(table.userId, table.status),
+  ]
+);

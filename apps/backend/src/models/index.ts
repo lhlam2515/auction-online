@@ -7,3 +7,6 @@ export * from "./products.model";
 export * from "./auction.model";
 export * from "./interactions.model";
 export * from "./order.model";
+
+// Export all relations
+export * from "./relations";

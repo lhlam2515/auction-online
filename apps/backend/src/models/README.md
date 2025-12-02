@@ -1,328 +1,148 @@
-# Models Directory
+# Database Models - Auction Platform
 
-Thư mục này chứa các Drizzle ORM schema definitions và database models.
+## 📋 Table of Contents
 
-## 📁 Cấu trúc
+- [Overview](#overview)
+- [File Structure](#file-structure)
+- [Naming Conventions](#naming-conventions)
+- [Usage Examples](#usage-examples)
+- [Quick Reference](#quick-reference)
+
+## Overview
+
+Optimized database schema cho hệ thống đấu giá trực tuyến với Drizzle ORM và PostgreSQL. Schema được tối ưu hóa cho hiệu suất, tích hợp Supabase Auth, và giảm thiểu indexes không cần thiết.
+
+## File Structure
+
+### Core Models
 
 ```text
-models/
-├── index.ts              # Export tất cả models
-├── enums.model.ts        # Database enums
-├── users.model.ts        # User-related tables
-├── products.model.ts     # Product-related tables
-├── auction.model.ts      # Auction-related tables
-├── interactions.model.ts # User interactions
-└── README.md            # File này
+src/models/
+├── enums.model.ts        # Enum definitions
+├── users.model.ts        # Users & upgrade requests (Supabase Auth optimized)
+├── products.model.ts     # Products, categories, images
+├── auction.model.ts      # Bidding system & auto-bids
+├── interactions.model.ts # Ratings, chat, Q&A
+├── order.model.ts        # Order & payment management
+├── relations.ts          # Table relationships
+└── index.ts              # Exports
 ```
 
-## 🎯 Mục đích
+## Naming Conventions
 
-Models chịu trách nhiệm:
+| Element   | Convention             | Example          |
+| --------- | ---------------------- | ---------------- |
+| Files     | kebab-case + .model.ts | `users.model.ts` |
+| Tables    | snake_case, plural     | `product_images` |
+| Columns   | snake_case             | `full_name`      |
+| Variables | camelCase              | `productImages`  |
 
-- Define database schema với Drizzle ORM
-- Type definitions cho database entities
-- Relationships giữa các tables
-- Indexes và constraints
-- Enums và custom types
+## Usage Examples
 
-## 📝 Convention
-
-### File naming
-
-- Sử dụng **kebab-case** cho tên file
-- Suffix: `.model.ts`
-- Tên file mô tả domain: `users.model.ts`, `products.model.ts`
-- File `enums.model.ts` cho tất cả enums
-- File `index.ts` để export tất cả
-
-### Table naming
+### Import & Basic Operations
 
 ```typescript
-// ✅ Recommended structure
-export const tableName = pgTable("table_name", {
-  // columns definition
-});
-
-// Table name: snake_case, plural form
-// Variable name: camelCase, singular/plural tùy context
-```
-
-### Column naming
-
-```typescript
-// ✅ Good column definitions
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull().unique(),
-  fullName: text("full_name").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-});
-```
-
-### Code structure
-
-```typescript
-// ✅ Recommended structure
-import {
-  boolean,
-  integer,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from "drizzle-orm/pg-core";
-import { InferSelectModel, InferInsertModel } from "drizzle-orm";
-
-// 1. Import enums if needed
-import { userRoleEnum } from "./enums.model";
-
-// 2. Define table schema
-export const users = pgTable("users", {
-  // Primary key first
-  id: uuid("id").primaryKey().defaultRandom(),
-
-  // Required fields
-  email: text("email").notNull().unique(),
-  fullName: text("full_name").notNull(),
-
-  // Optional fields
-  address: text("address"),
-  avatarUrl: text("avatar_url"),
-
-  // Enums
-  role: userRoleEnum("role").default("BIDDER"),
-
-  // Timestamps last
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-});
-
-// 3. Export type definitions
-export type User = InferSelectModel<typeof users>;
-export type CreateUser = InferInsertModel<typeof users>;
-export type UpdateUser = Partial<CreateUser>;
-```
-
-## 🚀 Cách sử dụng
-
-### Import models
-
-```typescript
-// Import specific table
-import { users } from "@/models/users.model";
-
-// Import all (recommended)
-import * as models from "@/models";
-
-// Import types
-import { User, CreateUser } from "@/models/users.model";
-```
-
-### Database operations
-
-```typescript
-import { db } from "@/config/database";
-import { users } from "@/models";
+// Import
+import { users, products } from "@/models";
+import { User, Product } from "@/models/types";
 
 // Select
-const allUsers = await db.select().from(users);
 const user = await db.select().from(users).where(eq(users.id, userId));
 
 // Insert
-const newUser = await db
-  .insert(users)
-  .values({
-    email: "user@example.com",
-    fullName: "John Doe",
-  })
-  .returning();
+await db.insert(users).values({
+  id: authUserId, // From Supabase Auth
+  email: "user@example.com",
+  fullName: "John Doe",
+});
 
 // Update
-const updatedUser = await db
+await db
   .update(users)
   .set({ fullName: "Jane Doe" })
-  .where(eq(users.id, userId))
-  .returning();
-
-// Delete
-await db.delete(users).where(eq(users.id, userId));
+  .where(eq(users.id, userId));
 ```
 
-### Relationships
+### Relationships & Joins
 
 ```typescript
-// One-to-many relationship
-export const products = pgTable("products", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  sellerId: uuid("seller_id")
-    .notNull()
-    .references(() => users.id), // Foreign key
-  // other columns...
-});
+// Product with seller info
+const productWithSeller = await db
+  .select()
+  .from(products)
+  .leftJoin(users, eq(products.sellerId, users.id))
+  .where(eq(products.id, productId));
 
-// Many-to-many với junction table
-export const userFavorites = pgTable(
-  "user_favorites",
-  {
-    userId: uuid("user_id")
+// User bids
+const userBids = await db
+  .select()
+  .from(bids)
+  .leftJoin(products, eq(bids.productId, products.id))
+  .where(eq(bids.userId, userId));
+```
+
+### Shared Types Integration
+
+```typescript
+import { ApiResponse, ProductSearchFilters } from "@repo/shared-types";
+
+// API responses use shared types
+const response: ApiResponse<User[]> = {
+  success: true,
+  data: users,
+  message: "Users retrieved successfully",
+};
+```
+
+## Quick Reference
+
+### Table Schema Pattern
+
+```typescript
+export const tableName = pgTable(
+  "table_name",
+  (t) => ({
+    id: t.uuid("id").primaryKey().defaultRandom(),
+    // ... other columns
+    createdAt: t
+      .timestamp("created_at", { withTimezone: true })
       .notNull()
-      .references(() => users.id),
-    productId: uuid("product_id")
+      .defaultNow(),
+    updatedAt: t
+      .timestamp("updated_at", { withTimezone: true })
       .notNull()
-      .references(() => products.id),
-  },
-  (table) => ({
-    pk: primaryKey(table.userId, table.productId), // Composite primary key
-  })
+      .defaultNow(),
+  }),
+  (table) => [
+    // Essential indexes only
+    index("idx_table_field").on(table.field),
+    // Business constraints
+    check("constraint_name", sql`${table.field} > 0`),
+  ]
 );
 ```
 
-### Enums definition
+### Key Features
 
-```typescript
-// enums.model.ts
-import { pgEnum } from "drizzle-orm/pg-core";
+- **Supabase Auth Integration**: Users table optimized for `auth.users.id` mapping
+- **Minimal Indexes**: Only essential indexes for search performance
+- **Shared Types**: Common types moved to `@repo/shared-types` package
+- **Type Safety**: Full TypeScript support with Drizzle ORM
+- **Business Constraints**: Database-level validation rules
 
-export const userRoleEnum = pgEnum("user_role", ["BIDDER", "SELLER", "ADMIN"]);
-export const auctionStatusEnum = pgEnum("auction_status", [
-  "PENDING",
-  "ACTIVE",
-  "COMPLETED",
-  "CANCELLED",
-]);
-export const requestStatusEnum = pgEnum("request_status", [
-  "PENDING",
-  "APPROVED",
-  "REJECTED",
-]);
-```
+### Model Checklist
 
-## 🔧 Best Practices
+- [ ] Snake_case table/column names
+- [ ] UUID primary keys
+- [ ] Proper foreign key references
+- [ ] Essential indexes only
+- [ ] Timestamp fields (createdAt, updatedAt)
+- [ ] TypeScript type exports
+- [ ] Business constraint checks
 
-- **Type Safety**: Sử dụng TypeScript types được generate từ schema
-- **Consistent Naming**: Follow naming convention across all models
-- **Proper Constraints**: Add appropriate indexes, unique constraints
-- **Relationships**: Define foreign keys và relationships properly
-- **Timestamps**: Include `createdAt`, `updatedAt` cho audit trail
-- **Soft Delete**: Consider soft delete với `isDeleted` flag
-- **Documentation**: JSDoc comments cho complex relationships
+### Performance Notes
 
-## 📋 Checklist khi tạo model mới
-
-- [ ] File name follow convention (kebab-case + .model.ts)
-- [ ] Table name in snake_case, plural form
-- [ ] Column names in snake_case
-- [ ] Primary key definition (uuid recommended)
-- [ ] Proper data types cho columns
-- [ ] Foreign key references nếu cần
-- [ ] Appropriate constraints (unique, not null)
-- [ ] Default values for optional fields
-- [ ] Timestamps (createdAt, updatedAt)
-- [ ] Export TypeScript types (InferSelectModel, InferInsertModel)
-- [ ] Update index.ts để export model
-- [ ] Add JSDoc comments nếu cần
-
-## 🎨 Example Template
-
-```typescript
-import {
-  boolean,
-  integer,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from "drizzle-orm/pg-core";
-import { InferSelectModel, InferInsertModel } from "drizzle-orm";
-
-// Import enums
-import { statusEnum } from "./enums.model";
-
-// Import related tables for foreign keys
-import { users } from "./users.model";
-
-/**
- * Resource table definition
- * Represents [description of what this table stores]
- */
-export const resources = pgTable("resources", {
-  // Primary key
-  id: uuid("id").primaryKey().defaultRandom(),
-
-  // Required fields
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-
-  // Foreign keys
-  ownerId: uuid("owner_id")
-    .notNull()
-    .references(() => users.id),
-
-  // Optional fields
-  metadata: text("metadata"), // JSON string
-
-  // Enums
-  status: statusEnum("status").default("ACTIVE"),
-
-  // Boolean flags
-  isActive: boolean("is_active").default(true),
-  isDeleted: boolean("is_deleted").default(false),
-
-  // Timestamps
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-});
-
-// Type exports
-export type Resource = InferSelectModel<typeof resources>;
-export type CreateResource = InferInsertModel<typeof resources>;
-export type UpdateResource = Partial<Omit<CreateResource, "id" | "createdAt">>;
-```
-
-## 🗄️ Database Schema Guidelines
-
-### Column Types
-
-- **IDs**: `uuid()` với `defaultRandom()`
-- **Text**: `text()` cho strings
-- **Numbers**: `integer()`, `real()`, `numeric()`
-- **Dates**: `timestamp()` với `withTimezone: true`
-- **Booleans**: `boolean()` với default values
-- **Enums**: Custom `pgEnum()` definitions
-
-### Indexes
-
-```typescript
-// Add indexes for performance
-export const products = pgTable(
-  "products",
-  {
-    // columns...
-  },
-  (table) => ({
-    // Composite index
-    sellerStatusIdx: index("seller_status_idx").on(
-      table.sellerId,
-      table.status
-    ),
-    // Single column index
-    nameIdx: index("name_idx").on(table.name),
-  })
-);
-```
-
-### Constraints
-
-```typescript
-// Unique constraints
-email: text("email").notNull().unique(),
-
-// Check constraints (when supported)
-price: numeric("price").notNull(), // Add check price > 0 in migration
-
-// Foreign key with cascade
-userId: uuid("user_id")
-  .notNull()
-  .references(() => users.id, { onDelete: 'cascade' }),
-```
+- ✅ **9 essential indexes** (reduced from 70+)
+- ✅ **Search-focused**: Full-text + trigram indexes for products
+- ✅ **Constraint validation**: Database-level business rules
+- ✅ **Relationship integrity**: Proper cascade behaviors
