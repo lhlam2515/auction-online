@@ -5,6 +5,7 @@ import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
+import { corsOptions } from "@/config/cors";
 import { errorHandler, notFound } from "@/middlewares/error-handler";
 import { ResponseHandler } from "@/utils/response";
 import routes from "@/routes";
@@ -12,7 +13,7 @@ import routes from "@/routes";
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
