@@ -3,6 +3,11 @@ import { AuthRequest } from "@/middlewares/auth";
 import { ResponseHandler } from "@/utils/response";
 import { NotImplementedError } from "@/utils/errors";
 import { asyncHandler } from "@/middlewares/error-handler";
+import type {
+  AskQuestionRequest,
+  AnswerQuestionRequest,
+  Question,
+} from "@repo/shared-types";
 
 export const getPublicQuestions = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -20,6 +25,7 @@ export const getPrivateQuestions = asyncHandler(
 
 export const askQuestion = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as AskQuestionRequest;
     // TODO: Ask a question about product
     throw new NotImplementedError("Ask question not implemented yet");
   }
@@ -27,6 +33,7 @@ export const askQuestion = asyncHandler(
 
 export const answerQuestion = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as AnswerQuestionRequest;
     // TODO: Answer a question
     throw new NotImplementedError("Answer question not implemented yet");
   }

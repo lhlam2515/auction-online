@@ -3,6 +3,11 @@ import { AuthRequest } from "@/middlewares/auth";
 import { ResponseHandler } from "@/utils/response";
 import { NotImplementedError } from "@/utils/errors";
 import { asyncHandler } from "@/middlewares/error-handler";
+import type {
+  SendMessageRequest,
+  ChatMessage,
+  UnreadCountResponse,
+} from "@repo/shared-types";
 
 export const getChatHistory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -13,6 +18,7 @@ export const getChatHistory = asyncHandler(
 
 export const sendMessage = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as SendMessageRequest;
     // TODO: Send chat message
     throw new NotImplementedError("Send message not implemented yet");
   }

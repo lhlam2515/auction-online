@@ -3,16 +3,24 @@ import { AuthRequest } from "@/middlewares/auth";
 import { ResponseHandler } from "@/utils/response";
 import { NotImplementedError } from "@/utils/errors";
 import { asyncHandler } from "@/middlewares/error-handler";
+import type {
+  User,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
+  UpgradeRequestData,
+} from "@repo/shared-types";
 
 export const getProfile = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get current user profile
+    // ResponseHandler.sendSuccess<User>(res, user);
     throw new NotImplementedError("Get profile not implemented yet");
   }
 );
 
 export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as UpdateProfileRequest;
     // TODO: Update user profile
     throw new NotImplementedError("Update profile not implemented yet");
   }
@@ -20,6 +28,7 @@ export const updateProfile = asyncHandler(
 
 export const changePassword = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as ChangePasswordRequest;
     // TODO: Change user password
     throw new NotImplementedError("Change password not implemented yet");
   }
@@ -62,6 +71,7 @@ export const getBiddingHistory = asyncHandler(
 
 export const requestUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as UpgradeRequestData;
     // TODO: Request upgrade to Seller role
     throw new NotImplementedError("Request upgrade not implemented yet");
   }

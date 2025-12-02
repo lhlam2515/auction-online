@@ -3,6 +3,20 @@ import { AuthRequest } from "@/middlewares/auth";
 import { ResponseHandler } from "@/utils/response";
 import { NotImplementedError } from "@/utils/errors";
 import { asyncHandler } from "@/middlewares/error-handler";
+import type {
+  AdminStats,
+  GetUsersParams,
+  BanUserRequest,
+  ResetUserPasswordRequest,
+  UpgradeRequest,
+  ProcessUpgradeRequest,
+  GetProductsParams,
+  RejectProductRequest,
+  SuspendProductRequest,
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+  Category,
+} from "@repo/shared-types";
 
 export const getDashboardStats = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -13,6 +27,7 @@ export const getDashboardStats = asyncHandler(
 
 export const getUsers = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const query = req.query as unknown as GetUsersParams;
     // TODO: Get all users with filters
     throw new NotImplementedError("Get users not implemented yet");
   }
@@ -20,6 +35,7 @@ export const getUsers = asyncHandler(
 
 export const toggleBanUser = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as BanUserRequest;
     // TODO: Ban/unban user
     throw new NotImplementedError("Toggle ban user not implemented yet");
   }
@@ -27,6 +43,7 @@ export const toggleBanUser = asyncHandler(
 
 export const resetUserPassword = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as ResetUserPasswordRequest;
     // TODO: Reset user password
     throw new NotImplementedError("Reset user password not implemented yet");
   }
@@ -41,6 +58,7 @@ export const getUpgradeRequests = asyncHandler(
 
 export const approveUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as ProcessUpgradeRequest;
     // TODO: Approve upgrade request
     throw new NotImplementedError("Approve upgrade not implemented yet");
   }
@@ -48,6 +66,7 @@ export const approveUpgrade = asyncHandler(
 
 export const rejectUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as ProcessUpgradeRequest;
     // TODO: Reject upgrade request
     throw new NotImplementedError("Reject upgrade not implemented yet");
   }
@@ -55,6 +74,7 @@ export const rejectUpgrade = asyncHandler(
 
 export const getAllProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const query = req.query as unknown as GetProductsParams;
     // TODO: Get all products
     throw new NotImplementedError("Get all products not implemented yet");
   }
@@ -62,6 +82,7 @@ export const getAllProducts = asyncHandler(
 
 export const getPendingProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const query = req.query as unknown as GetProductsParams;
     // TODO: Get pending products
     throw new NotImplementedError("Get pending products not implemented yet");
   }
@@ -76,6 +97,7 @@ export const approveProduct = asyncHandler(
 
 export const rejectProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as RejectProductRequest;
     // TODO: Reject product
     throw new NotImplementedError("Reject product not implemented yet");
   }
@@ -83,6 +105,7 @@ export const rejectProduct = asyncHandler(
 
 export const suspendProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as SuspendProductRequest;
     // TODO: Suspend active product
     throw new NotImplementedError("Suspend product not implemented yet");
   }
@@ -90,6 +113,7 @@ export const suspendProduct = asyncHandler(
 
 export const createCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as CreateCategoryRequest;
     // TODO: Create category
     throw new NotImplementedError("Create category not implemented yet");
   }
@@ -97,6 +121,7 @@ export const createCategory = asyncHandler(
 
 export const updateCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const body = req.body as UpdateCategoryRequest;
     // TODO: Update category
     throw new NotImplementedError("Update category not implemented yet");
   }
