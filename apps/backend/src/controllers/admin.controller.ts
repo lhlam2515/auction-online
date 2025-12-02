@@ -10,7 +10,7 @@ import type {
   ResetUserPasswordRequest,
   UpgradeRequest,
   ProcessUpgradeRequest,
-  GetProductsParams,
+  AdminGetProductsParams,
   RejectProductRequest,
   SuspendProductRequest,
   CreateCategoryRequest,
@@ -74,7 +74,7 @@ export const rejectUpgrade = asyncHandler(
 
 export const getAllProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as GetProductsParams;
+    const query = req.query as unknown as AdminGetProductsParams;
     // TODO: Get all products
     throw new NotImplementedError("Get all products not implemented yet");
   }
@@ -82,7 +82,7 @@ export const getAllProducts = asyncHandler(
 
 export const getPendingProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as GetProductsParams;
+    const query = req.query as unknown as AdminGetProductsParams;
     // TODO: Get pending products
     throw new NotImplementedError("Get pending products not implemented yet");
   }
