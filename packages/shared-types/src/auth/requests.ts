@@ -1,5 +1,3 @@
-import type { User } from "../user";
-
 /**
  * User registration request
  * Backend validation: auth.validation.ts → registerSchema
@@ -18,14 +16,6 @@ export interface RegisterRequest {
 export interface LoginRequest {
   email: string;
   password: string;
-}
-
-/**
- * Login response with user data and access token
- */
-export interface LoginResponse {
-  user: User;
-  accessToken: string;
 }
 
 /**
@@ -72,9 +62,9 @@ export interface ResendVerificationRequest {
 }
 
 /**
- * Google login response
+ * Google login request
+ * Backend validation: auth.validation.ts → googleLoginSchema
  */
-export interface GoogleLoginResponse {
-  user: User;
-  accessToken: string;
+export interface GoogleLoginRequest {
+  token: string;
 }

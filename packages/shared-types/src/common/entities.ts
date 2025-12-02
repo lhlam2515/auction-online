@@ -48,17 +48,23 @@ export interface ActionSuccessResponse<T = unknown> {
 }
 
 /**
- * Form action error response
+ * Generic ID parameter
  */
-export interface ActionErrorResponse {
-  success: false;
-  error: string;
-  errors?: Record<string, string[]>;
+export interface IdParam {
+  id: string;
 }
 
 /**
- * Generic action response type
+ * Timestamp fields
  */
-export type ActionResponse<T = unknown> =
-  | ActionSuccessResponse<T>
-  | ActionErrorResponse;
+export interface TimestampFields {
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Soft delete fields
+ */
+export interface SoftDeleteFields extends TimestampFields {
+  deletedAt?: string;
+}

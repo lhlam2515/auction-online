@@ -1,1 +1,5 @@
-export * from "./auth.types";
+// Request types
+export * from "./requests";
+
+// Response types
+export * from "./responses";

@@ -1,25 +1,4 @@
 /**
- * User role types
- */
-export type UserRole = "BIDDER" | "SELLER" | "ADMIN";
-
-/**
- * User entity
- */
-export interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  role: UserRole;
-  address?: string;
-  avatarUrl?: string;
-  isVerified: boolean;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
  * Update user profile request
  * Backend validation: user.validation.ts → updateProfileSchema
  */

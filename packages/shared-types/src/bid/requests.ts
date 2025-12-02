@@ -1,37 +1,9 @@
 /**
- * Bid entity
- */
-export interface Bid {
-  id: string;
-  productId: string;
-  bidderId: string;
-  bidderName: string;
-  bidderAvatarUrl?: string;
-  amount: number;
-  isAutoBid: boolean;
-  createdAt: string;
-}
-
-/**
  * Place bid request
  * Backend validation: bid.validation.ts → placeBidSchema
  */
 export interface PlaceBidRequest {
   amount: number;
-}
-
-/**
- * Auto bid configuration
- */
-export interface AutoBid {
-  id: string;
-  productId: string;
-  bidderId: string;
-  maxAmount: number;
-  currentAmount: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
 /**
@@ -51,10 +23,10 @@ export interface UpdateAutoBidRequest {
 }
 
 /**
- * Kick bidder from auction request
+ * Kick bidder request
  * Backend validation: bid.validation.ts → kickBidderSchema
  */
 export interface KickBidderRequest {
-  userId: string;
-  reason: string;
+  bidderId: string;
+  reason?: string;
 }

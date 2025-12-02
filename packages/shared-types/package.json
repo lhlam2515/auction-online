@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Shared TypeScript types for Auction Online - Modular and maintainable type definitions",
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
