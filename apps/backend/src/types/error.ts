@@ -1,9 +1,14 @@
 import type { ApiResponse } from "@repo/shared-types";
 
-// Re-export shared types for backward compatibility
+/**
+ * Re-export shared types for use across backend
+ */
 export type { ApiResponse };
 
-// Backend-specific error response (compatible with shared types)
+/**
+ * Backend-specific error response structure
+ * Extends shared ApiResponse with additional backend fields
+ */
 export interface ErrorResponse {
   success: false;
   error: {
@@ -18,18 +23,28 @@ export interface ErrorResponse {
   };
 }
 
-// Backend success response (compatible with shared types)
+/**
+ * Backend success response structure
+ * Compatible with shared ApiResponse
+ */
 export interface SuccessResponse<T = unknown> {
   success: true;
   data: T;
   message?: string;
 }
 
-// Backend-specific alias for ApiResponse
+/**
+ * Backend-specific alias for ApiResponse
+ * Used in response handlers
+ */
 export type BackendApiResponse<T = unknown> =
   | SuccessResponse<T>
   | ErrorResponse;
 
+/**
+ * Application error options
+ * Used for creating custom error instances
+ */
 export interface AppErrorOptions {
   message: string;
   statusCode: number;
@@ -38,6 +53,9 @@ export interface AppErrorOptions {
   cause?: Error;
 }
 
+/**
+ * Standard error codes used across the application
+ */
 export enum ErrorCodes {
   // Validation errors
   VALIDATION_ERROR = "VALIDATION_ERROR",

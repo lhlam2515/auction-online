@@ -1,9 +1,14 @@
 import type { PaginatedResponse } from "@repo/shared-types";
 
-// Re-export for backward compatibility
+/**
+ * Re-export shared types for use across backend
+ */
 export type { PaginatedResponse };
 
-// Legacy pagination metadata structure
+/**
+ * Backend pagination metadata structure
+ * Used for building paginated responses internally
+ */
 export interface PaginationMeta {
   page: number;
   pageSize: number;
@@ -11,7 +16,10 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-// Legacy paginated data structure - matches backend's current format
+/**
+ * Legacy paginated data structure
+ * Used internally in backend for building responses
+ */
 export interface Paginated<T> {
   items: T[];
   pagination: PaginationMeta;
