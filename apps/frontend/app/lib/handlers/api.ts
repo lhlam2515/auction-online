@@ -69,19 +69,6 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Helper to extract error message
-export function getErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    return (
-      error.response?.data?.message || error.message || "An error occurred"
-    );
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return "Unknown error occurred";
-}
-
 // Helper to check if user is authenticated
 export function isAuthenticated(): boolean {
   return !!localStorage.getItem("accessToken");
