@@ -3,8 +3,9 @@
  */
 export interface ApiResponse<T = unknown> {
   success: boolean;
-  message: string;
-  data: T;
+  data?: T;
+  message?: string;
+  errors?: string[];
 }
 
 /**
@@ -67,4 +68,59 @@ export interface TimestampFields {
  */
 export interface SoftDeleteFields extends TimestampFields {
   deletedAt?: string;
+}
+
+/**
+ * Product search filters
+ */
+export interface ProductSearchFilters {
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  status?: string[];
+  sellerId?: string;
+  searchTerm?: string;
+  sortBy?: "price_asc" | "price_desc" | "ending_soon" | "newest" | "most_bids";
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Bid validation result
+ */
+export interface BidValidationResult {
+  isValid: boolean;
+  errors: string[];
+  minimumBid?: number;
+  suggestedBid?: number;
+}
+
+/**
+ * Dashboard statistics
+ */
+export interface DashboardStats {
+  totalUsers: number;
+  activeAuctions: number;
+  totalBids: number;
+  totalRevenue: number;
+  pendingOrders: number;
+  recentActivity: {
+    newUsers: number;
+    newBids: number;
+    completedOrders: number;
+  };
+}
+
+/**
+ * Notification entity
+ */
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  data?: Record<string, any>;
+  isRead: boolean;
+  createdAt: string;
 }
