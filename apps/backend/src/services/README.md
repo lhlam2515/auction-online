@@ -1,79 +1,62 @@
 # Services Directory
 
-Thư mục này chứa business logic layer, xử lý domain rules và data operations.
+Business logic layer cho auction system - xử lý domain rules và data operations.
 
-## 📁 Cấu trúc
+## 📋 Mục lục
+
+- [Cấu trúc Service](#-cấu-trúc-service)
+- [Cách sử dụng](#-cách-sử-dụng)
+- [Service hiện có](#️-service-hiện-có)
+- [Quy tắc phát triển](#-quy-tắc-phát-triển)
+- [Best Practices](#-best-practices)
+
+## 📁 Cấu trúc Service
 
 ```text
 services/
-├── index.ts              # Service exports
-├── auth.service.ts       # Authentication & authorization
+├── index.ts              # Export tất cả services
+├── auth.service.ts       # Authentication & JWT
 ├── user.service.ts       # User management
-├── product.service.ts    # Product management
-├── auction.service.ts    # Auction management
+├── product.service.ts    # Product & auction management
 ├── bid.service.ts        # Bidding operations
-└── README.md            # File này
+├── order.service.ts      # Order processing
+├── rating.service.ts     # Rating & feedback
+├── chat.service.ts       # Chat messaging
+├── question.service.ts   # Q&A system
+├── category.service.ts   # Product categories
+└── README.md            # Documentation
 ```
 
-## 🎯 Mục đích
+## 🚀 Cách sử dụng
 
-Services chịu trách nhiệm:
-
-- Encapsulate business logic và domain rules
-- Xử lý database operations và transactions
-- Integrate với external services (email, payment, storage)
-- Provide reusable methods cho controllers, jobs, sockets
-- Keep logic testable và decoupled từ HTTP layer
-- Data transformation và validation
-
-## 📝 Convention
-
-### File naming
-
-- Sử dụng **kebab-case** cho tên file
-- Suffix: `.service.ts`
-- Tên file theo domain: `auth.service.ts`, `product.service.ts`
-
-### Class naming
+### Import Service
 
 ```typescript
-// ✅ Recommended structure
-export class UserService {
-  // service methods
-}
+// Import specific service
+import { userService } from "@/services";
+import { productService } from "@/services/product.service";
 
-// Export singleton instance
-export const userService = new UserService();
+// Sử dụng trong controller
+export const getUserProfile = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const user = await userService.getById(req.user.id);
+    return ResponseHandler.sendSuccess(res, user);
+  }
+);
 ```
 
-### Method naming
-
-- Sử dụng domain-oriented names: `getUserById`, `createUser`, `updateUserProfile`
-- Async methods với async/await
-- Return plain data, không return Express Response types
-- Throw domain errors cho error handling
-
-### Code structure
+### Cấu trúc Service chuẩn
 
 ```typescript
-// ✅ Recommended structure
 import { db } from "@/config/database";
-import {
-  NotFoundError,
-  BadRequestError,
-  UnauthorizedError,
-  ConflictError,
-} from "@/utils/errors";
-import type { User, CreateUserInput, UpdateUserInput } from "@/types";
+import { NotFoundError, BadRequestError } from "@/utils/errors";
+import type { User, CreateUserRequest } from "@repo/shared-types";
 
 export class UserService {
-  /**
-   * Get user by ID
-   * @throws NotFoundError if user doesn't exist
-   */
-  async getUserById(id: string): Promise<User> {
+  // Plain parameters cho simple operations
+  async getById(userId: string): Promise<User> {
     const user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, id),
+      where: eq(users.id, userId),
     });
 
     if (!user) {
@@ -83,217 +66,161 @@ export class UserService {
     return user;
   }
 
-  /**
-   * Create new user
-   * @throws ConflictError if email already exists
-   */
-  async createUser(input: CreateUserInput): Promise<User> {
-    // Check if email exists
-    const existing = await this.getUserByEmail(input.email);
-    if (existing) {
-      throw new ConflictError("Email already in use");
-    }
+  // Shared types cho complex data
+  async create(
+    email: string,
+    password: string,
+    fullName: string
+  ): Promise<User> {
+    // Validation & business logic
+    const hashedPassword = await hash(password, 12);
 
-    // Create user in transaction
-    const [newUser] = await db.insert(users).values(input).returning();
+    const [newUser] = await db
+      .insert(users)
+      .values({ email, password: hashedPassword, fullName })
+      .returning();
 
     return newUser;
   }
-
-  /**
-   * Update user profile
-   * @throws NotFoundError if user doesn't exist
-   */
-  async updateUser(id: string, input: UpdateUserInput): Promise<User> {
-    const user = await this.getUserById(id);
-
-    const [updated] = await db
-      .update(users)
-      .set({ ...input, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-
-    return updated;
-  }
-
-  /**
-   * Delete user
-   * @throws NotFoundError if user doesn't exist
-   */
-  async deleteUser(id: string): Promise<void> {
-    await this.getUserById(id); // Ensure exists
-
-    await db.delete(users).where(eq(users.id, id));
-  }
-
-  // Private helper methods
-  private async getUserByEmail(email: string): Promise<User | undefined> {
-    return db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.email, email),
-    });
-  }
 }
 
-// Export singleton
 export const userService = new UserService();
 ```
 
-## 🚀 Cách sử dụng
+## 🏗️ Service hiện có
 
-### Import service
+| Service             | Mô tả                   | Key Methods                                        |
+| ------------------- | ----------------------- | -------------------------------------------------- |
+| **AuthService**     | Đăng nhập, đăng ký, JWT | `register()`, `login()`, `refreshToken()`          |
+| **UserService**     | Quản lý user, profile   | `getById()`, `updateProfile()`, `changePassword()` |
+| **ProductService**  | Sản phẩm, auction       | `create()`, `search()`, `getById()`                |
+| **BidService**      | Đấu giá, auto-bid       | `placeBid()`, `createAutoBid()`, `kickBidder()`    |
+| **OrderService**    | Xử lý đơn hàng          | `createFromAuction()`, `updatePaymentInfo()`       |
+| **RatingService**   | Đánh giá, feedback      | `create()`, `getSellerStats()`                     |
+| **ChatService**     | Chat messaging          | `sendMessage()`, `getChatHistory()`                |
+| **QuestionService** | Q&A system              | `askQuestion()`, `answerQuestion()`                |
+| **CategoryService** | Danh mục sản phẩm       | `getTree()`, `getProductsByCategory()`             |
+
+## 📜 Quy tắc phát triển
+
+### 1. Naming Convention
 
 ```typescript
-// Trong controllers
-import { userService } from "@/services/user.service";
-// hoặc
-import { userService } from "@/services";
+// ✅ File naming: kebab-case
+auth.service.ts;
+product.service.ts;
 
-// Sử dụng trong controller
-export class UserController {
-  static getUser = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const user = await userService.getUserById(id);
-    return ResponseHandler.sendSuccess(res, user);
+// ✅ Class naming: PascalCase + Service
+export class AuthService {}
+export class ProductService {}
+
+// ✅ Export singleton
+export const authService = new AuthService();
+```
+
+### 2. Method Parameters
+
+```typescript
+// ✅ Plain parameters for simple data (≤4 params)
+async updateProfile(userId: string, fullName?: string, address?: string)
+
+// ✅ Objects for complex data or filters
+async search(filters: ProductSearchParams): Promise<PaginatedResponse<Product>>
+```
+
+### 3. Error Handling
+
+```typescript
+// ✅ Throw domain-specific errors
+if (!user) {
+  throw new NotFoundError("User not found");
+}
+
+if (auction.status !== "ACTIVE") {
+  throw new BadRequestError("Auction is not active");
+}
+```
+
+### 4. Shared Types Integration
+
+```typescript
+// ✅ Import from shared-types package
+import type {
+  CreateProductRequest,
+  PaginatedResponse,
+  ProductSearchParams
+} from "@repo/shared-types";
+
+// ✅ Use shared types for consistency
+async create(sellerId: string, data: CreateProductRequest): Promise<Product>
+```
+
+## ⚡ Best Practices
+
+### ✅ DO
+
+- Sử dụng **shared types** từ `@repo/shared-types`
+- **Plain parameters** cho simple operations
+- **Transactions** cho multi-step operations
+- **Domain errors** thay vì generic errors
+- **JSDoc comments** cho public methods
+- **Async/await** pattern
+
+### ❌ DON'T
+
+- Import Express types (`Request`, `Response`)
+- Return HTTP status codes từ service
+- Handle HTTP-specific logic
+- Hardcode business rules
+- Use `any` type
+
+### Transaction Example
+
+```typescript
+async createOrder(productId: string, winnerId: string, finalPrice: number) {
+  return db.transaction(async (tx) => {
+    // 1. Create order
+    const [order] = await tx.insert(orders)
+      .values({ productId, winnerId, finalPrice })
+      .returning();
+
+    // 2. Update product status
+    await tx.update(products)
+      .set({ status: 'SOLD' })
+      .where(eq(products.id, productId));
+
+    return order;
   });
 }
 ```
 
-### Transaction handling
-
-Services nên handle complex transactions:
+### Error Handling Pattern
 
 ```typescript
-export class OrderService {
-  async createOrder(input: CreateOrderInput): Promise<Order> {
-    return db.transaction(async (tx) => {
-      // 1. Create order
-      const [order] = await tx.insert(orders).values(input).returning();
+async placeBid(productId: string, userId: string, amount: number) {
+  const product = await this.getById(productId);
 
-      // 2. Create order items
-      await tx.insert(orderItems).values(
-        input.items.map((item) => ({
-          orderId: order.id,
-          ...item,
-        }))
-      );
-
-      // 3. Update product stock
-      for (const item of input.items) {
-        await tx
-          .update(products)
-          .set({
-            stock: sql`${products.stock} - ${item.quantity}`,
-          })
-          .where(eq(products.id, item.productId));
-      }
-
-      return order;
-    });
-  }
-}
-```
-
-### Error handling
-
-Services throw domain-specific errors:
-
-```typescript
-// ✅ Good - Throw domain errors
-async getUserById(id: string): Promise<User> {
-  const user = await db.query.users.findFirst({
-    where: (users, { eq }) => eq(users.id, id),
-  });
-
-  if (!user) {
-    throw new NotFoundError('User not found');
-  }
-
-  return user;
-}
-
-// ✅ Good - Validate business rules
-async createBid(input: CreateBidInput): Promise<Bid> {
-  const auction = await auctionService.getById(input.auctionId);
-
-  if (auction.status !== 'ACTIVE') {
+  if (product.status !== 'ACTIVE') {
     throw new BadRequestError('Auction is not active');
   }
 
-  if (input.amount <= auction.currentPrice) {
+  if (amount <= product.currentPrice) {
     throw new BadRequestError('Bid must be higher than current price');
   }
 
-  // Create bid...
+  // Place bid logic...
 }
 ```
 
-### Data transformation
+## 🔧 Development Workflow
 
-Services transform data appropriately:
+1. **Tạo service mới**: Follow naming convention
+2. **Import shared types**: Sử dụng từ `@repo/shared-types`
+3. **Implement methods**: Plain parameters + domain errors
+4. **Export singleton**: `export const serviceNae = new ServiceClass()`
+5. **Update index.ts**: Export service từ index file
+6. **Write tests**: Unit test cho business logic
 
-```typescript
-export class UserService {
-  async getUserProfile(id: string): Promise<UserProfile> {
-    const user = await this.getUserById(id);
+---
 
-    // Transform và exclude sensitive data
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      avatarUrl: user.avatarUrl,
-      createdAt: user.createdAt,
-      // Don't include: password, resetToken, etc.
-    };
-  }
-
-  async getUserWithStats(id: string): Promise<UserWithStats> {
-    const user = await this.getUserById(id);
-
-    // Aggregate related data
-    const [stats] = await db
-      .select({
-        totalProducts: count(products.id),
-        totalBids: count(bids.id),
-        wonAuctions: count(auctions.id),
-      })
-      .from(users)
-      .leftJoin(products, eq(products.sellerId, users.id))
-      .leftJoin(bids, eq(bids.userId, users.id))
-      .leftJoin(auctions, eq(auctions.winnerId, users.id))
-      .where(eq(users.id, id));
-
-    return {
-      ...user,
-      stats,
-    };
-  }
-}
-```
-
-## 🔧 Best Practices
-
-- **Single Responsibility**: Mỗi service class handle một domain cụ thể
-- **No HTTP Dependencies**: Không import `Request`, `Response`, hoặc Express types
-- **Pure Business Logic**: Tất cả domain rules và validations ở đây
-- **Transaction Boundaries**: Wrap multi-step operations trong transactions
-- **Error Handling**: Throw domain-specific errors, không return error objects
-- **Type Safety**: Strong typing cho inputs và outputs
-- **Testability**: Easy to unit test without HTTP mocking
-- **Reusability**: Methods có thể được gọi từ controllers, jobs, sockets
-- **Documentation**: JSDoc comments cho public methods
-
-## 📋 Checklist khi tạo service mới
-
-- [ ] File name follow convention (kebab-case + .service.ts)
-- [ ] Class name follow convention (PascalCase + Service)
-- [ ] Export singleton instance
-- [ ] No Express types (`req`, `res`, `next`)
-- [ ] Throw domain errors (BadRequestError, NotFoundError, etc.)
-- [ ] Use transactions for multi-step operations
-- [ ] TypeScript interfaces cho inputs/outputs
-- [ ] JSDoc comments cho public methods
-- [ ] Private helper methods cho internal logic
-- [ ] Export types và interfaces
-- [ ] Update `src/services/index.ts`
-- [ ] Write unit tests
+📚 **Tham khảo thêm**: Xem source code của các service hiện có để hiểu pattern và best practices.
