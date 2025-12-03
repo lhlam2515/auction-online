@@ -5,6 +5,7 @@ import type { UserRole, UserStatus } from "./enums";
  */
 export interface UserCore {
   id: string;
+  username: string;
   email: string;
   fullName: string;
   role: UserRole;
@@ -16,8 +17,6 @@ export interface UserCore {
 export interface User extends UserCore {
   address?: string;
   avatarUrl?: string;
-  isVerified: boolean;
-  isActive: boolean;
   status?: UserStatus;
   createdAt: string;
   updatedAt: string;
@@ -28,16 +27,11 @@ export interface User extends UserCore {
  */
 export interface PublicProfile {
   id: string;
+  username: string;
   fullName: string;
   avatarUrl?: string;
   joinedAt: string;
-  ratingSummary: {
-    averageRating: number;
-    totalRatings: number;
-    ratingDistribution: {
-      [rating: number]: number;
-    };
-  };
+  ratingSummary: UserRatingSummary;
 }
 
 /**

@@ -6,7 +6,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
-  address?: string;
+  address: string;
 }
 
 /**
