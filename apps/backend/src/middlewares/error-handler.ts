@@ -94,6 +94,7 @@ export const errorHandler = (
   logger.error("Error occurred:", {
     name: error.name,
     message: error.message,
+    cause: error.cause || undefined,
     stack: error.stack,
     url: req.url,
     method: req.method,

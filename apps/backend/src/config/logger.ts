@@ -4,22 +4,17 @@ import path from "path";
 
 config({ path: ".env" });
 
-const { combine, timestamp, errors, json, printf, colorize, align } =
-  winston.format;
+const { combine, timestamp, errors, json, printf, colorize } = winston.format;
 
 // Custom format for console output
 const consoleFormat = combine(
   colorize({ all: true }),
-  timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  align(),
   printf((info) => {
     const { timestamp, level, message, ...meta } = info;
     const metaStr = Object.keys(meta).length
       ? JSON.stringify(meta, null, 2)
       : "";
-    const safeMessage =
-      typeof message === "string" ? message.trim() : String(message);
-    return `[${timestamp}] ${level}: ${safeMessage} ${metaStr}`;
+    return `${level}: ${message} ${metaStr}`;
   })
 );
 
