@@ -7,11 +7,12 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import type { Route } from "./+types/root";
-import "./app.css";
-
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/contexts/auth-provider";
+
+import type { Route } from "./+types/root";
+import "./app.css";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -36,16 +37,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <ThemeProvider defaultTheme="system" storageKey="auction-ui-theme">
-          {/* Global layout wrapper with common elements */}
-          <div
-            id="root"
-            className="bg-background min-h-screen font-sans antialiased"
-          >
-            {children}
-          </div>
-          <Toaster />
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="system" storageKey="auction-ui-theme">
+            {/* Global layout wrapper with common elements */}
+            <div
+              id="root"
+              className="bg-background min-h-screen font-sans antialiased"
+            >
+              {children}
+            </div>
+            <Toaster />
+          </ThemeProvider>
+        </AuthProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

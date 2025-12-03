@@ -1,10 +1,12 @@
 import { Outlet } from "react-router";
 
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+
 export default function AdminLayout() {
   return (
-    <div className="admin-layout">
+    <ProtectedRoute requiredRole={["ADMIN"]}>
       {/* Add Header/Sidebar specific to this layout */}
       <Outlet />
-    </div>
+    </ProtectedRoute>
   );
 }
