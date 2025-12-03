@@ -2,13 +2,7 @@ import { db } from "@/config/database";
 import { categories } from "@/models";
 import { eq } from "drizzle-orm";
 import { NotFoundError } from "@/utils/errors";
-
-export interface CategoryTree {
-  id: string;
-  name: string;
-  parentId: string | null;
-  children?: CategoryTree[];
-}
+import { CategoryTree } from "@repo/shared-types";
 
 export class CategoryService {
   async getAll() {
@@ -40,14 +34,7 @@ export class CategoryService {
     parentId: string | null = null
   ): CategoryTree[] {
     // TODO: implement recursive tree building
-    return categories
-      .filter((cat) => cat.parentId === parentId)
-      .map((cat) => ({
-        id: cat.id,
-        name: cat.name,
-        parentId: cat.parentId,
-        children: this.buildTree(categories, cat.id),
-      }));
+    return [];
   }
 }
 

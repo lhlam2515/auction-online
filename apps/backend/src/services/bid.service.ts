@@ -14,17 +14,22 @@ export class BidService {
     throw new BadRequestError("Not implemented");
   }
 
-  async kickBidder(productId: string, sellerId: string, bidderId: string) {
+  async kickBidder(
+    productId: string,
+    sellerId: string,
+    bidderId: string,
+    reason?: string
+  ) {
     // TODO: validate seller ownership and kick logic
     throw new ForbiddenError("Not implemented");
   }
 
-  async createAutoBid(config: {
-    productId: string;
-    userId: string;
-    maxAmount: number;
-    step?: number;
-  }) {
+  async createAutoBid(
+    productId: string,
+    userId: string,
+    maxAmount: number,
+    step?: number
+  ) {
     // TODO: upsert auto-bid config
     throw new BadRequestError("Not implemented");
   }
@@ -34,10 +39,7 @@ export class BidService {
     return null;
   }
 
-  async updateAutoBid(
-    autoBidId: string,
-    updates: Partial<{ maxAmount: number; step: number }>
-  ) {
+  async updateAutoBid(autoBidId: string, maxAmount?: number, step?: number) {
     // TODO: update config
     return true;
   }

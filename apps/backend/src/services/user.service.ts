@@ -3,12 +3,6 @@ import { users, watchLists, upgradeRequests } from "@/models";
 import { eq, and } from "drizzle-orm";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
-export interface UpdateProfileInput {
-  fullName?: string;
-  address?: string;
-  dateOfBirth?: Date;
-}
-
 export class UserService {
   async getById(userId: string) {
     const result = await db.query.users.findFirst({
@@ -18,9 +12,19 @@ export class UserService {
     return result;
   }
 
-  async updateProfile(userId: string, updates: UpdateProfileInput) {
+  async updateProfile(
+    userId: string,
+    fullName?: string,
+    address?: string,
+    avatarUrl?: string
+  ) {
     // TODO: validate and update user profile
     await this.getById(userId); // ensure user exists
+
+    const updates: any = {};
+    if (fullName !== undefined) updates.fullName = fullName;
+    if (address !== undefined) updates.address = address;
+    if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
 
     const [updated] = await db
       .update(users)
@@ -46,7 +50,21 @@ export class UserService {
     return true;
   }
 
-  async requestUpgradeToSeller(userId: string) {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ) {
+    // TODO: validate current password and update with new password
+    await this.getById(userId); // ensure user exists
+
+    // TODO: verify current password
+    // TODO: hash new password
+    // TODO: update password in database
+    throw new BadRequestError("Not implemented");
+  }
+
+  async requestUpgradeToSeller(userId: string, reason: string) {
     // TODO: create upgrade request if not already pending
     const user = await this.getById(userId);
 
@@ -54,6 +72,7 @@ export class UserService {
       throw new ConflictError("User is already a seller");
     }
 
+    // TODO: create upgrade request with reason
     throw new BadRequestError("Not implemented");
   }
 

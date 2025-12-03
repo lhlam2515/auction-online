@@ -3,20 +3,13 @@ import { orders } from "@/models";
 import { eq, and } from "drizzle-orm";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
-export interface CreateOrderInput {
-  productId: string;
-  winnerId: string;
-  sellerId: string;
-  finalPrice: number;
-}
-
-export interface UpdateShippingInput {
-  shippingAddress: string;
-  shippingMethod?: string;
-}
-
 export class OrderService {
-  async createFromAuction(input: CreateOrderInput) {
+  async createFromAuction(
+    productId: string,
+    winnerId: string,
+    sellerId: string,
+    finalPrice: number
+  ) {
     // TODO: create order after auction ends
     return await db.transaction(async (tx) => {
       // validate auction ended and winner
@@ -38,10 +31,17 @@ export class OrderService {
     return [];
   }
 
-  async updateShipping(
+  async updatePaymentInfo(
     orderId: string,
     buyerId: string,
-    data: UpdateShippingInput
+    shippingAddress: {
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      country: string;
+    },
+    contactPhone: string
   ) {
     const order = await this.getById(orderId);
 
@@ -49,7 +49,7 @@ export class OrderService {
       throw new ForbiddenError("Not your order");
     }
 
-    // TODO: update shipping info
+    // TODO: update payment and shipping info
     throw new BadRequestError("Not implemented");
   }
 
@@ -61,6 +61,18 @@ export class OrderService {
     }
 
     // TODO: mark as delivered, trigger rating flow
+    throw new BadRequestError("Not implemented");
+  }
+
+  async markAsPaid(
+    orderId: string,
+    paymentMethod: string,
+    amount: number,
+    transactionId?: string
+  ) {
+    const order = await this.getById(orderId);
+
+    // TODO: mark order as paid and update payment details
     throw new BadRequestError("Not implemented");
   }
 

@@ -6,25 +6,20 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/utils/errors";
-
-export interface RegisterInput {
-  email: string;
-  password: string;
-  name: string;
-}
-
-export interface LoginResult {
-  accessToken: string;
-  refreshToken: string;
-}
+import { LoginResponse } from "@repo/shared-types";
 
 export class AuthService {
-  async register(input: RegisterInput) {
+  async register(
+    email: string,
+    password: string,
+    fullName: string,
+    address: string
+  ) {
     // TODO: implement registration with hashing, duplicates check, email verification
     throw new BadRequestError("Not implemented");
   }
 
-  async login(email: string, password: string): Promise<LoginResult> {
+  async login(email: string, password: string): Promise<LoginResponse> {
     // TODO: implement login with password check, token generation
     throw new UnauthorizedError("Not implemented");
   }
@@ -34,7 +29,7 @@ export class AuthService {
     return true;
   }
 
-  async refreshToken(token: string): Promise<LoginResult> {
+  async refreshToken(token: string): Promise<LoginResponse> {
     // TODO: validate refresh token and issue new tokens
     throw new UnauthorizedError("Not implemented");
   }
@@ -58,7 +53,7 @@ export class AuthService {
     throw new BadRequestError("Not implemented");
   }
 
-  async googleLogin(googleToken: string): Promise<LoginResult> {
+  async googleLogin(googleToken: string): Promise<LoginResponse> {
     // TODO: verify google token, upsert user, issue tokens
     throw new UnauthorizedError("Not implemented");
   }

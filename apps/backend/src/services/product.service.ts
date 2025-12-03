@@ -2,28 +2,57 @@ import { db } from "@/config/database";
 import { products } from "@/models";
 import { eq, desc, and } from "drizzle-orm";
 import { BadRequestError, NotFoundError, ConflictError } from "@/utils/errors";
-
-export interface ProductFilters {
-  q?: string;
-  categoryId?: string;
-  sellerId?: string;
-  minPrice?: number;
-  maxPrice?: number;
-}
-
-export interface Pagination {
-  page: number;
-  limit: number;
-}
+import type {
+  CreateProductRequest,
+  UpdateDescriptionRequest,
+  ProductSearchParams,
+  ProductsQueryParams,
+  SearchProductsParams,
+  PaginationParams,
+  PaginatedResponse,
+} from "@repo/shared-types";
 
 export class ProductService {
-  async search(filters: ProductFilters, pagination: Pagination) {
+  async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
     // TODO: build query dynamically based on filters and paginate
     return {
       items: [],
-      page: pagination.page,
-      limit: pagination.limit,
-      total: 0,
+      pagination: {
+        page: params.page || 1,
+        limit: params.limit || 10,
+        total: 0,
+        totalPages: 0,
+      },
+    };
+  }
+
+  async searchProducts(
+    params: SearchProductsParams
+  ): Promise<PaginatedResponse<any>> {
+    // TODO: implement product search with keyword and filters
+    return {
+      items: [],
+      pagination: {
+        page: params.page || 1,
+        limit: params.limit || 10,
+        total: 0,
+        totalPages: 0,
+      },
+    };
+  }
+
+  async getProducts(
+    params: ProductsQueryParams
+  ): Promise<PaginatedResponse<any>> {
+    // TODO: get products with query parameters
+    return {
+      items: [],
+      pagination: {
+        page: params.page || 1,
+        limit: params.limit || 10,
+        total: 0,
+        totalPages: 0,
+      },
     };
   }
 
@@ -45,10 +74,10 @@ export class ProductService {
     return [];
   }
 
-  async create(sellerId: string, data: any) {
+  async create(sellerId: string, data: CreateProductRequest) {
     // TODO: validate business rules and insert product
     return await db.transaction(async (tx) => {
-      // placeholder
+      // placeholder - implement product creation with proper validation
       return { id: "temp" };
     });
   }
@@ -61,14 +90,18 @@ export class ProductService {
   async updateDescription(
     productId: string,
     sellerId: string,
-    newDesc: string
+    description: string
   ) {
     // TODO: append description update history
     throw new BadRequestError("Not implemented");
   }
 
-  async toggleAutoExtend(productId: string, sellerId: string) {
-    // TODO: toggle flag
+  async toggleAutoExtend(
+    productId: string,
+    sellerId: string,
+    extendMinutes?: number
+  ) {
+    // TODO: toggle auto extend flag and set extension duration
     return true;
   }
 }

@@ -3,18 +3,17 @@ import { ratings } from "@/models";
 import { eq, and, avg } from "drizzle-orm";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
-export interface CreateRatingInput {
-  orderId: string;
-  raterId: string;
-  rateeId: string;
-  score: number;
-  comment?: string;
-}
-
 export class RatingService {
-  async create(input: CreateRatingInput) {
+  async create(
+    orderId: string,
+    raterId: string,
+    targetUserId: string,
+    rating: number,
+    ratingType: string,
+    comment?: string
+  ) {
     // TODO: validate order exists, buyer rated seller, no duplicate
-    if (input.score < 1 || input.score > 5) {
+    if (rating < 1 || rating > 5) {
       throw new BadRequestError("Rating score must be between 1 and 5");
     }
 
