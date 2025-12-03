@@ -2,7 +2,6 @@ import { eq } from "drizzle-orm";
 import { Request, Response, NextFunction } from "express";
 
 import { db } from "@/config/database";
-import { supabase } from "@/config/supabase";
 import { users } from "@/models";
 import { UserRole } from "@/types/model";
 import {
@@ -10,6 +9,7 @@ import {
   ForbiddenError,
   ExternalServiceError,
 } from "@/utils/errors";
+import { verifyJwt } from "@/utils/jwt";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -35,33 +35,35 @@ export const authenticate = async (
       throw new UnauthorizedError("No token provided");
     }
 
-    const {
-      data: { user: authUser },
-      error: authError,
-    } = await supabase.auth.getUser(token);
-
-    if (authError || !authUser || !authUser.email) {
-      throw new UnauthorizedError("Invalid or expired token");
-    }
+    // Verify token with Supabase Auth
+    const authUser = await verifyJwt(token);
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, authUser.id),
-      columns: { id: true, email: true, role: true },
+      columns: { id: true, email: true, role: true, accountStatus: true },
     });
 
     if (!user) {
       throw new UnauthorizedError("User not found");
     }
 
-    if (!authUser.email_confirmed_at) {
-      throw new ForbiddenError("Email not verified");
+    if (user.accountStatus === "BANNED") {
+      throw new ForbiddenError(
+        "Your account has been banned. Please contact support."
+      );
+    }
+
+    if (user.accountStatus === "PENDING_VERIFICATION") {
+      throw new ForbiddenError(
+        "Your account is pending verification. Please verify your email."
+      );
     }
 
     req.user = {
       id: user.id,
       email: user.email,
-      role: user.role as UserRole,
-      isVerified: !!authUser.email_confirmed_at,
+      role: user.role,
+      isVerified: user.accountStatus === "ACTIVE",
     };
 
     next();
