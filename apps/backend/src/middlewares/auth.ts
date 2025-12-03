@@ -1,14 +1,22 @@
+import { eq } from "drizzle-orm";
 import { Request, Response, NextFunction } from "express";
 
+import { db } from "@/config/database";
+import { supabase } from "@/config/supabase";
+import { users } from "@/models";
 import { UserRole } from "@/types/model";
-import { UnauthorizedError, ForbiddenError } from "@/utils/errors";
+import {
+  UnauthorizedError,
+  ForbiddenError,
+  ExternalServiceError,
+} from "@/utils/errors";
 
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
     role: UserRole;
-    isActive: boolean;
+    isVerified: boolean;
   };
 }
 
@@ -27,13 +35,44 @@ export const authenticate = async (
       throw new UnauthorizedError("No token provided");
     }
 
-    // TODO: Verify JWT token and decode user info
-    // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // req.user = decoded;
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
+    if (authError || !authUser || !authUser.email) {
+      throw new UnauthorizedError("Invalid or expired token");
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, authUser.id),
+      columns: { id: true, email: true, role: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedError("User not found");
+    }
+
+    if (!authUser.email_confirmed_at) {
+      throw new ForbiddenError("Email not verified");
+    }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role as UserRole,
+      isVerified: !!authUser.email_confirmed_at,
+    };
 
     next();
   } catch (error) {
-    next(new UnauthorizedError("Invalid or expired token"));
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      next(error);
+    } else {
+      next(
+        new ExternalServiceError("Authentication service error", error as Error)
+      );
+    }
   }
 };
 
@@ -64,7 +103,7 @@ export const checkActiveAccount = (
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.user?.isActive) {
+  if (!req.user?.isVerified) {
     return next(new ForbiddenError("Your account has been deactivated"));
   }
   next();
