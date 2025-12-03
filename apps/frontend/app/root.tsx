@@ -40,12 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <ThemeProvider defaultTheme="system" storageKey="auction-ui-theme">
             {/* Global layout wrapper with common elements */}
-            <div
-              id="root"
-              className="bg-background min-h-screen font-sans antialiased"
-            >
-              {children}
-            </div>
+            <div id="root">{children}</div>
             <Toaster />
           </ThemeProvider>
         </AuthProvider>
