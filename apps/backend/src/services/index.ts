@@ -5,3 +5,5 @@ export * from "./category.service";
 export * from "./user.service";
 export * from "./order.service";
 export * from "./rating.service";
+export * from "./chat.service";
+export * from "./question.service";
