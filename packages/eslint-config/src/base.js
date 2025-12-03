@@ -11,12 +11,12 @@ import importPlugin from "eslint-plugin-import";
  */
 export const config = [
   js.configs.recommended,
-  tslint.configs.recommended,
+  ...tslint.configs.recommended,
   prettier,
   importPlugin.flatConfigs.recommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
-    extends: [importPlugin.flatConfigs.typescript],
+    ...importPlugin.flatConfigs.typescript,
   },
   {
     rules: {

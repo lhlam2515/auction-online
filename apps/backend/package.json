@@ -37,6 +37,7 @@
     "esbuild": "^0.25.12",
     "esbuild-register": "^3.6.0",
     "eslint": "^9.39.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2"
   }
