@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router";
+
 import logger, { logPageView, type LogContext } from "@/lib/logger";
 
 /**

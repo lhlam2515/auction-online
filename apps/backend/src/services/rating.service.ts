@@ -1,6 +1,7 @@
+import { eq, and, avg } from "drizzle-orm";
+
 import { db } from "@/config/database";
 import { ratings } from "@/models";
-import { eq, and, avg } from "drizzle-orm";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
 export class RatingService {

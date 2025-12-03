@@ -1,14 +1,14 @@
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import express from "express";
-import logger from "@/config/logger";
 import helmet from "helmet";
 import morgan from "morgan";
-import cors from "cors";
-import cookieParser from "cookie-parser";
 
 import { corsOptions } from "@/config/cors";
+import logger from "@/config/logger";
 import { errorHandler, notFound } from "@/middlewares/error-handler";
-import { ResponseHandler } from "@/utils/response";
 import routes from "@/routes";
+import { ResponseHandler } from "@/utils/response";
 
 const app = express();
 

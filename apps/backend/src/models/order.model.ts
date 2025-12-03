@@ -1,8 +1,9 @@
 import { sql } from "drizzle-orm";
 import { pgTable, index, unique, check } from "drizzle-orm/pg-core";
+
+import { orderStatusEnum, paymentMethodEnum } from "./enums.model";
 import { products } from "./products.model";
 import { users } from "./users.model";
-import { orderStatusEnum, paymentMethodEnum } from "./enums.model";
 
 export const orders = pgTable(
   "orders",

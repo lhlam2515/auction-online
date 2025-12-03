@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import * as chatController from "@/controllers/chat.controller";
 import { authenticate } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";

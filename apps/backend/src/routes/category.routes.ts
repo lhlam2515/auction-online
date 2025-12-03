@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import * as categoryController from "@/controllers/category.controller";
 import { validate } from "@/middlewares/validate";
 import * as categoryValidation from "@/validations/category.validation";

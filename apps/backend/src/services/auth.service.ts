@@ -1,12 +1,13 @@
+import { LoginResponse } from "@repo/shared-types";
+import { eq } from "drizzle-orm";
+
 import { db } from "@/config/database";
 import { users } from "@/models";
-import { eq } from "drizzle-orm";
 import {
   BadRequestError,
   NotFoundError,
   UnauthorizedError,
 } from "@/utils/errors";
-import { LoginResponse } from "@repo/shared-types";
 
 export class AuthService {
   async register(

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodType } from "zod";
+
 import { BadRequestError } from "@/utils/errors";
 
 /**

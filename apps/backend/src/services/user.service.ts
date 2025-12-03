@@ -1,6 +1,7 @@
+import { eq, and } from "drizzle-orm";
+
 import { db } from "@/config/database";
 import { users, watchLists, upgradeRequests } from "@/models";
-import { eq, and } from "drizzle-orm";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
 export class UserService {

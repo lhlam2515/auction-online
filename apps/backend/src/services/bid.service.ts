@@ -1,6 +1,7 @@
+import { eq, desc } from "drizzle-orm";
+
 import { db } from "@/config/database";
 import { bids, autoBids } from "@/models";
-import { eq, desc } from "drizzle-orm";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 
 export class BidService {

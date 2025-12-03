@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { UnauthorizedError, ForbiddenError } from "@/utils/errors";
+
 import { UserRole } from "@/types/model";
+import { UnauthorizedError, ForbiddenError } from "@/utils/errors";
 
 export interface AuthRequest extends Request {
   user?: {

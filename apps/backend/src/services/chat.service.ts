@@ -1,11 +1,3 @@
-import { db } from "@/config/database";
-import { chatMessages } from "@/models";
-import { eq, and } from "drizzle-orm";
-import {
-  BadRequestError,
-  NotFoundError,
-  NotImplementedError,
-} from "@/utils/errors";
 import type {
   SendMessageRequest,
   MarkMessagesReadRequest,
@@ -16,6 +8,15 @@ import type {
   ChatMessageType,
   MessageStatus,
 } from "@repo/shared-types";
+import { eq, and } from "drizzle-orm";
+
+import { db } from "@/config/database";
+import { chatMessages } from "@/models";
+import {
+  BadRequestError,
+  NotFoundError,
+  NotImplementedError,
+} from "@/utils/errors";
 
 export class ChatService {
   async getChatHistory(

@@ -1,7 +1,3 @@
-import { db } from "@/config/database";
-import { products } from "@/models";
-import { eq, desc, and } from "drizzle-orm";
-import { BadRequestError, NotFoundError, ConflictError } from "@/utils/errors";
 import type {
   CreateProductRequest,
   UpdateDescriptionRequest,
@@ -11,6 +7,11 @@ import type {
   PaginationParams,
   PaginatedResponse,
 } from "@repo/shared-types";
+import { eq, desc, and } from "drizzle-orm";
+
+import { db } from "@/config/database";
+import { products } from "@/models";
+import { BadRequestError, NotFoundError, ConflictError } from "@/utils/errors";
 
 export class ProductService {
   async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {

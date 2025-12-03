@@ -1,15 +1,16 @@
 import { Router } from "express";
-import authRoutes from "./auth.routes";
-import userRoutes from "./user.routes";
-import categoryRoutes from "./category.routes";
-import productRoutes from "./product.routes";
-import sellerRoutes from "./seller.routes";
-import bidRoutes from "./bid.routes";
-import questionRoutes from "./question.routes";
-import orderRoutes from "./order.routes";
-import chatRoutes from "./chat.routes";
-import ratingRoutes from "./rating.routes";
+
 import adminRoutes from "./admin.routes";
+import authRoutes from "./auth.routes";
+import bidRoutes from "./bid.routes";
+import categoryRoutes from "./category.routes";
+import chatRoutes from "./chat.routes";
+import orderRoutes from "./order.routes";
+import productRoutes from "./product.routes";
+import questionRoutes from "./question.routes";
+import ratingRoutes from "./rating.routes";
+import sellerRoutes from "./seller.routes";
+import userRoutes from "./user.routes";
 
 const router = Router();
 

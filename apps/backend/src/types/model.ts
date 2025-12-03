@@ -1,4 +1,3 @@
-import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import type {
   ApiResponse,
   PaginatedResponse,
@@ -9,6 +8,8 @@ import type {
   NotificationType,
   Notification,
 } from "@repo/shared-types";
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+
 import {
   autoBids,
   bids,

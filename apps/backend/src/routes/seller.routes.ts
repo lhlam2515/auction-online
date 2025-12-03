@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import * as sellerController from "@/controllers/seller.controller";
 import { authenticate, authorize } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";

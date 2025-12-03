@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
+
+import logger from "@/config/logger";
+import { ErrorCodes } from "@/types/error";
 import {
   AppError,
   BadRequestError,
@@ -9,8 +12,6 @@ import {
   DatabaseError,
 } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
-import { ErrorCodes } from "@/types/error";
-import logger from "@/config/logger";
 
 const toAppError = (error: Error, req: Request): AppError => {
   // Already an AppError

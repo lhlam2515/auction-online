@@ -1,12 +1,3 @@
-import { db } from "@/config/database";
-import { productQuestions } from "@/models";
-import { eq, and } from "drizzle-orm";
-import {
-  BadRequestError,
-  NotFoundError,
-  NotImplementedError,
-  UnauthorizedError,
-} from "@/utils/errors";
 import type {
   AskQuestionRequest,
   AnswerQuestionRequest,
@@ -14,6 +5,16 @@ import type {
   QuestionStatus,
   QuestionVisibility,
 } from "@repo/shared-types";
+import { eq, and } from "drizzle-orm";
+
+import { db } from "@/config/database";
+import { productQuestions } from "@/models";
+import {
+  BadRequestError,
+  NotFoundError,
+  NotImplementedError,
+  UnauthorizedError,
+} from "@/utils/errors";
 
 export interface QuestionFilters {
   productId?: string;

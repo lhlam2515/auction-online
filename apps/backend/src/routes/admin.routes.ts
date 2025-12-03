@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import * as adminController from "@/controllers/admin.controller";
 import { authenticate, authorize } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";

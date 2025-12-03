@@ -1,6 +1,7 @@
+import path from "path";
+
 import { config } from "dotenv";
 import winston from "winston";
-import path from "path";
 
 config({ path: ".env" });
 

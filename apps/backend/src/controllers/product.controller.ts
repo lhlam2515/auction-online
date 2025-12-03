@@ -1,8 +1,3 @@
-import { Response, NextFunction } from "express";
-import { AuthRequest } from "@/middlewares/auth";
-import { ResponseHandler } from "@/utils/response";
-import { NotImplementedError } from "@/utils/errors";
-import { asyncHandler } from "@/middlewares/error-handler";
 import type {
   Product,
   CreateProductRequest,
@@ -14,6 +9,12 @@ import type {
   UploadImagesResponse,
   DescriptionUpdate,
 } from "@repo/shared-types";
+import { Response, NextFunction } from "express";
+
+import { AuthRequest } from "@/middlewares/auth";
+import { asyncHandler } from "@/middlewares/error-handler";
+import { NotImplementedError } from "@/utils/errors";
+import { ResponseHandler } from "@/utils/response";
 
 export const searchProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {

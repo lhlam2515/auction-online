@@ -1,5 +1,3 @@
-import { apiClient } from "@/lib/handlers/api";
-import { API_ENDPOINTS } from "@/constants/api-endpoints";
 import type {
   // Auth types
   RegisterRequest,
@@ -73,6 +71,9 @@ import type {
   PaginatedResponse,
   PaginationParams,
 } from "@repo/shared-types";
+
+import { API_ENDPOINTS } from "@/constants/api-endpoints";
+import { apiClient } from "@/lib/handlers/api";
 import { appendQueryParams } from "@/lib/url";
 
 // Helper to convert typed params to generic record

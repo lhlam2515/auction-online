@@ -1,8 +1,9 @@
+import { CategoryTree } from "@repo/shared-types";
+import { eq } from "drizzle-orm";
+
 import { db } from "@/config/database";
 import { categories } from "@/models";
-import { eq } from "drizzle-orm";
 import { NotFoundError } from "@/utils/errors";
-import { CategoryTree } from "@repo/shared-types";
 
 export class CategoryService {
   async getAll() {

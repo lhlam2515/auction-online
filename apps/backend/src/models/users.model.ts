@@ -1,5 +1,5 @@
-import { pgTable, index, check } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { pgTable, index, check } from "drizzle-orm/pg-core";
 
 import { requestStatusEnum, userRoleEnum } from "./enums.model";
 
