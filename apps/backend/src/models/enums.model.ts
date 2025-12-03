@@ -3,6 +3,13 @@ import { pgEnum } from "drizzle-orm/pg-core";
 // Enum cho Vai trò người dùng
 export const userRoleEnum = pgEnum("user_role", ["BIDDER", "SELLER", "ADMIN"]);
 
+// Enum cho Trạng thái tài khoản
+export const accountStatusEnum = pgEnum("account_status", [
+  "PENDING_VERIFICATION",
+  "ACTIVE",
+  "BANNED",
+]);
+
 // Enum cho Trạng thái Sản phẩm
 export const productStatusEnum = pgEnum("product_status", [
   "PENDING",

@@ -15,6 +15,7 @@ import {
   bids,
   categories,
   chatMessages,
+  otpVerifications,
   productImages,
   productQuestions,
   products,
@@ -29,6 +30,7 @@ import {
 // Select types (for reading from database)
 export type User = InferSelectModel<typeof users>;
 export type UpgradeRequest = InferSelectModel<typeof upgradeRequests>;
+export type OtpVerification = InferSelectModel<typeof otpVerifications>;
 export type Category = InferSelectModel<typeof categories>;
 export type Product = InferSelectModel<typeof products>;
 export type ProductImage = InferSelectModel<typeof productImages>;
@@ -44,6 +46,7 @@ export type OrderPayment = InferSelectModel<typeof orderPayments>;
 // Insert types (for creating new records)
 export type NewUser = InferInsertModel<typeof users>;
 export type NewUpgradeRequest = InferInsertModel<typeof upgradeRequests>;
+export type NewOtpVerification = InferInsertModel<typeof otpVerifications>;
 export type NewCategory = InferInsertModel<typeof categories>;
 export type NewProduct = InferInsertModel<typeof products>;
 export type NewProductImage = InferInsertModel<typeof productImages>;

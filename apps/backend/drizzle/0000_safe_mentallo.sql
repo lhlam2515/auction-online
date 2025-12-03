@@ -2,6 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";--> statement-breakpoint
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";--> statement-breakpoint
 CREATE EXTENSION IF NOT EXISTS "unaccent";--> statement-breakpoint
+CREATE TYPE "public"."account_status" AS ENUM('PENDING_VERIFICATION', 'ACTIVE', 'BANNED');--> statement-breakpoint
 CREATE TYPE "public"."bid_status" AS ENUM('VALID', 'INVALID');--> statement-breakpoint
 CREATE TYPE "public"."order_status" AS ENUM('PENDING', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED');--> statement-breakpoint
 CREATE TYPE "public"."payment_method" AS ENUM('COD', 'BANK_TRANSFER', 'CREDIT_CARD', 'EWALLET');--> statement-breakpoint
@@ -32,6 +33,15 @@ CREATE TABLE "bids" (
 	CONSTRAINT "positive_bid_amount" CHECK ("bids"."amount" > 0)
 );
 --> statement-breakpoint
+CREATE TABLE "otp_verifications" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"email" text NOT NULL,
+	"otp_code" text NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"attempts" integer DEFAULT 0 NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "upgrade_requests" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -49,6 +59,7 @@ CREATE TABLE "users" (
 	"username" text NOT NULL,
 	"full_name" text NOT NULL,
 	"role" "user_role" DEFAULT 'BIDDER' NOT NULL,
+	"account_status" "account_status" DEFAULT 'PENDING_VERIFICATION' NOT NULL,
 	"address" text,
 	"avatar_url" text,
 	"rating_score" real DEFAULT 0 NOT NULL,
@@ -221,6 +232,8 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_product_id_products_id_fk" FOREIGN K
 ALTER TABLE "orders" ADD CONSTRAINT "orders_winner_id_users_id_fk" FOREIGN KEY ("winner_id") REFERENCES "public"."users"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "orders" ADD CONSTRAINT "orders_seller_id_users_id_fk" FOREIGN KEY ("seller_id") REFERENCES "public"."users"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "idx_bids_product_time" ON "bids" USING btree ("product_id","created_at" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "idx_otp_email" ON "otp_verifications" USING btree ("email");--> statement-breakpoint
+CREATE INDEX "idx_otp_expires_at" ON "otp_verifications" USING btree ("expires_at");--> statement-breakpoint
 CREATE INDEX "idx_upgrade_requests_user_status" ON "upgrade_requests" USING btree ("user_id","status");--> statement-breakpoint
 CREATE INDEX "idx_users_email" ON "users" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "idx_categories_parent" ON "categories" USING btree ("parent_id");--> statement-breakpoint
