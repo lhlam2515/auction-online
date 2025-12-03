@@ -1,25 +1,41 @@
+import { useCallback } from "react";
+import type { z } from "zod";
+
+import AuthForm from "@/components/features/auth/AuthForm";
+import { api } from "@/lib/api-layer";
+import { registerSchema } from "@/lib/validations/auth.validation";
+
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Register - Online Auction" },
-    { name: "description", content: "Register page for Online Auction App" },
+    { title: "Đăng ký - Online Auction" },
+    { name: "description", content: "Trang đăng ký dành cho Online Auction" },
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
-
 export default function RegisterPage() {
+  const handleSubmit = useCallback(
+    async (data: z.infer<typeof registerSchema>) => {
+      const result = await api.auth.register(data);
+      return result;
+    },
+    []
+  );
+
   return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Register</h1>
-      <p>Content for Register goes here.</p>
-    </div>
+    <AuthForm
+      formType="REGISTER"
+      schema={registerSchema}
+      defaultValues={{
+        fullName: "",
+        email: "",
+        address: "",
+        password: "",
+        confirmPassword: "",
+      }}
+      onSubmit={handleSubmit}
+    />
   );
 }

@@ -2,7 +2,7 @@ import type {
   // Auth types
   RegisterRequest,
   LoginRequest,
-  LoginResponse,
+  LoginResponse as AuthResponse,
   ForgotPasswordRequest,
   VerifyOtpRequest,
   ResetPasswordRequest,
@@ -78,7 +78,7 @@ import { appendQueryParams } from "@/lib/url";
 
 // Helper to convert typed params to generic record
 const paramsToRecord = (
-  params?: any
+  params?: unknown
 ): Record<string, string | number | boolean | undefined | null> | undefined => {
   if (!params) return undefined;
   return params as Record<string, string | number | boolean | undefined | null>;
@@ -88,8 +88,8 @@ const paramsToRecord = (
 const apiCall = async <T>(
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   url: string,
-  data?: any,
-  config?: any
+  data?: unknown,
+  config?: Record<string, unknown>
 ) => {
   const response = await apiClient<ApiResponse<T>>({
     method,
@@ -109,13 +109,13 @@ export const api = {
      * Register a new user account
      */
     register: (data: RegisterRequest) =>
-      apiCall<{ message: string }>("POST", API_ENDPOINTS.auth.register, data),
+      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.register, data),
 
     /**
      * User login
      */
     login: (data: LoginRequest) =>
-      apiCall<LoginResponse>("POST", API_ENDPOINTS.auth.login, data),
+      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.login, data),
 
     /**
      * User logout
@@ -127,7 +127,7 @@ export const api = {
      * Refresh authentication token
      */
     refreshToken: () =>
-      apiCall<LoginResponse>("POST", API_ENDPOINTS.auth.refreshToken),
+      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.refreshToken),
 
     /**
      * Request password reset
@@ -159,7 +159,7 @@ export const api = {
      * Google OAuth login
      */
     googleLogin: (data: GoogleLoginRequest) =>
-      apiCall<LoginResponse>("POST", API_ENDPOINTS.auth.googleLogin, data),
+      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.googleLogin, data),
 
     /**
      * Verify email address

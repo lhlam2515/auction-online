@@ -1,25 +1,35 @@
+import { useCallback } from "react";
+import type { z } from "zod";
+
+import AuthForm from "@/components/features/auth/AuthForm";
+import { api } from "@/lib/api-layer";
+import { loginSchema } from "@/lib/validations/auth.validation";
+
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Login - Online Auction" },
-    { name: "description", content: "Login page for Online Auction App" },
+    { title: "Đăng nhập - AuctionHub" },
+    { name: "description", content: "Trang đăng nhập dành cho AuctionHub" },
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
-
 export default function LoginPage() {
+  const handleSubmit = useCallback(
+    async (data: z.infer<typeof loginSchema>) => {
+      const result = await api.auth.login(data);
+      return result;
+    },
+    []
+  );
+
   return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Login</h1>
-      <p>Content for Login goes here.</p>
-    </div>
+    <AuthForm
+      formType="LOGIN"
+      schema={loginSchema}
+      defaultValues={{ email: "", password: "" }}
+      onSubmit={handleSubmit}
+    />
   );
 }
