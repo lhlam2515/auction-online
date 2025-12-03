@@ -17,6 +17,12 @@ export const config = [
   {
     files: ["**/*.ts", "**/*.tsx"],
     ...importPlugin.flatConfigs.typescript,
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
   },
   {
     rules: {
