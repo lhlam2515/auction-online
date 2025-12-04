@@ -63,13 +63,16 @@ export class AuthService {
       }
 
       // Create user profile in database with PENDING_VERIFICATION status
-      const [newUser] = await db.insert(users).values({
-        id: authData.user.id,
-        username,
-        email: authData.user.email!,
-        fullName,
-        address,
-      });
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          id: authData.user.id,
+          username,
+          email: authData.user.email!,
+          fullName,
+          address,
+        })
+        .returning();
 
       if (!newUser) {
         throw new Error("Failed to create user profile");
