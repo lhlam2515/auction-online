@@ -35,7 +35,7 @@ import { useAuth } from "@/contexts/auth-provider";
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
   defaultValues: T;
-  onSubmit: (data: T) => Promise<ApiResponse<AuthResponse>>;
+  onSubmit: (data: T) => Promise<ApiResponse>;
   formType: "LOGIN" | "REGISTER";
 }
 
@@ -73,6 +73,11 @@ const AuthForm = <T extends FieldValues>({
         if (formType === "LOGIN") {
           const { user, accessToken } = result.data as AuthResponse;
 
+          if (user.accountState === "PENDING_VERIFICATION") {
+            navigate(AUTH_ROUTES.VERIFY, { replace: true });
+            return;
+          }
+
           login(accessToken, user);
 
           const redirectPath = getRedirectAfterLogin(user.role);
@@ -89,8 +94,8 @@ const AuthForm = <T extends FieldValues>({
       } else {
         toast.error(result?.message || ERROR_MESSAGES.SERVER_ERROR);
       }
-    } catch (error: any) {
-      toast.error(error?.message || ERROR_MESSAGES.UNKNOWN_ERROR);
+    } catch (error: unknown) {
+      toast.error((error as Error)?.message || ERROR_MESSAGES.UNKNOWN_ERROR);
     }
   };
 

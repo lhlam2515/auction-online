@@ -3,6 +3,7 @@ import type {
   RegisterRequest,
   LoginRequest,
   LoginResponse as AuthResponse,
+  RefreshResponse,
   ForgotPasswordRequest,
   VerifyOtpRequest,
   ResetPasswordRequest,
@@ -127,7 +128,7 @@ export const api = {
      * Refresh authentication token
      */
     refreshToken: () =>
-      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.refreshToken),
+      apiCall<RefreshResponse>("POST", API_ENDPOINTS.auth.refreshToken),
 
     /**
      * Request password reset

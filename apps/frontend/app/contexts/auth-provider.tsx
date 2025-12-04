@@ -1,4 +1,4 @@
-import type { User } from "@repo/shared-types";
+import type { UserAuthData } from "@repo/shared-types";
 import {
   createContext,
   useContext,
@@ -12,10 +12,10 @@ import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 
 interface AuthContextType {
-  user: User | null;
+  user: UserAuthData | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (accessToken: string, user: User) => void;
+  login: (accessToken: string, user: UserAuthData) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -28,7 +28,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserAuthData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Initialize auth state from localStorage
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Login handler - stores token and user data
-  const login = useCallback((accessToken: string, userData: User) => {
+  const login = useCallback((accessToken: string, userData: UserAuthData) => {
     localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
     setUser(userData);
@@ -86,11 +86,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Refresh user data from backend
   const refreshUser = useCallback(async () => {
     try {
-      // You would call a "get current user" endpoint here
-      // For now, we'll keep the existing user data
-      logger.info("User data refreshed");
+      const result = await api.auth.refreshToken();
+      if (result?.success && result.data) {
+        const { accessToken } = result.data;
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+        logger.info("Access token refreshed successfully");
+      } else {
+        throw new Error("Failed to refresh token");
+      }
     } catch (error) {
-      logger.error("Failed to refresh user", error);
+      logger.error("Failed to refresh user token", error);
       // If refresh fails, logout the user
       await logout();
     }
