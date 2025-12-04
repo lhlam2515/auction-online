@@ -39,7 +39,7 @@ router.post("/logout", authenticate, authController.logout);
 /**
  * @route   POST /api/auth/refresh-token
  * @desc    Refresh access token
- * @access  Private
+ * @access  Public (uses HttpOnly cookie)
  */
 router.post("/refresh-token", authController.refreshToken);
 

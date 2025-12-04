@@ -10,39 +10,90 @@ import type {
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
+import { supabase } from "@/config/supabase";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { NotImplementedError } from "@/utils/errors";
+import { authService } from "@/services";
+import { NotImplementedError, UnauthorizedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const register = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as RegisterRequest;
-    // TODO: Implement user registration logic
-    throw new NotImplementedError("Register not implemented yet");
+    const { email, password, fullName, address } = body;
+
+    const result = await authService.register(
+      email,
+      password,
+      fullName,
+      address
+    );
+
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
 export const login = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as LoginRequest;
-    // TODO: Implement login logic
-    // ResponseHandler.sendSuccess<LoginResponse>(res, { user, accessToken });
-    throw new NotImplementedError("Login not implemented yet");
+    const { email, password } = body;
+
+    const result = await authService.login(email, password);
+
+    // Set HttpOnly cookie for refresh token
+    const { data: authData } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authData?.session?.refresh_token) {
+      res.cookie("refreshToken", authData.session.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: "/api/auth/refresh-token",
+      });
+    }
+
+    return ResponseHandler.sendSuccess<LoginResponse>(res, result);
   }
 );
 
 export const logout = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Implement logout logic
-    ResponseHandler.sendSuccess(res, { message: "Logged out successfully" });
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const user = req.user!;
+
+    const result = await authService.logout(user.id);
+
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
 export const refreshToken = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Implement refresh token logic
-    throw new NotImplementedError("Refresh token not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    // Retrieve refresh token from HttpOnly cookie
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      throw new UnauthorizedError("No refresh token provided");
+    }
+
+    const result = await authService.refreshToken(refreshToken);
+
+    // Set new HttpOnly cookie for refresh token
+    if (result.refreshToken) {
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: "/api/auth/refresh-token",
+      });
+    }
+
+    return ResponseHandler.sendSuccess(res, {
+      accessToken: result.accessToken,
+    });
   }
 );
 

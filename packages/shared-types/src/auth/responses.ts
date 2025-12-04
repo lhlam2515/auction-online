@@ -1,16 +1,8 @@
 import { UserAuthData } from "./entities";
 
 /**
- * General authentication response with user data and access token
- */
-export interface AuthResponse {
-  user: UserAuthData;
-  accessToken: string;
-}
-
-/**
  * Login response with user data and access token
- * (Keep for backward compatibility)
+ * Refresh token is sent via HttpOnly cookie for security
  */
 export interface LoginResponse {
   user: UserAuthData;
@@ -18,10 +10,9 @@ export interface LoginResponse {
 }
 
 /**
- * Google login response
- * (Keep for backward compatibility)
+ * Refresh token response with new access token
+ * Refresh token is sent via HttpOnly cookie for security
  */
-export interface GoogleLoginResponse {
-  user: UserAuthData;
+export interface RefreshResponse {
   accessToken: string;
 }

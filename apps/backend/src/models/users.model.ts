@@ -18,7 +18,7 @@ export const users = pgTable(
     role: userRoleEnum("role").notNull().default("BIDDER"),
     accountStatus: accountStatusEnum("account_status")
       .notNull()
-      .default("PENDING_VERIFICATION"), // Managed by Supabase Auth
+      .default("PENDING_VERIFICATION"),
     address: t.text("address"),
     avatarUrl: t.text("avatar_url"), // Can be synced from Supabase user metadata
 

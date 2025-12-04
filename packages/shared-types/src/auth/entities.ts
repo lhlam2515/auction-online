@@ -1,4 +1,4 @@
-import { UserRole } from "../user";
+import { UserRole, UserStatus } from "../user";
 
 /**
  * Authentication data for a user
@@ -10,4 +10,5 @@ export interface UserAuthData {
   fullName: string;
   role: UserRole;
   avatarUrl: string;
+  accountState: UserStatus;
 }
