@@ -1,29 +1,36 @@
-import type { ChatMessageType, MessageStatus } from "./enums";
+import type { MessageType } from "../common/enums";
 
 /**
- * Chat message entity
+ * Chat message entity - matches backend chatMessages table
  */
 export interface ChatMessage {
   id: string;
-  orderId: string;
+  productId: string;
   senderId: string;
-  senderName: string;
+  receiverId: string;
   content: string;
-  messageType: ChatMessageType;
-  status: MessageStatus;
   isRead: boolean;
+  messageType: MessageType;
   createdAt: string;
-  updatedAt: string;
 }
 
 /**
- * Chat conversation info
+ * Chat message with user information for display
+ */
+export interface ChatMessageWithUser extends ChatMessage {
+  senderName: string;
+  senderAvatarUrl?: string;
+}
+
+/**
+ * Chat conversation summary
  */
 export interface ChatConversation {
-  orderId: string;
+  productId: string;
+  productName: string;
   participantIds: string[];
+  participantNames: string[];
   lastMessage?: ChatMessage;
   unreadCount: number;
-  createdAt: string;
   updatedAt: string;
 }

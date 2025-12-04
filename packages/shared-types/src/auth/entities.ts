@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from "../user";
+import { UserRole, AccountStatus } from "../common/enums";
 
 /**
  * Authentication data for a user
@@ -9,6 +9,26 @@ export interface UserAuthData {
   email: string;
   fullName: string;
   role: UserRole;
-  avatarUrl: string;
-  accountState: UserStatus;
+  avatarUrl?: string;
+  accountStatus: AccountStatus;
+}
+
+/**
+ * JWT payload structure
+ */
+export interface JwtPayload {
+  sub: string; // user id
+  email: string;
+  role: UserRole;
+  iat?: number;
+  exp?: number;
+}
+
+/**
+ * Session data
+ */
+export interface SessionData {
+  user: UserAuthData;
+  accessToken: string;
+  expiresAt: string;
 }

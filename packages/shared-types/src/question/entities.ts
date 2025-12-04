@@ -1,20 +1,25 @@
-import type { QuestionStatus, QuestionVisibility } from "./enums";
-
 /**
- * Question entity
+ * Product question entity - matches backend productQuestions table
  */
-export interface Question {
+export interface ProductQuestion {
   id: string;
   productId: string;
-  askerId: string;
-  askerName: string;
-  question: string;
-  answer?: string;
-  answeredBy?: string;
-  answeredByName?: string;
-  answeredAt?: string;
-  status: QuestionStatus;
-  visibility: QuestionVisibility;
+  userId: string;
+  questionContent: string;
+  answerContent?: string;
+  answeredBy?: string; // User ID who answered
+  isPublic: boolean;
   createdAt: string;
-  updatedAt: string;
+  answeredAt?: string;
+}
+
+/**
+ * Product question with user information for display
+ */
+export interface ProductQuestionWithUsers extends ProductQuestion {
+  userName: string;
+  userAvatarUrl?: string;
+  answererName?: string;
+  answererAvatarUrl?: string;
+  productName: string;
 }

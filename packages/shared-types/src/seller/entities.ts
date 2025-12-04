@@ -1,29 +1,38 @@
 import type { User } from "../user/entities";
-import type { ProductStatus } from "../product/enums";
-import type { OrderStatus } from "../order/enums";
+import type { RequestStatus } from "../common/enums";
 
 /**
- * Seller profile extending user
+ * Seller profile - user with seller role
  */
 export interface SellerProfile extends User {
-  businessName?: string;
-  businessAddress?: string;
-  businessPhone?: string;
-  sellerRating: number;
-  totalSales: number;
-  activeListings: number;
-  completedOrders: number;
-  verificationStatus: "PENDING" | "VERIFIED" | "REJECTED";
+  // Seller-specific information would be in the user record
+  totalSales: number; // Calculated field
+  activeListings: number; // Calculated field
+  completedOrders: number; // Calculated field
 }
 
 /**
- * Seller dashboard stats
+ * Seller upgrade request - matches backend upgradeRequests table
+ */
+export interface SellerUpgradeRequest {
+  id: string;
+  userId: string;
+  reason?: string;
+  status: RequestStatus;
+  processedBy?: string; // Admin user ID
+  createdAt: string;
+  processedAt?: string;
+  adminNote?: string;
+}
+
+/**
+ * Seller dashboard statistics
  */
 export interface SellerStats {
   totalProducts: number;
   activeProducts: number;
   soldProducts: number;
-  totalRevenue: number;
+  totalRevenue: string; // Decimal as string
   pendingOrders: number;
   completedOrders: number;
   averageRating: number;

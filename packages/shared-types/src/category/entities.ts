@@ -1,28 +1,38 @@
 /**
- * Category entity
+ * Category entity - matches backend categories table
  */
 export interface Category {
   id: string;
   name: string;
-  description?: string;
+  slug: string; // SEO-friendly URL
   parentId?: string;
-  level: number;
-  path: string;
-  children?: Category[];
-  productCount: number;
+  level: number; // Tree depth for optimization
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 /**
- * Category tree node
+ * Category with children for tree structure
+ */
+export interface CategoryWithChildren extends Category {
+  children?: CategoryWithChildren[];
+}
+
+/**
+ * Category tree node for navigation
  */
 export interface CategoryTree {
   id: string;
   name: string;
-  description?: string;
+  slug: string;
   level: number;
-  productCount: number;
   children: CategoryTree[];
+}
+
+/**
+ * Category with product count for statistics
+ */
+export interface CategoryWithStats extends Category {
+  productCount: number;
 }

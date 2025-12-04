@@ -1,10 +1,8 @@
-/**
- * Upgrade request status
- */
-export type UpgradeRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+// Re-export request status from common enums
+export type { RequestStatus as UpgradeRequestStatus } from "../common/enums";
 
 /**
- * Admin action types
+ * Admin action types for audit logs
  */
 export type AdminActionType =
   | "BAN_USER"
@@ -16,7 +14,7 @@ export type AdminActionType =
   | "REJECT_UPGRADE";
 
 /**
- * Report status
+ * Report status for content moderation
  */
 export type ReportStatus =
   | "PENDING"

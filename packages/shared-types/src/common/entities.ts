@@ -56,7 +56,7 @@ export interface IdParam {
 }
 
 /**
- * Timestamp fields
+ * Timestamp fields matching backend models
  */
 export interface TimestampFields {
   createdAt: string;
@@ -64,25 +64,18 @@ export interface TimestampFields {
 }
 
 /**
- * Soft delete fields
- */
-export interface SoftDeleteFields extends TimestampFields {
-  deletedAt?: string;
-}
-
-/**
- * Product search filters
+ * Product search filters matching backend capabilities
  */
 export interface ProductSearchFilters {
   categoryId?: string;
-  minPrice?: number;
-  maxPrice?: number;
+  minPrice?: string; // Decimal as string
+  maxPrice?: string; // Decimal as string
   status?: string[];
   sellerId?: string;
   searchTerm?: string;
   sortBy?: "price_asc" | "price_desc" | "ending_soon" | "newest" | "most_bids";
   page?: number;
-  pageSize?: number;
+  limit?: number;
 }
 
 /**
@@ -91,18 +84,18 @@ export interface ProductSearchFilters {
 export interface BidValidationResult {
   isValid: boolean;
   errors: string[];
-  minimumBid?: number;
-  suggestedBid?: number;
+  minimumBid?: string; // Decimal as string
+  suggestedBid?: string; // Decimal as string
 }
 
 /**
- * Dashboard statistics
+ * Dashboard statistics with decimal amounts as strings
  */
 export interface DashboardStats {
   totalUsers: number;
   activeAuctions: number;
   totalBids: number;
-  totalRevenue: number;
+  totalRevenue: string; // Decimal as string
   pendingOrders: number;
   recentActivity: {
     newUsers: number;
@@ -112,7 +105,7 @@ export interface DashboardStats {
 }
 
 /**
- * Notification entity
+ * Notification entity for system messages
  */
 export interface Notification {
   id: string;

@@ -1,7 +1,5 @@
-/**
- * Product status enum
- */
-export type ProductStatus = "PENDING" | "ACTIVE" | "ENDED" | "CANCELLED";
+// Re-export product status from common enums
+export type { ProductStatus } from "../common/enums";
 
 /**
  * Product sort options
@@ -10,7 +8,8 @@ export type ProductSortOption =
   | "price_asc"
   | "price_desc"
   | "ending_soon"
-  | "newest";
+  | "newest"
+  | "most_bids";
 
 /**
  * Top listing type

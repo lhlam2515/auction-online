@@ -1,28 +1,35 @@
-import type { RatingValue, RatingType } from "./enums";
+import type { RatingScore } from "../common/enums";
 
 /**
- * Rating entity
+ * Rating entity - matches backend ratings table
  */
 export interface Rating {
   id: string;
-  orderId: string;
-  fromUserId: string;
-  toUserId: string;
-  fromUserName: string;
-  toUserName: string;
-  rating: RatingValue;
+  productId: string;
+  senderId: string;
+  receiverId: string;
+  score: RatingScore; // 1 (positive) or -1 (negative)
   comment?: string;
-  ratingType: RatingType;
   createdAt: string;
+  updatedAt: string;
 }
 
 /**
- * Rating summary for user
+ * Rating with user information for display
+ */
+export interface RatingWithUsers extends Rating {
+  senderName: string;
+  senderAvatarUrl?: string;
+  receiverName: string;
+  productName: string;
+}
+
+/**
+ * Rating summary for user profile
  */
 export interface RatingSummary {
-  averageRating: number;
+  positiveCount: number;
+  negativeCount: number;
   totalRatings: number;
-  ratingDistribution: {
-    [rating: number]: number;
-  };
+  positivePercentage: number;
 }

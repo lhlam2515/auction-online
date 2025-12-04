@@ -1,37 +1,36 @@
-import type { BidStatus, AutoBidStatus } from "./enums";
+import type { BidStatus } from "../common/enums";
+import type { AutoBidStatus } from "./enums";
 
 /**
- * Core bid info
+ * Bid entity - matches backend bids table
  */
-export interface BidCore {
+export interface Bid {
   id: string;
   productId: string;
-  bidderId: string;
-  amount: number;
+  userId: string;
+  amount: string; // Decimal as string
+  status: BidStatus;
+  isAuto: boolean;
   createdAt: string;
 }
 
 /**
- * Bid entity
+ * Bid with user information for display
  */
-export interface Bid extends BidCore {
-  bidderName: string;
-  bidderAvatarUrl?: string;
-  isAutoBid: boolean;
-  status?: BidStatus;
+export interface BidWithUser extends Bid {
+  userName: string;
+  userAvatarUrl?: string;
 }
 
 /**
- * Auto bid configuration
+ * Auto bid configuration - matches backend autoBids table
  */
 export interface AutoBid {
   id: string;
   productId: string;
-  bidderId: string;
-  maxAmount: number;
-  currentAmount: number;
+  userId: string;
+  maxAmount: string; // Decimal as string
   isActive: boolean;
-  status: AutoBidStatus;
   createdAt: string;
   updatedAt: string;
 }

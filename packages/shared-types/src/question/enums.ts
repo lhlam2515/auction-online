@@ -1,9 +1,9 @@
 /**
- * Question status
+ * Question status based on answer state
  */
-export type QuestionStatus = "PENDING" | "ANSWERED" | "CLOSED";
+export type QuestionStatus = "PENDING" | "ANSWERED";
 
 /**
- * Question visibility
+ * Question visibility setting
  */
 export type QuestionVisibility = "PUBLIC" | "PRIVATE";

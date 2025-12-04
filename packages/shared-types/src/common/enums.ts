@@ -18,19 +18,70 @@ export enum HttpStatus {
 export type SortOrder = "asc" | "desc";
 
 /**
- * Common status types
+ * User role types - matches backend userRoleEnum
  */
-export type Status = "active" | "inactive" | "pending" | "archived";
+export type UserRole = "BIDDER" | "SELLER" | "ADMIN";
 
 /**
- * Auction status types
+ * Account status types - matches backend accountStatusEnum
  */
-export type AuctionStatus =
-  | "upcoming"
-  | "active"
-  | "ending_soon"
-  | "ended"
-  | "cancelled";
+export type AccountStatus = "PENDING_VERIFICATION" | "ACTIVE" | "BANNED";
+
+/**
+ * Product status types - matches backend productStatusEnum
+ */
+export type ProductStatus =
+  | "PENDING"
+  | "ACTIVE"
+  | "SOLD"
+  | "NO_SALE"
+  | "CANCELLED"
+  | "SUSPENDED";
+
+/**
+ * Request status types - matches backend requestStatusEnum
+ */
+export type RequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+/**
+ * Bid status types - matches backend bidStatusEnum
+ */
+export type BidStatus = "VALID" | "INVALID";
+
+/**
+ * Order status types - matches backend orderStatusEnum
+ */
+export type OrderStatus =
+  | "PENDING"
+  | "PAID"
+  | "SHIPPED"
+  | "COMPLETED"
+  | "CANCELLED";
+
+/**
+ * Payment method types - matches backend paymentMethodEnum
+ */
+export type PaymentMethod = "COD" | "BANK_TRANSFER" | "CREDIT_CARD" | "EWALLET";
+
+/**
+ * Shipment provider types - matches backend shipmentProviderEnum
+ */
+export type ShipmentProvider = "VNPOST" | "GHN" | "GHTK" | "JNT" | "OTHER";
+
+/**
+ * Payment status types
+ */
+export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
+
+/**
+ * Message type for chat
+ */
+export type MessageType = "TEXT" | "IMAGE" | "FILE";
+
+/**
+ * Rating score types
+ */
+export type RatingScore = 1 | -1;
 
 /**
  * Notification types

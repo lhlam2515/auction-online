@@ -1,15 +1,14 @@
-import type { RatingValue, RatingType } from "./enums";
+import type { RatingScore } from "../common/enums";
 
 /**
  * Create rating request
  * Backend validation: rating.validation.ts → createRatingSchema
  */
 export interface CreateRatingRequest {
-  orderId: string;
-  targetUserId: string;
-  rating: RatingValue;
+  productId: string;
+  receiverId: string;
+  score: RatingScore;
   comment?: string;
-  ratingType: RatingType;
 }
 
 /**
@@ -18,6 +17,6 @@ export interface CreateRatingRequest {
 export interface GetRatingsParams {
   page?: number;
   limit?: number;
-  ratingType?: RatingType;
-  minRating?: RatingValue;
+  userId?: string;
+  productId?: string;
 }

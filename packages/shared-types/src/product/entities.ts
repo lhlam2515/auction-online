@@ -1,69 +1,65 @@
-import type { ProductStatus } from "./enums";
+import type { ProductStatus } from "../common/enums";
 
 /**
- * Core product entity - lightweight version
+ * Core product entity - matches backend products table
  */
 export interface ProductCore {
   id: string;
   name: string;
-  currentPrice: number;
-  status: ProductStatus;
-  endTime: string;
-}
-
-/**
- * Product listing info - for search results
- */
-export interface ProductListing {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  categoryName: string;
-  startPrice: number;
-  currentPrice: number;
-  buyNowPrice?: number;
-  endTime: string;
-  status: ProductStatus;
-  images: string[];
+  slug: string; // SEO-friendly URL
   sellerId: string;
-  sellerName: string;
-  bidCount: number;
-  watchCount: number;
-  createdAt: string;
-}
-
-/**
- * Full product details - for product page
- */
-export interface Product extends ProductListing {
-  stepPrice: number;
+  categoryId: string;
+  startPrice: string; // Decimal as string
+  stepPrice: string; // Decimal as string
+  buyNowPrice?: string; // Decimal as string
+  status: ProductStatus;
   startTime: string;
+  endTime: string;
+  winnerId?: string;
   isAutoExtend: boolean;
-  sellerAvatarUrl?: string;
-  isWatching?: boolean;
-  currentWinnerId?: string;
-  currentWinnerName?: string;
+  createdAt: string;
   updatedAt: string;
 }
 
 /**
- * Product image entity
+ * Product with description
  */
-export interface ProductImage {
-  id: string;
-  url: string;
-  alt?: string;
-  order: number;
+export interface Product extends ProductCore {
+  description?: string;
 }
 
 /**
- * Product description update history
+ * Product listing with additional info for display
  */
-export interface ProductDescriptionUpdate {
+export interface ProductListing extends Product {
+  categoryName: string;
+  sellerName: string;
+  sellerAvatarUrl?: string;
+  currentPrice?: string; // Highest bid amount
+  bidCount: number;
+  watchCount: number;
+  mainImageUrl?: string;
+  isWatching?: boolean; // For authenticated users
+}
+
+/**
+ * Product image entity - matches backend productImages table
+ */
+export interface ProductImage {
   id: string;
   productId: string;
-  description: string;
+  imageUrl: string;
+  altText?: string;
+  displayOrder: number;
+  isMain: boolean;
   createdAt: string;
-  createdBy: string;
+}
+
+/**
+ * Product watch list entry - matches backend watchLists table
+ */
+export interface ProductWatchList {
+  userId: string;
+  productId: string;
+  createdAt: string;
 }

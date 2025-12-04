@@ -1,10 +1,10 @@
-import type { UserRole, UserStatus } from "./enums";
+import type { UserRole, AccountStatus } from "../common/enums";
 
 /**
- * Core user entity
+ * Core user entity - matches backend users table
  */
 export interface UserCore {
-  id: string;
+  id: string; // UUID from Supabase auth
   username: string;
   email: string;
   fullName: string;
@@ -12,12 +12,20 @@ export interface UserCore {
 }
 
 /**
- * Full user entity
+ * Full user entity - matches backend users table
  */
 export interface User extends UserCore {
+  accountStatus: AccountStatus;
   address?: string;
   avatarUrl?: string;
-  status?: UserStatus;
+
+  // Credit scoring fields
+  ratingScore: number; // 0-5 range
+  ratingCount: number;
+
+  // Seller-specific
+  sellerExpireDate?: string; // ISO timestamp
+
   createdAt: string;
   updatedAt: string;
 }
@@ -30,17 +38,42 @@ export interface PublicProfile {
   username: string;
   fullName: string;
   avatarUrl?: string;
-  joinedAt: string;
-  ratingSummary: UserRatingSummary;
+  role: UserRole;
+  ratingScore: number;
+  ratingCount: number;
+  createdAt: string;
 }
 
 /**
- * Extended user rating summary with total count
+ * User rating summary
  */
 export interface UserRatingSummary {
   averageRating: number;
   totalRatings: number;
-  ratingDistribution: {
-    [rating: number]: number;
-  };
+}
+
+/**
+ * Upgrade request entity - matches backend upgradeRequests table
+ */
+export interface UpgradeRequest {
+  id: string;
+  userId: string;
+  reason?: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  processedBy?: string; // Admin user ID
+  createdAt: string;
+  processedAt?: string;
+  adminNote?: string;
+}
+
+/**
+ * OTP verification entity - matches backend otpVerifications table
+ */
+export interface OtpVerification {
+  id: string;
+  email: string;
+  otpCode: string;
+  expiresAt: string;
+  attempts: number;
+  createdAt: string;
 }

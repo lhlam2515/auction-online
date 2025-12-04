@@ -1,9 +1,2 @@
-/**
- * User role types
- */
-export type UserRole = "BIDDER" | "SELLER" | "ADMIN";
-
-/**
- * User status types
- */
-export type UserStatus = "ACTIVE" | "BANNED" | "PENDING_VERIFICATION";
+// Re-export common enums for backward compatibility
+export type { UserRole, AccountStatus as UserStatus } from "../common/enums";
