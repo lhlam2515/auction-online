@@ -19,7 +19,7 @@ export class CategoryService {
   }
 
   async getTree(): Promise<CategoryTree[]> {
-    // TODO: build hierarchical category tree
+    // build hierarchical category tree
     const allCategories = await this.getAll();
     return this.buildTree(allCategories);
   }
@@ -34,8 +34,21 @@ export class CategoryService {
     categories: any[],
     parentId: string | null = null
   ): CategoryTree[] {
-    // TODO: implement recursive tree building
-    return [];
+    // implement recursive tree building
+    const parentCategories = categories.filter(
+      (cat) => cat.parentId === parentId
+    );
+
+    return parentCategories.map((parent) => {
+      const children = this.buildTree(categories, parent.id);
+      return {
+        id: parent.id,
+        name: parent.name,
+        slug: parent.slug,
+        level: parent.level,
+        children: children,
+      };
+    });
   }
 }
 

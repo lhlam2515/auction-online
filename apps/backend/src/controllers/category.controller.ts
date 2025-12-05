@@ -3,13 +3,15 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { categoryService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getCategories = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get category tree
-    throw new NotImplementedError("Get categories not implemented yet");
+    // Get category tree
+    const categoriesTree = await categoryService.getTree();
+    ResponseHandler.sendSuccess(res, categoriesTree);
   }
 );
 
