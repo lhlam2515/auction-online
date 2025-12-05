@@ -1,7 +1,7 @@
 import type {
   AskQuestionRequest,
   AnswerQuestionRequest,
-  Question,
+  ProductQuestion,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
