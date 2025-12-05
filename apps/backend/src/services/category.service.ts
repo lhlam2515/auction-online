@@ -1,8 +1,12 @@
-import { CategoryTree } from "@repo/shared-types";
-import { eq } from "drizzle-orm";
+import {
+  CategoryTree,
+  GetCategoryProductsParams,
+  PaginatedResponse,
+} from "@repo/shared-types";
+import { count, eq } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { categories } from "@/models";
+import { categories, products } from "@/models";
 import { NotFoundError } from "@/utils/errors";
 
 export class CategoryService {
@@ -24,10 +28,52 @@ export class CategoryService {
     return this.buildTree(allCategories);
   }
 
-  async getProductsByCategory(categoryId: string) {
-    // TODO: fetch products filtered by category
+  async getProductsByCategory(
+    categoryId: string,
+    params: GetCategoryProductsParams
+  ): Promise<PaginatedResponse<any>> {
+    // fetch products filtered by category
     await this.getById(categoryId); // validate category exists
-    return [];
+    const { page = 1, limit = 20, sort } = params;
+
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit;
+
+    const result = await db.query.products.findMany({
+      where: eq(products.categoryId, categoryId),
+
+      orderBy: (p, { asc, desc }) => {
+        if (sort === "price_asc") {
+          return [asc(p.startPrice)];
+        } else if (sort === "price_desc") {
+          return [desc(p.startPrice)];
+        } else if (sort === "ending_soon") {
+          return [asc(p.endTime)];
+        } else if (sort === "newest") {
+          return [desc(p.startTime)];
+        }
+
+        return [];
+      },
+
+      limit,
+      offset,
+    });
+
+    const [{ value: total }] = await db
+      .select({ value: count() })
+      .from(products)
+      .where(eq(products.categoryId, categoryId));
+
+    return {
+      items: result,
+      pagination: {
+        page: page,
+        limit: limit,
+        total: total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   private buildTree(

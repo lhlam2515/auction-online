@@ -1,3 +1,5 @@
+import { PaginationParams } from "../common";
+
 /**
  * Create category request
  */
@@ -18,9 +20,6 @@ export interface UpdateCategoryRequest {
 /**
  * Get category products params
  */
-export interface GetCategoryProductsParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
+export interface GetCategoryProductsParams extends PaginationParams {
+  sort?: "price_asc" | "price_desc" | "ending_soon" | "newest";
 }

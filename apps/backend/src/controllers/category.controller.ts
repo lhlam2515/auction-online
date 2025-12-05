@@ -17,10 +17,12 @@ export const getCategories = asyncHandler(
 
 export const getProductsByCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as GetCategoryProductsParams;
-    // TODO: Get products in a category
-    throw new NotImplementedError(
-      "Get products by category not implemented yet"
+    const query = res.locals.query as unknown as GetCategoryProductsParams;
+    // Get products in a category
+    const products = await categoryService.getProductsByCategory(
+      req.params.id,
+      query
     );
+    ResponseHandler.sendSuccess(res, products);
   }
 );
