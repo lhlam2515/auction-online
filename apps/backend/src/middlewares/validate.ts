@@ -14,15 +14,19 @@ export const validate = (schema: {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (schema.body) {
-        req.body = await schema.body.parseAsync(req.body);
+        req.body = (await schema.body.parseAsync(req.body)) as Request["body"];
       }
 
       if (schema.params) {
-        req.params = (await schema.params.parseAsync(req.params)) as any;
+        req.params = (await schema.params.parseAsync(
+          req.params
+        )) as Request["params"];
       }
 
       if (schema.query) {
-        req.query = (await schema.query.parseAsync(req.query)) as any;
+        res.locals.query = (await schema.query.parseAsync(
+          req.query
+        )) as Request["query"];
       }
 
       next();
