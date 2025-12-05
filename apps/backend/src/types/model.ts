@@ -4,7 +4,6 @@ import type {
   ProductSearchFilters,
   BidValidationResult,
   DashboardStats,
-  AuctionStatus,
   NotificationType,
   Notification,
 } from "@repo/shared-types";
@@ -69,7 +68,6 @@ export type {
   ProductSearchFilters,
   BidValidationResult,
   DashboardStats,
-  AuctionStatus,
   NotificationType,
   Notification,
 };
