@@ -230,7 +230,7 @@ export class AuthService {
           fullName: existingUser.fullName,
           role: existingUser.role as UserRole,
           avatarUrl: authData.user.user_metadata?.avatar_url || "",
-          accountState: existingUser.accountStatus,
+          accountStatus: existingUser.accountStatus,
         },
         accessToken: authData.session.access_token || "",
       };
