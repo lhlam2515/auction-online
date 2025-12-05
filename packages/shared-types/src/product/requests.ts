@@ -22,7 +22,7 @@ export interface CreateProductRequest {
  * Backend validation: product.validation.ts → updateDescriptionSchema
  */
 export interface UpdateDescriptionRequest {
-  description: string;
+  content: string;
 }
 
 /**

@@ -49,7 +49,7 @@ export const products = pgTable(
 
     name: t.text("name").notNull(),
     slug: t.text("slug").notNull(), // SEO-friendly URL
-    description: t.text("description"),
+    description: t.text("description").notNull(),
 
     // Pricing - optimized with constraints
     startPrice: t.numeric("start_price", { precision: 15, scale: 2 }).notNull(),
@@ -125,6 +125,31 @@ export const productImages = pgTable(
     // Essential indexes only
     index("idx_product_images_product").on(table.productId),
     check("positive_display_order", sql`${table.displayOrder} > 0`),
+  ]
+);
+
+// Lịch sử cập nhật sản phẩm
+export const productUpdates = pgTable(
+  "product_updates",
+  (t) => ({
+    id: t.uuid("id").primaryKey().defaultRandom(),
+    productId: t
+      .uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    updatedBy: t
+      .uuid("updated_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    content: t.text("content").notNull(),
+    createdAt: t
+      .timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  }),
+  (table) => [
+    // Essential indexes only
+    index("idx_product_updates_product").on(table.productId),
   ]
 );
 

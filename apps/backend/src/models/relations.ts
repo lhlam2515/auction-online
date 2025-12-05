@@ -6,6 +6,7 @@ import {
   categories,
   products,
   productImages,
+  productUpdates,
   watchLists,
   bids,
   autoBids,
@@ -17,7 +18,7 @@ import {
 } from "./index";
 
 // User Relations
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   // User selling products
   productsAsSeller: many(products, { relationName: "seller" }),
 
@@ -47,6 +48,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
 
   // User answered questions
   answeredQuestions: many(productQuestions, { relationName: "answerer" }),
+
+  // User product updates
+  productUpdates: many(productUpdates),
 
   // User watch lists
   watchLists: many(watchLists),
@@ -138,6 +142,9 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   // Product questions
   questions: many(productQuestions),
 
+  // Product updates
+  updates: many(productUpdates),
+
   // Product watch lists
   watchLists: many(watchLists),
 
@@ -150,6 +157,19 @@ export const productImagesRelations = relations(productImages, ({ one }) => ({
   product: one(products, {
     fields: [productImages.productId],
     references: [products.id],
+  }),
+}));
+
+// Product Update Relations
+export const productUpdatesRelations = relations(productUpdates, ({ one }) => ({
+  product: one(products, {
+    fields: [productUpdates.productId],
+    references: [products.id],
+  }),
+
+  updatedBy: one(users, {
+    fields: [productUpdates.updatedBy],
+    references: [users.id],
   }),
 }));
 

@@ -7,7 +7,7 @@ import type {
   TopListingParams,
   TopListingResponse,
   UploadImagesResponse,
-  DescriptionUpdate,
+  UpdateDescriptionResponse,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 

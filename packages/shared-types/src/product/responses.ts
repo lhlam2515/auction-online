@@ -28,12 +28,11 @@ export interface UploadImagesResponse {
 /**
  * Product description update (alias for DescriptionUpdate)
  */
-export interface DescriptionUpdate {
+export interface UpdateDescriptionResponse {
   id: string;
   productId: string;
-  description: string;
   updatedBy: string;
-  updatedByName: string;
+  content: string;
   createdAt: string;
 }
 

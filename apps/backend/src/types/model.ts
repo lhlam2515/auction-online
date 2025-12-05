@@ -17,6 +17,7 @@ import {
   otpVerifications,
   productImages,
   productQuestions,
+  productUpdates,
   products,
   ratings,
   upgradeRequests,
@@ -33,6 +34,7 @@ export type OtpVerification = InferSelectModel<typeof otpVerifications>;
 export type Category = InferSelectModel<typeof categories>;
 export type Product = InferSelectModel<typeof products>;
 export type ProductImage = InferSelectModel<typeof productImages>;
+export type ProductUpdate = InferSelectModel<typeof productUpdates>;
 export type WatchList = InferSelectModel<typeof watchLists>;
 export type Bid = InferSelectModel<typeof bids>;
 export type AutoBid = InferSelectModel<typeof autoBids>;
@@ -49,6 +51,7 @@ export type NewOtpVerification = InferInsertModel<typeof otpVerifications>;
 export type NewCategory = InferInsertModel<typeof categories>;
 export type NewProduct = InferInsertModel<typeof products>;
 export type NewProductImage = InferInsertModel<typeof productImages>;
+export type NewProductUpdate = InferInsertModel<typeof productUpdates>;
 export type NewWatchList = InferInsertModel<typeof watchLists>;
 export type NewBid = InferInsertModel<typeof bids>;
 export type NewAutoBid = InferInsertModel<typeof autoBids>;

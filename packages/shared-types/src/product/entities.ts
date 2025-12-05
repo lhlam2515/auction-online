@@ -25,7 +25,7 @@ export interface ProductCore {
  * Product with description
  */
 export interface Product extends ProductCore {
-  description?: string;
+  description: string;
 }
 
 /**
@@ -52,6 +52,17 @@ export interface ProductImage {
   altText?: string;
   displayOrder: number;
   isMain: boolean;
+  createdAt: string;
+}
+
+/**
+ * Product update history entity - matches backend productUpdates table
+ */
+export interface ProductUpdate {
+  id: string;
+  productId: string;
+  updatedBy: string;
+  content: string;
   createdAt: string;
 }
 
