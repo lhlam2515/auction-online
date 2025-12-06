@@ -77,7 +77,7 @@ export const createProduct = asyncHandler(
       req.user?.id as string,
       body
     );
-    return ResponseHandler.sendSuccess(res, newProduct, 201);
+    return ResponseHandler.sendSuccess<Product>(res, newProduct, 201);
   }
 );
 

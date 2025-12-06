@@ -110,7 +110,7 @@ export class ProductService {
     }));
   }
 
-  async create(sellerId: string, data: CreateProductRequest) {
+  async create(sellerId: string, data: CreateProductRequest): Promise<Product> {
     // validate business rules and insert product
     if (!sellerId) throw new BadRequestError("Seller ID is required");
 
@@ -259,7 +259,6 @@ export class ProductService {
         .set({ isAutoExtend, updatedAt: new Date() })
         .where(eq(products.id, productId));
     });
-    return true;
   }
 }
 
