@@ -97,7 +97,7 @@ export class ProductService {
   ): Promise<UpdateDescriptionResponse[]> {
     const product = await this.getById(productId);
     if (!product) {
-      throw new NotFoundError("Product not found");
+      throw new NotFoundError("Product");
     }
 
     const updates = await db.query.productUpdates.findMany({
@@ -132,13 +132,13 @@ export class ProductService {
       const seller = await tx.query.users.findFirst({
         where: eq(users.id, sellerId),
       });
-      if (!seller) throw new NotFoundError("Seller not found");
+      if (!seller) throw new NotFoundError("Seller");
 
       // ensure category exists
       const category = await tx.query.categories.findFirst({
         where: eq(categories.id, categoryId),
       });
-      if (!category) throw new NotFoundError("Category not found");
+      if (!category) throw new NotFoundError("Category");
 
       if (new Date(endTime) <= new Date(startTime)) {
         throw new BadRequestError("End time must be after start time");
