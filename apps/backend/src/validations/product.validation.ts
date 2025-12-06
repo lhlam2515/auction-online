@@ -37,7 +37,13 @@ export const createProductSchema = z.object({
   endTime: z.iso.datetime(),
   images: z
     .array(z.string().url())
-    .min(1, { error: "At least one image is required" }),
+    .min(4, { error: "At least four images are required" }),
+  isAutoExtend: z
+    .preprocess((val) => {
+      if (typeof val === "string") return val === "true";
+      return val;
+    }, z.boolean())
+    .default(true),
 });
 
 export const updateDescriptionSchema = z.object({
@@ -47,5 +53,8 @@ export const updateDescriptionSchema = z.object({
 });
 
 export const autoExtendSchema = z.object({
-  isAutoExtend: z.boolean(),
+  isAutoExtend: z.preprocess((val) => {
+    if (typeof val === "string") return val === "true";
+    return val;
+  }, z.boolean()),
 });

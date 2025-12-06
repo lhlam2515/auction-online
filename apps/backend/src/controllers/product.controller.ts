@@ -1,5 +1,4 @@
 import type {
-  Product,
   CreateProductRequest,
   UpdateDescriptionRequest,
   AutoExtendRequest,
@@ -13,6 +12,8 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { productService } from "@/services";
+import { Product } from "@/types/model";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -67,8 +68,12 @@ export const getDescriptionUpdates = asyncHandler(
 export const createProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as CreateProductRequest;
-    // TODO: Create new product listing
-    throw new NotImplementedError("Create product not implemented yet");
+    // Create new product listing
+    const newProduct = await productService.create(
+      req.user?.id as string,
+      body
+    );
+    return ResponseHandler.sendSuccess(res, newProduct, 201);
   }
 );
 

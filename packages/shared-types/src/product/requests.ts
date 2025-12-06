@@ -12,6 +12,7 @@ export interface CreateProductRequest {
   startPrice: number;
   buyNowPrice?: number;
   stepPrice: number;
+  startTime: string;
   endTime: string;
   isAutoExtend: boolean;
   images: string[];
