@@ -102,11 +102,17 @@ export const updateDescription = asyncHandler(
   }
 );
 
-export const toggleAutoExtend = asyncHandler(
+export const setAutoExtend = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AutoExtendRequest;
-    // TODO: Toggle auto-extend setting
-    throw new NotImplementedError("Toggle auto-extend not implemented yet");
+    // Set auto-extend setting
+    const productId = req.params.id;
+    await productService.setAutoExtend(
+      productId,
+      req.user?.id as string,
+      body.isAutoExtend
+    );
+    return ResponseHandler.sendSuccess(res, null, 204);
   }
 );
 

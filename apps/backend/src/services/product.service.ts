@@ -12,7 +12,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { string, number } from "zod";
 
 import { db } from "@/config/database";
-import { toggleAutoExtend } from "@/controllers/product.controller";
+import { setAutoExtend } from "@/controllers/product.controller";
 import {
   bids,
   categories,
@@ -225,12 +225,22 @@ export class ProductService {
     });
   }
 
-  async toggleAutoExtend(
+  async setAutoExtend(
     productId: string,
     sellerId: string,
-    extendMinutes?: number
+    isAutoExtend: boolean
   ) {
-    // TODO: toggle auto extend flag and set extension duration
+    // set auto extend flag
+    const product = await this.getById(productId);
+    if (product.sellerId !== sellerId) {
+      throw new ForbiddenError("Not authorized to update this product");
+    }
+    await db.transaction(async (tx) => {
+      await tx
+        .update(products)
+        .set({ isAutoExtend, updatedAt: new Date() })
+        .where(eq(products.id, productId));
+    });
     return true;
   }
 }

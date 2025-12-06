@@ -52,8 +52,7 @@ export interface ProductsQueryParams extends PaginationParams {
  * Auto extend product auction request
  */
 export interface AutoExtendRequest {
-  productId: string;
-  extendMinutes: number;
+  isAutoExtend: boolean;
 }
 
 /**

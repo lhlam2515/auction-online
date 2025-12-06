@@ -128,7 +128,7 @@ router.put(
     params: productValidation.productIdSchema,
     body: productValidation.autoExtendSchema,
   }),
-  productController.toggleAutoExtend
+  productController.setAutoExtend
 );
 
 /**
