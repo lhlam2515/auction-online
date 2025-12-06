@@ -65,11 +65,11 @@ export class ProductService {
     };
   }
 
-  async getById(productId: string) {
+  async getById(productId: string): Promise<Product> {
     const result = await db.query.products.findFirst({
       where: eq(products.id, productId),
     });
-    if (!result) throw new NotFoundError("Product not found");
+    if (!result) throw new NotFoundError("Product");
     return result;
   }
 

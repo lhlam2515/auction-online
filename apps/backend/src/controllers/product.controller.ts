@@ -37,8 +37,9 @@ export const getTopListing = asyncHandler(
 export const getProductDetails = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get product details
-    // ResponseHandler.sendSuccess<Product>(res, product);
-    throw new NotImplementedError("Get product details not implemented yet");
+    const productId = req.params.id;
+    const product = await productService.getById(productId);
+    return ResponseHandler.sendSuccess<Product>(res, product);
   }
 );
 
