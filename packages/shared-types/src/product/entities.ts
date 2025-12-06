@@ -49,7 +49,7 @@ export interface ProductImage {
   id: string;
   productId: string;
   imageUrl: string;
-  altText?: string;
+  altText: string | null;
   displayOrder: number;
   isMain: boolean;
   createdAt: string;

@@ -7,6 +7,7 @@ import type {
   TopListingResponse,
   UploadImagesResponse,
   UpdateDescriptionResponse,
+  ProductImage,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -52,8 +53,10 @@ export const getRelatedProducts = asyncHandler(
 
 export const getProductImages = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get product images
-    throw new NotImplementedError("Get product images not implemented yet");
+    // Get product images
+    const productId = req.params.id;
+    const images = await productService.getProductImages(productId);
+    return ResponseHandler.sendSuccess<ProductImage[]>(res, images);
   }
 );
 

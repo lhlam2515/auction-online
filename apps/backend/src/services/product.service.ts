@@ -7,6 +7,7 @@ import type {
   PaginationParams,
   PaginatedResponse,
   UpdateDescriptionResponse,
+  ProductImage,
 } from "@repo/shared-types";
 import { eq, desc, and, asc } from "drizzle-orm";
 import { string, number } from "zod";
@@ -90,6 +91,22 @@ export class ProductService {
   async getRelatedProducts(productId: string) {
     // TODO: implement related products by category/keywords
     return [];
+  }
+
+  async getProductImages(productId: string): Promise<ProductImage[]> {
+    const product = await this.getById(productId);
+    if (!product) {
+      throw new NotFoundError("Product");
+    }
+
+    const images = await db.query.productImages.findMany({
+      where: eq(productImages.productId, productId),
+      orderBy: asc(productImages.displayOrder),
+    });
+    return images.map((img) => ({
+      ...img,
+      createdAt: img.createdAt.toISOString(),
+    }));
   }
 
   async getDescriptionUpdates(
