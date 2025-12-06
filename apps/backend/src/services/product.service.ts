@@ -8,7 +8,7 @@ import type {
   PaginatedResponse,
   UpdateDescriptionResponse,
 } from "@repo/shared-types";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, asc } from "drizzle-orm";
 import { string, number } from "zod";
 
 import { db } from "@/config/database";
@@ -90,6 +90,24 @@ export class ProductService {
   async getRelatedProducts(productId: string) {
     // TODO: implement related products by category/keywords
     return [];
+  }
+
+  async getDescriptionUpdates(
+    productId: string
+  ): Promise<UpdateDescriptionResponse[]> {
+    const product = await this.getById(productId);
+    if (!product) {
+      throw new NotFoundError("Product not found");
+    }
+
+    const updates = await db.query.productUpdates.findMany({
+      where: eq(productUpdates.productId, productId),
+      orderBy: asc(productUpdates.createdAt),
+    });
+    return updates.map((update) => ({
+      ...update,
+      createdAt: update.createdAt.toISOString(),
+    }));
   }
 
   async create(sellerId: string, data: CreateProductRequest) {

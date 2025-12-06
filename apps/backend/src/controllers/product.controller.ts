@@ -59,9 +59,12 @@ export const getProductImages = asyncHandler(
 
 export const getDescriptionUpdates = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get product description update history
-    throw new NotImplementedError(
-      "Get description updates not implemented yet"
+    // Get product description update history
+    const productId = req.params.id;
+    const updates = await productService.getDescriptionUpdates(productId);
+    return ResponseHandler.sendSuccess<UpdateDescriptionResponse[]>(
+      res,
+      updates
     );
   }
 );
