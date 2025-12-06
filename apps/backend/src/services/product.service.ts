@@ -19,7 +19,12 @@ import {
   watchLists,
 } from "@/models";
 import { Product } from "@/types/model";
-import { BadRequestError, NotFoundError, ConflictError } from "@/utils/errors";
+import {
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  ForbiddenError,
+} from "@/utils/errors";
 
 export class ProductService {
   async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
@@ -179,8 +184,15 @@ export class ProductService {
   }
 
   async delete(productId: string, sellerId: string) {
-    // TODO: ensure auction not active, then delete
-    throw new ConflictError("Not implemented");
+    // ensure auction not active, then delete
+    const product = await this.getById(productId);
+    if (product.sellerId !== sellerId) {
+      throw new ForbiddenError("Not authorized to delete this product");
+    }
+    if (product.status === "ACTIVE") {
+      throw new ConflictError("Cannot delete an active auction product");
+    }
+    await db.delete(products).where(eq(products.id, productId));
   }
 
   async updateDescription(

@@ -80,8 +80,10 @@ export const createProduct = asyncHandler(
 
 export const deleteProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Delete product (only if not active)
-    throw new NotImplementedError("Delete product not implemented yet");
+    // Delete product (only if not active)
+    const productId = req.params.id;
+    await productService.delete(productId, req.user?.id as string);
+    return ResponseHandler.sendSuccess(res, null, 204);
   }
 );
 
