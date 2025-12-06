@@ -90,8 +90,15 @@ export const deleteProduct = asyncHandler(
 export const updateDescription = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpdateDescriptionRequest;
-    // TODO: Update product description (append mode)
-    throw new NotImplementedError("Update description not implemented yet");
+    // Update product description (append mode)
+    const productId = req.params.id;
+    const update: UpdateDescriptionResponse =
+      await productService.updateDescription(
+        productId,
+        req.user?.id as string,
+        body.content
+      );
+    return ResponseHandler.sendSuccess<UpdateDescriptionResponse>(res, update);
   }
 );
 

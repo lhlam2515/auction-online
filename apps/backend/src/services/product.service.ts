@@ -6,15 +6,19 @@ import type {
   SearchProductsParams,
   PaginationParams,
   PaginatedResponse,
+  UpdateDescriptionResponse,
 } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
+import { string, number } from "zod";
 
 import { db } from "@/config/database";
+import { toggleAutoExtend } from "@/controllers/product.controller";
 import {
   bids,
   categories,
   productImages,
   products,
+  productUpdates,
   users,
   watchLists,
 } from "@/models";
@@ -199,9 +203,26 @@ export class ProductService {
     productId: string,
     sellerId: string,
     description: string
-  ) {
-    // TODO: append description update history
-    throw new BadRequestError("Not implemented");
+  ): Promise<UpdateDescriptionResponse> {
+    // append description update history
+    const product = await this.getById(productId);
+    if (product.sellerId !== sellerId) {
+      throw new ForbiddenError("Not authorized to update this product");
+    }
+    return await db.transaction(async (tx) => {
+      const [updatedContent] = await tx
+        .insert(productUpdates)
+        .values({
+          productId,
+          updatedBy: sellerId,
+          content: description,
+        } as any)
+        .returning();
+      return {
+        ...updatedContent,
+        createdAt: updatedContent.createdAt.toISOString(),
+      };
+    });
   }
 
   async toggleAutoExtend(
