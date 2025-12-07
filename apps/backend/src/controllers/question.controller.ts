@@ -13,8 +13,9 @@ import { ResponseHandler } from "@/utils/response";
 
 export const getPublicQuestions = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get public Q&A for product
-    throw new NotImplementedError("Get public questions not implemented yet");
+    // Get public Q&A for product
+    const questions = await questionService.getPublicQuestions(req.params.id);
+    return ResponseHandler.sendSuccess<ProductQuestion[]>(res, questions);
   }
 );
 

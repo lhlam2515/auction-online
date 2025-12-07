@@ -28,9 +28,17 @@ export interface QuestionFilters {
 
 export class QuestionService {
   async getPublicQuestions(productId: string): Promise<ProductQuestion[]> {
-    // TODO: implement public questions retrieval
-    // Should fetch all public Q&A for a product with status ANSWERED
-    throw new NotImplementedError("Get public questions not implemented");
+    // implement public questions retrieval
+    const questions = await db
+      .select()
+      .from(productQuestions)
+      .where(
+        and(
+          eq(productQuestions.productId, productId),
+          eq(productQuestions.isPublic, true)
+        )
+      );
+    return questions;
   }
 
   async getPrivateQuestions(
