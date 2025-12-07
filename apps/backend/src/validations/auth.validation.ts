@@ -24,7 +24,7 @@ export const forgotPasswordSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
 });
 
-export const verifyOtpSchema = z.object({
+export const verifyEmailSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
   otp: z.string().length(6, { error: "OTP must be 6 digits" }),
 });
@@ -41,10 +41,6 @@ export const resetPasswordSchema = z.object({
     }),
 });
 
-export const verifyEmailSchema = z.object({
-  token: z.string().min(1, { error: "Token is required" }),
-});
-
-export const resendVerificationSchema = z.object({
+export const resendOtpSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
 });

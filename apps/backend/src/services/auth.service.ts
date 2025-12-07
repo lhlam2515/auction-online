@@ -4,13 +4,12 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "@/config/database";
 import { supabase, supabaseAdmin } from "@/config/supabase";
 import { otpVerifications, users } from "@/models";
-import { emailService } from "@/services";
+import { otpService } from "@/services";
 import {
   BadRequestError,
   NotFoundError,
   UnauthorizedError,
 } from "@/utils/errors";
-import { generateOtp, getOtpExpiry } from "@/utils/jwt";
 
 export class AuthService {
   async register(
@@ -35,12 +34,12 @@ export class AuthService {
         );
       }
 
-      // Create user in Supabase Auth (with auto email verification disabled)
+      // Create user in Supabase Auth (with email verification enabled)
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
           password,
-          email_confirm: true, // Skip email verification, we'll handle OTP
+          email_confirm: true,
           user_metadata: {
             full_name: fullName,
           },
@@ -78,18 +77,8 @@ export class AuthService {
         throw new Error("Failed to create user profile");
       }
 
-      // Generate 6-digit OTP and store in database
-      const otpCode = generateOtp();
-      const expiresAt = getOtpExpiry();
-
-      await db.insert(otpVerifications).values({
-        email,
-        otpCode,
-        expiresAt,
-      });
-
-      // Queue OTP email
-      await emailService.queueOtpEmail(email, otpCode);
+      // Send OTP email using OTP service
+      await otpService.sendOtpEmail(email);
 
       return { message: "Registration successful. Please verify your email." };
     } catch (error) {
@@ -103,44 +92,16 @@ export class AuthService {
     }
   }
 
-  async verifyOtp(email: string, otpCode: string) {
+  async verifyEmail(email: string, otp: string) {
     try {
-      // Find the latest OTP verification record for this email
-      const otpRecord = await db.query.otpVerifications.findFirst({
-        where: eq(otpVerifications.email, email),
-        orderBy: (table, { desc }) => [desc(table.createdAt)],
-      });
+      // Verify OTP using OTP service
+      const verificationResult = await otpService.verifyOtp(email, otp);
 
-      if (!otpRecord) {
-        throw new UnauthorizedError("No OTP verification found for this email");
+      if (!verificationResult.isValid || !verificationResult.otpRecordId) {
+        throw new UnauthorizedError("OTP verification failed");
       }
 
-      // Check if OTP has expired
-      if (new Date() > otpRecord.expiresAt) {
-        throw new UnauthorizedError(
-          "OTP has expired. Please request a new one."
-        );
-      }
-
-      // Check attempts limit (max 3 attempts)
-      if (otpRecord.attempts >= 3) {
-        throw new UnauthorizedError(
-          "Too many failed attempts. Please request a new OTP."
-        );
-      }
-
-      // Validate OTP code
-      if (otpRecord.otpCode !== otpCode) {
-        // Increment attempts
-        await db
-          .update(otpVerifications)
-          .set({ attempts: sql`${otpVerifications.attempts} + 1` })
-          .where(eq(otpVerifications.id, otpRecord.id));
-
-        throw new UnauthorizedError("Invalid OTP code");
-      }
-
-      // Find user by email
+      // Find user in database by email
       const user = await db.query.users.findFirst({
         where: eq(users.email, email),
       });
@@ -166,12 +127,11 @@ export class AuthService {
       // Clean up OTP record
       await db
         .delete(otpVerifications)
-        .where(eq(otpVerifications.id, otpRecord.id));
+        .where(eq(otpVerifications.id, verificationResult.otpRecordId));
 
-      // Note: After OTP verification, user can now login normally
-      // The client should redirect to login page or automatically login
-
-      return { message: "Email verified successfully. You can now log in." };
+      return {
+        message: "Email verification successful. You can now log in.",
+      };
     } catch (error) {
       if (
         error instanceof UnauthorizedError ||
@@ -179,7 +139,11 @@ export class AuthService {
       ) {
         throw error;
       }
-      throw new UnauthorizedError("OTP verification failed");
+      throw new UnauthorizedError(
+        `Email verification failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   }
 
@@ -276,11 +240,6 @@ export class AuthService {
 
   async resetPassword(token: string, newPassword: string) {
     // TODO: verify reset token and update password
-    throw new BadRequestError("Not implemented");
-  }
-
-  async verifyEmail(token: string) {
-    // TODO: verify email token
     throw new BadRequestError("Not implemented");
   }
 

@@ -3,17 +3,16 @@ import type {
   LoginRequest,
   LoginResponse,
   ForgotPasswordRequest,
-  VerifyOtpRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
-  ResendVerificationRequest,
+  ResendOtpRequest,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { supabase } from "@/config/supabase";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { authService } from "@/services";
+import { authService, otpService } from "@/services";
 import { NotImplementedError, UnauthorizedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -105,11 +104,14 @@ export const forgotPassword = asyncHandler(
   }
 );
 
-export const verifyOtp = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as VerifyOtpRequest;
-    // TODO: Implement OTP verification logic
-    throw new NotImplementedError("Verify OTP not implemented yet");
+export const verifyEmail = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const body = req.body as VerifyEmailRequest;
+    const { email, otp } = body;
+
+    const result = await authService.verifyEmail(email, otp);
+
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
@@ -128,18 +130,13 @@ export const googleLogin = asyncHandler(
   }
 );
 
-export const verifyEmail = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as VerifyEmailRequest;
-    // TODO: Implement email verification
-    throw new NotImplementedError("Verify email not implemented yet");
-  }
-);
+export const resendOtp = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const body = req.body as ResendOtpRequest;
+    const { email } = body;
 
-export const resendVerification = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as ResendVerificationRequest;
-    // TODO: Implement resend verification email
-    throw new NotImplementedError("Resend verification not implemented yet");
+    const result = await otpService.resendOtp(email);
+
+    return ResponseHandler.sendSuccess(res, result);
   }
 );

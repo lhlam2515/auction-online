@@ -27,10 +27,10 @@ export interface ForgotPasswordRequest {
 }
 
 /**
- * OTP verification request
- * Backend validation: auth.validation.ts → verifyOtpSchema
+ * Email verification request
+ * Backend validation: auth.validation.ts → verifyEmailSchema
  */
-export interface VerifyOtpRequest {
+export interface VerifyEmailRequest {
   email: string;
   otp: string;
 }
@@ -46,18 +46,10 @@ export interface ResetPasswordRequest {
 }
 
 /**
- * Email verification request
- * Backend validation: auth.validation.ts → verifyEmailSchema
+ * Resend OTP request
+ * Backend validation: auth.validation.ts → resendOtpSchema
  */
-export interface VerifyEmailRequest {
-  token: string;
-}
-
-/**
- * Resend verification email request
- * Backend validation: auth.validation.ts → resendVerificationSchema
- */
-export interface ResendVerificationRequest {
+export interface ResendOtpRequest {
   email: string;
 }
 
