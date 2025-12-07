@@ -16,6 +16,8 @@ import {
   UnauthorizedError,
 } from "@/utils/errors";
 
+import { productService } from "./product.service";
+
 export interface QuestionFilters {
   productId?: string;
   askerId?: string;
@@ -46,9 +48,30 @@ export class QuestionService {
     question: string,
     visibility: QuestionVisibility = "PUBLIC"
   ): Promise<ProductQuestion> {
-    // TODO: implement question creation
-    // Should create new question with PENDING status and return it
-    throw new NotImplementedError("Ask question not implemented");
+    // implement question creation
+    const product = await productService.getById(productId);
+    if (!product) {
+      throw new NotFoundError("Product not found");
+    }
+    const sellerId = product.sellerId;
+    if (askerId === sellerId) {
+      throw new BadRequestError("Seller cannot ask question on own product");
+    }
+
+    const [newQuestion] = await db
+      .insert(productQuestions)
+      .values({
+        productId: productId,
+        userId: askerId,
+        questionContent: question,
+        isPublic: visibility === "PUBLIC",
+        createdAt: new Date(),
+      })
+      .returning();
+
+    // TODO: sent email notification to seller
+
+    return newQuestion;
   }
 
   async answerQuestion(

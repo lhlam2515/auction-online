@@ -7,7 +7,8 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { NotImplementedError } from "@/utils/errors";
+import { questionService } from "@/services";
+import { BadRequestError, NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getPublicQuestions = asyncHandler(
@@ -27,8 +28,18 @@ export const getPrivateQuestions = asyncHandler(
 export const askQuestion = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AskQuestionRequest;
-    // TODO: Ask a question about product
-    throw new NotImplementedError("Ask question not implemented yet");
+    // Ask a question about product
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new BadRequestError("Asker ID is required");
+    }
+
+    const question = await questionService.askQuestion(
+      req.params.id,
+      userId,
+      body.questionContent
+    );
+    return ResponseHandler.sendSuccess<ProductQuestion>(res, question);
   }
 );
 
