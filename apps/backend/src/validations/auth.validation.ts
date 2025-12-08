@@ -47,10 +47,7 @@ export const resetPasswordSchema = z.object({
 
 export const resendOtpSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
-  purpose: z
-    .enum(["EMAIL_VERIFICATION", "PASSWORD_RESET"], {
-      error: "Purpose must be either EMAIL_VERIFICATION or PASSWORD_RESET",
-    })
-    .optional()
-    .default("EMAIL_VERIFICATION"),
+  purpose: z.enum(["EMAIL_VERIFICATION", "PASSWORD_RESET"], {
+    error: "Purpose must be either EMAIL_VERIFICATION or PASSWORD_RESET",
+  }),
 });

@@ -153,10 +153,7 @@ export const resendOtp = asyncHandler(
     const body = req.body as ResendOtpRequest;
     const { email, purpose } = body;
 
-    const result = await otpService.resendOtp(
-      email,
-      purpose || "EMAIL_VERIFICATION"
-    );
+    const result = await otpService.resendOtp(email, purpose);
 
     return ResponseHandler.sendSuccess(res, result);
   }

@@ -28,7 +28,7 @@ interface CleanupOptions {
 export class OtpService {
   async sendOtpEmail(
     email: string,
-    purpose: OtpPurpose = "EMAIL_VERIFICATION"
+    purpose: OtpPurpose
   ): Promise<{ otpCode: string }> {
     try {
       // Generate 6-digit OTP code
@@ -57,7 +57,7 @@ export class OtpService {
   async verifyOtp(
     email: string,
     otp: string,
-    purpose?: OtpPurpose
+    purpose: OtpPurpose
   ): Promise<VerifyOtpResult> {
     try {
       // Find the latest OTP verification record for this email

@@ -79,7 +79,7 @@ export class AuthService {
       }
 
       // Send OTP email using OTP service
-      await otpService.sendOtpEmail(email);
+      await otpService.sendOtpEmail(email, "EMAIL_VERIFICATION");
 
       return { message: "Registration successful. Please verify your email." };
     } catch (error) {
