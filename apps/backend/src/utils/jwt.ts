@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 import { supabase } from "@/config/supabase";
 
 import { UnauthorizedError } from "./errors";
@@ -99,4 +101,18 @@ export function generateOtp(): string {
  */
 export function getOtpExpiry(): Date {
   return new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+}
+
+/**
+ * Generate a reset token (32 bytes hex = 64 characters)
+ */
+export function generateResetToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+/**
+ * Get reset token expiry time (10 minutes from now)
+ */
+export function getResetTokenExpiry(): Date {
+  return new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 }

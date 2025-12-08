@@ -55,19 +55,30 @@ router.post(
 );
 
 /**
- * @route   POST /api/auth/verify-otp
- * @desc    Verify OTP code
+ * @route   POST /api/auth/verify-email
+ * @desc    Verify email with OTP code (for registration)
  * @access  Public
  */
 router.post(
-  "/verify-otp",
-  validate({ body: authValidation.verifyOtpSchema }),
-  authController.verifyOtp
+  "/verify-email",
+  validate({ body: authValidation.verifyEmailSchema }),
+  authController.verifyEmail
+);
+
+/**
+ * @route   POST /api/auth/verify-reset-otp
+ * @desc    Verify reset OTP and get reset token
+ * @access  Public
+ */
+router.post(
+  "/verify-reset-otp",
+  validate({ body: authValidation.verifyResetOtpSchema }),
+  authController.verifyResetOtp
 );
 
 /**
  * @route   POST /api/auth/reset-password
- * @desc    Reset password with OTP
+ * @desc    Reset password with reset token (from verify-reset-otp)
  * @access  Public
  */
 router.post(
@@ -84,25 +95,14 @@ router.post(
 router.post("/google", authController.googleLogin);
 
 /**
- * @route   POST /api/auth/verify-email
- * @desc    Verify email with token
+ * @route   POST /api/auth/resend-otp
+ * @desc    Resend email verification OTP
  * @access  Public
  */
 router.post(
-  "/verify-email",
-  validate({ body: authValidation.verifyEmailSchema }),
-  authController.verifyEmail
-);
-
-/**
- * @route   POST /api/auth/resend-verification
- * @desc    Resend email verification
- * @access  Public
- */
-router.post(
-  "/resend-verification",
-  validate({ body: authValidation.resendVerificationSchema }),
-  authController.resendVerification
+  "/resend-otp",
+  validate({ body: authValidation.resendOtpSchema }),
+  authController.resendOtp
 );
 
 export default router;

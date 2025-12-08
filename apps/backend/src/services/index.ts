@@ -1,4 +1,5 @@
 export * from "./auth.service";
+export * from "./otp.service";
 export * from "./product.service";
 export * from "./bid.service";
 export * from "./category.service";

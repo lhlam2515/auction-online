@@ -69,6 +69,11 @@ export type PaymentMethod = "COD" | "BANK_TRANSFER" | "CREDIT_CARD" | "EWALLET";
 export type ShipmentProvider = "VNPOST" | "GHN" | "GHTK" | "JNT" | "OTHER";
 
 /**
+ * OTP purpose types - matches backend otpPurposeEnum
+ */
+export type OtpPurpose = "EMAIL_VERIFICATION" | "PASSWORD_RESET";
+
+/**
  * Payment status types
  */
 export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
