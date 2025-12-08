@@ -5,8 +5,8 @@ import type { TopListingType } from "./enums";
  * Top listing parameters
  */
 export interface TopListingParams {
-  type: TopListingType;
-  limit?: number;
+  // type: TopListingType;
+  limit: number;
 }
 
 /**
@@ -15,7 +15,7 @@ export interface TopListingParams {
 export interface TopListingResponse {
   endingSoon: ProductListing[];
   hot: ProductListing[];
-  newListings: ProductListing[];
+  highestPrice: ProductListing[];
 }
 
 /**

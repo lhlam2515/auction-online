@@ -9,12 +9,13 @@ import type {
   UpdateDescriptionResponse,
   ProductImage,
   Product,
+  TopListingType,
+  TopListingResponse,
+  ProductListing,
 } from "@repo/shared-types";
-import { eq, desc, and, asc } from "drizzle-orm";
-import { string, number } from "zod";
+import { eq, desc, and, asc, count, sql, gt, max, inArray } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { setAutoExtend } from "@/controllers/product.controller";
 import {
   bids,
   categories,
@@ -83,9 +84,87 @@ export class ProductService {
     return result;
   }
 
-  async getTopListings(type: "ending-soon" | "hot" | "new") {
-    // TODO: implement ranking logic per type
-    return [];
+  async getTopListings(
+    limit: number,
+    userId?: string
+  ): Promise<TopListingResponse> {
+    const listings: TopListingResponse = {
+      endingSoon: [],
+      hot: [],
+      highestPrice: [],
+    };
+
+    const now = new Date();
+
+    // Điều kiện dùng chung cho cả 3 truy vấn
+    const activeAndNotEnded = and(
+      eq(products.status, "ACTIVE"),
+      gt(products.endTime, now)
+    );
+
+    // --------------------------
+    // 1️⃣ Ending soon
+    // --------------------------
+    const endingSoonRows = await db.query.products.findMany({
+      where: activeAndNotEnded,
+      orderBy: asc(products.endTime),
+      limit,
+    });
+
+    listings.endingSoon = await this.enrichProducts(endingSoonRows, userId);
+
+    // --------------------------
+    // 2️⃣ Hot products (most bids)
+    // --------------------------
+    const hotRows = await db
+      .select({ product: products })
+      .from(products)
+      .leftJoin(
+        bids,
+        and(eq(bids.productId, products.id), eq(bids.status, "VALID"))
+      )
+      .where(activeAndNotEnded)
+      .groupBy(products.id)
+      .orderBy(desc(count(bids.id)))
+      .limit(limit);
+
+    listings.hot = await this.enrichProducts(
+      hotRows.map((r) => r.product),
+      userId
+    );
+
+    // --------------------------
+    // 3️⃣ Highest price (fast + clear)
+    // --------------------------
+    const maxBidSub = db
+      .select({
+        productId: bids.productId,
+        maxAmount: sql`MAX(${bids.amount})`.as("maxAmount"),
+      })
+      .from(bids)
+      .where(eq(bids.status, "VALID"))
+      .groupBy(bids.productId)
+      .as("maxBid");
+
+    const highestRows = await db
+      .select({
+        product: products,
+        currentPrice: sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`,
+      })
+      .from(products)
+      .leftJoin(maxBidSub, eq(maxBidSub.productId, products.id))
+      .where(activeAndNotEnded)
+      .orderBy(
+        desc(sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`)
+      )
+      .limit(limit);
+
+    listings.highestPrice = await this.enrichProducts(
+      highestRows.map((r) => r.product),
+      userId
+    );
+
+    return listings;
   }
 
   async getRelatedProducts(productId: string) {
@@ -264,6 +343,156 @@ export class ProductService {
         .update(products)
         .set({ isAutoExtend, updatedAt: new Date() })
         .where(eq(products.id, productId));
+    });
+  }
+
+  /**
+   * Enrich a list of products with related data in batch to avoid N+1 queries.
+   */
+  private async enrichProducts(
+    productsList: Product[],
+    userId?: string
+  ): Promise<ProductListing[]> {
+    if (!productsList.length) return [];
+
+    // ===== Extract IDs =====
+    const productIds = productsList.map((p) => p.id);
+    const categoryIds = [...new Set(productsList.map((p) => p.categoryId))];
+    const sellerIds = [...new Set(productsList.map((p) => p.sellerId))];
+
+    // ===== Batch fetch: categories & sellers =====
+    const [categoriesRows, sellersRows] = await Promise.all([
+      db.query.categories.findMany({
+        where: inArray(categories.id, categoryIds),
+      }),
+      db.query.users.findMany({
+        where: inArray(users.id, sellerIds),
+      }),
+    ]);
+
+    // ===== Images, bidCounts, watchCounts =====
+    const [mainImages, bidCounts, watchCounts] = await Promise.all([
+      db.query.productImages.findMany({
+        where: and(
+          eq(productImages.isMain, true),
+          inArray(productImages.productId, productIds)
+        ),
+      }),
+
+      db
+        .select({
+          productId: bids.productId,
+          value: count(),
+        })
+        .from(bids)
+        .where(
+          and(eq(bids.status, "VALID"), inArray(bids.productId, productIds))
+        )
+        .groupBy(bids.productId),
+
+      db
+        .select({
+          productId: watchLists.productId,
+          value: count(),
+        })
+        .from(watchLists)
+        .where(inArray(watchLists.productId, productIds))
+        .groupBy(watchLists.productId),
+    ]);
+
+    // =====================================================
+    // ============ Get Current Price + Winner =============
+    // =====================================================
+
+    // --- Step 1: Subquery lấy MAX(amount) cho từng product ---
+    const maxBidSub = db
+      .select({
+        productId: bids.productId,
+        maxAmount: sql`MAX(${bids.amount})`.as("maxAmount"),
+      })
+      .from(bids)
+      .where(eq(bids.status, "VALID"))
+      .groupBy(bids.productId)
+      .as("maxBid");
+
+    // --- Step 2: Join để lấy tên người bid cao nhất ---
+    const currentPricesAndBidders = await db
+      .select({
+        productId: maxBidSub.productId,
+        currentPrice: maxBidSub.maxAmount,
+        currentWinnerName: users.fullName,
+      })
+      .from(maxBidSub)
+      .leftJoin(
+        bids,
+        and(
+          eq(bids.productId, maxBidSub.productId),
+          eq(bids.amount, maxBidSub.maxAmount),
+          eq(bids.status, "VALID")
+        )
+      )
+      .leftJoin(users, eq(users.id, bids.userId))
+      .where(inArray(maxBidSub.productId, productIds));
+
+    // ===== User watch set =====
+    let userWatchSet = new Set<string>();
+    if (userId) {
+      const watchRows = await db.query.watchLists.findMany({
+        where: and(
+          eq(watchLists.userId, userId),
+          inArray(watchLists.productId, productIds)
+        ),
+      });
+      userWatchSet = new Set(watchRows.map((w) => w.productId));
+    }
+
+    // ===== Helper =====
+    const maskName = (fullName: string) => {
+      const parts = fullName.trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return "****";
+      const last = parts[parts.length - 1];
+      return "****" + last;
+    };
+
+    // ===== Lookup maps =====
+    const categoryMap = new Map(categoriesRows.map((c) => [c.id, c]));
+    const sellerMap = new Map(sellersRows.map((s) => [s.id, s]));
+    const imageMap = new Map(mainImages.map((i) => [i.productId, i]));
+    const bidMap = new Map(
+      bidCounts.map((r) => [r.productId, Number(r.value)])
+    );
+    const watchMap = new Map(
+      watchCounts.map((r) => [r.productId, Number(r.value)])
+    );
+    const currentMap = new Map(
+      currentPricesAndBidders.map((r) => [
+        r.productId,
+        {
+          price: r.currentPrice ? String(r.currentPrice) : null,
+          winner: r.currentWinnerName ? maskName(r.currentWinnerName) : null,
+        },
+      ])
+    );
+
+    // ===== Final enrichment =====
+    return productsList.map((p) => {
+      const cur = currentMap.get(p.id);
+
+      return {
+        ...p,
+        categoryName: categoryMap.get(p.categoryId)?.name ?? "",
+        sellerName: sellerMap.get(p.sellerId)?.fullName ?? "",
+        sellerAvatarUrl: sellerMap.get(p.sellerId)?.avatarUrl ?? null,
+
+        currentPrice: cur?.price ?? String(p.startPrice),
+        currentWinnerName: cur?.winner ?? null,
+
+        bidCount: bidMap.get(p.id) ?? 0,
+        watchCount: watchMap.get(p.id) ?? 0,
+        mainImageUrl: imageMap.get(p.id)?.imageUrl ?? null,
+
+        isWatching: userId ? userWatchSet.has(p.id) : null,
+      };
     });
   }
 }

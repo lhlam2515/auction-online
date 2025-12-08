@@ -16,8 +16,8 @@ export const searchProductsSchema = z.object({
 });
 
 export const topListingSchema = z.object({
-  type: z.enum(["ending_soon", "hot", "new"]),
-  limit: z.coerce.number().int().min(1).max(50).default(10),
+  // type: z.enum(["ending_soon", "hot", "highest_price"]),
+  limit: z.coerce.number().int().min(1).max(50).default(5),
 });
 
 export const createProductSchema = z.object({

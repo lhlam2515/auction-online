@@ -36,6 +36,7 @@ export interface ProductListing extends Product {
   categoryName: string;
   sellerName: string;
   sellerAvatarUrl: string | null;
+  currentWinnerName: string | null; // masked name of highest bidder
   bidCount: number;
   watchCount: number;
   mainImageUrl: string | null;

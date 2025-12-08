@@ -29,9 +29,13 @@ export const searchProducts = asyncHandler(
 export const getTopListing = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const query = req.query as unknown as TopListingParams;
-    // TODO: Get top products (ending soon, hot, new)
-    // ResponseHandler.sendSuccess<TopListingResponse>(res, topListings);
-    throw new NotImplementedError("Get top listing not implemented yet");
+    // Get top products (ending soon, hot (most bids), highest price)
+    const topListings = await productService.getTopListings(
+      // query.type,
+      query.limit,
+      req.user?.id
+    );
+    return ResponseHandler.sendSuccess<TopListingResponse>(res, topListings);
   }
 );
 
