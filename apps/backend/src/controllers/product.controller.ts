@@ -15,7 +15,7 @@ import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { productService } from "@/services";
 import { Product } from "@/types/model";
-import { NotImplementedError } from "@/utils/errors";
+import { BadRequestError, NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const searchProducts = asyncHandler(
@@ -37,7 +37,7 @@ export const getTopListing = asyncHandler(
 
 export const getProductDetails = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get product details
+    // Get product details
     const productId = req.params.id;
     const product = await productService.getById(productId);
     return ResponseHandler.sendSuccess<Product>(res, product);
@@ -76,10 +76,11 @@ export const createProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as CreateProductRequest;
     // Create new product listing
-    const newProduct = await productService.create(
-      req.user?.id as string,
-      body
-    );
+    const sellerId = req.user?.id;
+    if (!sellerId) {
+      throw new BadRequestError("Seller ID is required");
+    }
+    const newProduct = await productService.create(sellerId, body);
     return ResponseHandler.sendSuccess<Product>(res, newProduct, 201);
   }
 );
@@ -87,8 +88,12 @@ export const createProduct = asyncHandler(
 export const deleteProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // Delete product (only if not active)
+    const sellerId = req.user?.id;
+    if (!sellerId) {
+      throw new BadRequestError("Seller ID is required");
+    }
     const productId = req.params.id;
-    await productService.delete(productId, req.user?.id as string);
+    await productService.delete(productId, sellerId);
     return ResponseHandler.sendSuccess(res, null, 204);
   }
 );
@@ -97,13 +102,13 @@ export const updateDescription = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpdateDescriptionRequest;
     // Update product description (append mode)
+    const sellerId = req.user?.id;
+    if (!sellerId) {
+      throw new BadRequestError("Seller ID is required");
+    }
     const productId = req.params.id;
     const update: UpdateDescriptionResponse =
-      await productService.updateDescription(
-        productId,
-        req.user?.id as string,
-        body.content
-      );
+      await productService.updateDescription(productId, sellerId, body.content);
     return ResponseHandler.sendSuccess<UpdateDescriptionResponse>(res, update);
   }
 );
@@ -112,12 +117,12 @@ export const setAutoExtend = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AutoExtendRequest;
     // Set auto-extend setting
+    const sellerId = req.user?.id;
+    if (!sellerId) {
+      throw new BadRequestError("Seller ID is required");
+    }
     const productId = req.params.id;
-    await productService.setAutoExtend(
-      productId,
-      req.user?.id as string,
-      body.isAutoExtend
-    );
+    await productService.setAutoExtend(productId, sellerId, body.isAutoExtend);
     return ResponseHandler.sendSuccess(res, null, 204);
   }
 );
