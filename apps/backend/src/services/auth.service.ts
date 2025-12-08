@@ -3,13 +3,14 @@ import { eq, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase, supabaseAdmin } from "@/config/supabase";
-import { otpVerifications, users } from "@/models";
+import { passwordResetTokens, users } from "@/models";
 import { otpService } from "@/services";
 import {
   BadRequestError,
   NotFoundError,
   UnauthorizedError,
 } from "@/utils/errors";
+import { generateResetToken, getResetTokenExpiry } from "@/utils/jwt";
 
 export class AuthService {
   async register(
@@ -94,8 +95,12 @@ export class AuthService {
 
   async verifyEmail(email: string, otp: string) {
     try {
-      // Verify OTP using OTP service
-      const verificationResult = await otpService.verifyOtp(email, otp);
+      // Verify OTP using OTP service (for email verification)
+      const verificationResult = await otpService.verifyOtp(
+        email,
+        otp,
+        "EMAIL_VERIFICATION"
+      );
 
       if (!verificationResult.isValid || !verificationResult.otpRecordId) {
         throw new UnauthorizedError("OTP verification failed");
@@ -124,10 +129,10 @@ export class AuthService {
         throw new NotFoundError("User not found");
       }
 
-      // Clean up OTP record
-      await db
-        .delete(otpVerifications)
-        .where(eq(otpVerifications.id, verificationResult.otpRecordId));
+      // Clean up OTP record after successful verification
+      await otpService.cleanupOtpAfterVerification(
+        verificationResult.otpRecordId
+      );
 
       return {
         message: "Email verification successful. You can now log in.",
@@ -230,17 +235,151 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    // TODO: create reset token and send email
-    const existing = await db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
-    if (!existing) throw new NotFoundError("Email not found");
-    return true;
+    try {
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, email),
+      });
+
+      // Only process if user exists and account is ACTIVE
+      if (user && user.accountStatus === "ACTIVE") {
+        await otpService.sendOtpEmail(email, "PASSWORD_RESET");
+      }
+
+      return {
+        message:
+          "If this email exists, a password reset OTP has been sent to your email address.",
+      };
+    } catch {
+      return {
+        message:
+          "If this email exists, a password reset OTP has been sent to your email address.",
+      };
+    }
   }
 
-  async resetPassword(token: string, newPassword: string) {
-    // TODO: verify reset token and update password
-    throw new BadRequestError("Not implemented");
+  async verifyResetOtp(email: string, otp: string) {
+    try {
+      const verificationResult = await otpService.verifyOtp(
+        email,
+        otp,
+        "PASSWORD_RESET"
+      );
+
+      if (!verificationResult.isValid || !verificationResult.otpRecordId) {
+        throw new UnauthorizedError("OTP verification failed");
+      }
+
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, email),
+      });
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      if (user.accountStatus !== "ACTIVE") {
+        throw new BadRequestError(
+          "Password reset is only allowed for active accounts."
+        );
+      }
+
+      // Generate reset token and store it in database
+      const resetToken = generateResetToken();
+      const expiresAt = getResetTokenExpiry();
+
+      await db.insert(passwordResetTokens).values({
+        email,
+        token: resetToken,
+        otpRecordId: verificationResult.otpRecordId,
+        expiresAt,
+      });
+
+      return {
+        resetToken,
+        expiresAt,
+      };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedError ||
+        error instanceof NotFoundError ||
+        error instanceof BadRequestError
+      ) {
+        throw error;
+      }
+      throw new UnauthorizedError(
+        `OTP verification failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  async resetPassword(resetToken: string, newPassword: string) {
+    try {
+      const resetTokenRecord = await db.query.passwordResetTokens.findFirst({
+        where: eq(passwordResetTokens.token, resetToken),
+      });
+
+      if (!resetTokenRecord) {
+        throw new UnauthorizedError("Invalid or expired reset token.");
+      }
+
+      // Check if reset token is expired
+      if (new Date() > resetTokenRecord.expiresAt) {
+        throw new UnauthorizedError(
+          "Reset token has expired. Please request a new password reset."
+        );
+      }
+
+      // Find user
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, resetTokenRecord.email),
+      });
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      if (user.accountStatus !== "ACTIVE") {
+        throw new BadRequestError(
+          "Password reset is only allowed for active accounts."
+        );
+      }
+
+      // Update password in Supabase Auth (using Admin API)
+      const { error: updateError } =
+        await supabaseAdmin.auth.admin.updateUserById(user.id, {
+          password: newPassword,
+        });
+
+      if (updateError) {
+        throw new BadRequestError(
+          `Failed to update password: ${updateError.message}`
+        );
+      }
+
+      // Clean up OTP record after successful password reset
+      await otpService.cleanupOtpAfterVerification(
+        resetTokenRecord.otpRecordId
+      );
+
+      return {
+        message: "Password has been reset successfully. You can now log in.",
+      };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedError ||
+        error instanceof NotFoundError ||
+        error instanceof BadRequestError
+      ) {
+        throw error;
+      }
+      throw new BadRequestError(
+        `Password reset failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   }
 
   async googleLogin(googleToken: string): Promise<LoginResponse> {

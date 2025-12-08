@@ -1,8 +1,9 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { otpVerifications, users } from "@/models";
 import { emailService } from "@/services";
+import { OtpPurpose } from "@/types/model";
 import {
   BadRequestError,
   NotFoundError,
@@ -16,8 +17,19 @@ export interface VerifyOtpResult {
   errorMessage?: string;
 }
 
+interface CleanupOptions {
+  email?: string;
+  purpose?: OtpPurpose;
+  otpRecordId?: string;
+  expired?: boolean;
+  maxAttemptsExceeded?: boolean;
+}
+
 export class OtpService {
-  async sendOtpEmail(email: string): Promise<{ otpCode: string }> {
+  async sendOtpEmail(
+    email: string,
+    purpose: OtpPurpose = "EMAIL_VERIFICATION"
+  ): Promise<{ otpCode: string }> {
     try {
       // Generate 6-digit OTP code
       const otpCode = generateOtp();
@@ -27,6 +39,7 @@ export class OtpService {
       await db.insert(otpVerifications).values({
         email,
         otpCode,
+        purpose,
         expiresAt,
       });
 
@@ -41,13 +54,36 @@ export class OtpService {
     }
   }
 
-  async verifyOtp(email: string, otp: string): Promise<VerifyOtpResult> {
+  async verifyOtp(
+    email: string,
+    otp: string,
+    purpose?: OtpPurpose
+  ): Promise<VerifyOtpResult> {
     try {
       // Find the latest OTP verification record for this email
-      const otpRecord = await db.query.otpVerifications.findFirst({
-        where: eq(otpVerifications.email, email),
-        orderBy: (table, { desc }) => [desc(table.createdAt)],
-      });
+      let otpRecord;
+
+      if (purpose) {
+        // Query with purpose filter
+        const records = await db
+          .select()
+          .from(otpVerifications)
+          .where(
+            and(
+              eq(otpVerifications.email, email),
+              eq(otpVerifications.purpose, purpose)
+            )
+          )
+          .orderBy(sql`${otpVerifications.createdAt} DESC`)
+          .limit(1);
+
+        otpRecord = records[0];
+      } else {
+        otpRecord = await db.query.otpVerifications.findFirst({
+          where: eq(otpVerifications.email, email),
+          orderBy: (table, { desc }) => [desc(table.createdAt)],
+        });
+      }
 
       if (!otpRecord) {
         throw new UnauthorizedError(
@@ -98,31 +134,57 @@ export class OtpService {
     }
   }
 
-  async resendOtp(email: string) {
+  async resendOtp(email: string, purpose: OtpPurpose = "EMAIL_VERIFICATION") {
     try {
-      // Check if user exists and is in PENDING_VERIFICATION status
+      // Check if user exists
       const user = await db.query.users.findFirst({
         where: eq(users.email, email),
       });
 
       if (!user) {
         // Security: Return generic message to prevent email enumeration
+        // For PASSWORD_RESET, we still return success message
+        if (purpose === "PASSWORD_RESET") {
+          return {
+            message:
+              "If this email exists, a password reset OTP has been resent to your email address.",
+          };
+        }
         throw new NotFoundError("User not found");
       }
 
-      if (user.accountStatus !== "PENDING_VERIFICATION") {
-        throw new BadRequestError(
-          "Email is already verified or account is in an invalid state."
-        );
+      // Validate account status based on purpose
+      if (purpose === "EMAIL_VERIFICATION") {
+        // For email verification, only allow if account is PENDING_VERIFICATION
+        if (user.accountStatus !== "PENDING_VERIFICATION") {
+          throw new BadRequestError(
+            "Email is already verified or account is in an invalid state."
+          );
+        }
+      } else if (purpose === "PASSWORD_RESET") {
+        // For password reset, only allow if account is ACTIVE
+        if (user.accountStatus !== "ACTIVE") {
+          // Security: Return generic message for non-active accounts
+          return {
+            message:
+              "If this email exists, a password reset OTP has been resent to your email address.",
+          };
+        }
       }
 
-      // Clean up old OTP records for this email
-      await db
-        .delete(otpVerifications)
-        .where(eq(otpVerifications.email, email));
+      // Clean up old OTP records before sending new one (only when resending)
+      await this.cleanupOldOtpsForResend(email, purpose);
 
       // Send new OTP email using OTP service
-      await this.sendOtpEmail(email);
+      await this.sendOtpEmail(email, purpose);
+
+      // Return appropriate message based on purpose
+      if (purpose === "PASSWORD_RESET") {
+        return {
+          message:
+            "If this email exists, a password reset OTP has been resent to your email address.",
+        };
+      }
 
       return { message: "OTP code has been resent to your email address." };
     } catch (error) {
@@ -133,6 +195,53 @@ export class OtpService {
         "Failed to resend OTP. Please try again later."
       );
     }
+  }
+
+  private async cleanupOtps(options: CleanupOptions) {
+    if (options.otpRecordId) {
+      await db
+        .delete(otpVerifications)
+        .where(eq(otpVerifications.id, options.otpRecordId));
+      return;
+    }
+
+    const conditions: Array<
+      ReturnType<typeof eq> | ReturnType<typeof lt> | ReturnType<typeof sql>
+    > = [];
+
+    if (options.email) {
+      conditions.push(eq(otpVerifications.email, options.email));
+    }
+
+    if (options.purpose) {
+      conditions.push(eq(otpVerifications.purpose, options.purpose));
+    }
+
+    if (options.expired) {
+      conditions.push(lt(otpVerifications.expiresAt, new Date()));
+    }
+
+    if (options.maxAttemptsExceeded) {
+      conditions.push(sql`${otpVerifications.attempts} >= 3`);
+    }
+
+    if (conditions.length > 0) {
+      await db
+        .delete(otpVerifications)
+        .where(conditions.length === 1 ? conditions[0] : and(...conditions));
+    }
+  }
+
+  async cleanupOldOtpsForResend(email: string, purpose: OtpPurpose) {
+    await this.cleanupOtps({ email, purpose });
+  }
+
+  async cleanupOtpAfterVerification(otpRecordId: string) {
+    await this.cleanupOtps({ otpRecordId });
+  }
+
+  async cleanupExpiredOtps() {
+    await this.cleanupOtps({ expired: true });
   }
 }
 
