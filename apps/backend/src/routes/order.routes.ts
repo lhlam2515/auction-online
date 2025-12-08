@@ -50,7 +50,10 @@ router.get(
  */
 router.post(
   "/:id/mark-paid",
-  validate({ params: orderValidation.orderIdSchema }),
+  validate({
+    params: orderValidation.orderIdSchema,
+    body: orderValidation.markPaidSchema,
+  }),
   orderController.markAsPaid
 );
 

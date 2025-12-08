@@ -1,8 +1,12 @@
-import type { GetOrdersParams, OrderWithDetails } from "@repo/shared-types";
+import type {
+  GetOrdersParams,
+  OrderWithDetails,
+  PaymentMethod,
+} from "@repo/shared-types";
 import { eq, and, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { orders, productImages, products } from "@/models";
+import { orders, productImages, products, orderPayments } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
 export class OrderService {
@@ -187,6 +191,62 @@ export class OrderService {
     throw new BadRequestError("Not implemented");
   }
 
+  async markAsPaid(
+    orderId: string,
+    buyerId: string,
+    paymentMethod: PaymentMethod,
+    amount: string,
+    transactionId?: string
+  ) {
+    return await db.transaction(async (tx) => {
+      const order = await tx.query.orders.findFirst({
+        where: eq(orders.id, orderId),
+      });
+
+      if (!order) {
+        throw new NotFoundError("Order");
+      }
+
+      if (order.winnerId !== buyerId) {
+        throw new ForbiddenError("Not your order");
+      }
+
+      if (order.status !== "PENDING") {
+        throw new BadRequestError("Order is not in pending status");
+      }
+
+      // Validate payment amount matches order total
+      if (parseFloat(order.totalAmount) !== parseFloat(amount)) {
+        throw new BadRequestError("Payment amount does not match order total");
+      }
+
+      // Create payment record
+      const [payment] = await tx
+        .insert(orderPayments)
+        .values({
+          orderId,
+          method: paymentMethod as PaymentMethod,
+          amount: amount.toString(),
+          status: paymentMethod === "COD" ? "PENDING" : "SUCCESS",
+          paidAt: new Date(),
+          transactionRef: transactionId,
+        })
+        .returning();
+
+      // Update order status to PAID
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          status: "PAID",
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, orderId))
+        .returning();
+
+      return { order: updatedOrder, payment };
+    });
+  }
+
   async confirmDelivery(orderId: string, buyerId: string) {
     const order = await this.getById(orderId);
 
@@ -195,18 +255,6 @@ export class OrderService {
     }
 
     // TODO: mark as delivered, trigger rating flow
-    throw new BadRequestError("Not implemented");
-  }
-
-  async markAsPaid(
-    orderId: string,
-    paymentMethod: string,
-    amount: number,
-    transactionId?: string
-  ) {
-    const order = await this.getById(orderId);
-
-    // TODO: mark order as paid and update payment details
     throw new BadRequestError("Not implemented");
   }
 
