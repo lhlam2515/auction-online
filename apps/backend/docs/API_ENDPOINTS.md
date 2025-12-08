@@ -13,18 +13,18 @@
 
 # ✅ **1. Authentication & Authorization**
 
-| Method | Endpoint                         | Role | Mô tả                  |
-| ------ | -------------------------------- | ---- | ---------------------- |
-| POST   | /api/v1/auth/register            | G    | Đăng ký tài khoản      |
-| POST   | /api/v1/auth/login               | G    | Đăng nhập              |
-| POST   | /api/v1/auth/logout              | U    | Đăng xuất              |
-| POST   | /api/v1/auth/refresh-token       | U    | Làm mới token          |
-| POST   | /api/v1/auth/forgot-password     | G    | Quên mật khẩu          |
-| POST   | /api/v1/auth/verify-otp          | G    | Xác thực mã OTP        |
-| POST   | /api/v1/auth/reset-password      | G    | Đặt mật khẩu mới       |
-| POST   | /api/v1/auth/google              | G    | Đăng nhập Google       |
-| POST   | /api/v1/auth/verify-email        | G    | Xác minh email         |
-| POST   | /api/v1/auth/resend-verification | G    | Gửi lại email xác minh |
+| Method | Endpoint                      | Role | Mô tả                         |
+| ------ | ----------------------------- | ---- | ----------------------------- |
+| POST   | /api/v1/auth/register         | G    | Đăng ký tài khoản             |
+| POST   | /api/v1/auth/login            | G    | Đăng nhập                     |
+| POST   | /api/v1/auth/logout           | U    | Đăng xuất                     |
+| POST   | /api/v1/auth/refresh-token    | U    | Làm mới token                 |
+| POST   | /api/v1/auth/forgot-password  | G    | Quên mật khẩu                 |
+| POST   | /api/v1/auth/verify-email     | G    | Xác minh email (registration) |
+| POST   | /api/v1/auth/verify-reset-otp | G    | Xác thực OTP reset password   |
+| POST   | /api/v1/auth/reset-password   | G    | Đặt mật khẩu mới              |
+| POST   | /api/v1/auth/google           | G    | Đăng nhập Google              |
+| POST   | /api/v1/auth/resend-otp       | G    | Gửi lại OTP xác minh          |
 
 ---
 
