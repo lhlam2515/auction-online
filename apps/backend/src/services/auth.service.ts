@@ -242,7 +242,14 @@ export class AuthService {
 
       // Only process if user exists and account is ACTIVE
       if (user && user.accountStatus === "ACTIVE") {
-        await otpService.sendOtpEmail(email, "PASSWORD_RESET");
+        // Check for existing valid OTP before sending a new one
+        const existingOtp = await otpService.findValidOtp(
+          email,
+          "PASSWORD_RESET"
+        );
+        if (!existingOtp) {
+          await otpService.sendOtpEmail(email, "PASSWORD_RESET");
+        }
       }
 
       return {

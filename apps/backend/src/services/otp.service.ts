@@ -26,6 +26,29 @@ interface CleanupOptions {
 }
 
 export class OtpService {
+  async findValidOtp(
+    email: string,
+    purpose: OtpPurpose
+  ): Promise<{ otpCode: string; expiresAt: Date } | null> {
+    const otpRecord = await db.query.otpVerifications.findFirst({
+      where: and(
+        eq(otpVerifications.email, email),
+        eq(otpVerifications.purpose, purpose),
+        lt(otpVerifications.expiresAt, new Date())
+      ),
+      orderBy: (table, { desc }) => [desc(table.createdAt)],
+    });
+
+    if (otpRecord) {
+      return {
+        otpCode: otpRecord.otpCode,
+        expiresAt: otpRecord.expiresAt,
+      };
+    }
+
+    return null;
+  }
+
   async sendOtpEmail(
     email: string,
     purpose: OtpPurpose
