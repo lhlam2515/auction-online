@@ -1,3 +1,5 @@
+import type { OtpPurpose } from "../common/enums";
+
 /**
  * User registration request
  * Backend validation: auth.validation.ts → registerSchema
@@ -36,12 +38,20 @@ export interface VerifyEmailRequest {
 }
 
 /**
+ * Verify password reset OTP request
+ * Backend validation: auth.validation.ts → verifyResetOtpSchema
+ */
+export interface VerifyResetOtpRequest {
+  email: string;
+  otp: string;
+}
+
+/**
  * Password reset request
  * Backend validation: auth.validation.ts → resetPasswordSchema
  */
 export interface ResetPasswordRequest {
-  email: string;
-  otp: string;
+  resetToken: string;
   newPassword: string;
 }
 
@@ -51,6 +61,7 @@ export interface ResetPasswordRequest {
  */
 export interface ResendOtpRequest {
   email: string;
+  purpose: OtpPurpose;
 }
 
 /**

@@ -6,6 +6,7 @@ import type {
   ResetPasswordRequest,
   VerifyEmailRequest,
   ResendOtpRequest,
+  VerifyResetOtpRequest,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -97,10 +98,13 @@ export const refreshToken = asyncHandler(
 );
 
 export const forgotPassword = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as ForgotPasswordRequest;
-    // TODO: Implement forgot password logic
-    throw new NotImplementedError("Forgot password not implemented yet");
+    const { email } = body;
+
+    const result = await authService.forgotPassword(email);
+
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
@@ -115,11 +119,25 @@ export const verifyEmail = asyncHandler(
   }
 );
 
+export const verifyResetOtp = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const body = req.body as VerifyResetOtpRequest;
+    const { email, otp } = body;
+
+    const result = await authService.verifyResetOtp(email, otp);
+
+    return ResponseHandler.sendSuccess(res, result);
+  }
+);
+
 export const resetPassword = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as ResetPasswordRequest;
-    // TODO: Implement reset password logic
-    throw new NotImplementedError("Reset password not implemented yet");
+    const { resetToken, newPassword } = body;
+
+    const result = await authService.resetPassword(resetToken, newPassword);
+
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
@@ -133,9 +151,12 @@ export const googleLogin = asyncHandler(
 export const resendOtp = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as ResendOtpRequest;
-    const { email } = body;
+    const { email, purpose } = body;
 
-    const result = await otpService.resendOtp(email);
+    const result = await otpService.resendOtp(
+      email,
+      purpose || "EMAIL_VERIFICATION"
+    );
 
     return ResponseHandler.sendSuccess(res, result);
   }

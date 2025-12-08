@@ -66,8 +66,19 @@ router.post(
 );
 
 /**
+ * @route   POST /api/auth/verify-reset-otp
+ * @desc    Verify reset OTP and get reset token
+ * @access  Public
+ */
+router.post(
+  "/verify-reset-otp",
+  validate({ body: authValidation.verifyResetOtpSchema }),
+  authController.verifyResetOtp
+);
+
+/**
  * @route   POST /api/auth/reset-password
- * @desc    Reset password with OTP
+ * @desc    Reset password with reset token (from verify-reset-otp)
  * @access  Public
  */
 router.post(

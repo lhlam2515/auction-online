@@ -29,9 +29,13 @@ export const verifyEmailSchema = z.object({
   otp: z.string().length(6, { error: "OTP must be 6 digits" }),
 });
 
-export const resetPasswordSchema = z.object({
+export const verifyResetOtpSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
   otp: z.string().length(6, { error: "OTP must be 6 digits" }),
+});
+
+export const resetPasswordSchema = z.object({
+  resetToken: z.string().min(1, { error: "Reset token is required" }),
   newPassword: z
     .string()
     .min(8, { error: "Password must be at least 8 characters" })
@@ -43,4 +47,10 @@ export const resetPasswordSchema = z.object({
 
 export const resendOtpSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
+  purpose: z
+    .enum(["EMAIL_VERIFICATION", "PASSWORD_RESET"], {
+      error: "Purpose must be either EMAIL_VERIFICATION or PASSWORD_RESET",
+    })
+    .optional()
+    .default("EMAIL_VERIFICATION"),
 });
