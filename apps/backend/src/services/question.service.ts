@@ -85,11 +85,40 @@ export class QuestionService {
   async answerQuestion(
     questionId: string,
     answeredBy: string,
-    answer: string
+    answerContent: string
   ): Promise<ProductQuestion> {
-    // TODO: implement question answering
-    // Should verify answerer owns the product and update status to ANSWERED
-    throw new NotImplementedError("Answer question not implemented");
+    // implement question answering
+    const question = await db.query.productQuestions.findFirst({
+      where: eq(productQuestions.id, questionId),
+    });
+    if (!question) {
+      throw new NotFoundError("Question");
+    }
+
+    if (question.answeredBy) {
+      throw new BadRequestError("Question already answered");
+    }
+
+    const product = await productService.getById(question.productId);
+    if (product.sellerId !== answeredBy) {
+      throw new UnauthorizedError(
+        "Only product seller can answer the question"
+      );
+    }
+
+    const [updatedQuestion] = await db
+      .update(productQuestions)
+      .set({
+        answerContent: answerContent,
+        answeredBy: answeredBy,
+        answeredAt: new Date(),
+      })
+      .where(eq(productQuestions.id, questionId))
+      .returning();
+
+    // TODO: send email notification to asker
+
+    return updatedQuestion;
   }
 
   async getQuestionById(

@@ -15,5 +15,5 @@ export interface AskQuestionRequest {
  * Backend validation: question.validation.ts → answerQuestionSchema
  */
 export interface AnswerQuestionRequest {
-  answer: string;
+  answerContent: string;
 }

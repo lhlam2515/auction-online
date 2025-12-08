@@ -47,7 +47,17 @@ export const askQuestion = asyncHandler(
 export const answerQuestion = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AnswerQuestionRequest;
-    // TODO: Answer a question
-    throw new NotImplementedError("Answer question not implemented yet");
+    // Answer a question
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new BadRequestError("Answerer ID is required");
+    }
+
+    const answeredQuestion = await questionService.answerQuestion(
+      req.params.questionId,
+      userId,
+      body.answerContent
+    );
+    return ResponseHandler.sendSuccess<ProductQuestion>(res, answeredQuestion);
   }
 );

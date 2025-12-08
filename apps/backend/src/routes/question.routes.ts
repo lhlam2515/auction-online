@@ -53,7 +53,7 @@ router.post(
  * @access  Private (Seller - owner)
  */
 router.post(
-  "/:questionId/answer",
+  "/questions/:questionId/answer",
   authenticate,
   authorize("SELLER"),
   validate({
