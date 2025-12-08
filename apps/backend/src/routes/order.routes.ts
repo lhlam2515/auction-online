@@ -11,6 +11,17 @@ const router = Router();
 router.use(authenticate);
 
 /**
+ * @route   POST /api/orders
+ * @desc    Create new order (for instant buy now)
+ * @access  Private
+ */
+router.post(
+  "/",
+  validate({ body: orderValidation.createOrderSchema }),
+  orderController.createOrder
+);
+
+/**
  * @route   GET /api/orders
  * @desc    Get user's orders (buyer perspective)
  * @access  Private

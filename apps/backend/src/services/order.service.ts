@@ -10,13 +10,78 @@ export class OrderService {
     productId: string,
     winnerId: string,
     sellerId: string,
-    finalPrice: number
+    finalPrice: number,
+    buyNow: boolean = false
   ) {
-    // TODO: create order after auction ends
     return await db.transaction(async (tx) => {
-      // validate auction ended and winner
-      // create order record
-      throw new BadRequestError("Not implemented");
+      // Validate product exists and auction has ended
+      const product = await tx.query.products.findFirst({
+        where: eq(products.id, productId),
+      });
+
+      if (!product) {
+        throw new NotFoundError("Product not found");
+      }
+
+      if (!buyNow && product.status !== "SOLD") {
+        throw new BadRequestError("Auction has not ended or no winner");
+      }
+
+      if (!buyNow && product.winnerId !== winnerId) {
+        throw new BadRequestError("Invalid winner for this auction");
+      }
+
+      if (product.sellerId !== sellerId) {
+        throw new BadRequestError("Invalid seller for this product");
+      }
+
+      if (!buyNow && product.endTime > new Date()) {
+        throw new BadRequestError("Auction is still ongoing");
+      }
+
+      if (buyNow && product.buyNowPrice === null) {
+        throw new BadRequestError(
+          "Buy Now option is not available for this product"
+        );
+      }
+
+      // Update product status to SOLD if bought via Buy Now
+      if (buyNow) {
+        await tx
+          .update(products)
+          .set({ status: "SOLD", winnerId: winnerId, endTime: new Date() })
+          .where(eq(products.id, productId));
+      }
+
+      // Generate unique order number
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, "0");
+      const orderNumber = `ORD-${timestamp}-${random}`;
+
+      // Calculate total amount (final price + shipping cost, shipping cost will be updated later)
+      const shippingCost = 0; // Default, will be updated when buyer provides shipping info
+      const totalAmount = finalPrice + shippingCost;
+
+      // Create order record
+      const [newOrder] = await tx
+        .insert(orders)
+        .values({
+          orderNumber,
+          productId,
+          winnerId,
+          sellerId,
+          finalPrice: finalPrice.toString(),
+          shippingCost: shippingCost.toString(),
+          totalAmount: totalAmount.toString(),
+          status: "PENDING",
+          shippingAddress: "", // Will be updated later
+          phoneNumber: "", // Will be updated later
+        })
+        .returning();
+
+      return newOrder;
     });
   }
 
