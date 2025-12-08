@@ -4,6 +4,7 @@ import type {
   ShipOrderRequest,
   CancelOrderRequest,
   OrderFeedbackRequest,
+  MarkPaidRequest,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -66,18 +67,30 @@ export const getOrderDetails = asyncHandler(
   }
 );
 
-export const markAsPaid = asyncHandler(
-  async (_req: AuthRequest, _res: Response, _next: NextFunction) => {
-    // TODO: Buyer confirms payment
-    throw new NotImplementedError("Mark as paid not implemented yet");
-  }
-);
-
 export const updatePaymentInfo = asyncHandler(
   async (req: AuthRequest, _res: Response, _next: NextFunction) => {
     const body = req.body as UpdatePaymentRequest;
     // TODO: Update payment/shipping info
     throw new NotImplementedError("Update payment info not implemented yet");
+  }
+);
+
+export const markAsPaid = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { paymentMethod, transactionId, amount } =
+      req.body as MarkPaidRequest;
+    const { id: buyerId } = req.user!;
+
+    const result = await orderService.markAsPaid(
+      orderId,
+      buyerId,
+      paymentMethod,
+      amount,
+      transactionId
+    );
+
+    ResponseHandler.sendSuccess(res, result);
   }
 );
 

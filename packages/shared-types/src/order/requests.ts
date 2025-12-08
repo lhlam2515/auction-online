@@ -30,7 +30,7 @@ export interface OrderFeedbackRequest {
 export interface MarkPaidRequest {
   paymentMethod: PaymentMethod;
   transactionId?: string;
-  amount: number;
+  amount: string;
 }
 
 /**
