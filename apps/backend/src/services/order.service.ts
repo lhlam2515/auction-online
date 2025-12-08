@@ -1,7 +1,8 @@
-import { eq, and } from "drizzle-orm";
+import type { GetOrdersParams, OrderWithDetails } from "@repo/shared-types";
+import { eq, and, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { orders } from "@/models";
+import { orders, productImages, products } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
 export class OrderService {
@@ -20,16 +21,83 @@ export class OrderService {
   }
 
   async getById(orderId: string) {
-    const result = await db.query.orders.findFirst({
+    const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
+      with: { product: true, winner: true, seller: true },
     });
-    if (!result) throw new NotFoundError("Order not found");
-    return result;
+
+    if (!order) {
+      throw new NotFoundError("Order");
+    }
+
+    const thumbnail = await db.query.productImages.findFirst({
+      where: sql`${productImages.productId} = ${order.product.id} AND ${productImages.isMain} = true`,
+    });
+
+    // Transform to match OrderWithDetails interface
+    const transformedOrder = {
+      ...order,
+      product: {
+        name: order.product.name,
+        slug: order.product.slug,
+        thumbnail: thumbnail ? thumbnail.imageUrl : undefined,
+      },
+      winner: {
+        fullName: order.winner.fullName,
+        email: order.winner.email,
+      },
+      seller: {
+        fullName: order.seller.fullName,
+        email: order.seller.email,
+      },
+    };
+
+    return transformedOrder as OrderWithDetails;
   }
 
-  async getByUser(userId: string, role: "buyer" | "seller") {
-    // TODO: get orders filtered by buyer or seller
-    return [];
+  async getByUser(
+    userId: string,
+    role: "BIDDER" | "SELLER",
+    params?: GetOrdersParams
+  ) {
+    const { status, page = 1, limit = 20 } = params || {};
+    const offset = (page - 1) * limit;
+
+    const statusCondition = status ? eq(orders.status, status) : undefined;
+    const whereCondition =
+      role === "BIDDER"
+        ? eq(orders.winnerId, userId)
+        : eq(orders.sellerId, userId);
+
+    const ordersList = await db.query.orders.findMany({
+      where: and(whereCondition, statusCondition),
+      with: { product: true, winner: true, seller: true, payments: true },
+      orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+      limit,
+      offset,
+    });
+
+    // Transform to match OrderWithDetails interface
+    const transformedOrders = ordersList.map((order) => {
+      return {
+        ...order,
+        product: {
+          name: order.product.name,
+          slug: order.product.slug,
+          thumbnail: undefined, // Could fetch thumbnail if needed
+        },
+        winner: {
+          fullName: order.winner.fullName,
+          email: order.winner.email,
+        },
+        seller: {
+          fullName: order.seller.fullName,
+          email: order.seller.email,
+        },
+      };
+    });
+
+    return transformedOrders as OrderWithDetails[];
   }
 
   async updatePaymentInfo(

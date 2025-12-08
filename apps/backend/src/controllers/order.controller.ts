@@ -1,5 +1,4 @@
 import type {
-  Order,
   GetOrdersParams,
   UpdatePaymentRequest,
   ShipOrderRequest,
@@ -10,22 +9,44 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { NotImplementedError } from "@/utils/errors";
+import { orderService } from "@/services/order.service";
+import { ForbiddenError, NotImplementedError } from "@/utils/errors";
+import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
 
 export const getMyOrders = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as GetOrdersParams;
-    // TODO: Get user's orders (buyer perspective)
-    throw new NotImplementedError("Get my orders not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const query = res.locals.query as GetOrdersParams;
+    const { id: userId } = req.user!;
+
+    const orders = await orderService.getByUser(userId, "BIDDER", {
+      ...query,
+    });
+    const paginatedOrders = toPaginated(
+      orders,
+      query.page || 1,
+      query.limit || 10,
+      orders.length
+    );
+
+    ResponseHandler.sendSuccess(res, paginatedOrders);
   }
 );
 
 export const getOrderDetails = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get order details
-    // ResponseHandler.sendSuccess<Order>(res, order);
-    throw new NotImplementedError("Get order details not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+
+    const order = await orderService.getById(orderId);
+
+    if (
+      order.winner.email !== req.user!.email &&
+      order.seller.email !== req.user!.email
+    ) {
+      throw new ForbiddenError("Access to this order is denied");
+    }
+
+    ResponseHandler.sendSuccess(res, order);
   }
 );
 
