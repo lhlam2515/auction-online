@@ -51,7 +51,7 @@ export const login = asyncHandler(
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/auth/refresh-token",
+        path: "/api/v1/auth/refresh-token",
       });
     }
 
@@ -86,7 +86,7 @@ export const refreshToken = asyncHandler(
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/auth/refresh-token",
+        path: "/api/v1/auth/refresh-token",
       });
     }
 
