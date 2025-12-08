@@ -28,9 +28,11 @@ export const markPaidSchema = z.object({
 });
 
 export const updatePaymentSchema = z.object({
-  shippingAddress: z
-    .string()
-    .min(10, { error: "Shipping address is required" }),
+  shippingAddress: z.object({
+    street: z.string().min(5, { error: "Street is required" }),
+    district: z.string().min(2, { error: "District is required" }),
+    city: z.string().min(2, { error: "City is required" }),
+  }),
   phoneNumber: z.string().min(10, { error: "Phone number is required" }),
 });
 
