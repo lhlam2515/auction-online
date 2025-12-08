@@ -9,6 +9,12 @@ import { db } from "@/config/database";
 import { orders, productImages, products, orderPayments } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
+export type ShippingAddress = {
+  street: string;
+  district: string;
+  city: string;
+};
+
 export class OrderService {
   async createFromAuction(
     productId: string,
@@ -172,14 +178,8 @@ export class OrderService {
   async updatePaymentInfo(
     orderId: string,
     buyerId: string,
-    shippingAddress: {
-      street: string;
-      city: string;
-      state: string;
-      zipCode: string;
-      country: string;
-    },
-    contactPhone: string
+    shippingAddress: ShippingAddress,
+    phoneNumber: string
   ) {
     const order = await this.getById(orderId);
 
@@ -187,8 +187,28 @@ export class OrderService {
       throw new ForbiddenError("Not your order");
     }
 
-    // TODO: update payment and shipping info
-    throw new BadRequestError("Not implemented");
+    if (order.status !== "PENDING" && order.status !== "PAID") {
+      throw new BadRequestError(
+        "Order status does not allow payment info update"
+      );
+    }
+
+    // Format shipping address as single string
+    const { street, district, city } = shippingAddress;
+    const fullShippingAddress = `${street}, ${district}, ${city}`;
+
+    // Update order with shipping information
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({
+        shippingAddress: fullShippingAddress,
+        phoneNumber,
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId))
+      .returning();
+
+    return updatedOrder;
   }
 
   async markAsPaid(

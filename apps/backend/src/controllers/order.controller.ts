@@ -68,10 +68,19 @@ export const getOrderDetails = asyncHandler(
 );
 
 export const updatePaymentInfo = asyncHandler(
-  async (req: AuthRequest, _res: Response, _next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
     const body = req.body as UpdatePaymentRequest;
-    // TODO: Update payment/shipping info
-    throw new NotImplementedError("Update payment info not implemented yet");
+    const { id: buyerId } = req.user!;
+
+    const updatedOrder = await orderService.updatePaymentInfo(
+      orderId,
+      buyerId,
+      body.shippingAddress,
+      body.phoneNumber
+    );
+
+    ResponseHandler.sendSuccess(res, updatedOrder);
   }
 );
 

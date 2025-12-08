@@ -39,12 +39,10 @@ export interface MarkPaidRequest {
 export interface UpdatePaymentRequest {
   shippingAddress: {
     street: string;
+    district: string;
     city: string;
-    state: string;
-    zipCode: string;
-    country: string;
   };
-  contactPhone: string;
+  phoneNumber: string;
 }
 
 /**
