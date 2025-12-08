@@ -7,7 +7,6 @@ import type { OrderStatus, PaymentMethod, ShippingProvider } from "./enums";
  */
 export interface GetOrdersParams extends PaginationParams {
   status?: OrderStatus;
-  role?: "buyer" | "seller";
 }
 
 /**
