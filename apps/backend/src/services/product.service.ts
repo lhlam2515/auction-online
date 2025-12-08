@@ -8,6 +8,7 @@ import type {
   PaginatedResponse,
   UpdateDescriptionResponse,
   ProductImage,
+  Product,
 } from "@repo/shared-types";
 import { eq, desc, and, asc } from "drizzle-orm";
 import { string, number } from "zod";
@@ -23,7 +24,6 @@ import {
   users,
   watchLists,
 } from "@/models";
-import { Product } from "@/types/model";
 import {
   BadRequestError,
   NotFoundError,
@@ -103,10 +103,7 @@ export class ProductService {
       where: eq(productImages.productId, productId),
       orderBy: asc(productImages.displayOrder),
     });
-    return images.map((img) => ({
-      ...img,
-      createdAt: img.createdAt.toISOString(),
-    }));
+    return images;
   }
 
   async getDescriptionUpdates(
@@ -121,10 +118,7 @@ export class ProductService {
       where: eq(productUpdates.productId, productId),
       orderBy: asc(productUpdates.createdAt),
     });
-    return updates.map((update) => ({
-      ...update,
-      createdAt: update.createdAt.toISOString(),
-    }));
+    return updates;
   }
 
   async create(sellerId: string, data: CreateProductRequest): Promise<Product> {
@@ -251,10 +245,7 @@ export class ProductService {
           content: description,
         } as any)
         .returning();
-      return {
-        ...updatedContent,
-        createdAt: updatedContent.createdAt.toISOString(),
-      };
+      return updatedContent;
     });
   }
 

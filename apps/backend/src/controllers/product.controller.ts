@@ -8,13 +8,13 @@ import type {
   UploadImagesResponse,
   UpdateDescriptionResponse,
   ProductImage,
+  Product,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { productService } from "@/services";
-import { Product } from "@/types/model";
 import { BadRequestError, NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 

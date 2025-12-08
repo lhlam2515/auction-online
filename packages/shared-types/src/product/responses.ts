@@ -33,7 +33,7 @@ export interface UpdateDescriptionResponse {
   productId: string;
   updatedBy: string;
   content: string;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 /**

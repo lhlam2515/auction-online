@@ -11,8 +11,8 @@ export interface ProductCore {
   categoryId: string;
   startPrice: string; // Decimal as string
   stepPrice: string; // Decimal as string
-  buyNowPrice?: string; // Decimal as string
-  currentPrice?: string; // Decimal as string
+  buyNowPrice: string | null; // Decimal as string
+  currentPrice: string | null; // Decimal as string
   status: ProductStatus;
   startTime: Date | string;
   endTime: Date | string;
@@ -35,11 +35,11 @@ export interface Product extends ProductCore {
 export interface ProductListing extends Product {
   categoryName: string;
   sellerName: string;
-  sellerAvatarUrl?: string;
+  sellerAvatarUrl: string | null;
   bidCount: number;
   watchCount: number;
-  mainImageUrl?: string;
-  isWatching?: boolean; // For authenticated users
+  mainImageUrl: string | null;
+  isWatching: boolean | null; // For authenticated users
 }
 
 /**
@@ -52,7 +52,7 @@ export interface ProductImage {
   altText: string | null;
   displayOrder: number;
   isMain: boolean;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 /**
