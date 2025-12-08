@@ -15,6 +15,7 @@ import {
   categories,
   chatMessages,
   otpVerifications,
+  passwordResetTokens,
   productImages,
   productQuestions,
   productUpdates,
@@ -31,6 +32,7 @@ import {
 export type User = InferSelectModel<typeof users>;
 export type UpgradeRequest = InferSelectModel<typeof upgradeRequests>;
 export type OtpVerification = InferSelectModel<typeof otpVerifications>;
+export type PasswordResetToken = InferSelectModel<typeof passwordResetTokens>;
 export type Category = InferSelectModel<typeof categories>;
 export type Product = InferSelectModel<typeof products>;
 export type ProductImage = InferSelectModel<typeof productImages>;
@@ -48,6 +50,9 @@ export type OrderPayment = InferSelectModel<typeof orderPayments>;
 export type NewUser = InferInsertModel<typeof users>;
 export type NewUpgradeRequest = InferInsertModel<typeof upgradeRequests>;
 export type NewOtpVerification = InferInsertModel<typeof otpVerifications>;
+export type NewPasswordResetToken = InferInsertModel<
+  typeof passwordResetTokens
+>;
 export type NewCategory = InferInsertModel<typeof categories>;
 export type NewProduct = InferInsertModel<typeof products>;
 export type NewProductImage = InferInsertModel<typeof productImages>;
@@ -63,6 +68,7 @@ export type NewOrderPayment = InferInsertModel<typeof orderPayments>;
 
 // Convenience type aliases
 export type UserRole = User["role"];
+export type OtpPurpose = OtpVerification["purpose"];
 
 // Re-export shared types for convenience
 export type {

@@ -55,3 +55,9 @@ export const shipmentProviderEnum = pgEnum("shipment_provider", [
   "JNT",
   "OTHER",
 ]);
+
+// Enum cho Mục đích OTP
+export const otpPurposeEnum = pgEnum("otp_purpose", [
+  "EMAIL_VERIFICATION",
+  "PASSWORD_RESET",
+]);
