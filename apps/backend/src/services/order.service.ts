@@ -307,8 +307,25 @@ export class OrderService {
       throw new ForbiddenError("Not your order");
     }
 
-    // TODO: mark as delivered, trigger rating flow
-    throw new BadRequestError("Not implemented");
+    if (order.status !== "SHIPPED") {
+      throw new BadRequestError(
+        "Order must be shipped before confirming receipt"
+      );
+    }
+
+    // Update order status to COMPLETED
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({
+        status: "COMPLETED",
+        receivedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId))
+      .returning();
+    // TODO: Trigger rating flow - could create rating records or send notifications
+
+    return updatedOrder;
   }
 
   async cancelOrder(orderId: string, userId: string, reason: string) {
