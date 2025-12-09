@@ -11,7 +11,7 @@ export type { PaginatedResponse };
  */
 export interface PaginationMeta {
   page: number;
-  pageSize: number;
+  limit: number;
   total: number;
   totalPages: number;
 }
