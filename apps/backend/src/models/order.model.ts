@@ -39,6 +39,9 @@ export const orders = pgTable(
     trackingNumber: t.text("tracking_number"),
 
     // Timeline
+    sellerConfirmedAt: t.timestamp("seller_confirmed_at", {
+      withTimezone: true,
+    }),
     shippedAt: t.timestamp("shipped_at", { withTimezone: true }),
     receivedAt: t.timestamp("received_at", { withTimezone: true }),
     cancelledAt: t.timestamp("cancelled_at", { withTimezone: true }),

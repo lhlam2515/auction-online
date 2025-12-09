@@ -273,6 +273,35 @@ export class OrderService {
     });
   }
 
+  async confirmPayment(orderId: string, sellerId: string) {
+    const order = await this.getById(orderId);
+
+    if (order.sellerId !== sellerId) {
+      throw new ForbiddenError(
+        "Only seller can confirm payment for this order"
+      );
+    }
+
+    if (order.status !== "PAID") {
+      throw new BadRequestError("Order must be paid before seller can confirm");
+    }
+
+    if (order.sellerConfirmedAt) {
+      throw new BadRequestError("Payment already confirmed by seller");
+    }
+
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({
+        sellerConfirmedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId))
+      .returning();
+
+    return updatedOrder;
+  }
+
   async shipOrder(
     orderId: string,
     sellerId: string,
