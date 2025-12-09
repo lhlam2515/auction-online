@@ -6,6 +6,7 @@ import {
 } from "@repo/shared-types";
 import { count, eq } from "drizzle-orm";
 import slug from "slug";
+import { boolean } from "zod";
 
 import { db } from "@/config/database";
 import { categories, products } from "@/models";
@@ -88,31 +89,99 @@ export class CategoryService {
       throw new BadRequestError("Cannot create category deeper than level 2");
     }
 
-    const slugifiedName = slug(name);
-    let count = 1;
-
-    while (
-      await db.query.categories.findFirst({
-        where: eq(
-          categories.slug,
-          slugifiedName + (count > 1 ? `-${count}` : "")
-        ),
-      })
-    ) {
-      count++;
-    }
+    const slugifiedName = await this.slugifiedCategoryName(name);
 
     const [newCategory] = await db
       .insert(categories)
       .values({
-        name,
-        slug: slugifiedName + (count > 1 ? `-${count}` : ""),
+        name: name.trim(),
+        slug: slugifiedName,
         parentId: parentId || null,
         level,
       })
       .returning();
 
     return newCategory;
+  }
+
+  async updateCategory(
+    categoryId: string,
+    name?: string,
+    parentId?: string | null
+  ): Promise<Category> {
+    const category = await this.getById(categoryId);
+
+    let isUpdated = false;
+
+    // ----- Parent handling -----
+    let newParentId = category.parentId;
+    let newLevel = category.level;
+
+    if (parentId !== undefined && parentId !== category.parentId) {
+      if (parentId === null) {
+        newParentId = null;
+        newLevel = 0;
+        isUpdated = true;
+      } else {
+        const parent = await this.getById(parentId);
+
+        if (parent.id === categoryId) {
+          throw new BadRequestError("Category cannot be its own parent");
+        }
+
+        const level = parent.level + 1;
+        if (level >= 2) {
+          throw new BadRequestError("Cannot set category deeper than level 2");
+        }
+
+        newParentId = parentId;
+        newLevel = level;
+        isUpdated = true;
+      }
+    }
+
+    // ----- Name + slug handling -----
+    const nameChanged =
+      name !== undefined && name.trim() !== category.name.trim();
+
+    const newName = nameChanged ? name! : category.name;
+    const newSlug = nameChanged
+      ? await this.slugifiedCategoryName(name!)
+      : category.slug;
+
+    if (nameChanged) {
+      isUpdated = true;
+    }
+
+    // ----- Update DB -----
+    const [updatedCategory] = await db
+      .update(categories)
+      .set({
+        name: newName,
+        slug: newSlug,
+        parentId: newParentId,
+        level: newLevel,
+        updatedAt: isUpdated ? new Date() : category.updatedAt,
+      })
+      .where(eq(categories.id, categoryId))
+      .returning();
+
+    return updatedCategory;
+  }
+
+  private async slugifiedCategoryName(name: string) {
+    const baseSlug = slug(name);
+    let slugifiedName = baseSlug;
+    let i = 0;
+    while (true) {
+      const exists = await db.query.categories.findFirst({
+        where: eq(categories.slug, slugifiedName),
+      });
+      if (!exists) break;
+      i += 1;
+      slugifiedName = `${baseSlug}-${i}`;
+    }
+    return slugifiedName;
   }
 
   private buildTree(

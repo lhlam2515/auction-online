@@ -116,6 +116,7 @@ export const suspendProduct = asyncHandler(
 export const createCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as CreateCategoryRequest;
+    // Create new category
     const newCategory = await categoryService.createCategory(
       body.name,
       body.parentId
@@ -127,8 +128,13 @@ export const createCategory = asyncHandler(
 export const updateCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpdateCategoryRequest;
-    // TODO: Update category
-    throw new NotImplementedError("Update category not implemented yet");
+    // Update category
+    const updatedCategory = await categoryService.updateCategory(
+      req.params.id,
+      body.name,
+      body.parentId
+    );
+    return ResponseHandler.sendSuccess<Category>(res, updatedCategory);
   }
 );
 
