@@ -46,6 +46,12 @@ export const cancelOrderSchema = z.object({
 });
 
 export const feedbackSchema = z.object({
-  rating: z.number().int().min(1).max(5),
+  rating: z
+    .int()
+    .min(-1)
+    .max(1)
+    .refine((val) => val === 1 || val === -1, {
+      error: "Rating must be -1 or 1",
+    }),
   comment: z.string().optional(),
 });
