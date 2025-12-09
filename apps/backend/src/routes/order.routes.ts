@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import * as orderController from "@/controllers/order.controller";
-import { authenticate } from "@/middlewares/auth";
+import { authenticate, authorize } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 import * as orderValidation from "@/validations/order.validation";
 
@@ -78,6 +78,7 @@ router.post(
  */
 router.post(
   "/:id/ship",
+  authorize("SELLER"),
   validate({
     params: orderValidation.orderIdSchema,
     body: orderValidation.shipOrderSchema,

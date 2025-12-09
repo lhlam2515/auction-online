@@ -104,10 +104,19 @@ export const markAsPaid = asyncHandler(
 );
 
 export const shipOrder = asyncHandler(
-  async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    const body = req.body as ShipOrderRequest;
-    // TODO: Seller marks order as shipped
-    throw new NotImplementedError("Ship order not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { trackingNumber, shippingProvider } = req.body as ShipOrderRequest;
+    const { id: sellerId } = req.user!;
+
+    const updatedOrder = await orderService.shipOrder(
+      orderId,
+      sellerId,
+      trackingNumber,
+      shippingProvider
+    );
+
+    ResponseHandler.sendSuccess(res, updatedOrder);
   }
 );
 

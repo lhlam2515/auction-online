@@ -267,7 +267,40 @@ export class OrderService {
     });
   }
 
-  async confirmDelivery(orderId: string, buyerId: string) {
+  async shipOrder(
+    orderId: string,
+    sellerId: string,
+    trackingNumber: string,
+    _shippingProvider?: string
+  ) {
+    const order = await this.getById(orderId);
+
+    if (order.sellerId !== sellerId) {
+      throw new ForbiddenError("Not your order");
+    }
+
+    if (order.status !== "PAID") {
+      throw new BadRequestError("Order must be paid before shipping");
+    }
+
+    // Note: shippingProvider could be stored if we add it to the model
+    // For now, we'll skip it or could add it later
+
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({
+        status: "SHIPPED",
+        trackingNumber: trackingNumber || null,
+        shippedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId))
+      .returning();
+
+    return updatedOrder;
+  }
+
+  async receiveOrder(orderId: string, buyerId: string) {
     const order = await this.getById(orderId);
 
     if (order.winnerId !== buyerId) {

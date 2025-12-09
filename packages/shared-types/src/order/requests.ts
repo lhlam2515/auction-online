@@ -49,7 +49,6 @@ export interface UpdatePaymentRequest {
  * Ship order request
  */
 export interface ShipOrderRequest {
-  trackingNumber?: string;
-  carrier?: ShippingProvider;
-  estimatedDelivery?: string;
+  trackingNumber: string;
+  shippingProvider?: ShippingProvider;
 }

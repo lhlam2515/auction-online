@@ -37,7 +37,7 @@ export const updatePaymentSchema = z.object({
 });
 
 export const shipOrderSchema = z.object({
-  trackingNumber: z.string().optional(),
+  trackingNumber: z.string({ error: "Tracking number is required" }),
   shippingProvider: z.string().optional(),
 });
 
