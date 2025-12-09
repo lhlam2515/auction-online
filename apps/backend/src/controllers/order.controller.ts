@@ -132,10 +132,18 @@ export const receiveOrder = asyncHandler(
 );
 
 export const cancelOrder = asyncHandler(
-  async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    const body = req.body as CancelOrderRequest;
-    // TODO: Cancel order
-    throw new NotImplementedError("Cancel order not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { reason } = req.body as CancelOrderRequest;
+    const { id: sellerId } = req.user!;
+
+    const updatedOrder = await orderService.cancelOrder(
+      orderId,
+      sellerId,
+      reason
+    );
+
+    ResponseHandler.sendSuccess(res, updatedOrder);
   }
 );
 
