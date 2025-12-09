@@ -256,7 +256,7 @@ export class OrderService {
           orderId,
           method: paymentMethod as PaymentMethod,
           amount: amount.toString(),
-          status: paymentMethod === "COD" ? "PENDING" : "SUCCESS",
+          status: "SUCCESS",
           paidAt: new Date(),
           transactionRef: transactionId,
         })
