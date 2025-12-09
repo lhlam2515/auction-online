@@ -1,13 +1,15 @@
 import {
+  Category,
   CategoryTree,
   GetCategoryProductsParams,
   PaginatedResponse,
 } from "@repo/shared-types";
 import { count, eq } from "drizzle-orm";
+import slug from "slug";
 
 import { db } from "@/config/database";
 import { categories, products } from "@/models";
-import { NotFoundError } from "@/utils/errors";
+import { BadRequestError, NotFoundError } from "@/utils/errors";
 
 export class CategoryService {
   async getAll() {
@@ -74,6 +76,43 @@ export class CategoryService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async createCategory(name: string, parentId?: string): Promise<Category> {
+    let parentCategories = null;
+    if (parentId) {
+      parentCategories = await this.getById(parentId);
+    }
+    const level = parentCategories ? parentCategories.level + 1 : 0;
+    if (level >= 2) {
+      throw new BadRequestError("Cannot create category deeper than level 2");
+    }
+
+    const slugifiedName = slug(name);
+    let count = 1;
+
+    while (
+      await db.query.categories.findFirst({
+        where: eq(
+          categories.slug,
+          slugifiedName + (count > 1 ? `-${count}` : "")
+        ),
+      })
+    ) {
+      count++;
+    }
+
+    const [newCategory] = await db
+      .insert(categories)
+      .values({
+        name,
+        slug: slugifiedName + (count > 1 ? `-${count}` : ""),
+        parentId: parentId || null,
+        level,
+      })
+      .returning();
+
+    return newCategory;
   }
 
   private buildTree(

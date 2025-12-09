@@ -16,6 +16,7 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { categoryService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -115,8 +116,11 @@ export const suspendProduct = asyncHandler(
 export const createCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as CreateCategoryRequest;
-    // TODO: Create category
-    throw new NotImplementedError("Create category not implemented yet");
+    const newCategory = await categoryService.createCategory(
+      body.name,
+      body.parentId
+    );
+    return ResponseHandler.sendSuccess<Category>(res, newCategory, 201);
   }
 );
 

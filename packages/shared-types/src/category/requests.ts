@@ -5,7 +5,6 @@ import { PaginationParams } from "../common";
  */
 export interface CreateCategoryRequest {
   name: string;
-  description?: string;
   parentId?: string;
 }
 
@@ -14,7 +13,6 @@ export interface CreateCategoryRequest {
  */
 export interface UpdateCategoryRequest {
   name?: string;
-  description?: string;
 }
 
 /**
