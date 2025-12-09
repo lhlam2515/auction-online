@@ -331,8 +331,31 @@ export class OrderService {
   async cancelOrder(orderId: string, userId: string, reason: string) {
     const order = await this.getById(orderId);
 
-    // TODO: validate cancellation rules and update status
-    throw new BadRequestError("Not implemented");
+    // Only seller can cancel order
+    if (order.sellerId !== userId) {
+      throw new ForbiddenError("Only seller can cancel this order");
+    }
+
+    // Can only cancel if order is still pending
+    if (order.status !== "PENDING") {
+      throw new BadRequestError("Only pending orders can be cancelled");
+    }
+
+    // Update order status to CANCELLED
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({
+        status: "CANCELLED",
+        cancelReason: reason,
+        cancelledAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId))
+      .returning();
+
+    // TODO: Trigger notification and rate the buyer negatively (-1)
+
+    return updatedOrder;
   }
 }
 

@@ -104,6 +104,7 @@ router.post(
  */
 router.post(
   "/:id/cancel",
+  authorize("SELLER"),
   validate({
     params: orderValidation.orderIdSchema,
     body: orderValidation.cancelOrderSchema,
