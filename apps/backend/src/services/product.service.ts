@@ -12,10 +12,12 @@ import type {
   TopListingType,
   TopListingResponse,
   ProductListing,
+  UploadImagesResponse,
 } from "@repo/shared-types";
 import { eq, desc, and, asc, count, sql, gt, max, inArray } from "drizzle-orm";
 
 import { db } from "@/config/database";
+import { supabase } from "@/config/supabase";
 import {
   bids,
   categories,

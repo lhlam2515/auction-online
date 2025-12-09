@@ -9,3 +9,4 @@ export * from "./rating.service";
 export * from "./chat.service";
 export * from "./question.service";
 export * from "./email.service";
+export * from "./upload.service";

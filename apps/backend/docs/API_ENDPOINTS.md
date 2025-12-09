@@ -71,7 +71,7 @@
 | DELETE | /api/v1/products/:id                     | SEL  | Hủy sản phẩm (chưa active)    |
 | PATCH  | /api/v1/products/:id/description         | SEL  | Chỉnh sửa mô tả (append)      |
 | PUT    | /api/v1/products/:id/auto-extend         | SEL  | Bật/tắt gia hạn               |
-| POST   | /api/v1/upload                           | SEL  | Upload ảnh sản phẩm           |
+| POST   | /api/v1/products/upload                  | SEL  | Upload ảnh sản phẩm           |
 
 ---
 

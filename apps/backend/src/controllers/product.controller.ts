@@ -14,7 +14,7 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { productService } from "@/services";
+import { productService, uploadService } from "@/services";
 import { BadRequestError, NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -133,8 +133,15 @@ export const setAutoExtend = asyncHandler(
 
 export const uploadImages = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Upload product images
-    // ResponseHandler.sendSuccess<UploadImagesResponse>(res, { urls });
-    throw new NotImplementedError("Upload images not implemented yet");
+    // Upload product images
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      throw new BadRequestError("No images provided");
+    }
+
+    const urls = await uploadService.uploadImages(
+      req.files as Express.Multer.File[],
+      "products"
+    );
+    return ResponseHandler.sendSuccess<UploadImagesResponse>(res, urls, 201);
   }
 );
