@@ -181,10 +181,10 @@ export class OrderService {
     return transformedOrders as OrderWithDetails[];
   }
 
-  async updatePaymentInfo(
+  async updateShippingInfo(
     orderId: string,
     buyerId: string,
-    shippingAddress: ShippingAddress,
+    shippingAddress: string,
     phoneNumber: string
   ) {
     const order = await this.getById(orderId);
@@ -195,19 +195,15 @@ export class OrderService {
 
     if (order.status !== "PENDING" && order.status !== "PAID") {
       throw new BadRequestError(
-        "Order status does not allow payment info update"
+        "Order status does not allow shipping info update"
       );
     }
-
-    // Format shipping address as single string
-    const { street, district, city } = shippingAddress;
-    const fullShippingAddress = `${street}, ${district}, ${city}`;
 
     // Update order with shipping information
     const [updatedOrder] = await db
       .update(orders)
       .set({
-        shippingAddress: fullShippingAddress,
+        shippingAddress,
         phoneNumber,
         updatedAt: new Date(),
       })

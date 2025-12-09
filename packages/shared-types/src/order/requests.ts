@@ -34,14 +34,10 @@ export interface MarkPaidRequest {
 }
 
 /**
- * Update payment information request
+ * Update shipping information request
  */
-export interface UpdatePaymentRequest {
-  shippingAddress: {
-    street: string;
-    district: string;
-    city: string;
-  };
+export interface UpdateShippingInfoRequest {
+  shippingAddress: string;
   phoneNumber: string;
 }
 
