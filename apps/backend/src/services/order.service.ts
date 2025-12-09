@@ -237,6 +237,13 @@ export class OrderService {
         throw new BadRequestError("Order is not in pending status");
       }
 
+      // Buyer must provide shipping info before payment
+      if (!order.shippingAddress || !order.phoneNumber) {
+        throw new BadRequestError(
+          "Please provide shipping address and phone number before payment"
+        );
+      }
+
       // Validate payment amount matches order total
       if (parseFloat(order.totalAmount) !== parseFloat(amount)) {
         throw new BadRequestError("Payment amount does not match order total");
