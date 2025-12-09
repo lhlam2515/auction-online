@@ -9,10 +9,12 @@ export const searchProductsSchema = z.object({
   categoryId: z.string().uuid().optional(),
   minPrice: z.coerce.number().min(0).optional(),
   maxPrice: z.coerce.number().min(0).optional(),
-  status: z.enum(["ACTIVE", "PENDING", "ENDED", "CANCELLED"]).optional(),
+  status: z.enum(["ACTIVE", "PENDING", "ENDED", "CANCELLED"]).default("ACTIVE"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(["price_asc", "price_desc", "ending_soon", "newest"]).optional(),
+  sort: z
+    .enum(["price_asc", "price_desc", "ending_soon", "newest"])
+    .default("newest"),
 });
 
 export const topListingSchema = z.object({

@@ -11,6 +11,7 @@ import type {
   Product,
   RelatedProductsParams,
   ProductListing,
+  PaginatedResponse,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -22,9 +23,13 @@ import { ResponseHandler } from "@/utils/response";
 
 export const searchProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as SearchProductsParams;
-    // TODO: Search and filter products
-    throw new NotImplementedError("Search products not implemented yet");
+    const query = res.locals.query as unknown as SearchProductsParams;
+    // Search and filter products
+    const products = await productService.searchProducts(query);
+    return ResponseHandler.sendSuccess<PaginatedResponse<ProductListing>>(
+      res,
+      products
+    );
   }
 );
 

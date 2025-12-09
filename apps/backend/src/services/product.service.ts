@@ -1,7 +1,6 @@
 import type {
   CreateProductRequest,
   UpdateDescriptionRequest,
-  ProductSearchParams,
   ProductsQueryParams,
   SearchProductsParams,
   PaginationParams,
@@ -44,34 +43,157 @@ import {
   ConflictError,
   ForbiddenError,
 } from "@/utils/errors";
+import { toPaginated } from "@/utils/pagination";
 
 export class ProductService {
-  async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
-    // TODO: build query dynamically based on filters and paginate
-    return {
-      items: [],
-      pagination: {
-        page: params.page || 1,
-        limit: params.limit || 10,
-        total: 0,
-        totalPages: 0,
-      },
-    };
-  }
+  // async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
+  //   // TODO: build query dynamically based on filters and paginate
+  //   return {
+  //     items: [],
+  //     pagination: {
+  //       page: params.page || 1,
+  //       limit: params.limit || 10,
+  //       total: 0,
+  //       totalPages: 0,
+  //     },
+  //   };
+  // }
 
   async searchProducts(
     params: SearchProductsParams
-  ): Promise<PaginatedResponse<any>> {
-    // TODO: implement product search with keyword and filters
-    return {
-      items: [],
-      pagination: {
-        page: params.page || 1,
-        limit: params.limit || 10,
-        total: 0,
-        totalPages: 0,
-      },
-    };
+  ): Promise<PaginatedResponse<ProductListing>> {
+    const {
+      q,
+      categoryId,
+      minPrice,
+      maxPrice,
+      status = "ACTIVE",
+      sort = "newest",
+      page = 1,
+      limit = 10,
+    } = params;
+
+    const offset = (page - 1) * limit;
+
+    // Build base query conditions
+    const conditions = [];
+
+    // Full text search using PostgreSQL's built-in FTS
+    if (q?.trim()) {
+      const searchTerm = q.trim();
+      // Use the FTS index from products.model.ts
+      conditions.push(
+        sql`to_tsvector('simple', ${products.name} || ' ' || COALESCE(${products.description}, '')) @@ plainto_tsquery('simple', ${searchTerm})`
+      );
+    }
+
+    // Category filter
+    if (categoryId) {
+      conditions.push(eq(products.categoryId, categoryId));
+    }
+
+    // Status filter (default to ACTIVE if not specified)
+    conditions.push(eq(products.status, status));
+
+    // Create subquery for max bid amounts
+    const maxBidSub = db
+      .select({
+        productId: bids.productId,
+        maxAmount: sql`MAX(${bids.amount})`.as("maxAmount"),
+      })
+      .from(bids)
+      .where(eq(bids.status, "VALID"))
+      .groupBy(bids.productId)
+      .as("maxBid");
+
+    // Build the base query
+    const baseQuery = db
+      .select({
+        product: products,
+        currentPrice:
+          sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`.as(
+            "currentPrice"
+          ),
+      })
+      .from(products)
+      .leftJoin(maxBidSub, eq(maxBidSub.productId, products.id))
+      .$dynamic();
+
+    // Apply WHERE conditions
+    const queryWithWhere =
+      conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
+
+    // Price range filter (applied as HAVING after GROUP BY from subquery)
+    const priceConditions = [];
+    if (minPrice !== undefined) {
+      priceConditions.push(
+        sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice}) >= ${minPrice}`
+      );
+    }
+    if (maxPrice !== undefined) {
+      priceConditions.push(
+        sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice}) <= ${maxPrice}`
+      );
+    }
+
+    const queryWithHaving =
+      priceConditions.length > 0
+        ? queryWithWhere.having(and(...priceConditions))
+        : queryWithWhere;
+
+    // Apply sorting
+    let finalQuery;
+    switch (sort) {
+      case "price_asc":
+        finalQuery = queryWithHaving.orderBy(
+          asc(sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`)
+        );
+        break;
+      case "price_desc":
+        finalQuery = queryWithHaving.orderBy(
+          desc(sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`)
+        );
+        break;
+      case "ending_soon":
+        finalQuery = queryWithHaving.orderBy(asc(products.endTime));
+        break;
+      case "newest":
+      default:
+        finalQuery = queryWithHaving.orderBy(desc(products.createdAt));
+        break;
+    }
+
+    // Build count query with same conditions
+    const baseCountQuery = db
+      .select({ count: sql`count(*)` })
+      .from(products)
+      .leftJoin(maxBidSub, eq(maxBidSub.productId, products.id))
+      .$dynamic();
+
+    const countQueryWithWhere =
+      conditions.length > 0
+        ? baseCountQuery.where(and(...conditions))
+        : baseCountQuery;
+
+    const countQuery =
+      priceConditions.length > 0
+        ? countQueryWithWhere.having(and(...priceConditions))
+        : countQueryWithWhere;
+
+    // Execute queries
+    const [results, countResult] = await Promise.all([
+      finalQuery.limit(limit).offset(offset),
+      countQuery,
+    ]);
+
+    const total = Number(countResult[0]?.count) || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    // Extract products and enrich them
+    const productsList = results.map((r) => r.product);
+    const enrichedProducts = await this.enrichProducts(productsList);
+
+    return toPaginated(enrichedProducts, page, limit, total);
   }
 
   async getProducts(
