@@ -148,9 +148,18 @@ export const cancelOrder = asyncHandler(
 );
 
 export const leaveFeedback = asyncHandler(
-  async (req: AuthRequest, _res: Response, _next: NextFunction) => {
-    const body = req.body as OrderFeedbackRequest;
-    // TODO: Leave feedback for order
-    throw new NotImplementedError("Leave feedback not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { rating, comment } = req.body as OrderFeedbackRequest;
+    const { id: userId } = req.user!;
+
+    const feedback = await orderService.leaveFeedback(
+      orderId,
+      userId,
+      rating,
+      comment
+    );
+
+    ResponseHandler.sendSuccess(res, feedback);
   }
 );

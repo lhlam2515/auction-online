@@ -6,7 +6,13 @@ import type {
 import { eq, and, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { orders, productImages, products, orderPayments } from "@/models";
+import {
+  orders,
+  productImages,
+  products,
+  orderPayments,
+  ratings,
+} from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
 export type ShippingAddress = {
@@ -356,6 +362,62 @@ export class OrderService {
     // TODO: Trigger notification and rate the buyer negatively (-1)
 
     return updatedOrder;
+  }
+
+  async leaveFeedback(
+    orderId: string,
+    userId: string,
+    rating: number,
+    comment?: string
+  ) {
+    const order = await this.getById(orderId);
+
+    // Check if user is buyer or seller of this order
+    if (order.winnerId !== userId && order.sellerId !== userId) {
+      throw new ForbiddenError(
+        "Not authorized to leave feedback for this order"
+      );
+    }
+
+    // Can only leave feedback for completed or cancelled orders
+    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
+      throw new BadRequestError(
+        "Can only leave feedback for completed or cancelled orders"
+      );
+    }
+
+    // Check if user already left feedback for this order
+    const existingFeedback = await db.query.ratings.findFirst({
+      where: and(
+        eq(ratings.productId, order.productId),
+        eq(ratings.senderId, userId)
+      ),
+    });
+
+    if (existingFeedback) {
+      throw new BadRequestError("Feedback already submitted for this order");
+    }
+
+    // Determine receiver (the other party in the transaction)
+    const receiverId =
+      order.winnerId === userId ? order.sellerId : order.winnerId;
+
+    // Create rating record
+    const [newRating] = await db
+      .insert(ratings)
+      .values({
+        productId: order.productId,
+        senderId: userId,
+        receiverId,
+        score: rating,
+        comment: comment || null,
+      })
+      .returning();
+
+    // TODO: Update user's rating statistics
+    // TODO: Send notification to receiver
+
+    return newRating;
   }
 }
 
