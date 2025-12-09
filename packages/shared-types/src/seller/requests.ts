@@ -18,7 +18,6 @@ export interface GetSellerProductsParams extends PaginationParams {
  */
 export interface GetSellerOrdersParams extends PaginationParams {
   status?: OrderStatus;
-  search?: string;
 }
 
 /**
