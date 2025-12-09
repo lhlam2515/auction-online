@@ -321,6 +321,10 @@ export class OrderService {
       throw new BadRequestError("Order must be paid before shipping");
     }
 
+    if (!order.sellerConfirmedAt) {
+      throw new BadRequestError("Seller must confirm payment before shipping");
+    }
+
     // Note: shippingProvider could be stored if we add it to the model
     // For now, we'll skip it or could add it later
 
