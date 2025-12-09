@@ -9,6 +9,8 @@ import type {
   UpdateDescriptionResponse,
   ProductImage,
   Product,
+  RelatedProductsParams,
+  ProductListing,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -50,8 +52,14 @@ export const getProductDetails = asyncHandler(
 
 export const getRelatedProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get related products
-    throw new NotImplementedError("Get related products not implemented yet");
+    // Get related products
+    const productId = req.params.id;
+    const query = req.query as unknown as RelatedProductsParams;
+    const relatedProducts = await productService.getRelatedProducts(
+      productId,
+      query.limit
+    );
+    return ResponseHandler.sendSuccess<ProductListing[]>(res, relatedProducts);
   }
 );
 

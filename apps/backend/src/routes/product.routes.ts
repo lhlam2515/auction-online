@@ -65,7 +65,10 @@ router.get(
  */
 router.get(
   "/:id/related",
-  validate({ params: productValidation.productIdSchema }),
+  validate({
+    params: productValidation.productIdSchema,
+    query: productValidation.relatedProductsSchema,
+  }),
   productController.getRelatedProducts
 );
 

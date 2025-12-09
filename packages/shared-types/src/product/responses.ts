@@ -10,6 +10,13 @@ export interface TopListingParams {
 }
 
 /**
+ * Related products parameters
+ */
+export interface RelatedProductsParams {
+  limit: number;
+}
+
+/**
  * Top listings response for homepage
  */
 export interface TopListingResponse {

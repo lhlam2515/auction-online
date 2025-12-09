@@ -20,6 +20,10 @@ export const topListingSchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(5),
 });
 
+export const relatedProductsSchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(5),
+});
+
 export const createProductSchema = z.object({
   name: z.string().min(5, { error: "Name must be at least 5 characters" }),
   description: z

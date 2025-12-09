@@ -14,7 +14,18 @@ import type {
   ProductListing,
   UploadImagesResponse,
 } from "@repo/shared-types";
-import { eq, desc, and, asc, count, sql, gt, max, inArray } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  and,
+  asc,
+  count,
+  sql,
+  gt,
+  max,
+  inArray,
+  not,
+} from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase } from "@/config/supabase";
@@ -169,9 +180,27 @@ export class ProductService {
     return listings;
   }
 
-  async getRelatedProducts(productId: string) {
-    // TODO: implement related products by category/keywords
-    return [];
+  async getRelatedProducts(
+    productId: string,
+    limit: number
+  ): Promise<ProductListing[]> {
+    // implement related products by category
+    const product = await this.getById(productId);
+    if (!product) {
+      throw new NotFoundError("Product");
+    }
+
+    const relatedProducts = await db.query.products.findMany({
+      where: and(
+        eq(products.categoryId, product.categoryId),
+        not(eq(products.id, productId)),
+        eq(products.status, "ACTIVE")
+      ),
+      limit: limit,
+    });
+    const enriched = await this.enrichProducts(relatedProducts);
+
+    return enriched;
   }
 
   async getProductImages(productId: string): Promise<ProductImage[]> {
