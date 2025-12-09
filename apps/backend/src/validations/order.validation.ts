@@ -20,7 +20,7 @@ export const getOrdersSchema = z.object({
 });
 
 export const markPaidSchema = z.object({
-  paymentMethod: z.enum(["COD", "BANK_TRANSFER", "CREDIT_CARD", "EWALLET"], {
+  paymentMethod: z.enum(["BANK_TRANSFER", "CREDIT_CARD", "EWALLET"], {
     error: "Invalid payment method",
   }),
   transactionId: z.string().optional(),
