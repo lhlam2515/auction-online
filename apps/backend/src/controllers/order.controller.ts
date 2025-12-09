@@ -121,9 +121,13 @@ export const shipOrder = asyncHandler(
 );
 
 export const receiveOrder = asyncHandler(
-  async (_req: AuthRequest, _res: Response, _next: NextFunction) => {
-    // TODO: Buyer confirms receipt
-    throw new NotImplementedError("Receive order not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { id: buyerId } = req.user!;
+
+    const updatedOrder = await orderService.receiveOrder(orderId, buyerId);
+
+    ResponseHandler.sendSuccess(res, updatedOrder);
   }
 );
 
