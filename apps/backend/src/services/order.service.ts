@@ -359,7 +359,8 @@ export class OrderService {
       .where(eq(orders.id, orderId))
       .returning();
 
-    // TODO: Trigger notification and rate the buyer negatively (-1)
+    // Leave negative feedback automatically
+    await this.leaveFeedback(orderId, userId, -1, reason);
 
     return updatedOrder;
   }
