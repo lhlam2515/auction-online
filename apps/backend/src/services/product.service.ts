@@ -12,6 +12,7 @@ import type {
   TopListingResponse,
   ProductListing,
   UploadImagesResponse,
+  GetSellerProductsParams,
 } from "@repo/shared-types";
 import {
   eq,
@@ -196,19 +197,30 @@ export class ProductService {
     return toPaginated(enrichedProducts, page, limit, total);
   }
 
-  async getProducts(
-    params: ProductsQueryParams
-  ): Promise<PaginatedResponse<any>> {
-    // TODO: get products with query parameters
-    return {
-      items: [],
-      pagination: {
-        page: params.page || 1,
-        limit: params.limit || 10,
-        total: 0,
-        totalPages: 0,
-      },
-    };
+  async getSellerProducts(
+    sellerId: string,
+    params: GetSellerProductsParams
+  ): Promise<PaginatedResponse<ProductListing>> {
+    const { page = 1, limit = 10, status } = params;
+    const offset = (page - 1) * limit;
+
+    // Build base query conditions
+    const conditions = [eq(products.sellerId, sellerId)];
+    if (status) {
+      conditions.push(eq(products.status, status));
+    }
+    const results = await db.query.products.findMany({
+      where: and(...conditions),
+      limit,
+      offset,
+    });
+    const total = await db
+      .select({ value: count() })
+      .from(products)
+      .where(and(...conditions))
+      .then((res) => Number(res[0]?.value) || 0);
+    const enriched = await this.enrichProducts(results);
+    return toPaginated(enriched, page, limit, total);
   }
 
   async getById(productId: string): Promise<Product> {
