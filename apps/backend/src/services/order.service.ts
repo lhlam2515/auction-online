@@ -390,21 +390,23 @@ export class OrderService {
       );
     }
 
-    // Check if user already left feedback for this order
+    // Determine receiver (the other party in the transaction)
+    const receiverId =
+      order.winnerId === userId ? order.sellerId : order.winnerId;
+
+    // Check if user already left feedback for this specific order
+    // Query by checking productId + senderId + correct receiver to ensure it's from this order
     const existingFeedback = await db.query.ratings.findFirst({
       where: and(
         eq(ratings.productId, order.productId),
-        eq(ratings.senderId, userId)
+        eq(ratings.senderId, userId),
+        eq(ratings.receiverId, receiverId)
       ),
     });
 
     if (existingFeedback) {
-      throw new BadRequestError("Feedback already submitted for this order");
+      throw new BadRequestError("You already left feedback for this order");
     }
-
-    // Determine receiver (the other party in the transaction)
-    const receiverId =
-      order.winnerId === userId ? order.sellerId : order.winnerId;
 
     // Create rating record
     const [newRating] = await db
