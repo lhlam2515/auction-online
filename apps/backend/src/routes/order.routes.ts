@@ -59,16 +59,16 @@ router.post(
 
 /**
  * @route   POST /api/orders/:id/payment
- * @desc    Update payment/shipping info
+ * @desc    Buyer updates shipping info
  * @access  Private (buyer)
  */
 router.post(
-  "/:id/payment",
+  "/:id/shipping",
   validate({
     params: orderValidation.orderIdSchema,
-    body: orderValidation.updatePaymentSchema,
+    body: orderValidation.updateShippingInfoSchema,
   }),
-  orderController.updatePaymentInfo
+  orderController.updateShippingInfo
 );
 
 /**

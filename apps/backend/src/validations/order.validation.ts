@@ -27,11 +27,9 @@ export const markPaidSchema = z.object({
   amount: z.coerce.number({ error: "Invalid amount" }).positive(),
 });
 
-export const updatePaymentSchema = z.object({
-  shippingAddress: z.object({
-    street: z.string().min(5, { error: "Street is required" }),
-    district: z.string().min(2, { error: "District is required" }),
-    city: z.string().min(2, { error: "City is required" }),
+export const updateShippingInfoSchema = z.object({
+  shippingAddress: z.string({ error: "Shipping address is required" }).min(10, {
+    message: "Shipping address is too short",
   }),
   phoneNumber: z.string().min(10, { error: "Phone number is required" }),
 });

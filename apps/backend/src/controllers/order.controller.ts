@@ -1,6 +1,6 @@
 import type {
   GetOrdersParams,
-  UpdatePaymentRequest,
+  UpdateShippingInfoRequest,
   ShipOrderRequest,
   CancelOrderRequest,
   OrderFeedbackRequest,
@@ -11,7 +11,7 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { orderService } from "@/services/order.service";
-import { ForbiddenError, NotImplementedError } from "@/utils/errors";
+import { ForbiddenError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
 
@@ -67,17 +67,18 @@ export const getOrderDetails = asyncHandler(
   }
 );
 
-export const updatePaymentInfo = asyncHandler(
+export const updateShippingInfo = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: orderId } = req.params;
-    const body = req.body as UpdatePaymentRequest;
+    const { shippingAddress, phoneNumber } =
+      req.body as UpdateShippingInfoRequest;
     const { id: buyerId } = req.user!;
 
-    const updatedOrder = await orderService.updatePaymentInfo(
+    const updatedOrder = await orderService.updateShippingInfo(
       orderId,
       buyerId,
-      body.shippingAddress,
-      body.phoneNumber
+      shippingAddress,
+      phoneNumber
     );
 
     ResponseHandler.sendSuccess(res, updatedOrder);
