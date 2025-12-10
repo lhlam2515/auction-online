@@ -140,7 +140,8 @@ export const updateCategory = asyncHandler(
 
 export const deleteCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Delete category
-    throw new NotImplementedError("Delete category not implemented yet");
+    const categoryId = req.params.id;
+    await categoryService.deleteCategory(categoryId);
+    return ResponseHandler.sendSuccess(res, null, 204);
   }
 );

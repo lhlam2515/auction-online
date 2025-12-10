@@ -178,6 +178,35 @@ export class CategoryService {
     return updatedCategory;
   }
 
+  async deleteCategory(categoryId: string): Promise<void> {
+    const category = await this.getById(categoryId);
+
+    // Check for child categories
+    const childCount = await db
+      .select({ value: count() })
+      .from(categories)
+      .where(eq(categories.parentId, categoryId));
+    if (childCount[0].value > 0) {
+      throw new BadRequestError(
+        "Cannot delete category with existing sub-categories"
+      );
+    }
+
+    // Check for associated products
+    const productCount = await db
+      .select({ value: count() })
+      .from(products)
+      .where(eq(products.categoryId, categoryId));
+    if (productCount[0].value > 0) {
+      throw new BadRequestError(
+        "Cannot delete category with associated products"
+      );
+    }
+
+    // Proceed to delete
+    await db.delete(categories).where(eq(categories.id, categoryId));
+  }
+
   private async slugifiedCategoryName(name: string) {
     const baseSlug = slug(name);
     let slugifiedName = baseSlug;
