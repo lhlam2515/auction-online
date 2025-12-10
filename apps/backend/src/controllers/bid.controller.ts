@@ -98,6 +98,12 @@ export const updateAutoBid = asyncHandler(
 export const deleteAutoBid = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Delete auto-bid configuration
-    throw new NotImplementedError("Delete auto-bid not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const autoBidId = req.params.id;
+    const userId = req.user.id;
+    const Deleted = await bidService.deleteAutoBid(autoBidId, userId);
+    return ResponseHandler.sendSuccess<boolean>(res, Deleted);
   }
 );

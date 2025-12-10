@@ -83,7 +83,7 @@ router.get(
 );
 
 /**
- * @route   PUT /api/auto-bid/:id
+ * @route   PUT /api/products/auto-bid/:id
  * @desc    Update auto-bid configuration
  * @access  Private (Bidder - owner)
  */
@@ -99,7 +99,7 @@ router.put(
 );
 
 /**
- * @route   DELETE /api/auto-bid/:id
+ * @route   DELETE /api/products/auto-bid/:id
  * @desc    Delete auto-bid configuration
  * @access  Private (Bidder - owner)
  */

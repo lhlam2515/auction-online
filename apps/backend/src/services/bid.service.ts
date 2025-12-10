@@ -115,7 +115,15 @@ export class BidService {
   }
 
   async deleteAutoBid(autoBidId: string, userId: string) {
-    // TODO: soft delete/disable
+    const autoBid = await db.query.autoBids.findFirst({
+      where: and(eq(autoBids.id, autoBidId), eq(autoBids.userId, userId)),
+    });
+    if (!autoBid) {
+      throw new NotFoundError("Auto-bid configuration not found");
+    }
+    await db
+      .delete(autoBids)
+      .where(and(eq(autoBids.id, autoBidId), eq(autoBids.userId, userId)));
     return true;
   }
 }
