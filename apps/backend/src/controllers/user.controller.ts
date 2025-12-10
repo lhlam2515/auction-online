@@ -85,7 +85,18 @@ export const getPublicProfile = asyncHandler(
 export const getRatingSummary = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get user rating summary
-    throw new NotImplementedError("Get rating summary not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const userID = req.params.id;
+    const ratingSummary = await userService.getById(userID);
+    if (!ratingSummary) {
+      throw new NotImplementedError("Rating summary not found");
+    }
+    return ResponseHandler.sendSuccess<UserRatingSummary>(res, {
+      averageRating: ratingSummary.ratingScore,
+      totalRatings: ratingSummary.ratingCount,
+    });
   }
 );
 
