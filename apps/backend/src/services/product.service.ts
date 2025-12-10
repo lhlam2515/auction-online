@@ -552,39 +552,14 @@ export class ProductService {
         .groupBy(watchLists.productId),
     ]);
 
-    // =====================================================
-    // ============ Get Current Price + Winner =============
-    // =====================================================
-
-    // --- Step 1: Subquery lấy MAX(amount) cho từng product ---
-    const maxBidSub = db
+    // ===== Current winner names =====
+    const currentWinnerName = await db
       .select({
-        productId: bids.productId,
-        maxAmount: sql`MAX(${bids.amount})`.as("maxAmount"),
-      })
-      .from(bids)
-      .where(eq(bids.status, "VALID"))
-      .groupBy(bids.productId)
-      .as("maxBid");
-
-    // --- Step 2: Join để lấy tên người bid cao nhất ---
-    const currentPricesAndBidders = await db
-      .select({
-        productId: maxBidSub.productId,
-        currentPrice: maxBidSub.maxAmount,
+        productId: products.id,
         currentWinnerName: users.fullName,
       })
-      .from(maxBidSub)
-      .leftJoin(
-        bids,
-        and(
-          eq(bids.productId, maxBidSub.productId),
-          eq(bids.amount, maxBidSub.maxAmount),
-          eq(bids.status, "VALID")
-        )
-      )
-      .leftJoin(users, eq(users.id, bids.userId))
-      .where(inArray(maxBidSub.productId, productIds));
+      .from(products)
+      .leftJoin(users, eq(products.winnerId, users.id));
 
     // ===== User watch set =====
     let userWatchSet = new Set<string>();
@@ -616,11 +591,10 @@ export class ProductService {
     const watchMap = new Map(
       watchCounts.map((r) => [r.productId, Number(r.value)])
     );
-    const currentMap = new Map(
-      currentPricesAndBidders.map((r) => [
+    const currentWinnerMap = new Map(
+      currentWinnerName.map((r) => [
         r.productId,
         {
-          price: r.currentPrice ? String(r.currentPrice) : null,
           winner: r.currentWinnerName ? maskName(r.currentWinnerName) : null,
         },
       ])
@@ -628,16 +602,15 @@ export class ProductService {
 
     // ===== Final enrichment =====
     return productsList.map((p) => {
-      const cur = currentMap.get(p.id);
-
       return {
         ...p,
         categoryName: categoryMap.get(p.categoryId)?.name ?? "",
         sellerName: sellerMap.get(p.sellerId)?.fullName ?? "",
         sellerAvatarUrl: sellerMap.get(p.sellerId)?.avatarUrl ?? null,
 
-        currentPrice: cur?.price ?? String(p.startPrice),
-        currentWinnerName: cur?.winner ?? null,
+        currentPrice: p.currentPrice ?? p.startPrice,
+        currentWinnerName: currentWinnerMap.get(p.id)?.winner ?? null,
+        winnerId: null, // hide winnerId in listing
 
         bidCount: bidMap.get(p.id) ?? 0,
         watchCount: watchMap.get(p.id) ?? 0,
