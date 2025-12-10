@@ -39,6 +39,9 @@ yarn-error.log*
 # Windows
 Thumbs.db
 
+# Drizzle ORM local metadata
+drizzle/
+
 # Neon local metadata (backend)
 .neon_local/
 

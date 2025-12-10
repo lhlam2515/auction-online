@@ -7,7 +7,6 @@ import type { OrderStatus, PaymentMethod, ShippingProvider } from "./enums";
  */
 export interface GetOrdersParams extends PaginationParams {
   status?: OrderStatus;
-  role?: "buyer" | "seller";
 }
 
 /**
@@ -31,28 +30,21 @@ export interface OrderFeedbackRequest {
 export interface MarkPaidRequest {
   paymentMethod: PaymentMethod;
   transactionId?: string;
-  amount: number;
+  amount: string;
 }
 
 /**
- * Update payment information request
+ * Update shipping information request
  */
-export interface UpdatePaymentRequest {
-  shippingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
-  contactPhone: string;
+export interface UpdateShippingInfoRequest {
+  shippingAddress: string;
+  phoneNumber: string;
 }
 
 /**
  * Ship order request
  */
 export interface ShipOrderRequest {
-  trackingNumber?: string;
-  carrier?: ShippingProvider;
-  estimatedDelivery?: string;
+  trackingNumber: string;
+  shippingProvider?: ShippingProvider;
 }

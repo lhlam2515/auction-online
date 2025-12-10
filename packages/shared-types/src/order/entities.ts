@@ -22,28 +22,36 @@ export interface Order {
   // Shipping information
   shippingAddress: string;
   phoneNumber: string;
-  trackingNumber?: string;
+  trackingNumber: string | null;
 
   // Timeline
-  shippedAt?: string;
-  receivedAt?: string;
-  cancelledAt?: string;
-  cancelReason?: string;
+  sellerConfirmedAt: Date | string | null;
+  shippedAt: Date | string | null;
+  receivedAt: Date | string | null;
+  cancelledAt: Date | string | null;
+  cancelReason: string | null;
 
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 /**
  * Order with related information for display
  */
 export interface OrderWithDetails extends Order {
-  productName: string;
-  productImage?: string;
-  winnerName: string;
-  winnerEmail: string;
-  sellerName: string;
-  sellerEmail: string;
+  product: {
+    name: string;
+    slug: string;
+    thumbnail?: string;
+  };
+  winner: {
+    fullName: string;
+    email: string;
+  };
+  seller: {
+    fullName: string;
+    email: string;
+  };
 }
 
 /**
@@ -55,9 +63,9 @@ export interface OrderPayment {
   method: PaymentMethod;
   amount: string; // Decimal as string
   status: PaymentStatus;
-  paidAt?: string;
+  paidAt: Date | string | null;
   transactionRef?: string;
-  refundedAt?: string;
+  refundedAt: Date | string | null;
   refundAmount?: string; // Decimal as string
-  createdAt: string;
+  createdAt: Date | string;
 }

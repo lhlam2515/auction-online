@@ -113,17 +113,19 @@
 
 # ✅ **8. Orders & Post-Auction Workflow**
 
-| Method | Endpoint                     | Role    | Mô tả                       |
-| ------ | ---------------------------- | ------- | --------------------------- |
-| GET    | /api/v1/orders               | U       | Danh sách đơn hàng của mình |
-| GET    | /api/v1/orders/:id           | U       | Chi tiết đơn hàng           |
-| POST   | /api/v1/orders/:id/mark-paid | WIN     | Buyer đã thanh toán         |
-| POST   | /api/v1/orders/:id/payment   | WIN     | Cập nhật địa chỉ thanh toán |
-| POST   | /api/v1/orders/:id/ship      | SEL     | Seller gửi hàng             |
-| POST   | /api/v1/orders/:id/receive   | WIN     | Buyer xác nhận nhận hàng    |
-| POST   | /api/v1/orders/:id/cancel    | SEL     | Hủy đơn hàng                |
-| GET    | /api/v1/users/selling-orders | SEL     | Đơn hàng của seller         |
-| POST   | /api/v1/orders/:id/feedback  | WIN/SEL | Đánh giá sau giao dịch      |
+| Method | Endpoint                           | Role    | Mô tả                            |
+| ------ | ---------------------------------- | ------- | -------------------------------- |
+| POST   | /api/v1/orders                     | WIN     | Tạo đơn hàng (Instant Buy Now)   |
+| GET    | /api/v1/orders                     | U       | Danh sách đơn hàng của mình      |
+| GET    | /api/v1/orders/:id                 | U       | Chi tiết đơn hàng                |
+| POST   | /api/v1/orders/:id/shipping        | WIN     | Buyer cập nhật địa chỉ giao hàng |
+| POST   | /api/v1/orders/:id/mark-paid       | WIN     | Buyer xác nhận đã thanh toán     |
+| POST   | /api/v1/orders/:id/confirm-payment | SEL     | Seller xác nhận nhận tiền        |
+| POST   | /api/v1/orders/:id/ship            | SEL     | Seller gửi hàng                  |
+| POST   | /api/v1/orders/:id/receive         | WIN     | Buyer xác nhận nhận hàng         |
+| POST   | /api/v1/orders/:id/cancel          | SEL     | Hủy đơn hàng                     |
+| GET    | /api/v1/users/selling-orders       | SEL     | Đơn hàng của seller              |
+| POST   | /api/v1/orders/:id/feedback        | WIN/SEL | Đánh giá sau giao dịch           |
 
 ---
 
