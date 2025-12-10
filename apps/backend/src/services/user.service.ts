@@ -170,14 +170,13 @@ export class UserService {
   }
 
   async getBiddingHistory(userId: string) {
-    // TODO: get user's bid history with product details
-    const hisBids = await db
-      .select({
-        bid: bids,
-      })
-      .from(bids)
-      .where(eq(bids.userId, userId));
-    return hisBids.map((item) => item.bid);
+    const existingUser = await this.getById(userId); // ensure user exists
+
+    const bidHistory = await db.query.bids.findMany({
+      where: eq(bids.userId, existingUser.id),
+    });
+
+    return bidHistory.map((item) => item);
   }
 
   async getWonAuctions(userId: string) {
