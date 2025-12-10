@@ -27,19 +27,17 @@ export const getProfile = asyncHandler(
 );
 
 export const updateProfile = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as UpdateProfileRequest;
-    // TODO: Update user profile
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
-    const userId = req.user.id;
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { fullName, address, avatarUrl } = req.body as UpdateProfileRequest;
+    const { id: userId } = req.user!;
+
     const updatedUser = await userService.updateProfile(
       userId,
-      body.fullName,
-      body.address,
-      body.avatarUrl
+      fullName,
+      address,
+      avatarUrl
     );
+
     return ResponseHandler.sendSuccess<User>(res, updatedUser);
   }
 );

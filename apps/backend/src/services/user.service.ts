@@ -22,17 +22,20 @@ export class UserService {
     address: string | null,
     avatarUrl: string | null
   ) {
-    // TODO: validate and update user profile
-    await this.getById(userId); // ensure user exists
+    const existingUser = await this.getById(userId); // ensure user exists
 
-    const updates: any = {};
-    if (fullName !== null) updates.fullName = fullName;
-    if (address !== null) updates.address = address;
-    if (avatarUrl !== null) updates.avatarUrl = avatarUrl;
+    const updates = {
+      fullName: fullName || existingUser.fullName,
+      address: address || existingUser.address,
+      avatarUrl: avatarUrl || existingUser.avatarUrl,
+    };
 
     const [updated] = await db
       .update(users)
-      .set(updates)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
       .where(eq(users.id, userId))
       .returning();
 
