@@ -3,7 +3,7 @@ import { string, number } from "zod";
 
 import { db } from "@/config/database";
 import { updateAutoBid, deleteAutoBid } from "@/controllers/bid.controller";
-import { bids, autoBids } from "@/models";
+import { bids, autoBids, products } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 
 export class BidService {
@@ -47,7 +47,24 @@ export class BidService {
     reason?: string
   ) {
     // TODO: validate seller ownership and kick logic
-    throw new ForbiddenError("Not implemented");
+    const ownerCheck = await db.query.products.findFirst({
+      where: and(eq(products.id, productId), eq(products.sellerId, sellerId)),
+    });
+    if (!ownerCheck) {
+      throw new ForbiddenError("You are not the owner of this product");
+    }
+
+    await db
+      .update(bids)
+      .set({ status: "INVALID" })
+      .where(
+        and(
+          eq(bids.productId, productId),
+          eq(bids.userId, bidderId),
+          eq(bids.status, "VALID")
+        )
+      );
+    return true;
   }
 
   async createAutoBid(

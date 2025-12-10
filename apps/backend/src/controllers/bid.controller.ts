@@ -45,7 +45,20 @@ export const kickBidder = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as KickBidderRequest;
     // TODO: Kick a bidder from product
-    throw new NotImplementedError("Kick bidder not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const productId = req.params.id;
+    const sellerId = req.user.id;
+    const bidderId = body.bidderId;
+    const reason = body.reason;
+    const kick = await bidService.kickBidder(
+      productId,
+      sellerId,
+      bidderId,
+      reason
+    );
+    return ResponseHandler.sendSuccess<boolean>(res, kick);
   }
 );
 
