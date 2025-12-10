@@ -103,17 +103,19 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 
 ## ✅ 8. Orders & Post-Auction Workflow
 
-| Endpoint                          | Route File       | Controller                              | Validation                                |
-| --------------------------------- | ---------------- | --------------------------------------- | ----------------------------------------- |
-| GET /api/v1/orders                | order.routes.ts  | order.controller.ts → getMyOrders       | order.validation.ts → getOrdersSchema     |
-| GET /api/v1/orders/:id            | order.routes.ts  | order.controller.ts → getOrderDetails   | order.validation.ts → orderIdSchema       |
-| POST /api/v1/orders/:id/mark-paid | order.routes.ts  | order.controller.ts → markAsPaid        | order.validation.ts → orderIdSchema       |
-| POST /api/v1/orders/:id/payment   | order.routes.ts  | order.controller.ts → updatePaymentInfo | order.validation.ts → updatePaymentSchema |
-| POST /api/v1/orders/:id/ship      | order.routes.ts  | order.controller.ts → shipOrder         | order.validation.ts → shipOrderSchema     |
-| POST /api/v1/orders/:id/receive   | order.routes.ts  | order.controller.ts → receiveOrder      | order.validation.ts → orderIdSchema       |
-| POST /api/v1/orders/:id/cancel    | order.routes.ts  | order.controller.ts → cancelOrder       | order.validation.ts → cancelOrderSchema   |
-| GET /api/v1/users/selling-orders  | seller.routes.ts | seller.controller.ts → getSellingOrders | seller.validation.ts → getOrdersSchema    |
-| POST /api/v1/orders/:id/feedback  | order.routes.ts  | order.controller.ts → leaveFeedback     | order.validation.ts → feedbackSchema      |
+| Endpoint                                | Route File       | Controller                               | Validation                                     |
+| --------------------------------------- | ---------------- | ---------------------------------------- | ---------------------------------------------- |
+| POST /api/v1/orders                     | order.routes.ts  | order.controller.ts → createOrder        | order.validation.ts → createOrderSchema        |
+| GET /api/v1/orders                      | order.routes.ts  | order.controller.ts → getMyOrders        | order.validation.ts → getOrdersSchema          |
+| GET /api/v1/orders/:id                  | order.routes.ts  | order.controller.ts → getOrderDetails    | order.validation.ts → orderIdSchema            |
+| POST /api/v1/orders/:id/shipping        | order.routes.ts  | order.controller.ts → updateShippingInfo | order.validation.ts → updateShippingInfoSchema |
+| POST /api/v1/orders/:id/mark-paid       | order.routes.ts  | order.controller.ts → markAsPaid         | order.validation.ts → markPaidSchema           |
+| POST /api/v1/orders/:id/confirm-payment | order.routes.ts  | order.controller.ts → confirmPayment     | order.validation.ts → orderIdSchema            |
+| POST /api/v1/orders/:id/ship            | order.routes.ts  | order.controller.ts → shipOrder          | order.validation.ts → shipOrderSchema          |
+| POST /api/v1/orders/:id/receive         | order.routes.ts  | order.controller.ts → receiveOrder       | order.validation.ts → orderIdSchema            |
+| POST /api/v1/orders/:id/cancel          | order.routes.ts  | order.controller.ts → cancelOrder        | order.validation.ts → cancelOrderSchema        |
+| GET /api/v1/users/selling-orders        | seller.routes.ts | seller.controller.ts → getSellingOrders  | seller.validation.ts → getOrdersSchema         |
+| POST /api/v1/orders/:id/feedback        | order.routes.ts  | order.controller.ts → leaveFeedback      | order.validation.ts → feedbackSchema           |
 
 ---
 

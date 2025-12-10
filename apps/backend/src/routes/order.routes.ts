@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import * as orderController from "@/controllers/order.controller";
-import { authenticate } from "@/middlewares/auth";
+import { authenticate, authorize } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 import * as orderValidation from "@/validations/order.validation";
 
@@ -9,6 +9,17 @@ const router = Router();
 
 // All routes require authentication
 router.use(authenticate);
+
+/**
+ * @route   POST /api/orders
+ * @desc    Create new order (for instant buy now)
+ * @access  Private
+ */
+router.post(
+  "/",
+  validate({ body: orderValidation.createOrderSchema }),
+  orderController.createOrder
+);
 
 /**
  * @route   GET /api/orders
@@ -39,22 +50,39 @@ router.get(
  */
 router.post(
   "/:id/mark-paid",
-  validate({ params: orderValidation.orderIdSchema }),
+  validate({
+    params: orderValidation.orderIdSchema,
+    body: orderValidation.markPaidSchema,
+  }),
   orderController.markAsPaid
 );
 
 /**
  * @route   POST /api/orders/:id/payment
- * @desc    Update payment/shipping info
+ * @desc    Buyer updates shipping info
  * @access  Private (buyer)
  */
 router.post(
-  "/:id/payment",
+  "/:id/shipping",
   validate({
     params: orderValidation.orderIdSchema,
-    body: orderValidation.updatePaymentSchema,
+    body: orderValidation.updateShippingInfoSchema,
   }),
-  orderController.updatePaymentInfo
+  orderController.updateShippingInfo
+);
+
+/**
+ * @route   POST /api/orders/:id/confirm-payment
+ * @desc    Seller confirms payment received
+ * @access  Private (seller)
+ */
+router.post(
+  "/:id/confirm-payment",
+  authorize("SELLER"),
+  validate({
+    params: orderValidation.orderIdSchema,
+  }),
+  orderController.confirmPayment
 );
 
 /**
@@ -64,6 +92,7 @@ router.post(
  */
 router.post(
   "/:id/ship",
+  authorize("SELLER"),
   validate({
     params: orderValidation.orderIdSchema,
     body: orderValidation.shipOrderSchema,
@@ -89,6 +118,7 @@ router.post(
  */
 router.post(
   "/:id/cancel",
+  authorize("SELLER"),
   validate({
     params: orderValidation.orderIdSchema,
     body: orderValidation.cancelOrderSchema,

@@ -61,7 +61,7 @@ export type OrderStatus =
 /**
  * Payment method types - matches backend paymentMethodEnum
  */
-export type PaymentMethod = "COD" | "BANK_TRANSFER" | "CREDIT_CARD" | "EWALLET";
+export type PaymentMethod = "BANK_TRANSFER" | "CREDIT_CARD" | "EWALLET";
 
 /**
  * Shipment provider types - matches backend shipmentProviderEnum
