@@ -1,7 +1,8 @@
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { users, watchLists, upgradeRequests } from "@/models";
+import { supabase } from "@/config/supabase";
+import { users, watchLists, upgradeRequests, products, bids } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
 export class UserService {
@@ -15,17 +16,17 @@ export class UserService {
 
   async updateProfile(
     userId: string,
-    fullName?: string,
-    address?: string,
-    avatarUrl?: string
+    fullName: string | null,
+    address: string | null,
+    avatarUrl: string | null
   ) {
     // TODO: validate and update user profile
     await this.getById(userId); // ensure user exists
 
     const updates: any = {};
-    if (fullName !== undefined) updates.fullName = fullName;
-    if (address !== undefined) updates.address = address;
-    if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
+    if (fullName !== null) updates.fullName = fullName;
+    if (address !== null) updates.address = address;
+    if (avatarUrl !== null) updates.avatarUrl = avatarUrl;
 
     const [updated] = await db
       .update(users)

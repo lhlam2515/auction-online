@@ -35,7 +35,17 @@ export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpdateProfileRequest;
     // TODO: Update user profile
-    throw new NotImplementedError("Update profile not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const userId = req.user.id;
+    const updatedUser = await userService.updateProfile(
+      userId,
+      body.fullName,
+      body.address,
+      body.avatarUrl
+    );
+    return ResponseHandler.sendSuccess<User>(res, updatedUser);
   }
 );
 
