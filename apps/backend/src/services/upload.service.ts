@@ -73,7 +73,9 @@ export class UploadService {
       const urls = await Promise.all(uploadPromises);
       return { urls };
     } catch (error) {
-      throw new BadRequestError(`Failed to upload images: ${error}`);
+      throw new BadRequestError(
+        `Failed to upload images: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 }
