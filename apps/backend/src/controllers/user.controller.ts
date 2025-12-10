@@ -3,6 +3,10 @@ import type {
   UpdateProfileRequest,
   ChangePasswordRequest,
   UpgradeRequestData,
+  PublicProfile,
+  UserRatingSummary,
+  Product,
+  Bid,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -14,8 +18,16 @@ import { ResponseHandler } from "@/utils/response";
 export const getProfile = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get current user profile
-    // ResponseHandler.sendSuccess<User>(res, user);
-    throw new NotImplementedError("Get profile not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+
+    const userId = req.user.id;
+    const user = await userService.getById(userId);
+    if (!user) {
+      throw new NotImplementedError("User not found");
+    }
+    return ResponseHandler.sendSuccess<User>(res, user);
   }
 );
 
