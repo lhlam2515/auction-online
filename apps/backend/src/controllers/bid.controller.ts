@@ -71,8 +71,13 @@ export const createAutoBid = asyncHandler(
 export const getAutoBid = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get user's auto-bid for product
-    // ResponseHandler.sendSuccess<AutoBid>(res, autoBid);
-    throw new NotImplementedError("Get auto-bid not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const productId = req.params.id;
+    const userId = req.user.id;
+    const autoBid = await bidService.getAutoBid(productId, userId);
+    return ResponseHandler.sendSuccess<AutoBid>(res, autoBid);
   }
 );
 

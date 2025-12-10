@@ -98,7 +98,6 @@ export class BidService {
   }
 
   async updateAutoBid(autoBidId: string, maxAmount?: number, step?: number) {
-    // TODO: update config
     return true;
   }
 
