@@ -70,7 +70,15 @@ export const changePassword = asyncHandler(
 export const getPublicProfile = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get public profile of another user
-    throw new NotImplementedError("Get public profile not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const publicID = req.params.id;
+    const publicProfile = await userService.getById(publicID);
+    if (!publicProfile) {
+      throw new NotImplementedError("Public profile not found");
+    }
+    return ResponseHandler.sendSuccess<PublicProfile>(res, publicProfile);
   }
 );
 
