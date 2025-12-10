@@ -52,7 +52,32 @@ export class ChatService {
     // TODO: implement message sending
     // Should create new message in chat and return the created message
     // Verify sender is participant in the order chat
-    throw new NotImplementedError("Send message not implemented");
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+    });
+    if (!order) {
+      throw new NotFoundError("Order not found");
+    }
+    if (!(senderId === order.winnerId || senderId === order.sellerId)) {
+      throw new BadRequestError("User is not a participant in this chat");
+    }
+    const productId = order.productId;
+    const receiverId =
+      senderId === order.winnerId ? order.sellerId : order.winnerId;
+
+    const newMessage = await db
+      .insert(chatMessages)
+      .values({
+        productId,
+        senderId,
+        receiverId,
+        content,
+        messageType,
+        isRead: false,
+        createdAt: new Date(),
+      })
+      .returning();
+    return newMessage[0] as ChatMessage;
   }
 
   async markMessagesAsRead(

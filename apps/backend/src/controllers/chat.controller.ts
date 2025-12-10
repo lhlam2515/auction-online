@@ -28,7 +28,18 @@ export const sendMessage = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as SendMessageRequest;
     // TODO: Send chat message
-    throw new NotImplementedError("Send message not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User information not available");
+    }
+    const orderId = req.params.id;
+    const senderId = req.user.id;
+    const message = await chatService.sendMessage(
+      orderId,
+      senderId,
+      body.content,
+      body.messageType
+    );
+    return ResponseHandler.sendSuccess<ChatMessage>(res, message);
   }
 );
 
