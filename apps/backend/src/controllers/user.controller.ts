@@ -128,7 +128,12 @@ export const toggleWatchlist = asyncHandler(
 export const getWatchlist = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get user's watchlist
-    throw new NotImplementedError("Get watchlist not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const userId = req.user.id;
+    const watchlist = await userService.getWatchlist(userId);
+    return ResponseHandler.sendSuccess<Product[]>(res, watchlist);
   }
 );
 
