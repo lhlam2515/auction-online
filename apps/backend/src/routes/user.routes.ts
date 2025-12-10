@@ -46,7 +46,7 @@ router.patch(
  */
 router.get(
   "/:id/public-profile",
-  validate({ params: userValidation.userIdSchema }),
+  // validate({ params: userValidation.userIdSchema }),
   userController.getPublicProfile
 );
 

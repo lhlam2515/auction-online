@@ -16,18 +16,17 @@ export interface UserCore {
  */
 export interface User extends UserCore {
   accountStatus: AccountStatus;
-  address?: string;
-  avatarUrl?: string;
+  address: string | null;
+  avatarUrl: string | null;
 
   // Credit scoring fields
   ratingScore: number; // 0-5 range
   ratingCount: number;
 
   // Seller-specific
-  sellerExpireDate?: string; // ISO timestamp
-
-  createdAt: string;
-  updatedAt: string;
+  sellerExpireDate: Date | null; // ISO timestamp
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 /**
@@ -37,11 +36,11 @@ export interface PublicProfile {
   id: string;
   username: string;
   fullName: string;
-  avatarUrl?: string;
+  avatarUrl: string | null;
   role: UserRole;
   ratingScore: number;
   ratingCount: number;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 /**

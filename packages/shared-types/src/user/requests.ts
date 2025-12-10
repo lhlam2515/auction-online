@@ -3,9 +3,9 @@
  * Backend validation: user.validation.ts → updateProfileSchema
  */
 export interface UpdateProfileRequest {
-  fullName?: string;
-  address?: string;
-  avatarUrl?: string;
+  fullName: string | null;
+  address: string | null;
+  avatarUrl: string | null;
 }
 
 /**
