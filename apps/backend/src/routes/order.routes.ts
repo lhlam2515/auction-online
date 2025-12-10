@@ -72,6 +72,20 @@ router.post(
 );
 
 /**
+ * @route   POST /api/orders/:id/confirm-payment
+ * @desc    Seller confirms payment received
+ * @access  Private (seller)
+ */
+router.post(
+  "/:id/confirm-payment",
+  authorize("SELLER"),
+  validate({
+    params: orderValidation.orderIdSchema,
+  }),
+  orderController.confirmPayment
+);
+
+/**
  * @route   POST /api/orders/:id/ship
  * @desc    Seller marks order as shipped
  * @access  Private (seller)

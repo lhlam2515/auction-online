@@ -104,6 +104,17 @@ export const markAsPaid = asyncHandler(
   }
 );
 
+export const confirmPayment = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { id: sellerId } = req.user!;
+
+    const updatedOrder = await orderService.confirmPayment(orderId, sellerId);
+
+    ResponseHandler.sendSuccess(res, updatedOrder);
+  }
+);
+
 export const shipOrder = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: orderId } = req.params;

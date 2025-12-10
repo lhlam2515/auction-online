@@ -25,6 +25,7 @@ export interface Order {
   trackingNumber: string | null;
 
   // Timeline
+  sellerConfirmedAt: Date | null;
   shippedAt: Date | null;
   receivedAt: Date | null;
   cancelledAt: Date | null;
