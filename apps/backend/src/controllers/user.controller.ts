@@ -103,7 +103,25 @@ export const getRatingSummary = asyncHandler(
 export const toggleWatchlist = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Add/Remove product from watchlist
-    throw new NotImplementedError("Toggle watchlist not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const userId = req.user.id;
+    const productId = req.params.productId;
+    const exists = await userService.checkInWatchlist(userId, productId);
+    if (exists) {
+      await userService.removeFromWatchlist(userId, productId);
+      return ResponseHandler.sendSuccess<string>(
+        res,
+        "Product removed from watchlist"
+      );
+    } else {
+      await userService.addToWatchlist(userId, productId);
+      return ResponseHandler.sendSuccess<string>(
+        res,
+        "Product added to watchlist"
+      );
+    }
   }
 );
 

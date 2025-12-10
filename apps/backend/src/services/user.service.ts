@@ -39,16 +39,52 @@ export class UserService {
 
   async getWatchlist(userId: string) {
     // TODO: get user's watchlist with product details
-    return [];
+    const items = await db
+      .select({
+        product: products,
+      })
+      .from(watchLists)
+      .innerJoin(products, eq(watchLists.productId, products.id))
+      .where(eq(watchLists.userId, userId));
+
+    return items.map((item) => item.product);
+  }
+
+  async checkInWatchlist(userId: string, productId: string) {
+    const item = await db.query.watchLists.findFirst({
+      where: and(
+        eq(watchLists.userId, userId),
+        eq(watchLists.productId, productId)
+      ),
+    });
+    return item !== undefined;
   }
 
   async addToWatchlist(userId: string, productId: string) {
     // TODO: add product to watchlist, check duplicates
-    throw new BadRequestError("Not implemented");
+    const exists = await this.checkInWatchlist(userId, productId);
+    if (exists) {
+      throw new ConflictError("Product already in watchlist");
+    }
+    await db.insert(watchLists).values({
+      userId,
+      productId,
+    });
+
+    return true;
   }
 
   async removeFromWatchlist(userId: string, productId: string) {
     // TODO: remove from watchlist
+    const exists = await this.checkInWatchlist(userId, productId);
+    if (!exists) {
+      throw new NotFoundError("Product not in watchlist");
+    }
+    await db
+      .delete(watchLists)
+      .where(
+        and(eq(watchLists.userId, userId), eq(watchLists.productId, productId))
+      );
     return true;
   }
 
