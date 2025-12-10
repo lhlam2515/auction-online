@@ -140,25 +140,24 @@ export class UserService {
   }
 
   async requestUpgradeToSeller(userId: string, reason: string) {
-    // TODO: create upgrade request if not already pending
     const user = await this.getById(userId);
 
     if (user.role === "SELLER") {
       throw new ConflictError("User is already a seller");
     }
 
-    // TODO: create upgrade request with reason
     const pending = await db.query.upgradeRequests.findFirst({
       where: and(
         eq(upgradeRequests.userId, userId),
         eq(upgradeRequests.status, "PENDING")
       ),
     });
+
     if (pending) {
       throw new ConflictError("Upgrade request already pending");
     }
 
-    const [created] = await db
+    const [request] = await db
       .insert(upgradeRequests)
       .values({
         userId,
@@ -167,10 +166,7 @@ export class UserService {
       })
       .returning();
 
-    return {
-      message: "Upgrade request submitted. Please wait for admin approval.",
-      request: created,
-    };
+    return request;
   }
 
   async getBiddingHistory(userId: string) {
