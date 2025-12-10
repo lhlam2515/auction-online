@@ -11,14 +11,14 @@ export interface ProductCore {
   categoryId: string;
   startPrice: string; // Decimal as string
   stepPrice: string; // Decimal as string
-  buyNowPrice: string | null; // Decimal as string
+  buyNowPrice?: string; // Decimal as string
   status: ProductStatus;
-  startTime: Date | string;
-  endTime: Date | string;
-  winnerId: string | null;
+  startTime: string;
+  endTime: string;
+  winnerId?: string;
   isAutoExtend: boolean;
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

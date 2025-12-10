@@ -1,8 +1,7 @@
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { supabase } from "@/config/supabase";
-import { users, watchLists, upgradeRequests, products, bids } from "@/models";
+import { users, watchLists, upgradeRequests } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
 export class UserService {
@@ -16,17 +15,17 @@ export class UserService {
 
   async updateProfile(
     userId: string,
-    fullName: string | null,
-    address: string | null,
-    avatarUrl: string | null
+    fullName?: string,
+    address?: string,
+    avatarUrl?: string
   ) {
     // TODO: validate and update user profile
     await this.getById(userId); // ensure user exists
 
     const updates: any = {};
-    if (fullName !== null) updates.fullName = fullName;
-    if (address !== null) updates.address = address;
-    if (avatarUrl !== null) updates.avatarUrl = avatarUrl;
+    if (fullName !== undefined) updates.fullName = fullName;
+    if (address !== undefined) updates.address = address;
+    if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
 
     const [updated] = await db
       .update(users)
@@ -39,52 +38,16 @@ export class UserService {
 
   async getWatchlist(userId: string) {
     // TODO: get user's watchlist with product details
-    const items = await db
-      .select({
-        product: products,
-      })
-      .from(watchLists)
-      .innerJoin(products, eq(watchLists.productId, products.id))
-      .where(eq(watchLists.userId, userId));
-
-    return items.map((item) => item.product);
-  }
-
-  async checkInWatchlist(userId: string, productId: string) {
-    const item = await db.query.watchLists.findFirst({
-      where: and(
-        eq(watchLists.userId, userId),
-        eq(watchLists.productId, productId)
-      ),
-    });
-    return item !== undefined;
+    return [];
   }
 
   async addToWatchlist(userId: string, productId: string) {
     // TODO: add product to watchlist, check duplicates
-    const exists = await this.checkInWatchlist(userId, productId);
-    if (exists) {
-      throw new ConflictError("Product already in watchlist");
-    }
-    await db.insert(watchLists).values({
-      userId,
-      productId,
-    });
-
-    return true;
+    throw new BadRequestError("Not implemented");
   }
 
   async removeFromWatchlist(userId: string, productId: string) {
     // TODO: remove from watchlist
-    const exists = await this.checkInWatchlist(userId, productId);
-    if (!exists) {
-      throw new NotFoundError("Product not in watchlist");
-    }
-    await db
-      .delete(watchLists)
-      .where(
-        and(eq(watchLists.userId, userId), eq(watchLists.productId, productId))
-      );
     return true;
   }
 
@@ -94,28 +57,12 @@ export class UserService {
     newPassword: string
   ) {
     // TODO: validate current password and update with new password
-    const user = await this.getById(userId); // ensure user exists
+    await this.getById(userId); // ensure user exists
 
-    const email = user.email;
     // TODO: verify current password
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: currentPassword,
-    });
-    if (error) {
-      throw new BadRequestError("Current password is incorrect");
-    }
     // TODO: hash new password
     // TODO: update password in database
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (updateError) {
-      throw new BadRequestError(updateError.message);
-    }
-
-    return { message: "Password updated successfully" };
+    throw new BadRequestError("Not implemented");
   }
 
   async requestUpgradeToSeller(userId: string, reason: string) {
@@ -127,40 +74,12 @@ export class UserService {
     }
 
     // TODO: create upgrade request with reason
-    const pending = await db.query.upgradeRequests.findFirst({
-      where: and(
-        eq(upgradeRequests.userId, userId),
-        eq(upgradeRequests.status, "PENDING")
-      ),
-    });
-    if (pending) {
-      throw new ConflictError("Upgrade request already pending");
-    }
-
-    const [created] = await db
-      .insert(upgradeRequests)
-      .values({
-        userId,
-        reason,
-        status: "PENDING",
-      })
-      .returning();
-
-    return {
-      message: "Upgrade request submitted. Please wait for admin approval.",
-      request: created,
-    };
+    throw new BadRequestError("Not implemented");
   }
 
   async getBiddingHistory(userId: string) {
     // TODO: get user's bid history with product details
-    const hisBids = await db
-      .select({
-        bid: bids,
-      })
-      .from(bids)
-      .where(eq(bids.userId, userId));
-    return hisBids.map((item) => item.bid);
+    return [];
   }
 
   async getWonAuctions(userId: string) {
