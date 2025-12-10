@@ -87,7 +87,7 @@ export class ProductService {
       const searchTerm = q.trim();
       // Use the FTS index from products.model.ts
       conditions.push(
-        sql`to_tsvector('simple', ${products.name} || ' ' || COALESCE(${products.description}, '')) @@ plainto_tsquery('simple', ${searchTerm})`
+        sql`to_tsvector('simple', ${products.name} || ' ' || COALESCE(${products.description}, '')) @@ websearch_to_tsquery('simple', ${searchTerm})`
       );
     }
 
