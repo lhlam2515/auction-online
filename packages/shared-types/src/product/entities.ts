@@ -12,7 +12,10 @@ export interface ProductCore {
   startPrice: string; // Decimal as string
   stepPrice: string; // Decimal as string
   buyNowPrice?: string; // Decimal as string
+<<<<<<< HEAD
   currentPrice?: string; // Decimal as string
+=======
+>>>>>>> 28ab509 (Revert "feat(user): finish user api feature (#3)" (#4))
   status: ProductStatus;
   startTime: string;
   endTime: string;
