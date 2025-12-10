@@ -43,19 +43,17 @@ export const updateProfile = asyncHandler(
 );
 
 export const changePassword = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as ChangePasswordRequest;
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
-    const userId = req.user.id;
-    const email = req.user.email;
-    await userService.changePassword(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const { currentPassword, newPassword } = req.body as ChangePasswordRequest;
+
+    const result = await userService.changePassword(
       userId,
-      body.currentPassword,
-      body.newPassword
+      currentPassword,
+      newPassword
     );
-    return ResponseHandler.sendSuccess<string>(res, "Password updated");
+
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
