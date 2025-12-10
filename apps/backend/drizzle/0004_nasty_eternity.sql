@@ -1,1 +1,0 @@
-ALTER TABLE "orders" ADD COLUMN "seller_confirmed_at" timestamp with time zone;

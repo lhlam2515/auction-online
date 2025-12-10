@@ -1,1 +1,0 @@
-ALTER TABLE "products" ADD COLUMN "current_price" numeric(15, 2);
