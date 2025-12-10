@@ -1,8 +1,9 @@
+import type { Product } from "@repo/shared-types";
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase } from "@/config/supabase";
-import { users, watchLists, upgradeRequests, products, bids } from "@/models";
+import { users, watchLists, upgradeRequests, bids } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
 export class UserService {
@@ -43,54 +44,72 @@ export class UserService {
   }
 
   async getWatchlist(userId: string) {
-    // TODO: get user's watchlist with product details
-    const items = await db
-      .select({
-        product: products,
-      })
-      .from(watchLists)
-      .innerJoin(products, eq(watchLists.productId, products.id))
-      .where(eq(watchLists.userId, userId));
+    const existingUser = await this.getById(userId); // ensure user exists
 
-    return items.map((item) => item.product);
+    const items = await db.query.watchLists.findMany({
+      where: eq(watchLists.userId, existingUser.id),
+      with: { product: true },
+    });
+
+    const products: Product[] = items.map((item) => ({
+      ...item.product,
+      buyNowPrice: item.product.buyNowPrice || undefined,
+      currentPrice: item.product.currentPrice || undefined,
+    }));
+
+    return products;
   }
 
   async checkInWatchlist(userId: string, productId: string) {
+    const existingUser = await this.getById(userId); // ensure user exists
+
+    const existingProduct = await db.query.products.findFirst({
+      where: eq(watchLists.productId, productId),
+    });
+
+    if (!existingProduct) {
+      throw new NotFoundError("Product");
+    }
+
     const item = await db.query.watchLists.findFirst({
       where: and(
-        eq(watchLists.userId, userId),
-        eq(watchLists.productId, productId)
+        eq(watchLists.userId, existingUser.id),
+        eq(watchLists.productId, existingProduct.id)
       ),
     });
+
     return item !== undefined;
   }
 
   async addToWatchlist(userId: string, productId: string) {
-    // TODO: add product to watchlist, check duplicates
     const exists = await this.checkInWatchlist(userId, productId);
+
     if (exists) {
       throw new ConflictError("Product already in watchlist");
     }
+
     await db.insert(watchLists).values({
       userId,
       productId,
     });
 
-    return true;
+    return { message: "Product added to watchlist" };
   }
 
   async removeFromWatchlist(userId: string, productId: string) {
-    // TODO: remove from watchlist
     const exists = await this.checkInWatchlist(userId, productId);
+
     if (!exists) {
       throw new NotFoundError("Product not in watchlist");
     }
+
     await db
       .delete(watchLists)
       .where(
         and(eq(watchLists.userId, userId), eq(watchLists.productId, productId))
       );
-    return true;
+
+    return { message: "Product removed from watchlist" };
   }
 
   async changePassword(
