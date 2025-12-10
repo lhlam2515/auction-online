@@ -7,13 +7,20 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { chatService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getChatHistory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get chat history between winner and seller
-    throw new NotImplementedError("Get chat history not implemented yet");
+    const orderId = req.params.id;
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User information not available");
+    }
+    const userId = req.user.id;
+    const history = await chatService.getChatHistory(orderId, userId);
+    return ResponseHandler.sendSuccess<ChatMessage[]>(res, history);
   }
 );
 

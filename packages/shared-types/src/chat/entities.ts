@@ -11,7 +11,7 @@ export interface ChatMessage {
   content: string;
   isRead: boolean;
   messageType: MessageType;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 /**

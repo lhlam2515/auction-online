@@ -8,10 +8,10 @@ import type {
   ChatMessageType,
   MessageStatus,
 } from "@repo/shared-types";
-import { eq, and } from "drizzle-orm";
+import { eq, and, exists, desc } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { chatMessages } from "@/models";
+import { chatMessages, orders } from "@/models";
 import {
   BadRequestError,
   NotFoundError,
@@ -25,7 +25,22 @@ export class ChatService {
   ): Promise<ChatMessage[]> {
     // TODO: implement chat history retrieval
     // Should fetch messages for the order and verify user is participant
-    throw new NotImplementedError("Chat history retrieval not implemented");
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+    });
+    if (!order) {
+      throw new NotFoundError("Order not found");
+    }
+    if (!(userId === order.winnerId || userId === order.sellerId)) {
+      throw new BadRequestError("User is not a participant in this chat");
+    }
+    const productId = order.productId;
+
+    const messages = await db.query.chatMessages.findMany({
+      where: eq(chatMessages.productId, productId),
+      orderBy: [desc(chatMessages.createdAt)],
+    });
+    return messages.map((item) => item as ChatMessage);
   }
 
   async sendMessage(
