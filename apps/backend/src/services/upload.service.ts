@@ -35,11 +35,9 @@ export class UploadService {
       }
     }
 
-    if (pathPrefix.includes("..") || pathPrefix.includes("//")) {
+    // Only allow alphanumeric characters, hyphens, and underscores
+    if (!/^[a-zA-Z0-9_-]+$/.test(pathPrefix)) {
       throw new BadRequestError("Invalid path prefix");
-    }
-    if (pathPrefix.trim().length === 0) {
-      throw new BadRequestError("Path prefix cannot be empty");
     }
 
     const uploadPromises = files.map(async (file) => {
