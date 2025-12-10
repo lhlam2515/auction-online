@@ -6,7 +6,6 @@ import {
 } from "@repo/shared-types";
 import { count, eq, inArray } from "drizzle-orm";
 import slug from "slug";
-import { boolean } from "zod";
 
 import { db } from "@/config/database";
 import { categories, products } from "@/models";
@@ -75,7 +74,7 @@ export class CategoryService {
     const [{ value: total }] = await db
       .select({ value: count() })
       .from(products)
-      .where(eq(products.categoryId, categoryId));
+      .where(inArray(products.categoryId, categoryIds));
 
     return {
       items: result,
