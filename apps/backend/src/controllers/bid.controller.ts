@@ -85,7 +85,13 @@ export const updateAutoBid = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpdateAutoBidRequest;
     // TODO: Update auto-bid configuration
-    throw new NotImplementedError("Update auto-bid not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const autoBidId = req.params.id;
+    const maxAmount = body.maxAmount;
+    const Updated = await bidService.updateAutoBid(autoBidId, maxAmount);
+    return ResponseHandler.sendSuccess<boolean>(res, Updated);
   }
 );
 

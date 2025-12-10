@@ -91,13 +91,26 @@ export class BidService {
         eq(autoBids.userId, userId)
       ),
     });
-    if (autoBid) {
-      return autoBid;
+    if (!autoBid) {
+      throw new NotFoundError("Auto-bid configuration not found");
     }
-    throw new NotFoundError("Auto-bid configuration not found");
+    return autoBid;
   }
 
-  async updateAutoBid(autoBidId: string, maxAmount?: number, step?: number) {
+  async updateAutoBid(autoBidId: string, maxAmount: number, step?: number) {
+    const autoBid = await db.query.autoBids.findFirst({
+      where: and(eq(autoBids.id, autoBidId), eq(autoBids.isActive, true)),
+    });
+    if (!autoBid) {
+      throw new NotFoundError("Auto-bid configuration not found");
+    }
+    await db
+      .update(autoBids)
+      .set({
+        maxAmount: maxAmount.toString(),
+        updatedAt: new Date(),
+      })
+      .where(eq(autoBids.id, autoBidId));
     return true;
   }
 
