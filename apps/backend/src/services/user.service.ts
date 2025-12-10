@@ -10,7 +10,9 @@ export class UserService {
     const result = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
-    if (!result) throw new NotFoundError("User not found");
+
+    if (!result) throw new NotFoundError("User");
+
     return result;
   }
 

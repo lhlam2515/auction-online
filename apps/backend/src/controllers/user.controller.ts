@@ -17,17 +17,11 @@ import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getProfile = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get current user profile
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
 
-    const userId = req.user.id;
     const user = await userService.getById(userId);
-    if (!user) {
-      throw new NotImplementedError("User not found");
-    }
+
     return ResponseHandler.sendSuccess<User>(res, user);
   }
 );
