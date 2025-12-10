@@ -26,6 +26,7 @@ import {
   inArray,
   not,
 } from "drizzle-orm";
+import slug from "slug";
 
 import { db } from "@/config/database";
 import { supabase } from "@/config/supabase";
@@ -45,6 +46,8 @@ import {
   ForbiddenError,
 } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
+
+import { categoryService } from "./category.service";
 
 export class ProductService {
   // async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
@@ -380,68 +383,52 @@ export class ProductService {
       images,
     } = data;
 
+    // ensure seller exists
+    const seller = await db.query.users.findFirst({
+      where: eq(users.id, sellerId),
+    });
+    if (!seller) throw new NotFoundError("Seller");
+
+    // ensure category exists
+    const category = await db.query.categories.findFirst({
+      where: eq(categories.id, categoryId),
+    });
+    if (!category) throw new NotFoundError("Category");
+
+    if (new Date(endTime) <= new Date(startTime)) {
+      throw new BadRequestError("End time must be after start time");
+    }
+
+    const nameTrimmed = name.trim();
+    const baseSlug = slug(nameTrimmed);
+    let slugifiedName = baseSlug;
+    let i = 0;
+    while (true) {
+      const exists = await db.query.products.findFirst({
+        where: eq(products.slug, slugifiedName),
+      });
+      if (!exists) break;
+      i += 1;
+      slugifiedName = `${baseSlug}-${i}`;
+    }
+
     return await db.transaction(async (tx) => {
-      // ensure seller exists
-      const seller = await tx.query.users.findFirst({
-        where: eq(users.id, sellerId),
-      });
-      if (!seller) throw new NotFoundError("Seller");
-
-      // ensure category exists
-      const category = await tx.query.categories.findFirst({
-        where: eq(categories.id, categoryId),
-      });
-      if (!category) throw new NotFoundError("Category");
-
-      if (new Date(endTime) <= new Date(startTime)) {
-        throw new BadRequestError("End time must be after start time");
-      }
-
-      // generate slug and ensure uniqueness
-      // Normalize unicode to remove diacritics (Vietnamese accents) and
-      // map 'đ'/'Đ' to 'd'/'D' before slugifying so names with Vietnamese
-      // characters produce ASCII-friendly slugs.
-      const cleanedName = name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/đ/g, "d")
-        .replace(/Đ/g, "D");
-
-      const baseSlug = cleanedName
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-
-      let slug = baseSlug;
-      let i = 0;
-      while (true) {
-        const exists = await tx.query.products.findFirst({
-          where: eq(products.slug, slug),
-        });
-        if (!exists) break;
-        i += 1;
-        slug = `${baseSlug}-${Date.now().toString().slice(-4)}-${i}`;
-      }
-
       const [created] = await tx
         .insert(products)
-        .values([
-          {
-            sellerId,
-            categoryId,
-            name,
-            slug,
-            description,
-            startPrice: Number(startPrice),
-            stepPrice: Number(stepPrice),
-            buyNowPrice: buyNowPrice != null ? Number(buyNowPrice) : null,
-            startTime: new Date(startTime),
-            endTime: new Date(endTime),
-            isAutoExtend: isAutoExtend ?? true,
-          } as any,
-        ])
+        .values({
+          sellerId,
+          categoryId,
+          name: nameTrimmed,
+          slug: slugifiedName,
+          description: description.trim(),
+          startPrice: Number(startPrice),
+          stepPrice: Number(stepPrice),
+          buyNowPrice: buyNowPrice != null ? Number(buyNowPrice) : null,
+          status: "ACTIVE",
+          startTime: new Date(startTime),
+          endTime: new Date(endTime),
+          isAutoExtend: isAutoExtend ?? true,
+        } as any)
         .returning();
 
       // insert product images
