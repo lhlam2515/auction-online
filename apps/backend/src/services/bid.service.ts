@@ -25,6 +25,23 @@ export class BidService {
 
   async placeBid(productId: string, bidderId: string, amount: number) {
     // TODO: validate bid amount against current price and auto-bid rules
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+    });
+    if (!product) {
+      throw new NotFoundError("Product not found");
+    }
+
+    // let currentPrice = product.currentPrice
+    //   ? parseFloat(product.currentPrice)
+    //   : parseFloat(product.startPrice);
+
+    // if (amount >= currentPrice + parseFloat(product.stepPrice)) {
+    //     currentPrice = currentPrice + parseFloat(product.stepPrice);
+    //   } else {
+
+    // }
+
     const newBid = await db
       .insert(bids)
       .values({
