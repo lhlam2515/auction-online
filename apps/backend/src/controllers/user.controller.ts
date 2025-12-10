@@ -140,7 +140,12 @@ export const getWatchlist = asyncHandler(
 export const getBiddingHistory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get user's bidding history
-    throw new NotImplementedError("Get bidding history not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const userId = req.user.id;
+    const biddingHistory = await userService.getBiddingHistory(userId);
+    return ResponseHandler.sendSuccess<Bid[]>(res, biddingHistory);
   }
 );
 
