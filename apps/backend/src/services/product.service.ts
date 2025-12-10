@@ -550,7 +550,8 @@ export class ProductService {
         currentWinnerName: users.fullName,
       })
       .from(products)
-      .leftJoin(users, eq(products.winnerId, users.id));
+      .leftJoin(users, eq(products.winnerId, users.id))
+      .where(inArray(products.id, productIds));
 
     // ===== User watch set =====
     let userWatchSet = new Set<string>();
