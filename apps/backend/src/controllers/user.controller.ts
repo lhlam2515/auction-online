@@ -153,6 +153,13 @@ export const requestUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpgradeRequestData;
     // TODO: Request upgrade to Seller role
-    throw new NotImplementedError("Request upgrade not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const userId = req.user.id;
+    const reason = body.reason;
+
+    const request = await userService.requestUpgradeToSeller(userId, reason);
+    return ResponseHandler.sendSuccess<any>(res, request);
   }
 );

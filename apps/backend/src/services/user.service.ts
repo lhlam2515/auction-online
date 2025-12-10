@@ -127,7 +127,29 @@ export class UserService {
     }
 
     // TODO: create upgrade request with reason
-    throw new BadRequestError("Not implemented");
+    const pending = await db.query.upgradeRequests.findFirst({
+      where: and(
+        eq(upgradeRequests.userId, userId),
+        eq(upgradeRequests.status, "PENDING")
+      ),
+    });
+    if (pending) {
+      throw new ConflictError("Upgrade request already pending");
+    }
+
+    const [created] = await db
+      .insert(upgradeRequests)
+      .values({
+        userId,
+        reason,
+        status: "PENDING",
+      })
+      .returning();
+
+    return {
+      message: "Upgrade request submitted. Please wait for admin approval.",
+      request: created,
+    };
   }
 
   async getBiddingHistory(userId: string) {
