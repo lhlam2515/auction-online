@@ -12,6 +12,7 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { userService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -52,8 +53,17 @@ export const updateProfile = asyncHandler(
 export const changePassword = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as ChangePasswordRequest;
-    // TODO: Change user password
-    throw new NotImplementedError("Change password not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User not authenticated");
+    }
+    const userId = req.user.id;
+    const email = req.user.email;
+    await userService.changePassword(
+      userId,
+      body.currentPassword,
+      body.newPassword
+    );
+    return ResponseHandler.sendSuccess<string>(res, "Password updated");
   }
 );
 

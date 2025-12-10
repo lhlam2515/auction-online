@@ -58,12 +58,28 @@ export class UserService {
     newPassword: string
   ) {
     // TODO: validate current password and update with new password
-    await this.getById(userId); // ensure user exists
+    const user = await this.getById(userId); // ensure user exists
 
+    const email = user.email;
     // TODO: verify current password
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (error) {
+      throw new BadRequestError("Current password is incorrect");
+    }
     // TODO: hash new password
     // TODO: update password in database
-    throw new BadRequestError("Not implemented");
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (updateError) {
+      throw new BadRequestError(updateError.message);
+    }
+
+    return { message: "Password updated successfully" };
   }
 
   async requestUpgradeToSeller(userId: string, reason: string) {

@@ -36,11 +36,11 @@ export interface PublicProfile {
   id: string;
   username: string;
   fullName: string;
-  avatarUrl?: string;
+  avatarUrl: string | null;
   role: UserRole;
   ratingScore: number;
   ratingCount: number;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 /**
