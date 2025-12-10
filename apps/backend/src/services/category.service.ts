@@ -4,7 +4,7 @@ import {
   GetCategoryProductsParams,
   PaginatedResponse,
 } from "@repo/shared-types";
-import { count, eq } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 import slug from "slug";
 import { boolean } from "zod";
 
@@ -21,7 +21,7 @@ export class CategoryService {
     const result = await db.query.categories.findFirst({
       where: eq(categories.id, categoryId),
     });
-    if (!result) throw new NotFoundError("Category not found");
+    if (!result) throw new NotFoundError("Category");
     return result;
   }
 
@@ -42,8 +42,17 @@ export class CategoryService {
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
 
+    const childrenCategories = await db.query.categories.findMany({
+      where: eq(categories.parentId, categoryId),
+      columns: { id: true },
+    });
+    const categoryIds = [
+      categoryId,
+      ...childrenCategories.map((cat) => cat.id),
+    ];
+
     const result = await db.query.products.findMany({
-      where: eq(products.categoryId, categoryId),
+      where: inArray(products.categoryId, categoryIds),
 
       orderBy: (p, { asc, desc }) => {
         if (sort === "price_asc") {
