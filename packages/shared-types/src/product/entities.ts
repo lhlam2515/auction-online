@@ -17,12 +17,12 @@ export interface ProductCore {
 =======
 >>>>>>> 28ab509 (Revert "feat(user): finish user api feature (#3)" (#4))
   status: ProductStatus;
-  startTime: string;
-  endTime: string;
-  winnerId?: string;
+  startTime: Date | string;
+  endTime: Date | string;
+  winnerId: string | null;
   isAutoExtend: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 /**

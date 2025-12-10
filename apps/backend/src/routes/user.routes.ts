@@ -64,11 +64,10 @@ router.get(
 /**
  * @route   POST /api/users/watchlist/:productId
  * @desc    Add/Remove product from watchlist
- * @access  Private (Bidder)
+ * @access  Private
  */
 router.post(
   "/watchlist/:productId",
-  authorize("BIDDER", "SELLER"),
   validate({ params: userValidation.productIdSchema }),
   userController.toggleWatchlist
 );
@@ -76,22 +75,17 @@ router.post(
 /**
  * @route   GET /api/users/watchlist
  * @desc    Get user's watchlist
- * @access  Private (Bidder)
+ * @access  Private
  */
-router.get(
-  "/watchlist",
-  authorize("BIDDER", "SELLER"),
-  userController.getWatchlist
-);
+router.get("/watchlist", userController.getWatchlist);
 
 /**
  * @route   GET /api/users/bids
  * @desc    Get user's bidding history
- * @access  Private (Bidder)
+ * @access  Private
  */
 router.get(
   "/bids",
-  authorize("BIDDER", "SELLER"),
   validate({ query: userValidation.paginationSchema }),
   userController.getBiddingHistory
 );
