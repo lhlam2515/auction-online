@@ -14,4 +14,4 @@ export type ProductSortOption =
 /**
  * Top listing type
  */
-export type TopListingType = "ending_soon" | "hot" | "new";
+export type TopListingType = "ending_soon" | "hot" | "highest_price";

@@ -1,9 +1,6 @@
 import type {
   CreateProductRequest,
-  UpdateDescriptionRequest,
-  ProductsQueryParams,
   SearchProductsParams,
-  PaginationParams,
   PaginatedResponse,
   UpdateDescriptionResponse,
   ProductImage,
@@ -11,25 +8,12 @@ import type {
   TopListingType,
   TopListingResponse,
   ProductListing,
-  UploadImagesResponse,
   GetSellerProductsParams,
 } from "@repo/shared-types";
-import {
-  eq,
-  desc,
-  and,
-  asc,
-  count,
-  sql,
-  gt,
-  max,
-  inArray,
-  not,
-} from "drizzle-orm";
+import { eq, desc, and, asc, count, sql, gt, inArray, not } from "drizzle-orm";
 import slug from "slug";
 
 import { db } from "@/config/database";
-import { supabase } from "@/config/supabase";
 import {
   bids,
   categories,
@@ -46,8 +30,6 @@ import {
   ForbiddenError,
 } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
-
-import { categoryService } from "./category.service";
 
 export class ProductService {
   // async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
@@ -191,7 +173,6 @@ export class ProductService {
     ]);
 
     const total = Number(countResult[0]?.count) || 0;
-    const totalPages = Math.ceil(total / limit);
 
     // Extract products and enrich them
     const productsList = results.map((r) => r.product);
