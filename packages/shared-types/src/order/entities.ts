@@ -25,14 +25,14 @@ export interface Order {
   trackingNumber: string | null;
 
   // Timeline
-  sellerConfirmedAt: Date | null;
-  shippedAt: Date | null;
-  receivedAt: Date | null;
-  cancelledAt: Date | null;
+  sellerConfirmedAt: Date | string | null;
+  shippedAt: Date | string | null;
+  receivedAt: Date | string | null;
+  cancelledAt: Date | string | null;
   cancelReason: string | null;
 
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 /**
@@ -63,9 +63,9 @@ export interface OrderPayment {
   method: PaymentMethod;
   amount: string; // Decimal as string
   status: PaymentStatus;
-  paidAt: Date | null;
+  paidAt: Date | string | null;
   transactionRef?: string;
-  refundedAt: Date | null;
+  refundedAt: Date | string | null;
   refundAmount?: string; // Decimal as string
-  createdAt: string;
+  createdAt: Date | string;
 }
