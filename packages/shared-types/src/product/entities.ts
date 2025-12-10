@@ -12,6 +12,7 @@ export interface ProductCore {
   startPrice: string; // Decimal as string
   stepPrice: string; // Decimal as string
   buyNowPrice?: string; // Decimal as string
+  currentPrice?: string; // Decimal as string
   status: ProductStatus;
   startTime: string;
   endTime: string;
@@ -35,7 +36,6 @@ export interface ProductListing extends Product {
   categoryName: string;
   sellerName: string;
   sellerAvatarUrl?: string;
-  currentPrice?: string; // Highest bid amount
   bidCount: number;
   watchCount: number;
   mainImageUrl?: string;
