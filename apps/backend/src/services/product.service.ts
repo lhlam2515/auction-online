@@ -323,9 +323,6 @@ export class ProductService {
   ): Promise<ProductListing[]> {
     // implement related products by category
     const product = await this.getById(productId);
-    if (!product) {
-      throw new NotFoundError("Product");
-    }
 
     const relatedProducts = await db.query.products.findMany({
       where: and(
@@ -342,9 +339,6 @@ export class ProductService {
 
   async getProductImages(productId: string): Promise<ProductImage[]> {
     const product = await this.getById(productId);
-    if (!product) {
-      throw new NotFoundError("Product");
-    }
 
     const images = await db.query.productImages.findMany({
       where: eq(productImages.productId, productId),
@@ -357,9 +351,6 @@ export class ProductService {
     productId: string
   ): Promise<UpdateDescriptionResponse[]> {
     const product = await this.getById(productId);
-    if (!product) {
-      throw new NotFoundError("Product");
-    }
 
     const updates = await db.query.productUpdates.findMany({
       where: eq(productUpdates.productId, productId),
@@ -439,7 +430,7 @@ export class ProductService {
         displayOrder: idx + 1,
         isMain: idx === 0,
       }));
-      await tx.insert(productImages).values(imageRows as any[]);
+      await tx.insert(productImages).values(imageRows);
 
       return created;
     });

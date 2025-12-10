@@ -93,10 +93,7 @@ export const createProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as CreateProductRequest;
     // Create new product listing
-    const sellerId = req.user?.id;
-    if (!sellerId) {
-      throw new BadRequestError("Seller ID is required");
-    }
+    const sellerId = req.user!.id;
     const newProduct = await productService.create(sellerId, body);
     return ResponseHandler.sendSuccess<Product>(res, newProduct, 201);
   }
@@ -105,10 +102,7 @@ export const createProduct = asyncHandler(
 export const deleteProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // Delete product (only if not active)
-    const sellerId = req.user?.id;
-    if (!sellerId) {
-      throw new BadRequestError("Seller ID is required");
-    }
+    const sellerId = req.user!.id;
     const productId = req.params.id;
     await productService.delete(productId, sellerId);
     return ResponseHandler.sendSuccess(res, null, 204);
@@ -119,10 +113,7 @@ export const updateDescription = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpdateDescriptionRequest;
     // Update product description (append mode)
-    const sellerId = req.user?.id;
-    if (!sellerId) {
-      throw new BadRequestError("Seller ID is required");
-    }
+    const sellerId = req.user!.id;
     const productId = req.params.id;
     const update: UpdateDescriptionResponse =
       await productService.updateDescription(productId, sellerId, body.content);
@@ -134,10 +125,7 @@ export const setAutoExtend = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AutoExtendRequest;
     // Set auto-extend setting
-    const sellerId = req.user?.id;
-    if (!sellerId) {
-      throw new BadRequestError("Seller ID is required");
-    }
+    const sellerId = req.user!.id;
     const productId = req.params.id;
     await productService.setAutoExtend(productId, sellerId, body.isAutoExtend);
     return ResponseHandler.sendSuccess(res, null, 204);
