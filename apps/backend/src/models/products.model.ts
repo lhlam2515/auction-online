@@ -55,6 +55,7 @@ export const products = pgTable(
     startPrice: t.numeric("start_price", { precision: 15, scale: 2 }).notNull(),
     stepPrice: t.numeric("step_price", { precision: 15, scale: 2 }).notNull(),
     buyNowPrice: t.numeric("buy_now_price", { precision: 15, scale: 2 }),
+    currentPrice: t.numeric("current_price", { precision: 15, scale: 2 }),
 
     // Timing
     startTime: t.timestamp("start_time", { withTimezone: true }).notNull(),
