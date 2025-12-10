@@ -11,7 +11,7 @@ export interface Bid {
   amount: string; // Decimal as string
   status: BidStatus;
   isAuto: boolean;
-  createdAt: Date | string;
+  createdAt: string;
 }
 
 /**

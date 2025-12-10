@@ -222,6 +222,12 @@ cp .env.example .env
 # Edit .env với database URL và config
 ```
 
+### 3. Database Migration
+
+```bash
+pnpm db:push
+```
+
 ### 4. Start Development
 
 ```bash
