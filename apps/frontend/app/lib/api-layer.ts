@@ -29,6 +29,8 @@ import type {
 
   // Category types
   Category,
+  CategoryTree,
+  GetCategoryProductsParams,
 
   // Bid types
   Bid,
@@ -233,16 +235,16 @@ export const api = {
     /**
      * Get category tree/hierarchy
      */
-    getAll: () => apiCall<Category[]>("GET", API_ENDPOINTS.category.list),
+    getAll: () => apiCall<CategoryTree[]>("GET", "/categories"),
 
     /**
      * Get products in a specific category
      */
-    getProducts: (categoryId: string, params?: ProductSearchParams) =>
+    getProducts: (categoryId: string, params?: GetCategoryProductsParams) =>
       apiCall<PaginatedResponse<Product>>(
         "GET",
         appendQueryParams(
-          API_ENDPOINTS.category.products(categoryId),
+          `/categories/${categoryId}/products`,
           paramsToRecord(params)
         )
       ),

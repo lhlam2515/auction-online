@@ -1,4 +1,5 @@
-import {
+import type {
+  Product,
   Category,
   CategoryTree,
   GetCategoryProductsParams,
@@ -10,6 +11,7 @@ import slug from "slug";
 import { db } from "@/config/database";
 import { categories, products } from "@/models";
 import { BadRequestError, NotFoundError } from "@/utils/errors";
+import { toPaginated } from "@/utils/pagination";
 
 export class CategoryService {
   async getAll() {
@@ -33,7 +35,7 @@ export class CategoryService {
   async getProductsByCategory(
     categoryId: string,
     params: GetCategoryProductsParams
-  ): Promise<PaginatedResponse<any>> {
+  ): Promise<PaginatedResponse<Product>> {
     // fetch products filtered by category
     await this.getById(categoryId); // validate category exists
     const { page = 1, limit = 20, sort } = params;
@@ -76,15 +78,7 @@ export class CategoryService {
       .from(products)
       .where(inArray(products.categoryId, categoryIds));
 
-    return {
-      items: result,
-      pagination: {
-        page: page,
-        limit: limit,
-        total: total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return toPaginated(result, total, page, limit);
   }
 
   async createCategory(name: string, parentId?: string): Promise<Category> {
