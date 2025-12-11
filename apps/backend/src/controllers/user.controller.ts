@@ -3,6 +3,7 @@ import type {
   UpdateProfileRequest,
   ChangePasswordRequest,
   UpgradeRequestData,
+  UpgradeRequestResponse,
   PublicProfile,
   UserRatingSummary,
   Product,
@@ -13,7 +14,6 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { userService } from "@/services";
-import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getProfile = asyncHandler(
@@ -53,7 +53,7 @@ export const changePassword = asyncHandler(
       newPassword
     );
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -88,14 +88,20 @@ export const toggleWatchlist = asyncHandler(
     const exists = await userService.checkInWatchlist(userId, productId);
     if (exists) {
       await userService.removeFromWatchlist(userId, productId);
-      return ResponseHandler.sendSuccess(res, {
-        message: "Product removed from watchlist",
-      });
+      return ResponseHandler.sendSuccess(
+        res,
+        null,
+        200,
+        "Product removed from watchlist"
+      );
     } else {
       await userService.addToWatchlist(userId, productId);
-      return ResponseHandler.sendSuccess(res, {
-        message: "Product added to watchlist",
-      });
+      return ResponseHandler.sendSuccess(
+        res,
+        null,
+        200,
+        "Product added to watchlist"
+      );
     }
   }
 );
@@ -127,6 +133,6 @@ export const requestUpgrade = asyncHandler(
 
     const request = await userService.requestUpgradeToSeller(userId, reason);
 
-    return ResponseHandler.sendSuccess(res, request);
+    return ResponseHandler.sendSuccess<UpgradeRequestResponse>(res, request);
   }
 );

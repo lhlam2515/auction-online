@@ -166,38 +166,31 @@ export const api = {
     /**
      * Get current user profile
      */
-    getProfile: () => apiCall<User>("GET", API_ENDPOINTS.user.profile),
+    getProfile: () => apiCall<User>("GET", "/users/profile"),
 
     /**
      * Update user profile
      */
     updateProfile: (data: UpdateProfileRequest) =>
-      apiCall<User>("PUT", API_ENDPOINTS.user.profile, data),
+      apiCall<User>("PUT", "/users/profile", data),
 
     /**
      * Change user password
      */
     changePassword: (data: ChangePasswordRequest) =>
-      apiCall<{ message: string }>(
-        "PATCH",
-        API_ENDPOINTS.user.changePassword,
-        data
-      ),
+      apiCall<{ message: string }>("PATCH", "/users/password", data),
 
     /**
      * Get public profile of another user
      */
     getPublicProfile: (userId: string) =>
-      apiCall<PublicProfile>("GET", API_ENDPOINTS.user.publicProfile(userId)),
+      apiCall<PublicProfile>("GET", `/users/${userId}/public-profile`),
 
     /**
      * Get user rating summary
      */
     getRatingSummary: (userId: string) =>
-      apiCall<UserRatingSummary>(
-        "GET",
-        API_ENDPOINTS.user.ratingSummary(userId)
-      ),
+      apiCall<UserRatingSummary>("GET", `/users/${userId}/rating-summary`),
 
     /**
      * Get user's watchlist
@@ -205,7 +198,7 @@ export const api = {
     getWatchlist: (params?: PaginationParams) =>
       apiCall<PaginatedResponse<Product>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.user.watchlist, paramsToRecord(params))
+        appendQueryParams("/users/watchlist", paramsToRecord(params))
       ),
 
     /**
@@ -214,7 +207,7 @@ export const api = {
     toggleWatchlist: (productId: string) =>
       apiCall<{ message: string; inWatchlist: boolean }>(
         "POST",
-        API_ENDPOINTS.user.toggleWatchlist(productId)
+        `/users/watchlist/${productId}`
       ),
 
     /**
@@ -223,18 +216,14 @@ export const api = {
     getBids: (params?: PaginationParams) =>
       apiCall<PaginatedResponse<Bid>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.user.bids, paramsToRecord(params))
+        appendQueryParams("/users/bids", paramsToRecord(params))
       ),
 
     /**
      * Request upgrade to seller account
      */
     requestSellerUpgrade: (data: UpgradeRequestData) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.user.upgradeRequest,
-        data
-      ),
+      apiCall<{ message: string }>("POST", "/users/upgrade-request", data),
   },
 
   /**
