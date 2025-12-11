@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 
 import * as productController from "@/controllers/product.controller";
 import { authenticate, authorize } from "@/middlewares/auth";
@@ -6,6 +7,23 @@ import { validate } from "@/middlewares/validate";
 import * as productValidation from "@/validations/product.validation";
 
 const router = Router();
+
+// Configure multer for memory storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB per file
+    files: 10, // Maximum 10 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow only image files
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"));
+    }
+  },
+});
 
 /**
  * @route   GET /api/products
@@ -47,7 +65,10 @@ router.get(
  */
 router.get(
   "/:id/related",
-  validate({ params: productValidation.productIdSchema }),
+  validate({
+    params: productValidation.productIdSchema,
+    query: productValidation.relatedProductsSchema,
+  }),
   productController.getRelatedProducts
 );
 
@@ -128,11 +149,11 @@ router.put(
     params: productValidation.productIdSchema,
     body: productValidation.autoExtendSchema,
   }),
-  productController.toggleAutoExtend
+  productController.setAutoExtend
 );
 
 /**
- * @route   POST /api/upload
+ * @route   POST /api/products/upload
  * @desc    Upload product images
  * @access  Private (Seller)
  */
@@ -140,6 +161,7 @@ router.post(
   "/upload",
   authenticate,
   authorize("SELLER"),
+  upload.array("images", 10),
   productController.uploadImages
 );
 

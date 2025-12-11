@@ -1,5 +1,4 @@
 import type {
-  Product,
   CreateProductRequest,
   UpdateDescriptionRequest,
   AutoExtendRequest,
@@ -8,58 +7,84 @@ import type {
   TopListingResponse,
   UploadImagesResponse,
   UpdateDescriptionResponse,
+  ProductImage,
+  Product,
+  RelatedProductsParams,
+  ProductListing,
+  PaginatedResponse,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { NotImplementedError } from "@/utils/errors";
+import { productService, uploadService } from "@/services";
+import { BadRequestError, NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const searchProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as SearchProductsParams;
-    // TODO: Search and filter products
-    throw new NotImplementedError("Search products not implemented yet");
+    const query = res.locals.query as unknown as SearchProductsParams;
+    // Search and filter products
+    const products = await productService.searchProducts(query);
+    return ResponseHandler.sendSuccess<PaginatedResponse<ProductListing>>(
+      res,
+      products
+    );
   }
 );
 
 export const getTopListing = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const query = req.query as unknown as TopListingParams;
-    // TODO: Get top products (ending soon, hot, new)
-    // ResponseHandler.sendSuccess<TopListingResponse>(res, topListings);
-    throw new NotImplementedError("Get top listing not implemented yet");
+    // Get top products (ending soon, hot (most bids), highest price)
+    const topListings = await productService.getTopListings(
+      // query.type,
+      query.limit,
+      req.user?.id
+    );
+    return ResponseHandler.sendSuccess<TopListingResponse>(res, topListings);
   }
 );
 
 export const getProductDetails = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get product details
-    // ResponseHandler.sendSuccess<Product>(res, product);
-    throw new NotImplementedError("Get product details not implemented yet");
+    // Get product details
+    const productId = req.params.id;
+    const product = await productService.getById(productId);
+    return ResponseHandler.sendSuccess<Product>(res, product);
   }
 );
 
 export const getRelatedProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get related products
-    throw new NotImplementedError("Get related products not implemented yet");
+    // Get related products
+    const productId = req.params.id;
+    const query = req.query as unknown as RelatedProductsParams;
+    const relatedProducts = await productService.getRelatedProducts(
+      productId,
+      query.limit
+    );
+    return ResponseHandler.sendSuccess<ProductListing[]>(res, relatedProducts);
   }
 );
 
 export const getProductImages = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get product images
-    throw new NotImplementedError("Get product images not implemented yet");
+    // Get product images
+    const productId = req.params.id;
+    const images = await productService.getProductImages(productId);
+    return ResponseHandler.sendSuccess<ProductImage[]>(res, images);
   }
 );
 
 export const getDescriptionUpdates = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get product description update history
-    throw new NotImplementedError(
-      "Get description updates not implemented yet"
+    // Get product description update history
+    const productId = req.params.id;
+    const updates = await productService.getDescriptionUpdates(productId);
+    return ResponseHandler.sendSuccess<UpdateDescriptionResponse[]>(
+      res,
+      updates
     );
   }
 );
@@ -67,38 +92,57 @@ export const getDescriptionUpdates = asyncHandler(
 export const createProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as CreateProductRequest;
-    // TODO: Create new product listing
-    throw new NotImplementedError("Create product not implemented yet");
+    // Create new product listing
+    const sellerId = req.user!.id;
+    const newProduct = await productService.create(sellerId, body);
+    return ResponseHandler.sendSuccess<Product>(res, newProduct, 201);
   }
 );
 
 export const deleteProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Delete product (only if not active)
-    throw new NotImplementedError("Delete product not implemented yet");
+    // Delete product (only if not active)
+    const sellerId = req.user!.id;
+    const productId = req.params.id;
+    await productService.delete(productId, sellerId);
+    return ResponseHandler.sendSuccess(res, null, 204);
   }
 );
 
 export const updateDescription = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as UpdateDescriptionRequest;
-    // TODO: Update product description (append mode)
-    throw new NotImplementedError("Update description not implemented yet");
+    // Update product description (append mode)
+    const sellerId = req.user!.id;
+    const productId = req.params.id;
+    const update: UpdateDescriptionResponse =
+      await productService.updateDescription(productId, sellerId, body.content);
+    return ResponseHandler.sendSuccess<UpdateDescriptionResponse>(res, update);
   }
 );
 
-export const toggleAutoExtend = asyncHandler(
+export const setAutoExtend = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AutoExtendRequest;
-    // TODO: Toggle auto-extend setting
-    throw new NotImplementedError("Toggle auto-extend not implemented yet");
+    // Set auto-extend setting
+    const sellerId = req.user!.id;
+    const productId = req.params.id;
+    await productService.setAutoExtend(productId, sellerId, body.isAutoExtend);
+    return ResponseHandler.sendSuccess(res, null, 204);
   }
 );
 
 export const uploadImages = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Upload product images
-    // ResponseHandler.sendSuccess<UploadImagesResponse>(res, { urls });
-    throw new NotImplementedError("Upload images not implemented yet");
+    // Upload product images
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      throw new BadRequestError("No images provided");
+    }
+
+    const urls = await uploadService.uploadImages(
+      req.files as Express.Multer.File[],
+      "products"
+    );
+    return ResponseHandler.sendSuccess<UploadImagesResponse>(res, urls, 201);
   }
 );
