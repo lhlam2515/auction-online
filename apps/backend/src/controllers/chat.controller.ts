@@ -46,7 +46,13 @@ export const sendMessage = asyncHandler(
 export const markAsRead = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Mark message as read
-    throw new NotImplementedError("Mark as read not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User information not available");
+    }
+    const messageId = req.params.id;
+    const userId = req.user.id;
+    const result = await chatService.markMessagesAsRead(messageId, userId);
+    return ResponseHandler.sendSuccess<boolean>(res, result);
   }
 );
 

@@ -8,7 +8,7 @@ import type {
   ChatMessageType,
   MessageStatus,
 } from "@repo/shared-types";
-import { eq, and, exists, desc } from "drizzle-orm";
+import { eq, and, exists, desc, inArray } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { chatMessages, orders } from "@/models";
@@ -87,7 +87,28 @@ export class ChatService {
   ): Promise<boolean> {
     // TODO: implement mark messages as read
     // Should mark specified messages or all unread messages as read for the user
-    throw new NotImplementedError("Mark as read not implemented");
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+    });
+    if (!order) {
+      throw new NotFoundError("Order not found");
+    }
+    if (!(userId === order.winnerId || userId === order.sellerId)) {
+      throw new BadRequestError("User is not a participant in this chat");
+    }
+    const productId = order.productId;
+
+    const updateQuery = await db
+      .update(chatMessages)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(chatMessages.productId, productId),
+          eq(chatMessages.receiverId, userId),
+          inArray(chatMessages.id, messageIds ?? [])
+        )
+      );
+    return true;
   }
 
   async getUnreadCount(userId: string): Promise<UnreadCountResponse> {
