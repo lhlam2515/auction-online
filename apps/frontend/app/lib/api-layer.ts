@@ -84,7 +84,6 @@ import type {
   PaginationParams,
 } from "@repo/shared-types";
 
-import { API_ENDPOINTS } from "@/constants/api-endpoints";
 import { apiClient } from "@/lib/handlers/api";
 import { appendQueryParams } from "@/lib/url";
 
@@ -385,10 +384,7 @@ export const api = {
     getHistory: (productId: string, params?: PaginationParams) =>
       apiCall<PaginatedResponse<Bid>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.bid.history(productId),
-          paramsToRecord(params)
-        )
+        appendQueryParams(`/products/${productId}/bids`, paramsToRecord(params))
       ),
 
     /**
@@ -397,7 +393,7 @@ export const api = {
     placeBid: (productId: string, data: PlaceBidRequest) =>
       apiCall<{ message: string; currentHighestBid: number }>(
         "POST",
-        API_ENDPOINTS.bid.placeBid(productId),
+        `/products/${productId}/bids`,
         data
       ),
 
@@ -405,42 +401,31 @@ export const api = {
      * Kick a bidder (Seller only)
      */
     kickBidder: (productId: string, data: KickBidderRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.bid.kickBidder(productId),
-        data
-      ),
+      apiCall<{ message: string }>("POST", `/products/${productId}/kick`, data),
 
     /**
      * Create auto-bid configuration
      */
     createAutoBid: (productId: string, data: CreateAutoBidRequest) =>
-      apiCall<AutoBid>(
-        "POST",
-        API_ENDPOINTS.bid.createAutoBid(productId),
-        data
-      ),
+      apiCall<AutoBid>("POST", `/products/${productId}/auto-bid`, data),
 
     /**
      * Get user's auto-bid for a product
      */
     getAutoBid: (productId: string) =>
-      apiCall<AutoBid>("GET", API_ENDPOINTS.bid.getAutoBid(productId)),
+      apiCall<AutoBid>("GET", `/products/${productId}/auto-bid`),
 
     /**
      * Update auto-bid configuration
      */
     updateAutoBid: (autoBidId: string, data: UpdateAutoBidRequest) =>
-      apiCall<AutoBid>("PUT", API_ENDPOINTS.bid.updateAutoBid(autoBidId), data),
+      apiCall<AutoBid>("PUT", `/auto-bid/${autoBidId}`, data),
 
     /**
      * Delete auto-bid configuration
      */
     deleteAutoBid: (autoBidId: string) =>
-      apiCall<{ message: string }>(
-        "DELETE",
-        API_ENDPOINTS.bid.deleteAutoBid(autoBidId)
-      ),
+      apiCall<{ message: string }>("DELETE", `/auto-bid/${autoBidId}`),
   },
 
   /**
@@ -480,36 +465,26 @@ export const api = {
     getHistory: (orderId: string, params?: PaginationParams) =>
       apiCall<PaginatedResponse<ChatMessage>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.chat.history(orderId),
-          paramsToRecord(params)
-        )
+        appendQueryParams(`/orders/${orderId}/chat`, paramsToRecord(params))
       ),
 
     /**
      * Send a message in order chat
      */
     sendMessage: (orderId: string, data: SendMessageRequest) =>
-      apiCall<ChatMessage>(
-        "POST",
-        API_ENDPOINTS.chat.sendMessage(orderId),
-        data
-      ),
+      apiCall<ChatMessage>("POST", `/orders/${orderId}/chat`, data),
 
     /**
      * Mark message as read
      */
     markMessageRead: (messageId: string) =>
-      apiCall<{ message: string }>(
-        "PUT",
-        API_ENDPOINTS.chat.markRead(messageId)
-      ),
+      apiCall<{ message: string }>("PUT", `/chat/messages/${messageId}/read`),
 
     /**
      * Get unread message count
      */
     getUnreadCount: () =>
-      apiCall<{ count: number }>("GET", API_ENDPOINTS.chat.unreadCount),
+      apiCall<{ count: number }>("GET", "/chat/unread-count"),
   },
 
   /**
@@ -555,7 +530,7 @@ export const api = {
       ),
 
     /**
-     * Update payment information
+     * Confirm payment received (Seller)
      */
     confirmPayment: (orderId: string) =>
       apiCall<Order>("POST", `/orders/${orderId}/confirm-payment`),
@@ -593,7 +568,7 @@ export const api = {
      * Create a rating
      */
     create: (data: CreateRatingRequest) =>
-      apiCall<Rating>("POST", API_ENDPOINTS.rating.create, data),
+      apiCall<Rating>("POST", "/ratings", data),
 
     /**
      * Get user's rating history
@@ -601,17 +576,14 @@ export const api = {
     getByUser: (userId: string, params?: PaginationParams) =>
       apiCall<PaginatedResponse<Rating>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.rating.list(userId),
-          paramsToRecord(params)
-        )
+        appendQueryParams(`/ratings/${userId}`, paramsToRecord(params))
       ),
 
     /**
      * Get user's rating summary
      */
     getSummary: (userId: string) =>
-      apiCall<RatingSummary>("GET", API_ENDPOINTS.rating.summary(userId)),
+      apiCall<RatingSummary>("GET", `/ratings/${userId}/summary`),
   },
 
   /**
@@ -621,7 +593,7 @@ export const api = {
     /**
      * Get admin dashboard statistics
      */
-    getStats: () => apiCall<AdminStats>("GET", API_ENDPOINTS.admin.stats),
+    getStats: () => apiCall<AdminStats>("GET", "/admin/stats"),
 
     /**
      * User Management
@@ -639,7 +611,7 @@ export const api = {
       ) =>
         apiCall<PaginatedResponse<AdminUser>>(
           "GET",
-          appendQueryParams(API_ENDPOINTS.admin.users, paramsToRecord(params))
+          appendQueryParams("/admin/users", paramsToRecord(params))
         ),
 
       /**
@@ -648,7 +620,7 @@ export const api = {
       ban: (userId: string, data: BanUserRequest) =>
         apiCall<{ message: string }>(
           "PATCH",
-          API_ENDPOINTS.admin.banUser(userId),
+          `/admin/users/${userId}/ban`,
           data
         ),
 
@@ -658,7 +630,7 @@ export const api = {
       resetPassword: (userId: string, data: ResetUserPasswordRequest) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.resetUserPassword(userId),
+          `/admin/users/${userId}/reset-password`,
           data
         ),
     },
@@ -677,10 +649,7 @@ export const api = {
       ) =>
         apiCall<PaginatedResponse<UpgradeRequest>>(
           "GET",
-          appendQueryParams(
-            API_ENDPOINTS.admin.upgrades,
-            paramsToRecord(params)
-          )
+          appendQueryParams("/admin/upgrades", paramsToRecord(params))
         ),
 
       /**
@@ -689,7 +658,7 @@ export const api = {
       approve: (upgradeId: string) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.approveUpgrade(upgradeId)
+          `/admin/upgrades/${upgradeId}/approve`
         ),
 
       /**
@@ -698,7 +667,7 @@ export const api = {
       reject: (upgradeId: string, data?: { reason?: string }) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.rejectUpgrade(upgradeId),
+          `/admin/upgrades/${upgradeId}/reject`,
           data
         ),
     },
@@ -719,10 +688,7 @@ export const api = {
       ) =>
         apiCall<PaginatedResponse<AdminProduct>>(
           "GET",
-          appendQueryParams(
-            API_ENDPOINTS.admin.products,
-            paramsToRecord(params)
-          )
+          appendQueryParams("/admin/products", paramsToRecord(params))
         ),
 
       /**
@@ -731,10 +697,7 @@ export const api = {
       getPending: (params?: PaginationParams) =>
         apiCall<PaginatedResponse<AdminProduct>>(
           "GET",
-          appendQueryParams(
-            API_ENDPOINTS.admin.pendingProducts,
-            paramsToRecord(params)
-          )
+          appendQueryParams("/admin/products/pending", paramsToRecord(params))
         ),
 
       /**
@@ -743,7 +706,7 @@ export const api = {
       approve: (productId: string) =>
         apiCall<{ message: string }>(
           "PUT",
-          API_ENDPOINTS.admin.approveProduct(productId)
+          `/admin/products/${productId}/approve`
         ),
 
       /**
@@ -752,7 +715,7 @@ export const api = {
       reject: (productId: string, data?: { reason?: string }) =>
         apiCall<{ message: string }>(
           "PUT",
-          API_ENDPOINTS.admin.rejectProduct(productId),
+          `/admin/products/${productId}/reject`,
           data
         ),
 
@@ -762,7 +725,7 @@ export const api = {
       suspend: (productId: string, data?: { reason?: string }) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.suspendProduct(productId),
+          `/admin/products/${productId}/suspend`,
           data
         ),
     },
@@ -778,7 +741,7 @@ export const api = {
         name: string;
         description?: string;
         parentId?: string;
-      }) => apiCall<Category>("POST", API_ENDPOINTS.admin.createCategory, data),
+      }) => apiCall<Category>("POST", "/admin/categories", data),
 
       /**
        * Update category
@@ -786,12 +749,7 @@ export const api = {
       update: (
         categoryId: string,
         data: { name?: string; description?: string }
-      ) =>
-        apiCall<Category>(
-          "PUT",
-          API_ENDPOINTS.admin.updateCategory(categoryId),
-          data
-        ),
+      ) => apiCall<Category>("PUT", `/admin/categories/${categoryId}`, data),
 
       /**
        * Delete category
@@ -799,7 +757,7 @@ export const api = {
       delete: (categoryId: string) =>
         apiCall<{ message: string }>(
           "DELETE",
-          API_ENDPOINTS.admin.deleteCategory(categoryId)
+          `/admin/categories/${categoryId}`
         ),
     },
   },
