@@ -44,7 +44,7 @@ import type {
   KickBidderRequest,
 
   // Question types
-  Question,
+  ProductQuestion,
   AskQuestionRequest,
   AnswerQuestionRequest,
 
@@ -448,42 +448,24 @@ export const api = {
     /**
      * Get public Q&A for a product
      */
-    getPublic: (productId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Question>>(
-        "GET",
-        appendQueryParams(
-          API_ENDPOINTS.question.public(productId),
-          paramsToRecord(params)
-        )
-      ),
-
-    /**
-     * Get private questions for seller
-     */
-    getPrivate: (productId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Question>>(
-        "GET",
-        appendQueryParams(
-          API_ENDPOINTS.question.private(productId),
-          paramsToRecord(params)
-        )
-      ),
+    getPublic: (productId: string) =>
+      apiCall<ProductQuestion[]>("GET", `/products/${productId}/questions`),
 
     /**
      * Ask a question about a product
      */
     ask: (productId: string, data: AskQuestionRequest) =>
-      apiCall<Question>("POST", API_ENDPOINTS.question.ask(productId), data),
+      apiCall<ProductQuestion>(
+        "POST",
+        `/products/${productId}/questions`,
+        data
+      ),
 
     /**
      * Answer a question (Seller only)
      */
     answer: (questionId: string, data: AnswerQuestionRequest) =>
-      apiCall<Question>(
-        "POST",
-        API_ENDPOINTS.question.answer(questionId),
-        data
-      ),
+      apiCall<ProductQuestion>("POST", `/questions/${questionId}/answer`, data),
   },
 
   /**
