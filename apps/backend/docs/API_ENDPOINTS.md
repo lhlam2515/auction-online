@@ -23,7 +23,6 @@
 | POST   | /api/v1/auth/verify-email     | G    | Xác minh email (registration) |
 | POST   | /api/v1/auth/verify-reset-otp | G    | Xác thực OTP reset password   |
 | POST   | /api/v1/auth/reset-password   | G    | Đặt mật khẩu mới              |
-| POST   | /api/v1/auth/google           | G    | Đăng nhập Google              |
 | POST   | /api/v1/auth/resend-otp       | G    | Gửi lại OTP xác minh          |
 
 ---

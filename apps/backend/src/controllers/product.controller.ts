@@ -18,11 +18,11 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { productService, uploadService } from "@/services";
-import { BadRequestError, NotImplementedError } from "@/utils/errors";
+import { BadRequestError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const searchProducts = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (_req: AuthRequest, res: Response, _next: NextFunction) => {
     const query = res.locals.query as unknown as SearchProductsParams;
     // Search and filter products
     const products = await productService.searchProducts(query);
@@ -34,7 +34,7 @@ export const searchProducts = asyncHandler(
 );
 
 export const getTopListing = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const query = req.query as unknown as TopListingParams;
     // Get top products (ending soon, hot (most bids), highest price)
     const topListings = await productService.getTopListings(
@@ -47,7 +47,7 @@ export const getTopListing = asyncHandler(
 );
 
 export const getProductDetails = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get product details
     const productId = req.params.id;
     const product = await productService.getById(productId);
@@ -56,7 +56,7 @@ export const getProductDetails = asyncHandler(
 );
 
 export const getRelatedProducts = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get related products
     const productId = req.params.id;
     const query = req.query as unknown as RelatedProductsParams;
@@ -69,7 +69,7 @@ export const getRelatedProducts = asyncHandler(
 );
 
 export const getProductImages = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get product images
     const productId = req.params.id;
     const images = await productService.getProductImages(productId);
@@ -78,7 +78,7 @@ export const getProductImages = asyncHandler(
 );
 
 export const getDescriptionUpdates = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get product description update history
     const productId = req.params.id;
     const updates = await productService.getDescriptionUpdates(productId);
@@ -90,7 +90,7 @@ export const getDescriptionUpdates = asyncHandler(
 );
 
 export const createProduct = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as CreateProductRequest;
     // Create new product listing
     const sellerId = req.user!.id;
@@ -100,17 +100,17 @@ export const createProduct = asyncHandler(
 );
 
 export const deleteProduct = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Delete product (only if not active)
     const sellerId = req.user!.id;
     const productId = req.params.id;
     await productService.delete(productId, sellerId);
-    return ResponseHandler.sendSuccess(res, null, 204);
+    return ResponseHandler.sendNoContent(res);
   }
 );
 
 export const updateDescription = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as UpdateDescriptionRequest;
     // Update product description (append mode)
     const sellerId = req.user!.id;
@@ -122,18 +122,18 @@ export const updateDescription = asyncHandler(
 );
 
 export const setAutoExtend = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as AutoExtendRequest;
     // Set auto-extend setting
     const sellerId = req.user!.id;
     const productId = req.params.id;
     await productService.setAutoExtend(productId, sellerId, body.isAutoExtend);
-    return ResponseHandler.sendSuccess(res, null, 204);
+    return ResponseHandler.sendNoContent(res);
   }
 );
 
 export const uploadImages = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Upload product images
     if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
       throw new BadRequestError("No images provided");
@@ -143,6 +143,7 @@ export const uploadImages = asyncHandler(
       req.files as Express.Multer.File[],
       "products"
     );
+
     return ResponseHandler.sendSuccess<UploadImagesResponse>(res, urls, 201);
   }
 );

@@ -5,7 +5,6 @@ import type {
   UpdateDescriptionResponse,
   ProductImage,
   Product,
-  TopListingType,
   TopListingResponse,
   ProductListing,
   GetSellerProductsParams,
@@ -468,6 +467,8 @@ export class ProductService {
         .set({ isAutoExtend, updatedAt: new Date() })
         .where(eq(products.id, productId));
     });
+    // Return updated product
+    return this.getById(productId);
   }
 
   /**

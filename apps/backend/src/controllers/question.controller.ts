@@ -11,7 +11,7 @@ import { questionService } from "@/services";
 import { ResponseHandler } from "@/utils/response";
 
 export const getPublicQuestions = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get public Q&A for product
     const questions = await questionService.getPublicQuestions(req.params.id);
     return ResponseHandler.sendSuccess<ProductQuestion[]>(res, questions);
@@ -19,7 +19,7 @@ export const getPublicQuestions = asyncHandler(
 );
 
 export const askQuestion = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as AskQuestionRequest;
     // Ask a question about product
     const userId = req.user!.id;
@@ -34,7 +34,7 @@ export const askQuestion = asyncHandler(
 );
 
 export const answerQuestion = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const body = req.body as AnswerQuestionRequest;
     // Answer a question
     const userId = req.user!.id;

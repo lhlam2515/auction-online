@@ -2,14 +2,14 @@ import type {
   // Auth types
   RegisterRequest,
   LoginRequest,
-  LoginResponse as AuthResponse,
+  LoginResponse,
   RefreshResponse,
   ForgotPasswordRequest,
-  VerifyOtpRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
-  ResendVerificationRequest,
-  GoogleLoginRequest,
+  ResendOtpRequest,
+  VerifyOtpResponse,
+  VerifyResetOtpRequest,
 
   // User types
   User,
@@ -21,14 +21,19 @@ import type {
 
   // Product types
   Product,
+  ProductListing,
   CreateProductRequest,
   UpdateDescriptionRequest,
-  ProductSearchParams,
+  ProductsQueryParams,
+  TopListingResponse,
   ProductImage,
-  ProductDescriptionUpdate,
+  UpdateDescriptionResponse,
+  UploadImagesResponse,
 
   // Category types
   Category,
+  CategoryTree,
+  GetCategoryProductsParams,
 
   // Bid types
   Bid,
@@ -39,7 +44,7 @@ import type {
   KickBidderRequest,
 
   // Question types
-  Question,
+  ProductQuestion,
   AskQuestionRequest,
   AnswerQuestionRequest,
 
@@ -49,10 +54,16 @@ import type {
 
   // Order types
   Order,
-  OrderFeedback,
+  OrderPayment,
+  CreateOrderRequest,
+  UpdateShippingInfoRequest,
+  OrderFeedbackRequest,
   MarkPaidRequest,
-  UpdatePaymentRequest,
   ShipOrderRequest,
+
+  // Seller types
+  GetSellerProductsParams,
+  GetSellerOrdersParams,
 
   // Rating types
   CreateRatingRequest,
@@ -73,7 +84,6 @@ import type {
   PaginationParams,
 } from "@repo/shared-types";
 
-import { API_ENDPOINTS } from "@/constants/api-endpoints";
 import { apiClient } from "@/lib/handlers/api";
 import { appendQueryParams } from "@/lib/url";
 
@@ -110,77 +120,53 @@ export const api = {
      * Register a new user account
      */
     register: (data: RegisterRequest) =>
-      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.register, data),
+      apiCall("POST", "/auth/register", data),
 
     /**
      * User login
      */
     login: (data: LoginRequest) =>
-      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.login, data),
+      apiCall<LoginResponse>("POST", "/auth/login", data),
 
     /**
      * User logout
      */
-    logout: () =>
-      apiCall<{ message: string }>("POST", API_ENDPOINTS.auth.logout),
+    logout: () => apiCall("POST", "/auth/logout"),
 
     /**
      * Refresh authentication token
      */
-    refreshToken: () =>
-      apiCall<RefreshResponse>("POST", API_ENDPOINTS.auth.refreshToken),
+    refreshToken: () => apiCall<RefreshResponse>("POST", "/auth/refresh-token"),
 
     /**
      * Request password reset
      */
     forgotPassword: (data: ForgotPasswordRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.forgotPassword,
-        data
-      ),
+      apiCall("POST", "/auth/forgot-password", data),
 
     /**
      * Verify OTP for password reset
      */
-    verifyOtp: (data: VerifyOtpRequest) =>
-      apiCall<{ message: string }>("POST", API_ENDPOINTS.auth.verifyOtp, data),
+    verifyOtp: (data: VerifyResetOtpRequest) =>
+      apiCall<VerifyOtpResponse>("POST", "/auth/verify-reset-otp", data),
 
     /**
      * Reset password with new password
      */
     resetPassword: (data: ResetPasswordRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.resetPassword,
-        data
-      ),
-
-    /**
-     * Google OAuth login
-     */
-    googleLogin: (data: GoogleLoginRequest) =>
-      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.googleLogin, data),
+      apiCall("POST", "/auth/reset-password", data),
 
     /**
      * Verify email address
      */
     verifyEmail: (data: VerifyEmailRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.verifyEmail,
-        data
-      ),
+      apiCall("POST", "/auth/verify-email", data),
 
     /**
-     * Resend email verification
+     * Resend verification OTP
      */
-    resendVerification: (data: ResendVerificationRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.resendVerification,
-        data
-      ),
+    resendOtp: (data: ResendOtpRequest) =>
+      apiCall("POST", "/auth/resend-otp", data),
   },
 
   /**
@@ -190,38 +176,31 @@ export const api = {
     /**
      * Get current user profile
      */
-    getProfile: () => apiCall<User>("GET", API_ENDPOINTS.user.profile),
+    getProfile: () => apiCall<User>("GET", "/users/profile"),
 
     /**
      * Update user profile
      */
     updateProfile: (data: UpdateProfileRequest) =>
-      apiCall<User>("PUT", API_ENDPOINTS.user.profile, data),
+      apiCall<User>("PUT", "/users/profile", data),
 
     /**
      * Change user password
      */
     changePassword: (data: ChangePasswordRequest) =>
-      apiCall<{ message: string }>(
-        "PATCH",
-        API_ENDPOINTS.user.changePassword,
-        data
-      ),
+      apiCall<{ message: string }>("PATCH", "/users/password", data),
 
     /**
      * Get public profile of another user
      */
     getPublicProfile: (userId: string) =>
-      apiCall<PublicProfile>("GET", API_ENDPOINTS.user.publicProfile(userId)),
+      apiCall<PublicProfile>("GET", `/users/${userId}/public-profile`),
 
     /**
      * Get user rating summary
      */
     getRatingSummary: (userId: string) =>
-      apiCall<UserRatingSummary>(
-        "GET",
-        API_ENDPOINTS.user.ratingSummary(userId)
-      ),
+      apiCall<UserRatingSummary>("GET", `/users/${userId}/rating-summary`),
 
     /**
      * Get user's watchlist
@@ -229,7 +208,7 @@ export const api = {
     getWatchlist: (params?: PaginationParams) =>
       apiCall<PaginatedResponse<Product>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.user.watchlist, paramsToRecord(params))
+        appendQueryParams("/users/watchlist", paramsToRecord(params))
       ),
 
     /**
@@ -238,7 +217,7 @@ export const api = {
     toggleWatchlist: (productId: string) =>
       apiCall<{ message: string; inWatchlist: boolean }>(
         "POST",
-        API_ENDPOINTS.user.toggleWatchlist(productId)
+        `/users/watchlist/${productId}`
       ),
 
     /**
@@ -247,18 +226,14 @@ export const api = {
     getBids: (params?: PaginationParams) =>
       apiCall<PaginatedResponse<Bid>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.user.bids, paramsToRecord(params))
+        appendQueryParams("/users/bids", paramsToRecord(params))
       ),
 
     /**
      * Request upgrade to seller account
      */
     requestSellerUpgrade: (data: UpgradeRequestData) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.user.upgradeRequest,
-        data
-      ),
+      apiCall<{ message: string }>("POST", "/users/upgrade-request", data),
   },
 
   /**
@@ -268,16 +243,16 @@ export const api = {
     /**
      * Get category tree/hierarchy
      */
-    getAll: () => apiCall<Category[]>("GET", API_ENDPOINTS.category.list),
+    getAll: () => apiCall<CategoryTree[]>("GET", "/categories"),
 
     /**
      * Get products in a specific category
      */
-    getProducts: (categoryId: string, params?: ProductSearchParams) =>
+    getProducts: (categoryId: string, params?: GetCategoryProductsParams) =>
       apiCall<PaginatedResponse<Product>>(
         "GET",
         appendQueryParams(
-          API_ENDPOINTS.category.products(categoryId),
+          `/categories/${categoryId}/products`,
           paramsToRecord(params)
         )
       ),
@@ -290,10 +265,10 @@ export const api = {
     /**
      * Search and filter products
      */
-    search: (params?: ProductSearchParams) =>
-      apiCall<PaginatedResponse<Product>>(
+    search: (params?: ProductsQueryParams) =>
+      apiCall<PaginatedResponse<ProductListing>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.product.search, paramsToRecord(params))
+        appendQueryParams("/products", paramsToRecord(params))
       ),
 
     /**
@@ -303,63 +278,59 @@ export const api = {
       type?: "ending" | "hot" | "new";
       limit?: number;
     }) =>
-      apiCall<Product[]>(
+      apiCall<TopListingResponse>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.product.topListing, params)
+        appendQueryParams("/products/top-listing", params)
       ),
 
     /**
      * Get product details
      */
     getById: (productId: string) =>
-      apiCall<Product>("GET", API_ENDPOINTS.product.detail(productId)),
+      apiCall<Product>("GET", `/products/${productId}`),
 
     /**
      * Get related products
      */
     getRelated: (productId: string, params?: { limit?: number }) =>
-      apiCall<Product[]>(
+      apiCall<ProductListing[]>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.product.related(productId), params)
+        appendQueryParams(`/products/${productId}/related`, params)
       ),
 
     /**
      * Get product images
      */
     getImages: (productId: string) =>
-      apiCall<ProductImage[]>("GET", API_ENDPOINTS.product.images(productId)),
+      apiCall<ProductImage[]>("GET", `/products/${productId}/images`),
 
     /**
      * Get product description update history
      */
     getDescriptionUpdates: (productId: string) =>
-      apiCall<ProductDescriptionUpdate[]>(
+      apiCall<UpdateDescriptionResponse[]>(
         "GET",
-        API_ENDPOINTS.product.descriptionUpdates(productId)
+        `/products/${productId}/description-updates`
       ),
 
     /**
      * Create new product listing (Seller only)
      */
     create: (data: CreateProductRequest) =>
-      apiCall<Product>("POST", API_ENDPOINTS.product.create, data),
+      apiCall<Product>("POST", "/products", data),
 
     /**
      * Delete product (before activation)
      */
-    delete: (productId: string) =>
-      apiCall<{ message: string }>(
-        "DELETE",
-        API_ENDPOINTS.product.delete(productId)
-      ),
+    delete: (productId: string) => apiCall("DELETE", `/products/${productId}`),
 
     /**
      * Update product description (append only)
      */
     updateDescription: (productId: string, data: UpdateDescriptionRequest) =>
-      apiCall<Product>(
+      apiCall<UpdateDescriptionResponse>(
         "PATCH",
-        API_ENDPOINTS.product.updateDescription(productId),
+        `/products/${productId}/description`,
         data
       ),
 
@@ -367,26 +338,17 @@ export const api = {
      * Enable/disable auto-extension
      */
     toggleAutoExtend: (productId: string, autoExtend: boolean) =>
-      apiCall<Product>(
-        "PUT",
-        API_ENDPOINTS.product.toggleAutoExtend(productId),
-        {
-          autoExtend,
-        }
-      ),
+      apiCall("PUT", `/products/${productId}/auto-extend`, {
+        autoExtend,
+      }),
 
     /**
      * Upload product images
      */
     uploadImages: (formData: FormData) =>
-      apiCall<{ urls: string[]; message: string }>(
-        "POST",
-        API_ENDPOINTS.product.upload,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      ),
+      apiCall<UploadImagesResponse>("POST", "/products/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
   },
 
   /**
@@ -396,24 +358,19 @@ export const api = {
     /**
      * Get seller's own products
      */
-    getProducts: (
-      params?: ProductSearchParams & { status?: "draft" | "active" | "ended" }
-    ) =>
-      apiCall<PaginatedResponse<Product>>(
+    getProducts: (params?: GetSellerProductsParams) =>
+      apiCall<PaginatedResponse<ProductListing>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.seller.products, paramsToRecord(params))
+        appendQueryParams("/seller/products", paramsToRecord(params))
       ),
 
     /**
      * Get seller's order history
      */
-    getOrders: (params?: PaginationParams & { status?: string }) =>
+    getOrders: (params?: GetSellerOrdersParams) =>
       apiCall<PaginatedResponse<Order>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.order.sellingOrders,
-          paramsToRecord(params)
-        )
+        appendQueryParams("/seller/selling-orders", paramsToRecord(params))
       ),
   },
 
@@ -427,10 +384,7 @@ export const api = {
     getHistory: (productId: string, params?: PaginationParams) =>
       apiCall<PaginatedResponse<Bid>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.bid.history(productId),
-          paramsToRecord(params)
-        )
+        appendQueryParams(`/products/${productId}/bids`, paramsToRecord(params))
       ),
 
     /**
@@ -439,7 +393,7 @@ export const api = {
     placeBid: (productId: string, data: PlaceBidRequest) =>
       apiCall<{ message: string; currentHighestBid: number }>(
         "POST",
-        API_ENDPOINTS.bid.placeBid(productId),
+        `/products/${productId}/bids`,
         data
       ),
 
@@ -447,42 +401,31 @@ export const api = {
      * Kick a bidder (Seller only)
      */
     kickBidder: (productId: string, data: KickBidderRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.bid.kickBidder(productId),
-        data
-      ),
+      apiCall<{ message: string }>("POST", `/products/${productId}/kick`, data),
 
     /**
      * Create auto-bid configuration
      */
     createAutoBid: (productId: string, data: CreateAutoBidRequest) =>
-      apiCall<AutoBid>(
-        "POST",
-        API_ENDPOINTS.bid.createAutoBid(productId),
-        data
-      ),
+      apiCall<AutoBid>("POST", `/products/${productId}/auto-bid`, data),
 
     /**
      * Get user's auto-bid for a product
      */
     getAutoBid: (productId: string) =>
-      apiCall<AutoBid>("GET", API_ENDPOINTS.bid.getAutoBid(productId)),
+      apiCall<AutoBid>("GET", `/products/${productId}/auto-bid`),
 
     /**
      * Update auto-bid configuration
      */
     updateAutoBid: (autoBidId: string, data: UpdateAutoBidRequest) =>
-      apiCall<AutoBid>("PUT", API_ENDPOINTS.bid.updateAutoBid(autoBidId), data),
+      apiCall<AutoBid>("PUT", `/auto-bid/${autoBidId}`, data),
 
     /**
      * Delete auto-bid configuration
      */
     deleteAutoBid: (autoBidId: string) =>
-      apiCall<{ message: string }>(
-        "DELETE",
-        API_ENDPOINTS.bid.deleteAutoBid(autoBidId)
-      ),
+      apiCall<{ message: string }>("DELETE", `/auto-bid/${autoBidId}`),
   },
 
   /**
@@ -492,42 +435,24 @@ export const api = {
     /**
      * Get public Q&A for a product
      */
-    getPublic: (productId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Question>>(
-        "GET",
-        appendQueryParams(
-          API_ENDPOINTS.question.public(productId),
-          paramsToRecord(params)
-        )
-      ),
-
-    /**
-     * Get private questions for seller
-     */
-    getPrivate: (productId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Question>>(
-        "GET",
-        appendQueryParams(
-          API_ENDPOINTS.question.private(productId),
-          paramsToRecord(params)
-        )
-      ),
+    getPublic: (productId: string) =>
+      apiCall<ProductQuestion[]>("GET", `/products/${productId}/questions`),
 
     /**
      * Ask a question about a product
      */
     ask: (productId: string, data: AskQuestionRequest) =>
-      apiCall<Question>("POST", API_ENDPOINTS.question.ask(productId), data),
+      apiCall<ProductQuestion>(
+        "POST",
+        `/products/${productId}/questions`,
+        data
+      ),
 
     /**
      * Answer a question (Seller only)
      */
     answer: (questionId: string, data: AnswerQuestionRequest) =>
-      apiCall<Question>(
-        "POST",
-        API_ENDPOINTS.question.answer(questionId),
-        data
-      ),
+      apiCall<ProductQuestion>("POST", `/questions/${questionId}/answer`, data),
   },
 
   /**
@@ -540,42 +465,38 @@ export const api = {
     getHistory: (orderId: string, params?: PaginationParams) =>
       apiCall<PaginatedResponse<ChatMessage>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.chat.history(orderId),
-          paramsToRecord(params)
-        )
+        appendQueryParams(`/orders/${orderId}/chat`, paramsToRecord(params))
       ),
 
     /**
      * Send a message in order chat
      */
     sendMessage: (orderId: string, data: SendMessageRequest) =>
-      apiCall<ChatMessage>(
-        "POST",
-        API_ENDPOINTS.chat.sendMessage(orderId),
-        data
-      ),
+      apiCall<ChatMessage>("POST", `/orders/${orderId}/chat`, data),
 
     /**
      * Mark message as read
      */
     markMessageRead: (messageId: string) =>
-      apiCall<{ message: string }>(
-        "PUT",
-        API_ENDPOINTS.chat.markRead(messageId)
-      ),
+      apiCall<{ message: string }>("PUT", `/chat/messages/${messageId}/read`),
 
     /**
      * Get unread message count
      */
     getUnreadCount: () =>
-      apiCall<{ count: number }>("GET", API_ENDPOINTS.chat.unreadCount),
+      apiCall<{ count: number }>("GET", "/chat/unread-count"),
   },
 
   /**
    * Orders & Post-Auction Workflow endpoints
    */
   orders: {
+    /**
+     * Create order (Instant Buy Now)
+     */
+    create: (data: CreateOrderRequest) =>
+      apiCall<Order>("POST", "/orders", data),
+
     /**
      * Get user's orders
      */
@@ -584,54 +505,59 @@ export const api = {
     ) =>
       apiCall<PaginatedResponse<Order>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.order.list, paramsToRecord(params))
+        appendQueryParams("/orders", paramsToRecord(params))
       ),
 
     /**
      * Get order details
      */
-    getById: (orderId: string) =>
-      apiCall<Order>("GET", API_ENDPOINTS.order.detail(orderId)),
+    getById: (orderId: string) => apiCall<Order>("GET", `/orders/${orderId}`),
+
+    /**
+     * Update shipping address (Buyer)
+     */
+    updateShipping: (orderId: string, data: UpdateShippingInfoRequest) =>
+      apiCall<Order>("POST", `/orders/${orderId}/shipping`, data),
 
     /**
      * Mark order as paid (Buyer)
      */
     markPaid: (orderId: string, data: MarkPaidRequest) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.markPaid(orderId), data),
+      apiCall<{ order: Order; payment: OrderPayment }>(
+        "POST",
+        `/orders/${orderId}/mark-paid`,
+        data
+      ),
 
     /**
-     * Update payment information
+     * Confirm payment received (Seller)
      */
-    updatePayment: (orderId: string, data: UpdatePaymentRequest) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.updatePayment(orderId), data),
+    confirmPayment: (orderId: string) =>
+      apiCall<Order>("POST", `/orders/${orderId}/confirm-payment`),
 
     /**
      * Mark order as shipped (Seller)
      */
     ship: (orderId: string, data: ShipOrderRequest) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.ship(orderId), data),
+      apiCall<Order>("POST", `/orders/${orderId}/ship`, data),
 
     /**
      * Confirm order received (Buyer)
      */
     confirmReceived: (orderId: string) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.receive(orderId)),
+      apiCall<Order>("POST", `/orders/${orderId}/receive`),
 
     /**
      * Cancel order
      */
     cancel: (orderId: string, data?: { reason?: string }) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.cancel(orderId), data),
+      apiCall<Order>("POST", `/orders/${orderId}/cancel`, data),
 
     /**
      * Submit feedback after transaction
      */
-    submitFeedback: (orderId: string, data: OrderFeedback) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.order.feedback(orderId),
-        data
-      ),
+    submitFeedback: (orderId: string, data: OrderFeedbackRequest) =>
+      apiCall<Rating>("POST", `/orders/${orderId}/feedback`, data),
   },
 
   /**
@@ -642,7 +568,7 @@ export const api = {
      * Create a rating
      */
     create: (data: CreateRatingRequest) =>
-      apiCall<Rating>("POST", API_ENDPOINTS.rating.create, data),
+      apiCall<Rating>("POST", "/ratings", data),
 
     /**
      * Get user's rating history
@@ -650,17 +576,14 @@ export const api = {
     getByUser: (userId: string, params?: PaginationParams) =>
       apiCall<PaginatedResponse<Rating>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.rating.list(userId),
-          paramsToRecord(params)
-        )
+        appendQueryParams(`/ratings/${userId}`, paramsToRecord(params))
       ),
 
     /**
      * Get user's rating summary
      */
     getSummary: (userId: string) =>
-      apiCall<RatingSummary>("GET", API_ENDPOINTS.rating.summary(userId)),
+      apiCall<RatingSummary>("GET", `/ratings/${userId}/summary`),
   },
 
   /**
@@ -670,7 +593,7 @@ export const api = {
     /**
      * Get admin dashboard statistics
      */
-    getStats: () => apiCall<AdminStats>("GET", API_ENDPOINTS.admin.stats),
+    getStats: () => apiCall<AdminStats>("GET", "/admin/stats"),
 
     /**
      * User Management
@@ -688,7 +611,7 @@ export const api = {
       ) =>
         apiCall<PaginatedResponse<AdminUser>>(
           "GET",
-          appendQueryParams(API_ENDPOINTS.admin.users, paramsToRecord(params))
+          appendQueryParams("/admin/users", paramsToRecord(params))
         ),
 
       /**
@@ -697,7 +620,7 @@ export const api = {
       ban: (userId: string, data: BanUserRequest) =>
         apiCall<{ message: string }>(
           "PATCH",
-          API_ENDPOINTS.admin.banUser(userId),
+          `/admin/users/${userId}/ban`,
           data
         ),
 
@@ -707,7 +630,7 @@ export const api = {
       resetPassword: (userId: string, data: ResetUserPasswordRequest) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.resetUserPassword(userId),
+          `/admin/users/${userId}/reset-password`,
           data
         ),
     },
@@ -726,10 +649,7 @@ export const api = {
       ) =>
         apiCall<PaginatedResponse<UpgradeRequest>>(
           "GET",
-          appendQueryParams(
-            API_ENDPOINTS.admin.upgrades,
-            paramsToRecord(params)
-          )
+          appendQueryParams("/admin/upgrades", paramsToRecord(params))
         ),
 
       /**
@@ -738,7 +658,7 @@ export const api = {
       approve: (upgradeId: string) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.approveUpgrade(upgradeId)
+          `/admin/upgrades/${upgradeId}/approve`
         ),
 
       /**
@@ -747,7 +667,7 @@ export const api = {
       reject: (upgradeId: string, data?: { reason?: string }) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.rejectUpgrade(upgradeId),
+          `/admin/upgrades/${upgradeId}/reject`,
           data
         ),
     },
@@ -768,10 +688,7 @@ export const api = {
       ) =>
         apiCall<PaginatedResponse<AdminProduct>>(
           "GET",
-          appendQueryParams(
-            API_ENDPOINTS.admin.products,
-            paramsToRecord(params)
-          )
+          appendQueryParams("/admin/products", paramsToRecord(params))
         ),
 
       /**
@@ -780,10 +697,7 @@ export const api = {
       getPending: (params?: PaginationParams) =>
         apiCall<PaginatedResponse<AdminProduct>>(
           "GET",
-          appendQueryParams(
-            API_ENDPOINTS.admin.pendingProducts,
-            paramsToRecord(params)
-          )
+          appendQueryParams("/admin/products/pending", paramsToRecord(params))
         ),
 
       /**
@@ -792,7 +706,7 @@ export const api = {
       approve: (productId: string) =>
         apiCall<{ message: string }>(
           "PUT",
-          API_ENDPOINTS.admin.approveProduct(productId)
+          `/admin/products/${productId}/approve`
         ),
 
       /**
@@ -801,7 +715,7 @@ export const api = {
       reject: (productId: string, data?: { reason?: string }) =>
         apiCall<{ message: string }>(
           "PUT",
-          API_ENDPOINTS.admin.rejectProduct(productId),
+          `/admin/products/${productId}/reject`,
           data
         ),
 
@@ -811,7 +725,7 @@ export const api = {
       suspend: (productId: string, data?: { reason?: string }) =>
         apiCall<{ message: string }>(
           "POST",
-          API_ENDPOINTS.admin.suspendProduct(productId),
+          `/admin/products/${productId}/suspend`,
           data
         ),
     },
@@ -827,7 +741,7 @@ export const api = {
         name: string;
         description?: string;
         parentId?: string;
-      }) => apiCall<Category>("POST", API_ENDPOINTS.admin.createCategory, data),
+      }) => apiCall<Category>("POST", "/admin/categories", data),
 
       /**
        * Update category
@@ -835,12 +749,7 @@ export const api = {
       update: (
         categoryId: string,
         data: { name?: string; description?: string }
-      ) =>
-        apiCall<Category>(
-          "PUT",
-          API_ENDPOINTS.admin.updateCategory(categoryId),
-          data
-        ),
+      ) => apiCall<Category>("PUT", `/admin/categories/${categoryId}`, data),
 
       /**
        * Delete category
@@ -848,7 +757,7 @@ export const api = {
       delete: (categoryId: string) =>
         apiCall<{ message: string }>(
           "DELETE",
-          API_ENDPOINTS.admin.deleteCategory(categoryId)
+          `/admin/categories/${categoryId}`
         ),
     },
   },

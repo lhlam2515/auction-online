@@ -88,13 +88,6 @@ router.post(
 );
 
 /**
- * @route   POST /api/auth/google
- * @desc    Login with Google OAuth
- * @access  Public
- */
-router.post("/google", authController.googleLogin);
-
-/**
  * @route   POST /api/auth/resend-otp
  * @desc    Resend email verification OTP
  * @access  Public

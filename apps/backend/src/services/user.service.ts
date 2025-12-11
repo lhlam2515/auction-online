@@ -53,8 +53,8 @@ export class UserService {
 
     const products: Product[] = items.map((item) => ({
       ...item.product,
-      buyNowPrice: item.product.buyNowPrice || undefined,
-      currentPrice: item.product.currentPrice || undefined,
+      buyNowPrice: item.product.buyNowPrice ?? null,
+      currentPrice: item.product.currentPrice ?? null,
     }));
 
     return products;

@@ -64,8 +64,8 @@ export interface OrderPayment {
   amount: string; // Decimal as string
   status: PaymentStatus;
   paidAt: Date | string | null;
-  transactionRef?: string;
+  transactionRef: string | null;
   refundedAt: Date | string | null;
-  refundAmount?: string; // Decimal as string
+  refundAmount: string | null; // Decimal as string
   createdAt: Date | string;
 }
