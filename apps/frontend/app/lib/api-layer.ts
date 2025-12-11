@@ -21,11 +21,14 @@ import type {
 
   // Product types
   Product,
+  ProductListing,
   CreateProductRequest,
   UpdateDescriptionRequest,
-  ProductSearchParams,
+  ProductsQueryParams,
+  TopListingResponse,
   ProductImage,
-  ProductDescriptionUpdate,
+  UpdateDescriptionResponse,
+  UploadImagesResponse,
 
   // Category types
   Category,
@@ -257,10 +260,10 @@ export const api = {
     /**
      * Search and filter products
      */
-    search: (params?: ProductSearchParams) =>
-      apiCall<PaginatedResponse<Product>>(
+    search: (params?: ProductsQueryParams) =>
+      apiCall<PaginatedResponse<ProductListing>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.product.search, paramsToRecord(params))
+        appendQueryParams("/products", paramsToRecord(params))
       ),
 
     /**
@@ -270,63 +273,59 @@ export const api = {
       type?: "ending" | "hot" | "new";
       limit?: number;
     }) =>
-      apiCall<Product[]>(
+      apiCall<TopListingResponse>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.product.topListing, params)
+        appendQueryParams("/products/top-listing", params)
       ),
 
     /**
      * Get product details
      */
     getById: (productId: string) =>
-      apiCall<Product>("GET", API_ENDPOINTS.product.detail(productId)),
+      apiCall<Product>("GET", `/products/${productId}`),
 
     /**
      * Get related products
      */
     getRelated: (productId: string, params?: { limit?: number }) =>
-      apiCall<Product[]>(
+      apiCall<ProductListing[]>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.product.related(productId), params)
+        appendQueryParams(`/products/${productId}/related`, params)
       ),
 
     /**
      * Get product images
      */
     getImages: (productId: string) =>
-      apiCall<ProductImage[]>("GET", API_ENDPOINTS.product.images(productId)),
+      apiCall<ProductImage[]>("GET", `/products/${productId}/images`),
 
     /**
      * Get product description update history
      */
     getDescriptionUpdates: (productId: string) =>
-      apiCall<ProductDescriptionUpdate[]>(
+      apiCall<UpdateDescriptionResponse[]>(
         "GET",
-        API_ENDPOINTS.product.descriptionUpdates(productId)
+        `/products/${productId}/description-updates`
       ),
 
     /**
      * Create new product listing (Seller only)
      */
     create: (data: CreateProductRequest) =>
-      apiCall<Product>("POST", API_ENDPOINTS.product.create, data),
+      apiCall<Product>("POST", "/products", data),
 
     /**
      * Delete product (before activation)
      */
-    delete: (productId: string) =>
-      apiCall<{ message: string }>(
-        "DELETE",
-        API_ENDPOINTS.product.delete(productId)
-      ),
+    delete: (productId: string) => apiCall("DELETE", `/products/${productId}`),
 
     /**
      * Update product description (append only)
      */
     updateDescription: (productId: string, data: UpdateDescriptionRequest) =>
-      apiCall<Product>(
+      apiCall<UpdateDescriptionResponse>(
         "PATCH",
-        API_ENDPOINTS.product.updateDescription(productId),
+        `/products/${productId}/description`,
         data
       ),
 
@@ -334,26 +333,17 @@ export const api = {
      * Enable/disable auto-extension
      */
     toggleAutoExtend: (productId: string, autoExtend: boolean) =>
-      apiCall<Product>(
-        "PUT",
-        API_ENDPOINTS.product.toggleAutoExtend(productId),
-        {
-          autoExtend,
-        }
-      ),
+      apiCall("PUT", `/products/${productId}/auto-extend`, {
+        autoExtend,
+      }),
 
     /**
      * Upload product images
      */
     uploadImages: (formData: FormData) =>
-      apiCall<{ urls: string[]; message: string }>(
-        "POST",
-        API_ENDPOINTS.product.upload,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      ),
+      apiCall<UploadImagesResponse>("POST", "/products/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
   },
 
   /**
