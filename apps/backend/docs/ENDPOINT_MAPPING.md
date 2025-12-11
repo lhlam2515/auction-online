@@ -81,12 +81,11 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 
 ## ✅ 6. Questions & Answers (Q&A)
 
-| Endpoint                                   | Route File         | Controller                                   | Validation                                    |
-| ------------------------------------------ | ------------------ | -------------------------------------------- | --------------------------------------------- |
-| GET /api/v1/products/:id/questions         | question.routes.ts | question.controller.ts → getPublicQuestions  | question.validation.ts → productIdSchema      |
-| GET /api/v1/products/:id/questions/private | question.routes.ts | question.controller.ts → getPrivateQuestions | question.validation.ts → productIdSchema      |
-| POST /api/v1/products/:id/questions        | question.routes.ts | question.controller.ts → askQuestion         | question.validation.ts → askQuestionSchema    |
-| POST /api/v1/questions/:questionId/answer  | question.routes.ts | question.controller.ts → answerQuestion      | question.validation.ts → answerQuestionSchema |
+| Endpoint                                           | Route File         | Controller                                  | Validation                                    |
+| -------------------------------------------------- | ------------------ | ------------------------------------------- | --------------------------------------------- |
+| GET /api/v1/products/:id/questions                 | question.routes.ts | question.controller.ts → getPublicQuestions | question.validation.ts → productIdSchema      |
+| POST /api/v1/products/:id/questions                | question.routes.ts | question.controller.ts → askQuestion        | question.validation.ts → askQuestionSchema    |
+| POST /api/v1/products/questions/:questionId/answer | question.routes.ts | question.controller.ts → answerQuestion     | question.validation.ts → answerQuestionSchema |
 
 ---
 

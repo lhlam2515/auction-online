@@ -12,7 +12,7 @@ export const askQuestionSchema = z.object({
   questionContent: z
     .string()
     .min(10, { error: "Question must be at least 10 characters" }),
-  isPublic: z.boolean().default(true),
+  // isPublic: z.boolean().default(true),
 });
 
 export const answerQuestionSchema = z.object({
