@@ -59,6 +59,10 @@ import type {
   UpdatePaymentRequest,
   ShipOrderRequest,
 
+  // Seller types
+  GetSellerProductsParams,
+  GetSellerOrdersParams,
+
   // Rating types
   CreateRatingRequest,
   Rating,
@@ -353,24 +357,19 @@ export const api = {
     /**
      * Get seller's own products
      */
-    getProducts: (
-      params?: ProductSearchParams & { status?: "draft" | "active" | "ended" }
-    ) =>
-      apiCall<PaginatedResponse<Product>>(
+    getProducts: (params?: GetSellerProductsParams) =>
+      apiCall<PaginatedResponse<ProductListing>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.seller.products, paramsToRecord(params))
+        appendQueryParams("/seller/products", paramsToRecord(params))
       ),
 
     /**
      * Get seller's order history
      */
-    getOrders: (params?: PaginationParams & { status?: string }) =>
+    getOrders: (params?: GetSellerOrdersParams) =>
       apiCall<PaginatedResponse<Order>>(
         "GET",
-        appendQueryParams(
-          API_ENDPOINTS.order.sellingOrders,
-          paramsToRecord(params)
-        )
+        appendQueryParams("/seller/selling-orders", paramsToRecord(params))
       ),
   },
 
