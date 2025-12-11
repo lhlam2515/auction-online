@@ -1,6 +1,4 @@
 import type {
-  AskQuestionRequest,
-  AnswerQuestionRequest,
   ProductQuestion,
   QuestionStatus,
   QuestionVisibility,
@@ -12,7 +10,6 @@ import { productQuestions } from "@/models";
 import {
   BadRequestError,
   NotFoundError,
-  NotImplementedError,
   UnauthorizedError,
 } from "@/utils/errors";
 
@@ -39,15 +36,6 @@ export class QuestionService {
         )
       );
     return questions;
-  }
-
-  async getPrivateQuestions(
-    productId: string,
-    sellerId: string
-  ): Promise<ProductQuestion[]> {
-    // TODO: implement private questions retrieval for seller
-    // Should fetch private questions only visible to product seller
-    throw new NotImplementedError("Get private questions not implemented");
   }
 
   async askQuestion(
@@ -119,58 +107,6 @@ export class QuestionService {
     // TODO: send email notification to asker
 
     return updatedQuestion;
-  }
-
-  async getQuestionById(
-    questionId: string,
-    userId?: string
-  ): Promise<ProductQuestion> {
-    // TODO: implement get question by ID
-    // Should handle privacy rules - private questions only visible to asker/seller
-    throw new NotImplementedError("Get question by ID not implemented");
-  }
-
-  async deleteQuestion(questionId: string, userId: string): Promise<boolean> {
-    // TODO: implement question deletion
-    // Should allow deletion by question asker or product seller
-    throw new NotImplementedError("Delete question not implemented");
-  }
-
-  async getQuestionsByFilters(
-    filters: QuestionFilters,
-    userId?: string
-  ): Promise<ProductQuestion[]> {
-    // TODO: implement get questions with filters
-    // Should apply visibility rules based on user role
-    throw new NotImplementedError("Get questions by filters not implemented");
-  }
-
-  async updateQuestionStatus(
-    questionId: string,
-    status: QuestionStatus,
-    userId: string
-  ): Promise<ProductQuestion> {
-    // TODO: implement question status update
-    // Should verify user permissions before updating status
-    throw new NotImplementedError("Update question status not implemented");
-  }
-
-  async getQuestionsAskedByUser(userId: string): Promise<ProductQuestion[]> {
-    // TODO: implement get questions asked by user
-    // Should return all questions asked by the user
-    throw new NotImplementedError(
-      "Get questions asked by user not implemented"
-    );
-  }
-
-  async getQuestionsForSellerProducts(
-    sellerId: string
-  ): Promise<ProductQuestion[]> {
-    // TODO: implement get questions for seller's products
-    // Should return questions for all products owned by seller
-    throw new NotImplementedError(
-      "Get questions for seller products not implemented"
-    );
   }
 }
 

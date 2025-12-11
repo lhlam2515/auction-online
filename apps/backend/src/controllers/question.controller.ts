@@ -8,7 +8,6 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { questionService } from "@/services";
-import { BadRequestError, NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getPublicQuestions = asyncHandler(
@@ -19,21 +18,11 @@ export const getPublicQuestions = asyncHandler(
   }
 );
 
-export const getPrivateQuestions = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get private questions (seller only)
-    throw new NotImplementedError("Get private questions not implemented yet");
-  }
-);
-
 export const askQuestion = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AskQuestionRequest;
     // Ask a question about product
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new BadRequestError("Asker ID is required");
-    }
+    const userId = req.user!.id;
 
     const question = await questionService.askQuestion(
       req.params.id,
@@ -48,10 +37,7 @@ export const answerQuestion = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as AnswerQuestionRequest;
     // Answer a question
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new BadRequestError("Answerer ID is required");
-    }
+    const userId = req.user!.id;
 
     const answeredQuestion = await questionService.answerQuestion(
       req.params.questionId,

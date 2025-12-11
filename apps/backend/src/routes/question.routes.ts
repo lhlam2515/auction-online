@@ -19,19 +19,6 @@ router.get(
 );
 
 /**
- * @route   GET /api/products/:id/questions/private
- * @desc    Get private questions (seller only)
- * @access  Private (Seller - owner)
- */
-router.get(
-  "/:id/questions/private",
-  authenticate,
-  authorize("SELLER"),
-  validate({ params: questionValidation.productIdSchema }),
-  questionController.getPrivateQuestions
-);
-
-/**
  * @route   POST /api/products/:id/questions
  * @desc    Ask a question about product
  * @access  Private (Bidder)

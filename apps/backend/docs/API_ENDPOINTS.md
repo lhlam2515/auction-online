@@ -91,12 +91,11 @@
 
 # ✅ **6. Questions & Answers (Q&A)**
 
-| Method | Endpoint                                      | Role | Mô tả                |
-| ------ | --------------------------------------------- | ---- | -------------------- |
-| GET    | /api/v1/products/:id/questions                | G    | Q&A công khai        |
-| GET    | /api/v1/products/:id/questions/private        | SEL  | Xem câu hỏi riêng tư |
-| POST   | /api/v1/products/:id/questions                | BID  | Gửi câu hỏi          |
-| POST   | /api/v1/products/questions/:questionId/answer | SEL  | Trả lời câu hỏi      |
+| Method | Endpoint                                      | Role | Mô tả           |
+| ------ | --------------------------------------------- | ---- | --------------- |
+| GET    | /api/v1/products/:id/questions                | G    | Q&A công khai   |
+| POST   | /api/v1/products/:id/questions                | BID  | Gửi câu hỏi     |
+| POST   | /api/v1/products/questions/:questionId/answer | SEL  | Trả lời câu hỏi |
 
 ---
 
