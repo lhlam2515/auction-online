@@ -2,14 +2,14 @@ import type {
   // Auth types
   RegisterRequest,
   LoginRequest,
-  LoginResponse as AuthResponse,
+  LoginResponse,
   RefreshResponse,
   ForgotPasswordRequest,
-  VerifyOtpRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
-  ResendVerificationRequest,
-  GoogleLoginRequest,
+  ResendOtpRequest,
+  VerifyOtpResponse,
+  VerifyResetOtpRequest,
 
   // User types
   User,
@@ -110,77 +110,53 @@ export const api = {
      * Register a new user account
      */
     register: (data: RegisterRequest) =>
-      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.register, data),
+      apiCall("POST", "/auth/register", data),
 
     /**
      * User login
      */
     login: (data: LoginRequest) =>
-      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.login, data),
+      apiCall<LoginResponse>("POST", "/auth/login", data),
 
     /**
      * User logout
      */
-    logout: () =>
-      apiCall<{ message: string }>("POST", API_ENDPOINTS.auth.logout),
+    logout: () => apiCall("POST", "/auth/logout"),
 
     /**
      * Refresh authentication token
      */
-    refreshToken: () =>
-      apiCall<RefreshResponse>("POST", API_ENDPOINTS.auth.refreshToken),
+    refreshToken: () => apiCall<RefreshResponse>("POST", "/auth/refresh-token"),
 
     /**
      * Request password reset
      */
     forgotPassword: (data: ForgotPasswordRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.forgotPassword,
-        data
-      ),
+      apiCall("POST", "/auth/forgot-password", data),
 
     /**
      * Verify OTP for password reset
      */
-    verifyOtp: (data: VerifyOtpRequest) =>
-      apiCall<{ message: string }>("POST", API_ENDPOINTS.auth.verifyOtp, data),
+    verifyOtp: (data: VerifyResetOtpRequest) =>
+      apiCall<VerifyOtpResponse>("POST", "/auth/verify-reset-otp", data),
 
     /**
      * Reset password with new password
      */
     resetPassword: (data: ResetPasswordRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.resetPassword,
-        data
-      ),
-
-    /**
-     * Google OAuth login
-     */
-    googleLogin: (data: GoogleLoginRequest) =>
-      apiCall<AuthResponse>("POST", API_ENDPOINTS.auth.googleLogin, data),
+      apiCall("POST", "/auth/reset-password", data),
 
     /**
      * Verify email address
      */
     verifyEmail: (data: VerifyEmailRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.verifyEmail,
-        data
-      ),
+      apiCall("POST", "/auth/verify-email", data),
 
     /**
-     * Resend email verification
+     * Resend verification OTP
      */
-    resendVerification: (data: ResendVerificationRequest) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.auth.resendVerification,
-        data
-      ),
+    resendOtp: (data: ResendOtpRequest) =>
+      apiCall("POST", "/auth/resend-otp", data),
   },
 
   /**

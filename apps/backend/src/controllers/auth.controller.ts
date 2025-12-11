@@ -2,6 +2,8 @@ import type {
   RegisterRequest,
   LoginRequest,
   LoginResponse,
+  RefreshResponse,
+  VerifyOtpResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
@@ -14,7 +16,7 @@ import { supabase } from "@/config/supabase";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { authService, otpService } from "@/services";
-import { NotImplementedError, UnauthorizedError } from "@/utils/errors";
+import { UnauthorizedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const register = asyncHandler(
@@ -29,7 +31,7 @@ export const register = asyncHandler(
       address
     );
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -66,7 +68,7 @@ export const logout = asyncHandler(
 
     const result = await authService.logout(user.id);
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -91,7 +93,7 @@ export const refreshToken = asyncHandler(
       });
     }
 
-    return ResponseHandler.sendSuccess(res, {
+    return ResponseHandler.sendSuccess<RefreshResponse>(res, {
       accessToken: result.accessToken,
     });
   }
@@ -104,7 +106,7 @@ export const forgotPassword = asyncHandler(
 
     const result = await authService.forgotPassword(email);
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -115,7 +117,7 @@ export const verifyEmail = asyncHandler(
 
     const result = await authService.verifyEmail(email, otp);
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -126,7 +128,7 @@ export const verifyResetOtp = asyncHandler(
 
     const result = await authService.verifyResetOtp(email, otp);
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess<VerifyOtpResponse>(res, result);
   }
 );
 
@@ -137,14 +139,7 @@ export const resetPassword = asyncHandler(
 
     const result = await authService.resetPassword(resetToken, newPassword);
 
-    return ResponseHandler.sendSuccess(res, result);
-  }
-);
-
-export const googleLogin = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Implement Google OAuth login
-    throw new NotImplementedError("Google login not implemented yet");
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -155,6 +150,6 @@ export const resendOtp = asyncHandler(
 
     const result = await otpService.resendOtp(email, purpose);
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
