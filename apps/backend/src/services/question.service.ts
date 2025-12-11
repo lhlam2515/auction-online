@@ -26,6 +26,7 @@ export interface QuestionFilters {
 export class QuestionService {
   async getPublicQuestions(productId: string): Promise<ProductQuestion[]> {
     // implement public questions retrieval
+    const product = await productService.getById(productId);
     const questions = await db
       .select()
       .from(productQuestions)
@@ -46,9 +47,6 @@ export class QuestionService {
   ): Promise<ProductQuestion> {
     // implement question creation
     const product = await productService.getById(productId);
-    if (!product) {
-      throw new NotFoundError("Product not found");
-    }
     const sellerId = product.sellerId;
     if (askerId === sellerId) {
       throw new BadRequestError("Seller cannot ask question on own product");
@@ -65,7 +63,7 @@ export class QuestionService {
       })
       .returning();
 
-    // TODO: sent email notification to seller
+    // TODO: send email notification to seller
 
     return newQuestion;
   }
