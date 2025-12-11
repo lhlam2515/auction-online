@@ -6,9 +6,8 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { orderService } from "@/services";
-import { productService } from "@/services";
-import { BadRequestError, NotImplementedError } from "@/utils/errors";
+import { orderService, productService } from "@/services";
+import { BadRequestError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
 
@@ -16,10 +15,7 @@ export const getMyProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const query = res.locals.query as unknown as GetSellerProductsParams;
     // Get seller's products (manage listing)
-    const sellerId = req.user?.id;
-    if (!sellerId) {
-      throw new BadRequestError("Seller ID is required");
-    }
+    const sellerId = req.user!.id;
     const products = await productService.getSellerProducts(sellerId, query);
     ResponseHandler.sendSuccess(res, products);
   }
