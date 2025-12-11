@@ -51,6 +51,6 @@ router.put(
  * @desc    Get unread message count
  * @access  Private
  */
-router.get("/unread-count", chatController.getUnreadCount);
+router.get("/chat/unread-count", chatController.getUnreadCount);
 
 export default router;

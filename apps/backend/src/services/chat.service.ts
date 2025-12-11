@@ -114,7 +114,16 @@ export class ChatService {
   async getUnreadCount(userId: string): Promise<UnreadCountResponse> {
     // TODO: implement unread count retrieval
     // Should return count of unread messages across all user's chats
-    throw new NotImplementedError("Get unread count not implemented");
+    const messages = await db
+      .select()
+      .from(chatMessages)
+      .where(
+        and(eq(chatMessages.receiverId, userId), eq(chatMessages.isRead, false))
+      );
+    const count = messages.length ? messages.length : 0;
+    return {
+      count: count,
+    };
   }
 
   async createOrGetChatRoom(

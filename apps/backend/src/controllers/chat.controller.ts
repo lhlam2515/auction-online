@@ -59,6 +59,11 @@ export const markAsRead = asyncHandler(
 export const getUnreadCount = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get unread message count
-    throw new NotImplementedError("Get unread count not implemented yet");
+    if (!req.user || !req.user.id) {
+      throw new NotImplementedError("User information not available");
+    }
+    const userId = req.user.id;
+    const count = await chatService.getUnreadCount(userId);
+    return ResponseHandler.sendSuccess<UnreadCountResponse>(res, count);
   }
 );
