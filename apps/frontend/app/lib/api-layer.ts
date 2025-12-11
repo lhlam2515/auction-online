@@ -54,9 +54,11 @@ import type {
 
   // Order types
   Order,
-  OrderFeedback,
+  OrderPayment,
+  CreateOrderRequest,
+  UpdateShippingInfoRequest,
+  OrderFeedbackRequest,
   MarkPaidRequest,
-  UpdatePaymentRequest,
   ShipOrderRequest,
 
   // Seller types
@@ -515,6 +517,12 @@ export const api = {
    */
   orders: {
     /**
+     * Create order (Instant Buy Now)
+     */
+    create: (data: CreateOrderRequest) =>
+      apiCall<Order>("POST", "/orders", data),
+
+    /**
      * Get user's orders
      */
     getAll: (
@@ -522,54 +530,59 @@ export const api = {
     ) =>
       apiCall<PaginatedResponse<Order>>(
         "GET",
-        appendQueryParams(API_ENDPOINTS.order.list, paramsToRecord(params))
+        appendQueryParams("/orders", paramsToRecord(params))
       ),
 
     /**
      * Get order details
      */
-    getById: (orderId: string) =>
-      apiCall<Order>("GET", API_ENDPOINTS.order.detail(orderId)),
+    getById: (orderId: string) => apiCall<Order>("GET", `/orders/${orderId}`),
+
+    /**
+     * Update shipping address (Buyer)
+     */
+    updateShipping: (orderId: string, data: UpdateShippingInfoRequest) =>
+      apiCall<Order>("POST", `/orders/${orderId}/shipping`, data),
 
     /**
      * Mark order as paid (Buyer)
      */
     markPaid: (orderId: string, data: MarkPaidRequest) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.markPaid(orderId), data),
+      apiCall<{ order: Order; payment: OrderPayment }>(
+        "POST",
+        `/orders/${orderId}/mark-paid`,
+        data
+      ),
 
     /**
      * Update payment information
      */
-    updatePayment: (orderId: string, data: UpdatePaymentRequest) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.updatePayment(orderId), data),
+    confirmPayment: (orderId: string) =>
+      apiCall<Order>("POST", `/orders/${orderId}/confirm-payment`),
 
     /**
      * Mark order as shipped (Seller)
      */
     ship: (orderId: string, data: ShipOrderRequest) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.ship(orderId), data),
+      apiCall<Order>("POST", `/orders/${orderId}/ship`, data),
 
     /**
      * Confirm order received (Buyer)
      */
     confirmReceived: (orderId: string) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.receive(orderId)),
+      apiCall<Order>("POST", `/orders/${orderId}/receive`),
 
     /**
      * Cancel order
      */
     cancel: (orderId: string, data?: { reason?: string }) =>
-      apiCall<Order>("POST", API_ENDPOINTS.order.cancel(orderId), data),
+      apiCall<Order>("POST", `/orders/${orderId}/cancel`, data),
 
     /**
      * Submit feedback after transaction
      */
-    submitFeedback: (orderId: string, data: OrderFeedback) =>
-      apiCall<{ message: string }>(
-        "POST",
-        API_ENDPOINTS.order.feedback(orderId),
-        data
-      ),
+    submitFeedback: (orderId: string, data: OrderFeedbackRequest) =>
+      apiCall<Rating>("POST", `/orders/${orderId}/feedback`, data),
   },
 
   /**

@@ -41,10 +41,17 @@ export const orderStatusEnum = pgEnum("order_status", [
 
 // Enum cho Phương thức Thanh toán
 export const paymentMethodEnum = pgEnum("payment_method", [
-  "COD",
   "BANK_TRANSFER",
   "CREDIT_CARD",
   "EWALLET",
+]);
+
+// Enum cho Trạng thái Thanh toán
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "PENDING",
+  "SUCCESS",
+  "FAILED",
+  "REFUNDED",
 ]);
 
 // Enum cho Nhà vận chuyển
