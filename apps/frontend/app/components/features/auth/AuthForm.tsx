@@ -1,8 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import type {
-  ApiResponse,
-  LoginResponse as AuthResponse,
-} from "@repo/shared-types";
+import type { ApiResponse, UserAuthData } from "@repo/shared-types";
 import {
   Controller,
   type DefaultValues,
@@ -71,7 +68,7 @@ const AuthForm = <T extends FieldValues>({
 
         // If login, save auth data
         if (formType === "LOGIN") {
-          const { user } = result.data as AuthResponse;
+          const { user } = result.data as { user: UserAuthData };
 
           if (user.accountStatus === "PENDING_VERIFICATION") {
             navigate(AUTH_ROUTES.VERIFY, { replace: true });
