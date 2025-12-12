@@ -73,7 +73,7 @@ const AuthForm = <T extends FieldValues>({
         if (formType === "LOGIN") {
           const { user, accessToken } = result.data as AuthResponse;
 
-          if (user.accountState === "PENDING_VERIFICATION") {
+          if (user.accountStatus === "PENDING_VERIFICATION") {
             navigate(AUTH_ROUTES.VERIFY, { replace: true });
             return;
           }

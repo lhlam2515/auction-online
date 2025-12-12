@@ -4,9 +4,11 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default function AccountLayout() {
   return (
-    <ProtectedRoute>
-      {/* Add Header/Sidebar specific to this layout */}
-      <Outlet />
-    </ProtectedRoute>
+    // <ProtectedRoute>
+    //   {/* Add Header/Sidebar specific to this layout */}
+
+    // </ProtectedRoute>
+
+    <Outlet />
   );
 }
