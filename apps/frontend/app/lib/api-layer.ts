@@ -1,5 +1,6 @@
 import type {
   // Auth types
+  UserAuthData,
   RegisterRequest,
   LoginRequest,
   LoginResponse,
@@ -116,6 +117,10 @@ export const api = {
    * Authentication & Authorization endpoints
    */
   auth: {
+    /**
+     * Get current authenticated user
+     */
+    me: () => apiCall<{ user: UserAuthData }>("GET", "/auth/me"),
     /**
      * Register a new user account
      */

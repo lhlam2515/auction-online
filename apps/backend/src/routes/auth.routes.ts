@@ -12,6 +12,13 @@ import * as authValidation from "@/validations/auth.validation";
 const router = Router();
 
 /**
+ * @route   GET /api/auth/me
+ * @desc    Get current authenticated user
+ * @access  Private
+ */
+router.get("/me", authenticate, authController.getCurrentUser);
+
+/**
  * @route   POST /api/auth/register
  * @desc    Register new user account
  * @access  Public

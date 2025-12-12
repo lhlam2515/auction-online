@@ -8,6 +8,7 @@ import type {
   VerifyEmailRequest,
   ResendOtpRequest,
   VerifyResetOtpRequest,
+  UserAuthData,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -17,6 +18,16 @@ import { asyncHandler } from "@/middlewares/error-handler";
 import { authService, otpService } from "@/services";
 import { UnauthorizedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
+
+export const getCurrentUser = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+
+    const user = await authService.getAuthData(userId);
+
+    return ResponseHandler.sendSuccess<{ user: UserAuthData }>(res, { user });
+  }
+);
 
 export const register = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
