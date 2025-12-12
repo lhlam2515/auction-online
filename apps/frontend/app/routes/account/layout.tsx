@@ -6,12 +6,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 export default function AccountLayout() {
   return (
     <ProtectedRoute>
-      <div className="sidebar-layout">
-        <ProfileSidebar />
-        <div className="container">
-          <Outlet />
-        </div>
-      </div>
+      {/* Add Header/Sidebar specific to this layout */}
+      <Outlet />
     </ProtectedRoute>
   );
 }
