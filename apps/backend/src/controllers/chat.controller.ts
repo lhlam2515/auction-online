@@ -8,61 +8,47 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { chatService } from "@/services";
-import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getChatHistory = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get chat history between winner and seller
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
     const orderId = req.params.id;
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User information not available");
-    }
-    const userId = req.user.id;
+
     const history = await chatService.getChatHistory(orderId, userId);
     return ResponseHandler.sendSuccess<ChatMessage[]>(res, history);
   }
 );
 
 export const sendMessage = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as SendMessageRequest;
-    // TODO: Send chat message
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User information not available");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: senderId } = req.user!;
+    const { content, messageType } = req.body as SendMessageRequest;
     const orderId = req.params.id;
-    const senderId = req.user.id;
+
     const message = await chatService.sendMessage(
       orderId,
       senderId,
-      body.content,
-      body.messageType
+      content,
+      messageType
     );
     return ResponseHandler.sendSuccess<ChatMessage>(res, message);
   }
 );
 
 export const markAsRead = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Mark message as read
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User information not available");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
     const messageId = req.params.id;
-    const userId = req.user.id;
+
     const result = await chatService.markMessagesAsRead(messageId, userId);
     return ResponseHandler.sendSuccess<boolean>(res, result);
   }
 );
 
 export const getUnreadCount = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get unread message count
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User information not available");
-    }
-    const userId = req.user.id;
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
     const count = await chatService.getUnreadCount(userId);
     return ResponseHandler.sendSuccess<UnreadCountResponse>(res, count);
   }
