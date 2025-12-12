@@ -172,7 +172,7 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<LoginResponse> {
+  async login(email: string, password: string) {
     try {
       // Find user in database (for status check)
       const existingUser = await db.query.users.findFirst({
@@ -222,6 +222,7 @@ export class AuthService {
           accountStatus: existingUser.accountStatus,
         },
         accessToken: authData.session.access_token || "",
+        refreshToken: authData.session.refresh_token || "",
       };
     } catch (error) {
       if (error instanceof UnauthorizedError) {

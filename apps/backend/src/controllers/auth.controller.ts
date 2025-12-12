@@ -1,7 +1,6 @@
 import type {
   RegisterRequest,
   LoginRequest,
-  LoginResponse,
   VerifyOtpResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -12,7 +11,6 @@ import type {
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
-import { supabase } from "@/config/supabase";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { authService, otpService } from "@/services";
@@ -50,16 +48,13 @@ export const login = asyncHandler(
     const body = req.body as LoginRequest;
     const { email, password } = body;
 
-    const result = await authService.login(email, password);
-
-    // Get refresh and access tokens from Supabase
-    const { data: authData } = await supabase.auth.signInWithPassword({
+    const { user, accessToken, refreshToken } = await authService.login(
       email,
-      password,
-    });
+      password
+    );
 
-    if (authData?.session?.refresh_token) {
-      res.cookie("refreshToken", authData.session.refresh_token, {
+    if (refreshToken) {
+      res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
@@ -70,8 +65,8 @@ export const login = asyncHandler(
 
     // SECURITY: Store accessToken in httpOnly cookie
     // This prevents XSS attacks from stealing the token via localStorage
-    if (authData?.session?.access_token) {
-      res.cookie("accessToken", authData.session.access_token, {
+    if (accessToken) {
+      res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
@@ -80,7 +75,7 @@ export const login = asyncHandler(
       });
     }
 
-    return ResponseHandler.sendSuccess<LoginResponse>(res, result);
+    return ResponseHandler.sendSuccess<{ user: UserAuthData }>(res, { user });
   }
 );
 

@@ -3,7 +3,6 @@ import type {
   UserAuthData,
   RegisterRequest,
   LoginRequest,
-  LoginResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
@@ -131,7 +130,7 @@ export const api = {
      * User login
      */
     login: (data: LoginRequest) =>
-      apiCall<LoginResponse>("POST", "/auth/login", data),
+      apiCall<{ user: UserAuthData }>("POST", "/auth/login", data),
 
     /**
      * User logout
