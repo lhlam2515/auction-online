@@ -51,6 +51,7 @@ import type {
   // Chat types
   ChatMessage,
   SendMessageRequest,
+  UnreadCountResponse,
 
   // Order types
   Order,
@@ -382,7 +383,7 @@ export const api = {
      * Get bidding history for a product
      */
     getHistory: (productId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Bid>>(
+      apiCall<Bid[]>(
         "GET",
         appendQueryParams(`/products/${productId}/bids`, paramsToRecord(params))
       ),
@@ -391,11 +392,7 @@ export const api = {
      * Place a bid on a product
      */
     placeBid: (productId: string, data: PlaceBidRequest) =>
-      apiCall<{ message: string; currentHighestBid: number }>(
-        "POST",
-        `/products/${productId}/bids`,
-        data
-      ),
+      apiCall<Bid>("POST", `/products/${productId}/bids`, data),
 
     /**
      * Kick a bidder (Seller only)
@@ -419,7 +416,7 @@ export const api = {
      * Update auto-bid configuration
      */
     updateAutoBid: (autoBidId: string, data: UpdateAutoBidRequest) =>
-      apiCall<AutoBid>("PUT", `/auto-bid/${autoBidId}`, data),
+      apiCall<{ message: string }>("PUT", `/auto-bid/${autoBidId}`, data),
 
     /**
      * Delete auto-bid configuration
@@ -463,7 +460,7 @@ export const api = {
      * Get chat history for an order
      */
     getHistory: (orderId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<ChatMessage>>(
+      apiCall<ChatMessage[]>(
         "GET",
         appendQueryParams(`/orders/${orderId}/chat`, paramsToRecord(params))
       ),
@@ -478,13 +475,13 @@ export const api = {
      * Mark message as read
      */
     markMessageRead: (messageId: string) =>
-      apiCall<{ message: string }>("PUT", `/chat/messages/${messageId}/read`),
+      apiCall<{ message: string }>("PUT", `/orders/messages/${messageId}/read`),
 
     /**
      * Get unread message count
      */
     getUnreadCount: () =>
-      apiCall<{ count: number }>("GET", "/chat/unread-count"),
+      apiCall<UnreadCountResponse>("GET", "/orders/messages/unread-count"),
   },
 
   /**
