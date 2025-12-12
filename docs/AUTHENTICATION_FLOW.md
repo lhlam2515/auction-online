@@ -24,8 +24,8 @@
        │   - Path: /api/v1/auth
        │   - Max-Age: 7 days
        │
-       └─► Return { user, accessToken } in response body
-           (accessToken also in cookie)
+       └─► Return { user } in response body
+           (accessToken is only sent as an httpOnly cookie)
        │
        ▼
 ┌─────────────┐
@@ -33,7 +33,7 @@
 │ Stores:     │
 │ - httpOnly  │
 │   cookies   │
-│ - localStorage: user │
+│ - fetches user data via /auth/me │
 └─────────────┘
 ```
 
