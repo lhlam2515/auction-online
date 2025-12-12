@@ -1,5 +1,5 @@
 import type { UserAuthData } from "@repo/shared-types";
-import React from "react";
+import React, { createContext } from "react";
 
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
@@ -15,7 +15,7 @@ interface AuthContextType {
 }
 
 // React 19: Render context directly without Context.Provider
-const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -45,8 +45,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     initializeAuth();
   }, []);
-
-  const memoizedUser = React.useMemo(() => user, [user]);
 
   // Login user
   const login = React.useCallback((userData: UserAuthData) => {
@@ -98,8 +96,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [logout]);
 
   const value: AuthContextType = {
-    user: memoizedUser,
-    isAuthenticated: !!memoizedUser,
+    user,
+    isAuthenticated: !!user,
     isLoading,
     login,
     logout,
@@ -107,7 +105,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refetchUser,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext value={value}>{children}</AuthContext>;
 }
 
 // Custom hook to use auth context
