@@ -42,6 +42,7 @@ import type {
   UpdateAutoBidRequest,
   AutoBid,
   KickBidderRequest,
+  MyAutoBid,
 
   // Question types
   ProductQuestion,
@@ -224,6 +225,7 @@ export const api = {
     /**
      * Get user's bidding history
      */
+
     getBids: (params?: PaginationParams) =>
       apiCall<PaginatedResponse<Bid>>(
         "GET",
@@ -412,6 +414,7 @@ export const api = {
     getAutoBid: (productId: string) =>
       apiCall<AutoBid>("GET", `/products/${productId}/auto-bid`),
 
+    getMyAutoBid: () => apiCall<MyAutoBid[]>("GET", `/products/my-auto-bid`),
     /**
      * Update auto-bid configuration
      */

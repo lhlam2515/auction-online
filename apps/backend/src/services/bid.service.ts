@@ -167,6 +167,31 @@ export class BidService {
 
     return { message: "Auto-bid configuration deleted successfully" };
   }
+
+  async getMyAutoBid(userId: string) {
+    const myAutoBid = await db
+      .select({
+        id: autoBids.id,
+        productId: autoBids.productId,
+        userId: autoBids.userId,
+        maxAmount: autoBids.maxAmount,
+        isActive: autoBids.isActive,
+        createdAt: autoBids.createdAt,
+        updatedAt: autoBids.updatedAt,
+
+        product: {
+          productName: products.name, // Giả sử trong DB cột tên là 'name'
+          currentPrice: products.currentPrice, // Giả sử cột là 'currentPrice' hoặc 'price'
+          endTime: products.endTime,
+          winnerId: products.winnerId,
+        },
+      })
+      .from(autoBids)
+      .innerJoin(products, eq(autoBids.productId, products.id))
+      .where(and(eq(autoBids.userId, userId), eq(autoBids.isActive, true)))
+      .orderBy(desc(autoBids.createdAt));
+    return myAutoBid;
+  }
 }
 
 export const bidService = new BidService();

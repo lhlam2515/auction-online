@@ -1,4 +1,10 @@
-import type { User, Bid } from "@repo/shared-types";
+import type {
+  User,
+  Bid,
+  MyAutoBid,
+  Order,
+  PaginatedResponse,
+} from "@repo/shared-types";
 import { Trash2, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -148,10 +154,10 @@ export function meta({}: Route.MetaArgs) {
 }
 
 function getStatusBadge(
-  status: "unpaid" | "processing" | "completed" | "cancelled"
+  status: "PENDING" | "PAID" | "SHIPPED" | "COMPLETED" | "CANCELLED"
 ) {
   switch (status) {
-    case "unpaid":
+    case "PENDING":
       return (
         <Badge
           variant="outline"
@@ -160,16 +166,25 @@ function getStatusBadge(
           Chưa thanh toán
         </Badge>
       );
-    case "processing":
+    case "PAID":
+      return (
+        <Badge
+          variant="outline"
+          className="border-green-300 bg-amber-50 text-amber-700"
+        >
+          Đã thanh toán
+        </Badge>
+      );
+    case "SHIPPED":
       return (
         <Badge
           variant="outline"
           className="border-blue-300 bg-blue-50 text-blue-700"
         >
-          Đang xử lý
+          Đã vận chuyển
         </Badge>
       );
-    case "completed":
+    case "COMPLETED":
       return (
         <Badge
           variant="outline"
@@ -178,7 +193,7 @@ function getStatusBadge(
           Hoàn thành
         </Badge>
       );
-    case "cancelled":
+    case "CANCELLED":
       return (
         <Badge
           variant="outline"
@@ -192,15 +207,17 @@ function getStatusBadge(
 
 export default function AccountDashboardPage() {
   const [userData, setUserData] = useState<User>();
-  const [activeBidsData, setActiveBidsData] = useState<Bid[]>([]);
+  const [activeBidsData, setActiveBidsData] = useState<MyAutoBid[]>([]);
+  const [userOrder, setUserOrder] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchUserDate = async () => {
       try {
         setIsLoading(true);
-        const [userRes, bidsRes] = await Promise.all([
+        const [userRes, bidsRes, orderRes] = await Promise.all([
           api.users.getProfile(),
-          api.users.getBids({ page: 1, limit: 10 }),
+          api.bids.getMyAutoBid(),
+          api.orders.getAll(),
         ]);
         if (userRes?.success && userRes.data) {
           setUserData(userRes.data);
@@ -209,9 +226,15 @@ export default function AccountDashboardPage() {
         }
 
         if (bidsRes?.success && bidsRes.data) {
-          setActiveBidsData(bidsRes.data.items);
+          setActiveBidsData(bidsRes.data);
         } else {
           toast.error(bidsRes?.message || ERROR_MESSAGES.SERVER_ERROR);
+        }
+
+        if (orderRes?.success && orderRes.data) {
+          setUserOrder(orderRes.data.items);
+        } else {
+          toast.error(orderRes?.message || ERROR_MESSAGES.SERVER_ERROR);
         }
       } catch (error) {
         toast.error(ERROR_MESSAGES.SERVER_ERROR);
@@ -221,12 +244,13 @@ export default function AccountDashboardPage() {
     };
     fetchUserDate();
   }, []);
+
   const [watchlist, setWatchlist] = useState(watchlistItems);
 
   const handleRemoveFromWatchlist = (id: string) => {
     setWatchlist(watchlist.filter((item) => item.id !== id));
   };
-  console.log("User Data:", userData);
+  const now = new Date();
 
   return (
     <div className="container mx-auto py-8">
@@ -304,52 +328,65 @@ export default function AccountDashboardPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {activeBids.map((bid) => (
-                          <TableRow key={bid.id}>
-                            <TableCell className="font-medium">
-                              {bid.productName}
-                            </TableCell>
-                            <TableCell>
-                              {formatVietnameseCurrency(bid.currentPrice)}
-                            </TableCell>
-                            <TableCell>
-                              {formatVietnameseCurrency(bid.myMaxBid)}
-                            </TableCell>
-                            <TableCell>
-                              {bid.endTime.toLocaleString("vi-VN", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </TableCell>
-                            <TableCell>
-                              {bid.status === "leading" ? (
-                                <Badge className="bg-emerald-600 hover:bg-emerald-700">
-                                  Đang dẫn đầu
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant="outline"
-                                  className="border-amber-300 bg-amber-50 text-amber-700"
-                                >
-                                  Bị trả giá
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {bid.status === "outbid" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-amber-300 bg-transparent text-amber-700"
-                                >
-                                  Đấu lại
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {activeBidsData
+                          .filter((bid) => new Date(bid.product.endTime) > now)
+                          .map((bid) => (
+                            <TableRow key={bid.id}>
+                              <TableCell className="font-medium">
+                                {bid.product.productName}
+                              </TableCell>
+                              <TableCell>
+                                {formatVietnameseCurrency(
+                                  Number(bid.product.currentPrice || 0)
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {formatVietnameseCurrency(
+                                  Number(bid.maxAmount || 0)
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {new Date(bid.product.endTime).toLocaleString(
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {Number(bid.product.currentPrice) <=
+                                Number(bid.maxAmount) ? (
+                                  <Badge className="bg-emerald-600 hover:bg-emerald-700">
+                                    Đang dẫn đầu
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-amber-300 bg-amber-50 text-amber-700"
+                                  >
+                                    Bị trả giá
+                                  </Badge>
+                                )}
+                              </TableCell>
+
+                              <TableCell className="text-right">
+                                {Number(bid.product.currentPrice) >
+                                  Number(bid.maxAmount) && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-amber-300 bg-transparent text-amber-700"
+                                  >
+                                    Đấu lại
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
                       </TableBody>
                     </Table>
                   </div>
@@ -363,28 +400,33 @@ export default function AccountDashboardPage() {
                         <TableRow>
                           <TableHead>Sản phẩm</TableHead>
                           <TableHead>Giá cuối</TableHead>
-                          <TableHead>Ngày thắng</TableHead>
+                          <TableHead>Ngày tạo</TableHead>
                           <TableHead>Trạng thái</TableHead>
                           <TableHead className="text-right">
                             Hành động
                           </TableHead>
                         </TableRow>
                       </TableHeader>
+
                       <TableBody>
-                        {wonAuctions.map((auction) => (
+                        {userOrder.map((auction) => (
                           <TableRow key={auction.id}>
                             <TableCell className="font-medium">
-                              {auction.productName}
+                              {auction.id}
                             </TableCell>
                             <TableCell>
-                              {formatVietnameseCurrency(auction.finalPrice)}
+                              {formatVietnameseCurrency(
+                                Number(auction.finalPrice || "0")
+                              )}
                             </TableCell>
-                            <TableCell>{auction.wonDate}</TableCell>
+                            <TableCell>
+                              {auction.createdAt.toString()}
+                            </TableCell>
                             <TableCell>
                               {getStatusBadge(auction.status)}
                             </TableCell>
                             <TableCell className="text-right">
-                              {auction.status === "unpaid" && (
+                              {auction.status === "PENDING" && (
                                 <Button
                                   size="sm"
                                   className="bg-slate-900 hover:bg-slate-800"
