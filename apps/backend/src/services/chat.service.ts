@@ -1,46 +1,35 @@
 import type {
-  SendMessageRequest,
-  MarkMessagesReadRequest,
   ChatMessage,
-  ChatConversation,
-  ChatRoomResponse,
   UnreadCountResponse,
   ChatMessageType,
-  MessageStatus,
 } from "@repo/shared-types";
-import { eq, and, exists, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { chatMessages, orders } from "@/models";
-import {
-  BadRequestError,
-  NotFoundError,
-  NotImplementedError,
-} from "@/utils/errors";
+import { BadRequestError, NotFoundError } from "@/utils/errors";
 
 export class ChatService {
-  async getChatHistory(
-    orderId: string,
-    userId: string
-  ): Promise<ChatMessage[]> {
-    // TODO: implement chat history retrieval
-    // Should fetch messages for the order and verify user is participant
+  async getChatHistory(orderId: string, userId: string) {
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
     });
+
     if (!order) {
       throw new NotFoundError("Order not found");
     }
-    if (!(userId === order.winnerId || userId === order.sellerId)) {
+
+    if (userId !== order.winnerId && userId !== order.sellerId) {
       throw new BadRequestError("User is not a participant in this chat");
     }
-    const productId = order.productId;
 
+    const productId = order.productId;
     const messages = await db.query.chatMessages.findMany({
       where: eq(chatMessages.productId, productId),
       orderBy: [desc(chatMessages.createdAt)],
     });
-    return messages.map((item) => item as ChatMessage);
+
+    return messages as ChatMessage[];
   }
 
   async sendMessage(
@@ -48,24 +37,24 @@ export class ChatService {
     senderId: string,
     content: string,
     messageType: ChatMessageType = "TEXT"
-  ): Promise<ChatMessage> {
-    // TODO: implement message sending
-    // Should create new message in chat and return the created message
-    // Verify sender is participant in the order chat
+  ) {
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
     });
+
     if (!order) {
       throw new NotFoundError("Order not found");
     }
-    if (!(senderId === order.winnerId || senderId === order.sellerId)) {
+
+    if (senderId !== order.winnerId && senderId !== order.sellerId) {
       throw new BadRequestError("User is not a participant in this chat");
     }
+
     const productId = order.productId;
     const receiverId =
       senderId === order.winnerId ? order.sellerId : order.winnerId;
 
-    const newMessage = await db
+    const [newMessage] = await db
       .insert(chatMessages)
       .values({
         productId,
@@ -77,28 +66,29 @@ export class ChatService {
         createdAt: new Date(),
       })
       .returning();
-    return newMessage[0] as ChatMessage;
+
+    return newMessage as ChatMessage;
   }
 
   async markMessagesAsRead(
     orderId: string,
     userId: string,
     messageIds?: string[]
-  ): Promise<boolean> {
-    // TODO: implement mark messages as read
-    // Should mark specified messages or all unread messages as read for the user
+  ) {
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
     });
+
     if (!order) {
       throw new NotFoundError("Order not found");
     }
-    if (!(userId === order.winnerId || userId === order.sellerId)) {
+
+    if (userId !== order.winnerId && userId !== order.sellerId) {
       throw new BadRequestError("User is not a participant in this chat");
     }
-    const productId = order.productId;
 
-    const updateQuery = await db
+    const productId = order.productId;
+    await db
       .update(chatMessages)
       .set({ isRead: true })
       .where(
@@ -108,52 +98,19 @@ export class ChatService {
           inArray(chatMessages.id, messageIds ?? [])
         )
       );
-    return true;
+
+    return { message: "Messages marked as read successfully" };
   }
 
-  async getUnreadCount(userId: string): Promise<UnreadCountResponse> {
-    // TODO: implement unread count retrieval
-    // Should return count of unread messages across all user's chats
-    const messages = await db
-      .select()
-      .from(chatMessages)
-      .where(
-        and(eq(chatMessages.receiverId, userId), eq(chatMessages.isRead, false))
-      );
-    const count = messages.length ? messages.length : 0;
-    return {
-      count: count,
-    };
-  }
+  async getUnreadCount(userId: string) {
+    const messages = await db.query.chatMessages.findMany({
+      where: and(
+        eq(chatMessages.receiverId, userId),
+        eq(chatMessages.isRead, false)
+      ),
+    });
 
-  async createOrGetChatRoom(
-    orderId: string,
-    participantIds: string[]
-  ): Promise<ChatRoomResponse> {
-    // TODO: implement chat room creation or retrieval
-    // Should create new chat room for order if doesn't exist, or return existing one
-    throw new NotImplementedError("Create or get chat room not implemented");
-  }
-
-  async getChatConversation(
-    orderId: string,
-    userId: string
-  ): Promise<ChatConversation> {
-    // TODO: implement get chat conversation with authorization check
-    // Should verify user is participant before returning conversation details
-    throw new NotImplementedError("Get chat conversation not implemented");
-  }
-
-  async getUserConversations(userId: string): Promise<ChatConversation[]> {
-    // TODO: implement get all conversations for user
-    // Should return list of chat conversations where user is participant
-    throw new NotImplementedError("Get user conversations not implemented");
-  }
-
-  async deleteMessage(messageId: string, userId: string): Promise<boolean> {
-    // TODO: implement message deletion
-    // Should allow deletion by message sender only
-    throw new NotImplementedError("Delete message not implemented");
+    return { count: messages.length } as UnreadCountResponse;
   }
 }
 

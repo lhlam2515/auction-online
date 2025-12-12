@@ -42,14 +42,14 @@ export const markAsRead = asyncHandler(
     const messageId = req.params.id;
 
     const result = await chatService.markMessagesAsRead(messageId, userId);
-    return ResponseHandler.sendSuccess<boolean>(res, result);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
 export const getUnreadCount = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: userId } = req.user!;
-    const count = await chatService.getUnreadCount(userId);
-    return ResponseHandler.sendSuccess<UnreadCountResponse>(res, count);
+    const result = await chatService.getUnreadCount(userId);
+    return ResponseHandler.sendSuccess<UnreadCountResponse>(res, result);
   }
 );
