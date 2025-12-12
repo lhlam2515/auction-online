@@ -38,13 +38,13 @@ export const kickBidder = asyncHandler(
     const { bidderId, reason } = req.body as KickBidderRequest;
     const productId = req.params.id;
 
-    const kick = await bidService.kickBidder(
+    const result = await bidService.kickBidder(
       productId,
       sellerId,
       bidderId,
       reason
     );
-    return ResponseHandler.sendSuccess<boolean>(res, kick);
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -78,8 +78,9 @@ export const updateAutoBid = asyncHandler(
     const { maxAmount } = req.body as UpdateAutoBidRequest;
     const autoBidId = req.params.id;
 
-    const updated = await bidService.updateAutoBid(autoBidId, maxAmount);
-    return ResponseHandler.sendSuccess<boolean>(res, updated);
+    const result = await bidService.updateAutoBid(autoBidId, maxAmount);
+
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
 
@@ -87,7 +88,8 @@ export const deleteAutoBid = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: userId } = req.user!;
     const autoBidId = req.params.id;
-    const deleted = await bidService.deleteAutoBid(autoBidId, userId);
-    return ResponseHandler.sendSuccess<boolean>(res, deleted);
+    const result = await bidService.deleteAutoBid(autoBidId, userId);
+
+    return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );

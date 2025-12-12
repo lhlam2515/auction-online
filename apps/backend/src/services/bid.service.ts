@@ -1,48 +1,42 @@
+import type { Bid } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
-import { string, number } from "zod";
 
 import { db } from "@/config/database";
-import { updateAutoBid, deleteAutoBid } from "@/controllers/bid.controller";
 import { bids, autoBids, products } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 
+import { productService } from "./product.service";
+
 export class BidService {
   async getHistory(productId: string) {
-    // TODO: query bids for product ordered by time desc
-    const productBids = await db
-      .select({
-        bids: bids,
-      })
-      .from(bids)
-      .where(eq(bids.productId, productId))
-      .orderBy(desc(bids.createdAt));
+    const product = await productService.getById(productId);
 
-    if (!productBids || productBids.length === 0) {
-      throw new NotFoundError("No bids found for this product");
-    }
-    return productBids.map((item) => item.bids);
+    const productBids = await db.query.bids.findMany({
+      where: eq(bids.productId, product.id),
+      orderBy: desc(bids.createdAt),
+    });
+
+    return productBids || ([] as Bid[]);
   }
 
   async placeBid(productId: string, bidderId: string, amount: number) {
-    // TODO: validate bid amount against current price and auto-bid rules
-    const product = await db.query.products.findFirst({
-      where: eq(products.id, productId),
-    });
-    if (!product) {
-      throw new NotFoundError("Product not found");
+    const product = await productService.getById(productId);
+
+    let currentPrice = product.currentPrice
+      ? parseFloat(product.currentPrice)
+      : parseFloat(product.startPrice);
+
+    if (amount >= currentPrice + parseFloat(product.stepPrice)) {
+      currentPrice = currentPrice + parseFloat(product.stepPrice);
+    } else {
+      throw new BadRequestError(
+        `Bid amount must be at least ${
+          currentPrice + parseFloat(product.stepPrice)
+        }`
+      );
     }
 
-    // let currentPrice = product.currentPrice
-    //   ? parseFloat(product.currentPrice)
-    //   : parseFloat(product.startPrice);
-
-    // if (amount >= currentPrice + parseFloat(product.stepPrice)) {
-    //     currentPrice = currentPrice + parseFloat(product.stepPrice);
-    //   } else {
-
-    // }
-
-    const newBid = await db
+    const [newBid] = await db
       .insert(bids)
       .values({
         productId: productId,
@@ -51,10 +45,17 @@ export class BidService {
       })
       .returning();
 
-    if (!newBid || newBid.length === 0) {
+    if (!newBid) {
       throw new BadRequestError("Failed to place bid");
     }
-    return newBid[0];
+
+    // Update product current price
+    await db
+      .update(products)
+      .set({ currentPrice: currentPrice.toString(), updatedAt: new Date() })
+      .where(eq(products.id, productId));
+
+    return newBid;
   }
 
   async kickBidder(
@@ -63,10 +64,10 @@ export class BidService {
     bidderId: string,
     reason?: string
   ) {
-    // TODO: validate seller ownership and kick logic
     const ownerCheck = await db.query.products.findFirst({
       where: and(eq(products.id, productId), eq(products.sellerId, sellerId)),
     });
+
     if (!ownerCheck) {
       throw new ForbiddenError("You are not the owner of this product");
     }
@@ -81,27 +82,27 @@ export class BidService {
           eq(bids.status, "VALID")
         )
       );
-    return true;
+
+    // TODO: Send notification to bidder about being kicked
+
+    return { message: "Bidder kicked successfully" };
   }
 
-  async createAutoBid(
-    productId: string,
-    userId: string,
-    maxAmount: number,
-    step?: number
-  ) {
-    // TODO: upsert auto-bid config
-    const checkExisting = await db
-      .select()
-      .from(autoBids)
-      .where(
-        and(eq(autoBids.productId, productId), eq(autoBids.userId, userId))
+  async createAutoBid(productId: string, userId: string, maxAmount: number) {
+    const checkExisting = await db.query.autoBids.findFirst({
+      where: and(
+        eq(autoBids.productId, productId),
+        eq(autoBids.userId, userId)
+      ),
+    });
+
+    if (checkExisting) {
+      throw new BadRequestError(
+        "Auto-bid configuration already exists for this product"
       );
-    if (checkExisting && checkExisting.length > 0) {
-      throw new BadRequestError("Auto-bid configuration already exists");
     }
 
-    const newAutoBid = await db
+    const [newAutoBid] = await db
       .insert(autoBids)
       .values({
         productId: productId,
@@ -111,14 +112,14 @@ export class BidService {
       })
       .returning();
 
-    if (!newAutoBid || newAutoBid.length === 0) {
+    if (!newAutoBid) {
       throw new BadRequestError("Failed to create auto-bid configuration");
     }
-    return newAutoBid[0];
+
+    return newAutoBid;
   }
 
   async getAutoBid(productId: string, userId: string) {
-    // TODO: fetch user's auto-bid
     const autoBid = await db.query.autoBids.findFirst({
       where: and(
         eq(autoBids.productId, productId),
@@ -131,13 +132,15 @@ export class BidService {
     return autoBid;
   }
 
-  async updateAutoBid(autoBidId: string, maxAmount: number, step?: number) {
+  async updateAutoBid(autoBidId: string, maxAmount: number) {
     const autoBid = await db.query.autoBids.findFirst({
       where: and(eq(autoBids.id, autoBidId), eq(autoBids.isActive, true)),
     });
+
     if (!autoBid) {
       throw new NotFoundError("Auto-bid configuration not found");
     }
+
     await db
       .update(autoBids)
       .set({
@@ -145,20 +148,24 @@ export class BidService {
         updatedAt: new Date(),
       })
       .where(eq(autoBids.id, autoBidId));
-    return true;
+
+    return { message: "Auto-bid configuration updated successfully" };
   }
 
   async deleteAutoBid(autoBidId: string, userId: string) {
     const autoBid = await db.query.autoBids.findFirst({
       where: and(eq(autoBids.id, autoBidId), eq(autoBids.userId, userId)),
     });
+
     if (!autoBid) {
       throw new NotFoundError("Auto-bid configuration not found");
     }
+
     await db
       .delete(autoBids)
       .where(and(eq(autoBids.id, autoBidId), eq(autoBids.userId, userId)));
-    return true;
+
+    return { message: "Auto-bid configuration deleted successfully" };
   }
 }
 
