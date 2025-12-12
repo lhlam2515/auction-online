@@ -2,7 +2,6 @@ import type {
   RegisterRequest,
   LoginRequest,
   LoginResponse,
-  RefreshResponse,
   VerifyOtpResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -42,7 +41,7 @@ export const login = asyncHandler(
 
     const result = await authService.login(email, password);
 
-    // Set HttpOnly cookie for refresh token
+    // Get refresh and access tokens from Supabase
     const { data: authData } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -54,7 +53,19 @@ export const login = asyncHandler(
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/v1/auth/refresh-token",
+        path: "/api/v1/auth",
+      });
+    }
+
+    // SECURITY: Store accessToken in httpOnly cookie
+    // This prevents XSS attacks from stealing the token via localStorage
+    if (authData?.session?.access_token) {
+      res.cookie("accessToken", authData.session.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 60 * 60 * 1000, // 1 hour
+        path: "/api/v1",
       });
     }
 
@@ -67,6 +78,9 @@ export const logout = asyncHandler(
     const user = req.user!;
 
     const result = await authService.logout(user.id);
+
+    res.clearCookie("accessToken", { path: "/api/v1" });
+    res.clearCookie("refreshToken", { path: "/api/v1/auth" });
 
     return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
@@ -82,20 +96,28 @@ export const refreshToken = asyncHandler(
 
     const result = await authService.refreshToken(refreshToken);
 
-    // Set new HttpOnly cookie for refresh token
     if (result.refreshToken) {
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/v1/auth/refresh-token",
+        path: "/api/v1/auth",
       });
     }
 
-    return ResponseHandler.sendSuccess<RefreshResponse>(res, {
-      accessToken: result.accessToken,
-    });
+    if (result.accessToken) {
+      res.cookie("accessToken", result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 60 * 60 * 1000, // 1 hour
+        path: "/api/v1",
+      });
+    }
+
+    // Return empty response - token is in the cookie
+    return ResponseHandler.sendNoContent(res);
   }
 );
 
