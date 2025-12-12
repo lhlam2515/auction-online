@@ -21,8 +21,6 @@ export const apiClient: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor - no longer needed to manually attach auth token
-// Token is now stored in httpOnly cookies and automatically sent by the browser
 apiClient.interceptors.request.use(
   (config) => {
     return config;
@@ -66,34 +64,3 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Helper to check if user is authenticated
-// We cannot check localStorage anymore since token is in httpOnly cookie
-// Token existence is determined by successful API responses and browser's cookie management
-export function isAuthenticated(): boolean {
-  // This function is now mainly for checking if user state exists in the app
-  // The actual token validation happens at the API level via httpOnly cookies
-  // For critical checks, verify via an API endpoint
-  return true; // Will be validated at API level
-}
-
-// Helper to get current user from localStorage
-// USER_DATA is still stored in localStorage for UI purposes only (non-sensitive)
-export function getCurrentUser() {
-  const userStr = localStorage.getItem("user");
-  if (!userStr) return null;
-
-  try {
-    return JSON.parse(userStr);
-  } catch {
-    return null;
-  }
-}
-
-// Helper to clear auth data
-// Only clear user data from localStorage, token is cleared by clearing httpOnly cookies
-export function clearAuth() {
-  // AccessToken is in httpOnly cookie - it's cleared by the backend via /auth/logout
-  // Only clear user data from localStorage
-  localStorage.removeItem("user");
-}
