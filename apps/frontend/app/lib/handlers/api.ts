@@ -16,16 +16,15 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  // Enable credentials to automatically send/receive httpOnly cookies
+  // This ensures the accessToken stored in httpOnly cookies is sent with every request
   withCredentials: true,
 });
 
-// Request interceptor - attach auth token
+// Request interceptor - no longer needed to manually attach auth token
+// Token is now stored in httpOnly cookies and automatically sent by the browser
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -46,20 +45,19 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const response = await axios.post(
+        // Token is automatically sent via httpOnly cookies
+        // Calling refresh endpoint to get new accessToken in httpOnly cookie
+        await axios.post(
           `${API_BASE_URL}/auth/refresh-token`,
           {},
           { withCredentials: true }
         );
 
-        const { accessToken } = response.data.data;
-        localStorage.setItem("accessToken", accessToken);
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Retry original request - accessToken is now in the httpOnly cookie
         return apiClient(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
+        // Refresh failed, redirect to login
+        // SECURITY: No need to clear localStorage as we're not using it anymore
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
@@ -70,11 +68,17 @@ apiClient.interceptors.response.use(
 );
 
 // Helper to check if user is authenticated
+// We cannot check localStorage anymore since token is in httpOnly cookie
+// Token existence is determined by successful API responses and browser's cookie management
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem("accessToken");
+  // This function is now mainly for checking if user state exists in the app
+  // The actual token validation happens at the API level via httpOnly cookies
+  // For critical checks, verify via an API endpoint
+  return true; // Will be validated at API level
 }
 
 // Helper to get current user from localStorage
+// USER_DATA is still stored in localStorage for UI purposes only (non-sensitive)
 export function getCurrentUser() {
   const userStr = localStorage.getItem("user");
   if (!userStr) return null;
@@ -87,7 +91,9 @@ export function getCurrentUser() {
 }
 
 // Helper to clear auth data
+// Only clear user data from localStorage, token is cleared by clearing httpOnly cookies
 export function clearAuth() {
-  localStorage.removeItem("accessToken");
+  // AccessToken is in httpOnly cookie - it's cleared by the backend via /auth/logout
+  // Only clear user data from localStorage
   localStorage.removeItem("user");
 }

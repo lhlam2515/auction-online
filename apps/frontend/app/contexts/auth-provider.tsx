@@ -15,7 +15,7 @@ interface AuthContextType {
   user: UserAuthData | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (accessToken: string, user: UserAuthData) => void;
+  login: (user: UserAuthData) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -31,14 +31,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserAuthData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from localStorage (user data only)
+  // Token is now in httpOnly cookies, not localStorage
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
         const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
-        if (accessToken && storedUser) {
+        if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           logger.info("Auth initialized from storage", {
@@ -48,7 +48,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (error) {
         logger.error("Failed to initialize auth", error);
         // Clear invalid data
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
       } finally {
         setIsLoading(false);
@@ -58,25 +57,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initializeAuth();
   }, []);
 
-  // Login handler - stores token and user data
-  const login = useCallback((accessToken: string, userData: UserAuthData) => {
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+  // login() no longer accepts accessToken parameter
+  // Token is managed entirely by the browser via httpOnly cookies
+  const login = useCallback((userData: UserAuthData) => {
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
     setUser(userData);
     logger.info("User logged in", { userId: userData.id });
   }, []);
 
-  // Logout handler - clears all auth data
+  // Logout handler - clears user data and calls backend to clear httpOnly cookies
   const logout = useCallback(async () => {
     try {
-      // Call backend logout endpoint
+      // Call backend logout endpoint to clear httpOnly cookies
       await api.auth.logout();
     } catch (error) {
       logger.error("Logout API failed", error);
       // Continue with local logout even if API fails
     } finally {
-      // Clear local storage
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      // Clear local storage (user data only)
+      // AccessToken is in httpOnly cookie - cleared by backend via /auth/logout
       localStorage.removeItem(STORAGE_KEYS.USER);
       setUser(null);
       logger.info("User logged out");
@@ -84,12 +83,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Refresh user data from backend
+  // Token refresh is handled automatically by interceptors
+  // This function is mainly for refreshing other user-related data if needed
   const refreshUser = useCallback(async () => {
     try {
       const result = await api.auth.refreshToken();
-      if (result?.success && result.data) {
-        const { accessToken } = result.data;
-        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+      if (result?.success) {
         logger.info("Access token refreshed successfully");
       } else {
         throw new Error("Failed to refresh token");
