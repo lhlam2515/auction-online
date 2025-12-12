@@ -1,13 +1,13 @@
-import type { QuestionVisibility } from "./enums";
+// import type { QuestionVisibility } from "./enums";
 
 /**
  * Ask question request
  * Backend validation: question.validation.ts → askQuestionSchema
  */
 export interface AskQuestionRequest {
-  question: string;
-  isPrivate?: boolean;
-  visibility?: QuestionVisibility;
+  questionContent: string;
+  // isPrivate?: boolean;
+  // visibility?: QuestionVisibility;
 }
 
 /**
@@ -15,5 +15,5 @@ export interface AskQuestionRequest {
  * Backend validation: question.validation.ts → answerQuestionSchema
  */
 export interface AnswerQuestionRequest {
-  answer: string;
+  answerContent: string;
 }

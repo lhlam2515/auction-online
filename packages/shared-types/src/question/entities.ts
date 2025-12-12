@@ -6,11 +6,11 @@ export interface ProductQuestion {
   productId: string;
   userId: string;
   questionContent: string;
-  answerContent?: string;
-  answeredBy?: string; // User ID who answered
+  answerContent: string | null;
+  answeredBy: string | null; // User ID who answered
   isPublic: boolean;
-  createdAt: string;
-  answeredAt?: string;
+  createdAt: Date | string;
+  answeredAt: Date | string | null;
 }
 
 /**

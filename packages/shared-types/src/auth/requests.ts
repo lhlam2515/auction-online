@@ -63,11 +63,3 @@ export interface ResendOtpRequest {
   email: string;
   purpose: OtpPurpose;
 }
-
-/**
- * Google login request
- * Backend validation: auth.validation.ts → googleLoginSchema
- */
-export interface GoogleLoginRequest {
-  token: string;
-}

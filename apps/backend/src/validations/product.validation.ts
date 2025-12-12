@@ -9,15 +9,21 @@ export const searchProductsSchema = z.object({
   categoryId: z.string().uuid().optional(),
   minPrice: z.coerce.number().min(0).optional(),
   maxPrice: z.coerce.number().min(0).optional(),
-  status: z.enum(["ACTIVE", "PENDING", "ENDED", "CANCELLED"]).optional(),
+  status: z.enum(["ACTIVE", "PENDING", "ENDED", "CANCELLED"]).default("ACTIVE"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(["price_asc", "price_desc", "ending_soon", "newest"]).optional(),
+  sort: z
+    .enum(["price_asc", "price_desc", "ending_soon", "newest"])
+    .default("newest"),
 });
 
 export const topListingSchema = z.object({
-  type: z.enum(["ending_soon", "hot", "new"]),
-  limit: z.coerce.number().int().min(1).max(50).default(10),
+  // type: z.enum(["ending_soon", "hot", "highest_price"]),
+  limit: z.coerce.number().int().min(1).max(50).default(5),
+});
+
+export const relatedProductsSchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(5),
 });
 
 export const createProductSchema = z.object({
@@ -37,7 +43,8 @@ export const createProductSchema = z.object({
   endTime: z.iso.datetime(),
   images: z
     .array(z.string().url())
-    .min(1, { error: "At least one image is required" }),
+    .min(4, { error: "At least four images are required" }),
+  isAutoExtend: z.boolean().default(true),
 });
 
 export const updateDescriptionSchema = z.object({

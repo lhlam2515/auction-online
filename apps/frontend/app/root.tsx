@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <AuthProvider>
-          <ThemeProvider defaultTheme="system" storageKey="auction-ui-theme">
+          <ThemeProvider defaultTheme="light" storageKey="auction-ui-theme">
             {/* Global layout wrapper with common elements */}
             <div id="root">{children}</div>
             <Toaster />

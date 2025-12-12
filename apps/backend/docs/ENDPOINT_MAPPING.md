@@ -59,8 +59,8 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 | POST /api/v1/products                        | product.routes.ts | product.controller.ts → createProduct         | product.validation.ts → createProductSchema     |
 | DELETE /api/v1/products/:id                  | product.routes.ts | product.controller.ts → deleteProduct         | product.validation.ts → productIdSchema         |
 | PATCH /api/v1/products/:id/description       | product.routes.ts | product.controller.ts → updateDescription     | product.validation.ts → updateDescriptionSchema |
-| PUT /api/v1/products/:id/auto-extend         | product.routes.ts | product.controller.ts → toggleAutoExtend      | product.validation.ts → autoExtendSchema        |
-| POST /api/v1/upload                          | product.routes.ts | product.controller.ts → uploadImages          | -                                               |
+| PUT /api/v1/products/:id/auto-extend         | product.routes.ts | product.controller.ts → setAutoExtend         | product.validation.ts → autoExtendSchema        |
+| POST /api/v1/products/upload                 | product.routes.ts | product.controller.ts → uploadImages          | -                                               |
 | GET /api/v1/seller/products                  | seller.routes.ts  | seller.controller.ts → getMyProducts          | seller.validation.ts → getProductsSchema        |
 
 ---
@@ -81,12 +81,11 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 
 ## ✅ 6. Questions & Answers (Q&A)
 
-| Endpoint                                   | Route File         | Controller                                   | Validation                                    |
-| ------------------------------------------ | ------------------ | -------------------------------------------- | --------------------------------------------- |
-| GET /api/v1/products/:id/questions         | question.routes.ts | question.controller.ts → getPublicQuestions  | question.validation.ts → productIdSchema      |
-| GET /api/v1/products/:id/questions/private | question.routes.ts | question.controller.ts → getPrivateQuestions | question.validation.ts → productIdSchema      |
-| POST /api/v1/products/:id/questions        | question.routes.ts | question.controller.ts → askQuestion         | question.validation.ts → askQuestionSchema    |
-| POST /api/v1/questions/:questionId/answer  | question.routes.ts | question.controller.ts → answerQuestion      | question.validation.ts → answerQuestionSchema |
+| Endpoint                                           | Route File         | Controller                                  | Validation                                    |
+| -------------------------------------------------- | ------------------ | ------------------------------------------- | --------------------------------------------- |
+| GET /api/v1/products/:id/questions                 | question.routes.ts | question.controller.ts → getPublicQuestions | question.validation.ts → productIdSchema      |
+| POST /api/v1/products/:id/questions                | question.routes.ts | question.controller.ts → askQuestion        | question.validation.ts → askQuestionSchema    |
+| POST /api/v1/products/questions/:questionId/answer | question.routes.ts | question.controller.ts → answerQuestion     | question.validation.ts → answerQuestionSchema |
 
 ---
 

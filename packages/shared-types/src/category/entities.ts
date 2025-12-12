@@ -5,11 +5,11 @@ export interface Category {
   id: string;
   name: string;
   slug: string; // SEO-friendly URL
-  parentId?: string;
+  parentId: string | null;
   level: number; // Tree depth for optimization
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 /**

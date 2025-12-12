@@ -23,7 +23,6 @@
 | POST   | /api/v1/auth/verify-email     | G    | Xác minh email (registration) |
 | POST   | /api/v1/auth/verify-reset-otp | G    | Xác thực OTP reset password   |
 | POST   | /api/v1/auth/reset-password   | G    | Đặt mật khẩu mới              |
-| POST   | /api/v1/auth/google           | G    | Đăng nhập Google              |
 | POST   | /api/v1/auth/resend-otp       | G    | Gửi lại OTP xác minh          |
 
 ---
@@ -71,7 +70,7 @@
 | DELETE | /api/v1/products/:id                     | SEL  | Hủy sản phẩm (chưa active)    |
 | PATCH  | /api/v1/products/:id/description         | SEL  | Chỉnh sửa mô tả (append)      |
 | PUT    | /api/v1/products/:id/auto-extend         | SEL  | Bật/tắt gia hạn               |
-| POST   | /api/v1/upload                           | SEL  | Upload ảnh sản phẩm           |
+| POST   | /api/v1/products/upload                  | SEL  | Upload ảnh sản phẩm           |
 
 ---
 
@@ -91,12 +90,11 @@
 
 # ✅ **6. Questions & Answers (Q&A)**
 
-| Method | Endpoint                               | Role | Mô tả                |
-| ------ | -------------------------------------- | ---- | -------------------- |
-| GET    | /api/v1/products/:id/questions         | G    | Q&A công khai        |
-| GET    | /api/v1/products/:id/questions/private | SEL  | Xem câu hỏi riêng tư |
-| POST   | /api/v1/products/:id/questions         | BID  | Gửi câu hỏi          |
-| POST   | /api/v1/questions/:questionId/answer   | SEL  | Trả lời câu hỏi      |
+| Method | Endpoint                                      | Role | Mô tả           |
+| ------ | --------------------------------------------- | ---- | --------------- |
+| GET    | /api/v1/products/:id/questions                | G    | Q&A công khai   |
+| POST   | /api/v1/products/:id/questions                | BID  | Gửi câu hỏi     |
+| POST   | /api/v1/products/questions/:questionId/answer | SEL  | Trả lời câu hỏi |
 
 ---
 

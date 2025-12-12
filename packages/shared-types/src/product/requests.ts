@@ -12,6 +12,7 @@ export interface CreateProductRequest {
   startPrice: number;
   buyNowPrice?: number;
   stepPrice: number;
+  startTime: string;
   endTime: string;
   isAutoExtend: boolean;
   images: string[];
@@ -28,15 +29,15 @@ export interface UpdateDescriptionRequest {
 /**
  * Product search parameters
  */
-export interface ProductSearchParams extends PaginationParams {
-  category?: string;
-  search?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  status?: ProductStatus;
-  sortBy?: ProductSortOption;
-  sortOrder?: "asc" | "desc";
-}
+// export interface ProductSearchParams extends PaginationParams {
+//   category?: string;
+//   search?: string;
+//   minPrice?: number;
+//   maxPrice?: number;
+//   status?: ProductStatus;
+//   sortBy?: ProductSortOption;
+//   sortOrder?: "asc" | "desc";
+// }
 /**
  * Get product listing params
  */
@@ -51,19 +52,17 @@ export interface ProductsQueryParams extends PaginationParams {
  * Auto extend product auction request
  */
 export interface AutoExtendRequest {
-  productId: string;
-  extendMinutes: number;
+  isAutoExtend: boolean;
 }
 
 /**
  * Search products params
  */
 export interface SearchProductsParams extends PaginationParams {
-  keyword: string;
+  q?: string;
   categoryId?: string;
   minPrice?: number;
   maxPrice?: number;
-  location?: string;
-  condition?: string;
-  sort?: "newest" | "oldest" | "price_asc" | "price_desc" | "ending_soon";
+  status?: ProductStatus;
+  sort?: "newest" | "price_asc" | "price_desc" | "ending_soon";
 }

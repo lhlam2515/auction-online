@@ -10,6 +10,16 @@ export interface GetOrdersParams extends PaginationParams {
 }
 
 /**
+ * Create order request (for instant buy now)
+ */
+export interface CreateOrderRequest {
+  productId: string;
+  winnerId: string;
+  sellerId: string;
+  finalPrice: string; // Decimal as string
+}
+
+/**
  * Cancel order request
  */
 export interface CancelOrderRequest {

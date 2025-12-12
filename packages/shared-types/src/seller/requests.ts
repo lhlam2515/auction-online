@@ -8,8 +8,8 @@ import type { OrderStatus } from "../order/enums";
  */
 export interface GetSellerProductsParams extends PaginationParams {
   status?: ProductStatus;
-  search?: string;
-  categoryId?: string;
+  // search?: string;
+  // categoryId?: string;
 }
 
 /**

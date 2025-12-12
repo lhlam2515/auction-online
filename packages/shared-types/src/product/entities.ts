@@ -11,11 +11,8 @@ export interface ProductCore {
   categoryId: string;
   startPrice: string; // Decimal as string
   stepPrice: string; // Decimal as string
-  buyNowPrice?: string; // Decimal as string
-<<<<<<< HEAD
-  currentPrice?: string; // Decimal as string
-=======
->>>>>>> 28ab509 (Revert "feat(user): finish user api feature (#3)" (#4))
+  buyNowPrice: string | null; // Decimal as string
+  currentPrice: string | null; // Decimal as string
   status: ProductStatus;
   startTime: Date | string;
   endTime: Date | string;
@@ -38,11 +35,12 @@ export interface Product extends ProductCore {
 export interface ProductListing extends Product {
   categoryName: string;
   sellerName: string;
-  sellerAvatarUrl?: string;
+  sellerAvatarUrl: string | null;
+  currentWinnerName: string | null; // masked name of highest bidder
   bidCount: number;
   watchCount: number;
-  mainImageUrl?: string;
-  isWatching?: boolean; // For authenticated users
+  mainImageUrl: string | null;
+  isWatching: boolean | null; // For authenticated users
 }
 
 /**
@@ -52,10 +50,10 @@ export interface ProductImage {
   id: string;
   productId: string;
   imageUrl: string;
-  altText?: string;
+  altText: string | null;
   displayOrder: number;
   isMain: boolean;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 /**

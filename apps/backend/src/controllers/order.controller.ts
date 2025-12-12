@@ -1,10 +1,13 @@
 import type {
+  Order,
+  OrderPayment,
   GetOrdersParams,
   UpdateShippingInfoRequest,
   ShipOrderRequest,
   CancelOrderRequest,
   OrderFeedbackRequest,
   MarkPaidRequest,
+  PaginatedResponse,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -27,7 +30,7 @@ export const createOrder = asyncHandler(
       true // buyNow flag
     );
 
-    ResponseHandler.sendCreated(res, order);
+    return ResponseHandler.sendCreated<Order>(res, order);
   }
 );
 
@@ -46,7 +49,10 @@ export const getMyOrders = asyncHandler(
       orders.length
     );
 
-    ResponseHandler.sendSuccess(res, paginatedOrders);
+    return ResponseHandler.sendSuccess<PaginatedResponse<Order>>(
+      res,
+      paginatedOrders
+    );
   }
 );
 
@@ -63,7 +69,7 @@ export const getOrderDetails = asyncHandler(
       throw new ForbiddenError("Access to this order is denied");
     }
 
-    ResponseHandler.sendSuccess(res, order);
+    return ResponseHandler.sendSuccess<Order>(res, order);
   }
 );
 
@@ -81,7 +87,7 @@ export const updateShippingInfo = asyncHandler(
       phoneNumber
     );
 
-    ResponseHandler.sendSuccess(res, updatedOrder);
+    return ResponseHandler.sendSuccess<Order>(res, updatedOrder);
   }
 );
 
@@ -100,7 +106,10 @@ export const markAsPaid = asyncHandler(
       transactionId
     );
 
-    ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess<{ order: Order; payment: OrderPayment }>(
+      res,
+      result
+    );
   }
 );
 
@@ -111,7 +120,7 @@ export const confirmPayment = asyncHandler(
 
     const updatedOrder = await orderService.confirmPayment(orderId, sellerId);
 
-    ResponseHandler.sendSuccess(res, updatedOrder);
+    return ResponseHandler.sendSuccess<Order>(res, updatedOrder);
   }
 );
 
@@ -128,7 +137,7 @@ export const shipOrder = asyncHandler(
       shippingProvider
     );
 
-    ResponseHandler.sendSuccess(res, updatedOrder);
+    return ResponseHandler.sendSuccess<Order>(res, updatedOrder);
   }
 );
 
@@ -139,7 +148,7 @@ export const receiveOrder = asyncHandler(
 
     const updatedOrder = await orderService.receiveOrder(orderId, buyerId);
 
-    ResponseHandler.sendSuccess(res, updatedOrder);
+    return ResponseHandler.sendSuccess<Order>(res, updatedOrder);
   }
 );
 
@@ -155,7 +164,7 @@ export const cancelOrder = asyncHandler(
       reason
     );
 
-    ResponseHandler.sendSuccess(res, updatedOrder);
+    return ResponseHandler.sendSuccess<Order>(res, updatedOrder);
   }
 );
 
@@ -172,6 +181,6 @@ export const leaveFeedback = asyncHandler(
       comment
     );
 
-    ResponseHandler.sendSuccess(res, feedback);
+    return ResponseHandler.sendSuccess(res, feedback);
   }
 );

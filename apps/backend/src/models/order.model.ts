@@ -1,7 +1,11 @@
 import { sql } from "drizzle-orm";
 import { pgTable, index, unique, check } from "drizzle-orm/pg-core";
 
-import { orderStatusEnum, paymentMethodEnum } from "./enums.model";
+import {
+  orderStatusEnum,
+  paymentMethodEnum,
+  paymentStatusEnum,
+} from "./enums.model";
 import { products } from "./products.model";
 import { users } from "./users.model";
 
@@ -88,7 +92,7 @@ export const orderPayments = pgTable(
       .references(() => orders.id, { onDelete: "cascade" }),
     method: paymentMethodEnum("method").notNull(),
     amount: t.numeric("amount", { precision: 15, scale: 2 }).notNull(),
-    status: t.text("status").notNull().default("PENDING"), // PENDING, SUCCESS, FAILED, REFUNDED
+    status: paymentStatusEnum("status").notNull().default("PENDING"),
     paidAt: t.timestamp("paid_at", { withTimezone: true }),
     transactionRef: t.text("transaction_ref"),
     refundedAt: t.timestamp("refunded_at", { withTimezone: true }),
@@ -108,10 +112,6 @@ export const orderPayments = pgTable(
     check(
       "valid_refund_amount",
       sql`${table.refundAmount} IS NULL OR (${table.refundAmount} > 0 AND ${table.refundAmount} <= ${table.amount})`
-    ),
-    check(
-      "valid_payment_status",
-      sql`${table.status} IN ('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED')`
     ),
   ]
 );

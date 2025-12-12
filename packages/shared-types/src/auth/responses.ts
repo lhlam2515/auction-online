@@ -16,3 +16,11 @@ export interface LoginResponse {
 export interface RefreshResponse {
   accessToken: string;
 }
+
+/**
+ * Verify reset OTP response with reset token and expiry
+ */
+export interface VerifyOtpResponse {
+  resetToken: string;
+  expiresAt: Date | string;
+}
