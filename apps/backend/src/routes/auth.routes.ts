@@ -2,10 +2,21 @@ import { Router } from "express";
 
 import * as authController from "@/controllers/auth.controller";
 import { authenticate } from "@/middlewares/auth";
+import {
+  authRateLimit,
+  passwordResetRateLimit,
+} from "@/middlewares/rate-limiter";
 import { validate } from "@/middlewares/validate";
 import * as authValidation from "@/validations/auth.validation";
 
 const router = Router();
+
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current authenticated user
+ * @access  Private
+ */
+router.get("/me", authenticate, authController.getCurrentUser);
 
 /**
  * @route   POST /api/auth/register
@@ -25,6 +36,7 @@ router.post(
  */
 router.post(
   "/login",
+  authRateLimit, // SECURITY: Rate limiting to prevent brute force attacks
   validate({ body: authValidation.loginSchema }),
   authController.login
 );
@@ -50,6 +62,7 @@ router.post("/refresh-token", authController.refreshToken);
  */
 router.post(
   "/forgot-password",
+  passwordResetRateLimit, // SECURITY: Rate limiting to prevent abuse
   validate({ body: authValidation.forgotPasswordSchema }),
   authController.forgotPassword
 );
@@ -83,6 +96,7 @@ router.post(
  */
 router.post(
   "/reset-password",
+  passwordResetRateLimit, // SECURITY: Rate limiting to prevent abuse
   validate({ body: authValidation.resetPasswordSchema }),
   authController.resetPassword
 );
