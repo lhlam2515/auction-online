@@ -1,6 +1,41 @@
 import type { CategoryTree } from "@repo/shared-types";
 import { Heart, ShoppingCart } from "lucide-react";
+import type { CategoryTree } from "@repo/shared-types";
+import { Heart, ShoppingCart } from "lucide-react";
 import React from "react";
+import { Link } from "react-router";
+
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { ACCOUNT_ROUTES, APP_ROUTES, AUTH_ROUTES } from "@/constants/routes";
+import { useAuth } from "@/contexts/auth-provider";
+import { api } from "@/lib/api-layer";
+import logger from "@/lib/logger";
+
+import CategoryNavBar from "./CategoryNavBar";
+import SearchBar from "./SearchBar";
+import UserDropdownMenu from "./UserDropdownMenu";
+
+const Navbar = () => {
+  const [categories, setCategories] = React.useState<CategoryTree[]>([]);
+  const { user, logout } = useAuth();
+
+  // Fetch categories on mount
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.categories.getAll();
+        if (response.success) {
+          setCategories(response.data || []);
+        }
+      } catch (error) {
+        logger.error("Failed to fetch categories", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -61,10 +96,14 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Button variant="secondary" className="min-w-28" asChild>
+                <Button variant="outline" className="min-w-28" asChild>
                   <Link to={AUTH_ROUTES.LOGIN}>Đăng nhập</Link>
                 </Button>
-                <Button variant="default" className="min-w-28" asChild>
+                <Button
+                  variant="default"
+                  className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/80 min-w-28"
+                  asChild
+                >
                   <Link to={AUTH_ROUTES.REGISTER}>Đăng ký</Link>
                 </Button>
               </>
