@@ -11,15 +11,10 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { bidService } from "@/services";
-import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getBiddingHistory = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get bidding history of a product
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const productId = req.params.id;
     const bids = await bidService.getHistory(productId);
     return ResponseHandler.sendSuccess<Bid[]>(res, bids);
@@ -27,31 +22,22 @@ export const getBiddingHistory = asyncHandler(
 );
 
 export const placeBid = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as PlaceBidRequest;
-    // TODO: Place a bid on product
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const { amount } = req.body as PlaceBidRequest;
     const productId = req.params.id;
-    const userId = req.user.id;
-    const amount = body.amount;
+
     const bid = await bidService.placeBid(productId, userId, amount);
     return ResponseHandler.sendSuccess<Bid>(res, bid);
   }
 );
 
 export const kickBidder = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as KickBidderRequest;
-    // TODO: Kick a bidder from product
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: sellerId } = req.user!;
+    const { bidderId, reason } = req.body as KickBidderRequest;
     const productId = req.params.id;
-    const sellerId = req.user.id;
-    const bidderId = body.bidderId;
-    const reason = body.reason;
+
     const kick = await bidService.kickBidder(
       productId,
       sellerId,
@@ -63,15 +49,11 @@ export const kickBidder = asyncHandler(
 );
 
 export const createAutoBid = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as CreateAutoBidRequest;
-    // TODO: Create auto-bid configuration
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const { maxAmount } = req.body as CreateAutoBidRequest;
     const productId = req.params.id;
-    const userId = req.user.id;
-    const maxAmount = body.maxAmount;
+
     const autoBid = await bidService.createAutoBid(
       productId,
       userId,
@@ -82,41 +64,30 @@ export const createAutoBid = asyncHandler(
 );
 
 export const getAutoBid = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get user's auto-bid for product
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
     const productId = req.params.id;
-    const userId = req.user.id;
+
     const autoBid = await bidService.getAutoBid(productId, userId);
     return ResponseHandler.sendSuccess<AutoBid>(res, autoBid);
   }
 );
 
 export const updateAutoBid = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as UpdateAutoBidRequest;
-    // TODO: Update auto-bid configuration
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { maxAmount } = req.body as UpdateAutoBidRequest;
     const autoBidId = req.params.id;
-    const maxAmount = body.maxAmount;
-    const Updated = await bidService.updateAutoBid(autoBidId, maxAmount);
-    return ResponseHandler.sendSuccess<boolean>(res, Updated);
+
+    const updated = await bidService.updateAutoBid(autoBidId, maxAmount);
+    return ResponseHandler.sendSuccess<boolean>(res, updated);
   }
 );
 
 export const deleteAutoBid = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Delete auto-bid configuration
-    if (!req.user || !req.user.id) {
-      throw new NotImplementedError("User not authenticated");
-    }
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
     const autoBidId = req.params.id;
-    const userId = req.user.id;
-    const Deleted = await bidService.deleteAutoBid(autoBidId, userId);
-    return ResponseHandler.sendSuccess<boolean>(res, Deleted);
+    const deleted = await bidService.deleteAutoBid(autoBidId, userId);
+    return ResponseHandler.sendSuccess<boolean>(res, deleted);
   }
 );
