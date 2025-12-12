@@ -6,6 +6,7 @@ import type {
   UpdateAutoBidRequest,
   AutoBid,
   BidWithUser,
+  MyAutoBid,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
