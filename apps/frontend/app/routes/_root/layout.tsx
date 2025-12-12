@@ -1,5 +1,6 @@
 import { Outlet } from "react-router";
 
+import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/navbar";
 
 export default function RootLayout() {
@@ -7,9 +8,11 @@ export default function RootLayout() {
     <div className="root-layout">
       <Navbar />
 
-      <div className="container mx-auto min-h-screen">
+      <main className="container mx-auto min-h-screen">
         <Outlet />
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }
