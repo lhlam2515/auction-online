@@ -36,7 +36,7 @@ router.post(
 );
 
 /**
- * @route   PUT /api/chat/messages/:id/read
+ * @route   PUT /api/orders/messages/:id/read
  * @desc    Mark message as read
  * @access  Private
  */
@@ -47,10 +47,9 @@ router.put(
 );
 
 /**
- * @route   GET /api/chat/unread-count
+ * @route   GET /api/orders/messages/unread-count
  * @desc    Get unread message count
  * @access  Private
  */
-router.get("/unread-count", chatController.getUnreadCount);
-
+router.get("/messages/unread-count", chatController.getUnreadCount);
 export default router;

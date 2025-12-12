@@ -31,6 +31,6 @@ export interface AutoBid {
   userId: string;
   maxAmount: string; // Decimal as string
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
