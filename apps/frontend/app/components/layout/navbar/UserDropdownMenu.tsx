@@ -1,5 +1,14 @@
 import type { UserAuthData } from "@repo/shared-types";
-import { ChartColumn, ChevronDown, LogOut, User } from "lucide-react";
+import {
+  ChartColumn,
+  ChevronDown,
+  LogOut,
+  User,
+  LayoutDashboard,
+  Gavel,
+  Heart,
+  TrendingUp,
+} from "lucide-react";
 import { Link } from "react-router";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,15 +21,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import {
-  ACCOUNT_ROUTES,
-  ADMIN_ROUTES,
-  SELLER_ROUTES,
-} from "@/constants/routes";
+import { ADMIN_ROUTES, SELLER_ROUTES } from "@/constants/routes";
+import { ACCOUNT_SIDEBAR_ITEMS } from "@/constants/sidebars";
 
 type UserDropdownMenuProps = {
   user: UserAuthData;
   onLogout: () => Promise<void>;
+};
+
+const iconMap: Record<
+  string,
+  React.ComponentType<React.SVGProps<SVGSVGElement>>
+> = {
+  "Hồ sơ cá nhân": User,
+  "Tổng quan": LayoutDashboard,
+  "Lịch sử đấu giá": Gavel,
+  "Danh sách theo dõi": Heart,
+  "Nâng cấp tài khoản": TrendingUp,
 };
 
 const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
@@ -62,31 +79,43 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to={ACCOUNT_ROUTES.PROFILE}>
-            <User />
-            Hồ sơ
-          </Link>
-        </DropdownMenuItem>
+        {ACCOUNT_SIDEBAR_ITEMS.map((it) => {
+          const Icon = iconMap[it.title];
+
+          if (user.role !== "BIDDER" && it.title === "Nâng cấp tài khoản") {
+            return null;
+          }
+
+          return (
+            <DropdownMenuItem asChild key={it.title}>
+              <Link to={it.url}>
+                {Icon && <Icon className="size-4" />}
+                {it.title}
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
         {user.role === "SELLER" && (
           <DropdownMenuItem asChild>
             <Link to={SELLER_ROUTES.DASHBOARD}>
-              <ChartColumn className="size-5" />
-              Bảng điều khiển
+              <ChartColumn className="size-4" />
+              Thống kê{" "}
+              <span className="font-semibold text-nowrap">(Người bán)</span>
             </Link>
           </DropdownMenuItem>
         )}
         {user.role === "ADMIN" && (
           <DropdownMenuItem asChild>
             <Link to={ADMIN_ROUTES.DASHBOARD}>
-              <ChartColumn className="size-5" />
-              Bảng điều khiển
+              <ChartColumn className="size-4" />
+              Thống kê{" "}
+              <span className="font-semibold text-nowrap">(Quản trị)</span>
             </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout} variant="destructive">
-          <LogOut />
+          <LogOut className="size-4" />
           Đăng xuất
         </DropdownMenuItem>
       </DropdownMenuContent>
