@@ -142,8 +142,6 @@
 │   Browser   │
 │ - Cookies   │
 │   cleared   │
-│ - localStorage user │
-│   cleared   │
 └─────────────┘
 ```
 
