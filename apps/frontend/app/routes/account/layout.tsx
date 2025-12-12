@@ -14,12 +14,8 @@ export default function AccountLayout() {
     <Outlet />
 =======
     <ProtectedRoute>
-      <div className="sidebar-layout">
-        <ProfileSidebar />
-        <div className="container">
-          <Outlet />
-        </div>
-      </div>
+      {/* Add Header/Sidebar specific to this layout */}
+      <Outlet />
     </ProtectedRoute>
 >>>>>>> 31691fe (feat(layout): add layout components including navigation and sidebars (#11))
   );
