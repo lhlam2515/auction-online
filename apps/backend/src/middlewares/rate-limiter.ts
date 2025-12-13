@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { rateLimit } from "express-rate-limit";
+import { ipKeyGenerator, rateLimit } from "express-rate-limit";
 
 /**
  * Rate limiting configurations for different endpoints
@@ -18,7 +18,7 @@ export const authRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) =>
-    req.ip || req.socket.remoteAddress || "unknown",
+    ipKeyGenerator(req.ip!) || req.socket.remoteAddress || "unknown",
 });
 
 // Password reset rate limiter - moderate limits
@@ -33,7 +33,7 @@ export const passwordResetRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) =>
-    req.ip || req.socket.remoteAddress || "unknown",
+    ipKeyGenerator(req.ip!) || req.socket.remoteAddress || "unknown",
 });
 
 // General API rate limiter - loose limits for other endpoints
@@ -48,5 +48,5 @@ export const apiRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) =>
-    req.ip || req.socket.remoteAddress || "unknown",
+    ipKeyGenerator(req.ip!) || req.socket.remoteAddress || "unknown",
 });
