@@ -6,54 +6,6 @@ import type { ApiResponse, PaginatedResponse } from "@repo/shared-types";
 export type { ApiResponse, PaginatedResponse };
 
 /**
- * Frontend-specific success response structure
- * Compatible with shared ApiResponse
- */
-export interface SuccessResponse<T = unknown> {
-  success: true;
-  data: T;
-  message?: string;
-}
-
-/**
- * Frontend-specific error response structure
- * Compatible with shared ApiResponse
- */
-export interface ErrorResponse {
-  success: false;
-  error: {
-    message: string;
-    code: string;
-    statusCode: number;
-    details?: unknown;
-  };
-}
-
-/**
- * Legacy pagination types - kept for backward compatibility
- * @deprecated Use PaginatedResponse from @repo/shared-types instead
- */
-export interface PaginationMeta {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-}
-
-/**
- * @deprecated Use PaginatedResponse from @repo/shared-types instead
- */
-export interface Paginated<T> {
-  items: T[];
-  pagination: PaginationMeta;
-}
-
-/**
- * @deprecated Use PaginatedResponse from @repo/shared-types instead
- */
-export type PaginatedSuccessResponse<T> = SuccessResponse<Paginated<T>>;
-
-/**
  * API Error class for consistent error handling
  * Used throughout the frontend for error management
  */

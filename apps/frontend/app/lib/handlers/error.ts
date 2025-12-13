@@ -1,8 +1,9 @@
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { ZodError } from "zod";
-import { AxiosError } from "axios";
-import { ApiError } from "@/types/api";
+
 import logger from "@/lib/logger";
+import { ApiError } from "@/types/api";
 
 /**
  * Error response structure for consistent error handling
