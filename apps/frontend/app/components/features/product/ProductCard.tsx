@@ -13,6 +13,7 @@ import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { APP_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import { cn } from "@/lib/utils";
@@ -124,14 +125,20 @@ const ProductCard = ({
   };
 
   return (
-    <Link to={`/product/${id}`} className={cn("block h-full", className)}>
-      <Card className="group relative w-full max-w-[300px] min-w-[250px] overflow-hidden border py-0 transition-all duration-300 hover:shadow-lg">
+    <Link
+      to={APP_ROUTES.PRODUCT(id)}
+      className={cn(
+        "block h-full w-full max-w-[300px] min-w-[250px]",
+        className
+      )}
+    >
+      <Card className="group relative mx-auto overflow-hidden border py-0 transition-all duration-300 hover:shadow-lg">
         {/* 1. Phần Ảnh & Badge */}
-        <div className="relative aspect-square overflow-hidden bg-gray-100">
+        <div className="relative overflow-hidden bg-gray-100">
           <img
             src={mainImageUrl ?? "/placeholder.png"}
             alt={name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="aspect-square h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
           {/* Badge góc trái */}
@@ -177,35 +184,35 @@ const ProductCard = ({
                 {timeDisplay.text}
               </div>
             </div>
-          </div>
 
-          {/* Giá tiền - Font to để handle số tiền lớn */}
-          <div className="text-accent text-2xl font-bold tracking-tight">
-            {formatCurrency(currentPrice ?? "0")}
-          </div>
-
-          {/* Thông tin phụ: Số lượt bid & Giá mua ngay */}
-          <div className="mt-1 flex items-center justify-between text-sm text-gray-600">
-            <div className="flex items-center">
-              <Gavel className="mr-1.5 h-4 w-4 text-gray-400" />
-              <span>{bidCount} lượt</span>
+            {/* Giá tiền - Font to để handle số tiền lớn */}
+            <div className="text-accent text-2xl font-bold tracking-tight">
+              {formatCurrency(currentPrice ?? "0")}
             </div>
 
-            {buyNowPrice && (
-              <div className="flex items-center text-gray-500">
-                <ShoppingCart className="mr-1.5 h-4 w-4 text-gray-400" />
-                <span className="text-xs font-bold">
-                  Mua ngay:{" "}
-                  <span className="text-red-500">
-                    {formatCurrency(buyNowPrice)}
-                  </span>
-                </span>
+            {/* Thông tin phụ: Số lượt bid & Giá mua ngay */}
+            <div className="mt-1 flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center">
+                <Gavel className="mr-1.5 h-4 w-4 text-gray-400" />
+                <span>{bidCount} lượt</span>
               </div>
-            )}
+
+              {buyNowPrice && (
+                <div className="flex items-center text-gray-500">
+                  <ShoppingCart className="mr-1.5 h-4 w-4 text-gray-400" />
+                  <span className="text-xs font-bold">
+                    Mua ngay:{" "}
+                    <span className="text-red-500">
+                      {formatCurrency(buyNowPrice)}
+                    </span>
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t bg-gray-50 px-4 py-3 text-xs text-gray-500">
+        <CardFooter className="flex items-center justify-between border-t bg-gray-50 px-4 text-xs text-gray-500 [.border-t]:py-3">
           <div className="flex items-center gap-2">
             {/* Avatar */}
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600">
@@ -247,11 +254,16 @@ const ProductCard = ({
  */
 export const ProductCardSkeleton = ({ className }: { className?: string }) => {
   return (
-    <div className={cn("block h-full", className)}>
-      <Card className="relative w-full max-w-[300px] min-w-[250px] animate-pulse overflow-hidden border py-0">
+    <div
+      className={cn(
+        "block h-full w-full max-w-[300px] min-w-[250px]",
+        className
+      )}
+    >
+      <Card className="relative mx-auto animate-pulse gap-3 overflow-hidden border py-0">
         {/* Phần ảnh skeleton */}
-        <div className="relative aspect-square overflow-hidden bg-gray-200">
-          <div className="h-full w-full bg-gray-300" />
+        <div className="relative overflow-hidden bg-gray-200">
+          <div className="aspect-square h-full w-full bg-gray-300" />
 
           {/* Skeleton button */}
           <div className="absolute top-3 right-3 h-10 w-10 rounded-full bg-gray-300" />
@@ -281,7 +293,7 @@ export const ProductCardSkeleton = ({ className }: { className?: string }) => {
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t bg-gray-50 px-4 py-3">
+        <CardFooter className="flex items-center justify-between border-t bg-gray-50 px-4 [.border-t]:py-3">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-gray-300" />
             <div className="space-y-1">

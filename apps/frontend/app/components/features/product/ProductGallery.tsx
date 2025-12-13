@@ -2,10 +2,10 @@ import type { ProductListing } from "@repo/shared-types";
 
 import {
   Carousel,
-  CarouselContent,
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  CarouselContent,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 
@@ -30,21 +30,18 @@ const ProductGallery = ({
   const renderContent = () => {
     if (loading) {
       return Array.from({ length: 5 }, (_, index) => (
-        <CarouselItem
-          key={`skeleton-${index}`}
-          className="sm:basis-1/2 lg:basis-1/3"
-        >
-          <div className="p-1">
-            <ProductCardSkeleton />
+        <CarouselItem key={`skeleton-${index}`} className="lg:basis-1/3">
+          <div>
+            <ProductCardSkeleton className="mx-auto" />
           </div>
         </CarouselItem>
       ));
     }
 
     return products.map((product) => (
-      <CarouselItem key={product.id} className="sm:basis-1/2 lg:basis-1/3">
-        <div className="p-1">
-          <ProductCard product={product} />
+      <CarouselItem key={product.id} className="lg:basis-1/3">
+        <div>
+          <ProductCard product={product} className="mx-auto" />
         </div>
       </CarouselItem>
     ));
@@ -55,11 +52,11 @@ const ProductGallery = ({
       opts={{
         align: "start",
       }}
-      className={cn("w-3/4 max-w-7xl", className)}
+      className={cn("max-w-7xl", className)}
     >
       <CarouselContent>{renderContent()}</CarouselContent>
-      <CarouselPrevious variant="default" />
-      <CarouselNext variant="default" />
+      <CarouselPrevious variant="default" className="left-0" />
+      <CarouselNext variant="default" className="right-0" />
     </Carousel>
   );
 };

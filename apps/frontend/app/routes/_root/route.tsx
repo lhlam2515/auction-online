@@ -41,8 +41,8 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-slate-50">
-      <section className="bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 py-16 text-white">
+    <div className="flex min-h-screen w-full flex-col items-center bg-slate-50">
+      <section className="w-full bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 py-16 text-white">
         <div className="container mx-auto px-4 text-center">
           <h1 className="mb-4 text-4xl font-bold md:text-5xl">
             Chào mừng đến với Online Auction
@@ -61,7 +61,7 @@ export default function HomePage() {
 
       {error && <p className="my-8 text-center text-red-600">{error}</p>}
       {(loading || topListing) && (
-        <section>
+        <section className="container">
           <div className="py-12">
             <h2 className="mb-1 text-center text-2xl font-bold text-slate-900 md:text-3xl">
               Sắp Kết Thúc
@@ -75,7 +75,7 @@ export default function HomePage() {
               loading={loading}
             />
           </div>
-          <div className="bg-white py-12">
+          <div className="py-12">
             <h2 className="mb-1 text-center text-2xl font-bold text-slate-900 md:text-3xl">
               Đấu Giá Sôi Động
             </h2>
