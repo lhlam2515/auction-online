@@ -21,7 +21,8 @@ export class UserService {
     userId: string,
     fullName: string | null,
     address: string | null,
-    avatarUrl: string | null
+    avatarUrl: string | null,
+    email: string | null
   ) {
     const existingUser = await this.getById(userId); // ensure user exists
 
@@ -29,6 +30,7 @@ export class UserService {
       fullName: fullName || existingUser.fullName,
       address: address || existingUser.address,
       avatarUrl: avatarUrl || existingUser.avatarUrl,
+      email: email || existingUser.email,
     };
 
     const [updated] = await db

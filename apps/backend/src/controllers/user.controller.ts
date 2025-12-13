@@ -28,14 +28,16 @@ export const getProfile = asyncHandler(
 
 export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { fullName, address, avatarUrl } = req.body as UpdateProfileRequest;
+    const { fullName, address, avatarUrl, email } =
+      req.body as UpdateProfileRequest;
     const { id: userId } = req.user!;
 
     const updatedUser = await userService.updateProfile(
       userId,
       fullName,
       address,
-      avatarUrl
+      avatarUrl,
+      email
     );
 
     return ResponseHandler.sendSuccess<User>(res, updatedUser);

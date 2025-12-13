@@ -5,7 +5,8 @@
 export interface UpdateProfileRequest {
   fullName: string | null;
   address: string | null;
-  avatarUrl: string | null;
+  //avatarUrl: string | null;
+  email: string | null;
 }
 
 /**
