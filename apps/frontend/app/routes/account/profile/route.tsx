@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 import type { Route } from "./+types/route";
+import UserProfileForm from "../../../components/features/user/UserProfileForm";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -10,19 +13,37 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
-
 export default function UserProfilePage() {
+  const [sellerRequestStatus, setSellerRequestStatus] = useState<
+    "none" | "pending"
+  >("none");
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  const handleSellerRequest = () => {
+    setSellerRequestStatus("pending");
+  };
+
   return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">User Profile</h1>
-      <p>Content for User Profile goes here.</p>
+    <div className="min-h-screen bg-slate-50">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="mb-2 text-3xl font-bold text-slate-900">
+            Cài Đặt Tài Khoản
+          </h1>
+          <p className="text-slate-600">
+            Quản lý thông tin cá nhân và cài đặt bảo mật
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Section 1: Personal Info */}
+          <UserProfileForm />
+          {/* Section 2: Security */}
+
+          {/* Section 3: Upgrade to Seller (UC-B05) */}
+        </div>
+      </div>
     </div>
   );
 }
