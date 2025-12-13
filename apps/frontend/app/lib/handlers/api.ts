@@ -1,6 +1,8 @@
 import axios, { AxiosError } from "axios";
 import type { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
+import { STORAGE_KEYS } from "@/constants/api";
+
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
@@ -33,9 +35,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
+    const isAuthenticated = !!localStorage.getItem(STORAGE_KEYS.USER);
 
     // Handle 401 - try refresh token
     if (
+      isAuthenticated &&
       error.response?.status === 401 &&
       originalRequest &&
       !originalRequest._retry
