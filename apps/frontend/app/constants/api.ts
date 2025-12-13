@@ -104,12 +104,10 @@ export const RATING_VALUES = [1, 2, 3, 4, 5] as const;
 
 // Sort Options
 export const SORT_OPTIONS = {
-  PRICE_ASC: { value: "price:asc", label: "Giá: Thấp đến Cao" },
-  PRICE_DESC: { value: "price:desc", label: "Giá: Cao đến Thấp" },
-  TIME_ASC: { value: "time:asc", label: "Thời gian: Cũ nhất" },
-  TIME_DESC: { value: "time:desc", label: "Thời gian: Mới nhất" },
-  ENDING_SOON: { value: "endingSoon:asc", label: "Sắp kết thúc" },
-  BIDS_DESC: { value: "bids:desc", label: "Nhiều lượt đấu giá" },
+  PRICE_ASC: { value: "price_asc", label: "Giá: Thấp đến Cao" },
+  PRICE_DESC: { value: "price_desc", label: "Giá: Cao đến Thấp" },
+  NEWEST: { value: "newest", label: "Mới nhất" },
+  ENDING_SOON: { value: "ending_soon", label: "Sắp kết thúc" },
 } as const;
 
 // Error Messages
