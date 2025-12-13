@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import type { Route } from "./+types/route";
+import ChangePasswordForm from "../../../components/features/user/ChangePasswordForm";
 import UserProfileForm from "../../../components/features/user/UserProfileForm";
-
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "User Profile - Online Auction" },
@@ -24,25 +24,23 @@ export default function UserProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-slate-900">
-            Cài Đặt Tài Khoản
-          </h1>
-          <p className="text-slate-600">
-            Quản lý thông tin cá nhân và cài đặt bảo mật
-          </p>
-        </div>
+    <div className="flex flex-col">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="mb-2 text-3xl font-bold text-slate-900">
+          Cài Đặt Tài Khoản
+        </h1>
+        <p className="text-slate-600">
+          Quản lý thông tin cá nhân và cài đặt bảo mật
+        </p>
+      </div>
 
-        <div className="space-y-6">
-          {/* Section 1: Personal Info */}
-          <UserProfileForm />
-          {/* Section 2: Security */}
-
-          {/* Section 3: Upgrade to Seller (UC-B05) */}
-        </div>
+      <div className="space-y-6">
+        {/* Section 1: Personal Info */}
+        <UserProfileForm />
+        {/* Section 2: Security */}
+        <ChangePasswordForm />
+        {/* Section 3: Upgrade to Seller (UC-B05) */}
       </div>
     </div>
   );

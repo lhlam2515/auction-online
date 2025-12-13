@@ -74,12 +74,11 @@ const UserProfileForm = () => {
       }
     } catch (error) {
       if (isAxiosError(error)) {
-        // Và đây là cách chúng ta lấy nó ra để hiển thị
         const backendMessage =
           error.response?.data?.message || error.response?.data?.stack;
         const errorMessage = backendMessage || error.message;
 
-        toast.error(errorMessage); // Dòng này bây giờ sẽ hiển thị lỗi chi tiết
+        toast.error(errorMessage);
       } else {
         toast.error("Lỗi không xác định");
       }
@@ -88,35 +87,8 @@ const UserProfileForm = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>Thông Tin Cá Nhân</CardTitle>
-          </div>
-          <CardDescription>Cập nhật thông tin cá nhân của bạn</CardDescription>
-        </CardHeader>
+      <Card className="grid grid-cols-2">
         <CardContent className="space-y-6">
-          {/* Avatar Section */}
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src="" />
-              <AvatarFallback className="bg-slate-900 text-xl text-white">
-                NA
-              </AvatarFallback>
-            </Avatar>
-
-            <Button
-              className="text-white hover:bg-slate-500"
-              variant="outline"
-              size="sm"
-            >
-              <Camera className="mr-2 h-4 w-4" />
-              Thay Đổi Ảnh
-            </Button>
-          </div>
-
-          <Separator />
-
           {/* Personal Info Form */}
           <div className="grid gap-4">
             <div className="grid gap-2">
@@ -157,6 +129,34 @@ const UserProfileForm = () => {
             Lưu Thay Đổi
           </Button>
         </CardContent>
+        <CardHeader>
+          {/* <div className="flex items-center gap-2"> */}
+
+          {/* //</div> */}
+          <div className="flex flex-col items-center gap-2">
+            <CardTitle className="text-2xl">Thông Tin Cá Nhân</CardTitle>
+            <CardDescription className="text-xl">
+              Cập nhật thông tin cá nhân của bạn
+            </CardDescription>
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <Avatar className="h-35 w-35">
+              <AvatarImage src="" />
+              <AvatarFallback className="bg-slate-900 text-xl text-white">
+                NA
+              </AvatarFallback>
+            </Avatar>
+
+            <Button
+              className="bg-slate-900 text-white hover:bg-slate-500"
+              variant="outline"
+              size="sm"
+            >
+              <Camera className="mr-2 h-4 w-4" />
+              Thay Đổi Ảnh
+            </Button>
+          </div>
+        </CardHeader>
       </Card>
     </>
   );

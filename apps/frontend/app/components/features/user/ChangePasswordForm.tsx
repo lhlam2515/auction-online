@@ -1,4 +1,7 @@
+import { isAxiosError } from "axios";
 import { Lock } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
+import { api } from "@/lib/api-layer";
 
 // TODO: Define props based on SRS requirements
 type ChangePasswordFormProps = {
@@ -23,6 +28,33 @@ type ChangePasswordFormProps = {
  */
 const ChangePasswordForm = () => {
   //= (props: ChangePasswordFormProps) => {
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [conPassword, setConPassword] = useState("");
+
+  const handleChange = async () => {
+    try {
+      const request = await api.users.changePassword({
+        currentPassword: oldPassword,
+        newPassword: newPassword,
+      });
+      if (request?.success && request.data) {
+        toast.success(SUCCESS_MESSAGES.CHANGE_PASSWORD);
+      } else {
+        toast.error(request?.message || ERROR_MESSAGES.SERVER_ERROR);
+      }
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const backendMessage =
+          error.response?.data?.message || error.response?.data?.stack;
+        const errorMessage = backendMessage || error.message;
+
+        toast.error(errorMessage);
+      } else {
+        toast.error("Lỗi không xác định");
+      }
+    }
+  };
   return (
     // <div className={props.className}>
     // {/* Implement logic for ChangePasswordForm here */}
@@ -42,6 +74,7 @@ const ChangePasswordForm = () => {
               id="old-password"
               type="password"
               placeholder="Nhập mật khẩu cũ"
+              onChange={(e) => setOldPassword(e.target.value)}
             />
           </div>
 
@@ -51,6 +84,7 @@ const ChangePasswordForm = () => {
               id="new-password"
               type="password"
               placeholder="Nhập mật khẩu mới"
+              onChange={(e) => setNewPassword(e.target.value)}
             />
           </div>
 
@@ -60,10 +94,14 @@ const ChangePasswordForm = () => {
               id="confirm-password"
               type="password"
               placeholder="Nhập lại mật khẩu mới"
+              onChange={(e) => setConPassword(e.target.value)}
             />
           </div>
 
-          <Button className="bg-slate-900 hover:bg-slate-800">
+          <Button
+            className="bg-slate-900 hover:bg-slate-500"
+            onClick={handleChange}
+          >
             Đổi Mật Khẩu
           </Button>
         </CardContent>
