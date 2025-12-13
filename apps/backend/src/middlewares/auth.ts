@@ -29,9 +29,7 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   try {
-    // SECURITY: Read token from httpOnly cookie
-    // This prevents XSS attacks from stealing the token via Authorization header
-    const token = req.cookies.accessToken;
+    const token = req.headers.authorization?.replace("Bearer ", "");
 
     if (!token) {
       throw new UnauthorizedError("No token provided");
