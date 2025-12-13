@@ -16,13 +16,16 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  // Enable credentials to automatically send/receive httpOnly cookies
-  // This ensures the accessToken stored in httpOnly cookies is sent with every request
   withCredentials: true,
 });
 
+// Request interceptor - attach auth token
 apiClient.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -43,19 +46,20 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Token is automatically sent via httpOnly cookies
-        // Calling refresh endpoint to get new accessToken in httpOnly cookie
-        await axios.post(
+        const response = await axios.post(
           `${API_BASE_URL}/auth/refresh-token`,
           {},
           { withCredentials: true }
         );
 
-        // Retry original request - accessToken is now in the httpOnly cookie
+        const { accessToken } = response.data.data;
+        localStorage.setItem("accessToken", accessToken);
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, redirect to login
-        // SECURITY: No need to clear localStorage as we're not using it anymore
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
@@ -64,3 +68,26 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Helper to check if user is authenticated
+export function isAuthenticated(): boolean {
+  return !!localStorage.getItem("accessToken");
+}
+
+// Helper to get current user from localStorage
+export function getCurrentUser() {
+  const userStr = localStorage.getItem("user");
+  if (!userStr) return null;
+
+  try {
+    return JSON.parse(userStr);
+  } catch {
+    return null;
+  }
+}
+
+// Helper to clear auth data
+export function clearAuth() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+}
