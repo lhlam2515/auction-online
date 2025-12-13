@@ -1,5 +1,6 @@
 import type {
   Order,
+  OrderWithDetails,
   OrderPayment,
   GetOrdersParams,
   UpdateShippingInfoRequest,
@@ -49,7 +50,7 @@ export const getMyOrders = asyncHandler(
       orders.length
     );
 
-    return ResponseHandler.sendSuccess<PaginatedResponse<Order>>(
+    return ResponseHandler.sendSuccess<PaginatedResponse<OrderWithDetails>>(
       res,
       paginatedOrders
     );
@@ -69,7 +70,7 @@ export const getOrderDetails = asyncHandler(
       throw new ForbiddenError("Access to this order is denied");
     }
 
-    return ResponseHandler.sendSuccess<Order>(res, order);
+    return ResponseHandler.sendSuccess<OrderWithDetails>(res, order);
   }
 );
 
