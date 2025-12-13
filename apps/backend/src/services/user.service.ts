@@ -3,7 +3,7 @@ import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase } from "@/config/supabase";
-import { users, watchLists, upgradeRequests, bids } from "@/models";
+import { users, watchLists, upgradeRequests, bids, products } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
 export class UserService {
@@ -64,7 +64,7 @@ export class UserService {
     const existingUser = await this.getById(userId); // ensure user exists
 
     const existingProduct = await db.query.products.findFirst({
-      where: eq(watchLists.productId, productId),
+      where: eq(products.id, productId),
     });
 
     if (!existingProduct) {
