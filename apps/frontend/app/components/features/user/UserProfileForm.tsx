@@ -67,7 +67,7 @@ const UserProfileForm = () => {
         avatarUrl: "",
         address: address,
       });
-      if (data?.success && data.data) {
+      if (data?.success) {
         toast.success(SUCCESS_MESSAGES.UPDATE_PROFILE);
       } else {
         toast.error(data?.message || ERROR_MESSAGES.SERVER_ERROR);

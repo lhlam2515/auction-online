@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import type z from "zod";
+
+import { api } from "@/lib/api-layer";
+import type { loginSchema } from "@/lib/validations/auth.validation";
+import { changePassword } from "@/lib/validations/user.validation";
 
 import type { Route } from "./+types/route";
 import ChangePasswordForm from "../../../components/features/user/ChangePasswordForm";
 import UserProfileForm from "../../../components/features/user/UserProfileForm";
+
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "User Profile - Online Auction" },
@@ -14,15 +20,16 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function UserProfilePage() {
-  const [sellerRequestStatus, setSellerRequestStatus] = useState<
-    "none" | "pending"
-  >("none");
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
-
-  const handleSellerRequest = () => {
-    setSellerRequestStatus("pending");
-  };
-
+  const handleSubmit = useCallback(
+    async (data: z.infer<typeof changePassword>) => {
+      const result = await api.users.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+      return result;
+    },
+    []
+  );
   return (
     <div className="flex flex-col">
       {/* Header */}
@@ -39,7 +46,15 @@ export default function UserProfilePage() {
         {/* Section 1: Personal Info */}
         <UserProfileForm />
         {/* Section 2: Security */}
-        <ChangePasswordForm />
+        <ChangePasswordForm
+          schema={changePassword}
+          defaultValues={{
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          }}
+          onSubmit={handleSubmit}
+        />
         {/* Section 3: Upgrade to Seller (UC-B05) */}
       </div>
     </div>

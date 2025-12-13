@@ -1,113 +1,256 @@
-import { isAxiosError } from "axios";
-import { Lock } from "lucide-react";
-import { useState } from "react";
+// import { isAxiosError } from "axios";
+// import { Lock } from "lucide-react";
+// import { useState } from "react";
+// import { toast } from "sonner";
+
+// import { Button } from "@/components/ui/button";
+// import {
+//   Card,
+//   CardHeader,
+//   CardTitle,
+//   CardDescription,
+//   CardContent,
+// } from "@/components/ui/card";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
+// import { api } from "@/lib/api-layer";
+
+// // TODO: Define props based on SRS requirements
+// type ChangePasswordFormProps = {
+//   className?: string;
+//   [key: string]: any;
+// };
+
+// /**
+//  * Component: ChangePasswordForm
+//  * Generated automatically based on Project Auction SRS.
+//  */
+// const ChangePasswordForm = () => {
+//   //= (props: ChangePasswordFormProps) => {
+//   const [oldPassword, setOldPassword] = useState("");
+//   const [newPassword, setNewPassword] = useState("");
+//   const [conPassword, setConPassword] = useState("");
+
+//   const handleChange = async () => {
+//     if (newPassword !== conPassword) {
+//       toast.error("Mật khẩu mới không khớp");
+//     } else {
+//       try {
+//         const request = await api.users.changePassword({
+//           currentPassword: oldPassword,
+//           newPassword: newPassword,
+//         });
+//         if (request?.success && request.data) {
+//           toast.success(SUCCESS_MESSAGES.CHANGE_PASSWORD);
+//         } else {
+//           toast.error(request?.message || ERROR_MESSAGES.SERVER_ERROR);
+//         }
+//       } catch (error) {
+//         if (isAxiosError(error)) {
+//           const backendMessage =
+//             error.response?.data?.message || error.response?.data?.stack;
+//           const errorMessage = backendMessage || error.message;
+
+//           toast.error(errorMessage);
+//         } else {
+//           toast.error("Lỗi không xác định");
+//         }
+//       }
+//     }
+//   };
+
+//   return (
+//     // <div className={props.className}>
+//     // {/* Implement logic for ChangePasswordForm here */}
+//     <>
+//       <Card>
+//         <CardHeader>
+//           <div className="flex items-center gap-2">
+//             <Lock className="h-5 w-5 text-slate-900" />
+//             <CardTitle>Bảo Mật</CardTitle>
+//           </div>
+//           <CardDescription>Thay đổi mật khẩu của bạn</CardDescription>
+//         </CardHeader>
+//         <CardContent className="space-y-4">
+//           <div className="grid gap-2">
+//             <Label htmlFor="old-password">Mật Khẩu Cũ</Label>
+//             <Input
+//               id="old-password"
+//               type="password"
+//               placeholder="Nhập mật khẩu cũ"
+//               onChange={(e) => setOldPassword(e.target.value)}
+//             />
+//           </div>
+
+//           <div className="grid gap-2">
+//             <Label htmlFor="new-password">Mật Khẩu Mới</Label>
+//             <Input
+//               id="new-password"
+//               type="password"
+//               placeholder="Nhập mật khẩu mới"
+//               onChange={(e) => setNewPassword(e.target.value)}
+//             />
+//           </div>
+
+//           <div className="grid gap-2">
+//             <Label htmlFor="confirm-password">Xác Nhận Mật Khẩu</Label>
+//             <Input
+//               id="confirm-password"
+//               type="password"
+//               placeholder="Nhập lại mật khẩu mới"
+//               onChange={(e) => setConPassword(e.target.value)}
+//             />
+//           </div>
+
+//           <Button
+//             className="bg-slate-900 hover:bg-slate-500"
+//             onClick={handleChange}
+//           >
+//             Đổi Mật Khẩu
+//           </Button>
+//         </CardContent>
+//       </Card>
+//     </>
+//     // </div>
+//   );
+// };
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { ApiResponse } from "@repo/shared-types";
+import {
+  Controller,
+  type DefaultValues,
+  type FieldValues,
+  type Path,
+  type SubmitHandler,
+  useForm,
+} from "react-hook-form";
 import { toast } from "sonner";
+import { ZodType } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldError,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
-import { api } from "@/lib/api-layer";
 
-// TODO: Define props based on SRS requirements
-type ChangePasswordFormProps = {
-  className?: string;
-  [key: string]: any;
-};
+interface AuthFormProps<T extends FieldValues> {
+  schema: ZodType<T>;
+  defaultValues: T;
+  onSubmit: (data: T) => Promise<ApiResponse>;
+}
 
-/**
- * Component: ChangePasswordForm
- * Generated automatically based on Project Auction SRS.
- */
-const ChangePasswordForm = () => {
-  //= (props: ChangePasswordFormProps) => {
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [conPassword, setConPassword] = useState("");
+const ChangePasswordForm = <T extends FieldValues>({
+  schema,
+  defaultValues,
+  onSubmit,
+}: AuthFormProps<T>) => {
+  const form = useForm<T>({
+    // Type assertion needed for generic Zod schema with react-hook-form
+    // @ts-expect-error - Generic type constraint incompatibility between Zod and react-hook-form
+    resolver: zodResolver(schema),
+    defaultValues: defaultValues as DefaultValues<T>,
+  });
 
-  const handleChange = async () => {
+  const handleSubmit: SubmitHandler<T> = async (data) => {
     try {
-      const request = await api.users.changePassword({
-        currentPassword: oldPassword,
-        newPassword: newPassword,
-      });
-      if (request?.success && request.data) {
+      const result = await onSubmit(data);
+
+      if (result?.success) {
         toast.success(SUCCESS_MESSAGES.CHANGE_PASSWORD);
       } else {
-        toast.error(request?.message || ERROR_MESSAGES.SERVER_ERROR);
+        toast.error(result?.message || ERROR_MESSAGES.SERVER_ERROR);
       }
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const backendMessage =
-          error.response?.data?.message || error.response?.data?.stack;
-        const errorMessage = backendMessage || error.message;
-
-        toast.error(errorMessage);
-      } else {
-        toast.error("Lỗi không xác định");
-      }
+    } catch (error: unknown) {
+      toast.error((error as Error)?.message || ERROR_MESSAGES.UNKNOWN_ERROR);
     }
   };
+
+  const formatFieldName = (fieldName: string): string => {
+    const nameMap: Record<string, string> = {
+      currentPassword: "Mật khẩu cũ",
+      newPassword: "Mật khẩu mới",
+      confirmPassword: "Xác nhận Mật khẩu",
+    };
+
+    return (
+      nameMap[fieldName] ||
+      fieldName.charAt(0).toUpperCase() + fieldName.slice(1)
+    );
+  };
+
+  const getInputType = (fieldName: string): string => {
+    if (fieldName.toLowerCase().includes("password")) return "password";
+
+    return "text";
+  };
+
   return (
-    // <div className={props.className}>
-    // {/* Implement logic for ChangePasswordForm here */}
-    <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-slate-900" />
-            <CardTitle>Bảo Mật</CardTitle>
-          </div>
-          <CardDescription>Thay đổi mật khẩu của bạn</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="old-password">Mật Khẩu Cũ</Label>
-            <Input
-              id="old-password"
-              type="password"
-              placeholder="Nhập mật khẩu cũ"
-              onChange={(e) => setOldPassword(e.target.value)}
-            />
-          </div>
+    <Card>
+      <form
+        id="changePassword"
+        // @ts-expect-error - Generic type constraint between form and handler
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-8 p-4"
+      >
+        <div className="flex flex-col items-end gap-1">
+          <FieldGroup className="gap-4">
+            {Object.keys(defaultValues).map((field) => (
+              <Controller
+                key={field}
+                control={form.control}
+                name={field as Path<T>}
+                render={({ field, fieldState }) => (
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="flex w-full flex-col gap-2"
+                  >
+                    <FieldLabel
+                      htmlFor={field.name}
+                      className="text-base font-semibold"
+                    >
+                      {formatFieldName(field.name)}
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type={getInputType(field.name)}
+                      className="min-h-12 border text-base"
+                      aria-invalid={fieldState.invalid}
+                      autoComplete={
+                        field.name.includes("password")
+                          ? "current-password"
+                          : "off"
+                      }
+                      required
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            ))}
+          </FieldGroup>
+        </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="new-password">Mật Khẩu Mới</Label>
-            <Input
-              id="new-password"
-              type="password"
-              placeholder="Nhập mật khẩu mới"
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="confirm-password">Xác Nhận Mật Khẩu</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              placeholder="Nhập lại mật khẩu mới"
-              onChange={(e) => setConPassword(e.target.value)}
-            />
-          </div>
-
-          <Button
-            className="bg-slate-900 hover:bg-slate-500"
-            onClick={handleChange}
-          >
-            Đổi Mật Khẩu
-          </Button>
-        </CardContent>
-      </Card>
-    </>
-    // </div>
+        <Button
+          type="submit"
+          className="min-h-12 w-full cursor-pointer text-xl"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting && <Spinner />}
+          {form.formState.isSubmitting ? "Đang đổi mật khẩu" : "Đổi mật khẩu"}
+        </Button>
+      </form>
+    </Card>
   );
 };
 
