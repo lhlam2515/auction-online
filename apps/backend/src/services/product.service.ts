@@ -218,12 +218,6 @@ export class ProductService {
     limit: number,
     userId?: string
   ): Promise<TopListingResponse> {
-    const listings: TopListingResponse = {
-      endingSoon: [],
-      hot: [],
-      highestPrice: [],
-    };
-
     const now = new Date();
 
     // Điều kiện dùng chung cho cả 3 truy vấn
@@ -241,8 +235,6 @@ export class ProductService {
       limit,
     });
 
-    listings.endingSoon = await this.enrichProducts(endingSoonRows, userId);
-
     // --------------------------
     // 2️⃣ Hot products (most bids)
     // --------------------------
@@ -258,41 +250,51 @@ export class ProductService {
       .orderBy(desc(count(bids.id)))
       .limit(limit);
 
-    listings.hot = await this.enrichProducts(
-      hotRows.map((r) => r.product),
-      userId
-    );
+    const hotProducts = hotRows.map((r) => r.product);
 
     // --------------------------
-    // 3️⃣ Highest price (fast + clear)
+    // 3️⃣ Highest price
     // --------------------------
-    const maxBidSub = db
-      .select({
-        productId: bids.productId,
-        maxAmount: sql`MAX(${bids.amount})`.as("maxAmount"),
-      })
-      .from(bids)
-      .where(eq(bids.status, "VALID"))
-      .groupBy(bids.productId)
-      .as("maxBid");
-
     const highestRows = await db
-      .select({
-        product: products,
-        currentPrice: sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`,
-      })
+      .select()
       .from(products)
-      .leftJoin(maxBidSub, eq(maxBidSub.productId, products.id))
       .where(activeAndNotEnded)
       .orderBy(
-        desc(sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`)
+        desc(sql`COALESCE(${products.currentPrice}, ${products.startPrice})`)
       )
       .limit(limit);
 
-    listings.highestPrice = await this.enrichProducts(
-      highestRows.map((r) => r.product),
+    // --------------------------
+    // 4️⃣ Tổng hợp tất cả products và enrich 1 lần
+    // --------------------------
+    const allProducts = new Map<string, Product>();
+
+    // Add all products to map để loại bỏ duplicates
+    endingSoonRows.forEach((p) => allProducts.set(p.id, p));
+    hotProducts.forEach((p) => allProducts.set(p.id, p));
+    highestRows.forEach((p) => allProducts.set(p.id, p));
+
+    // Enrich tất cả products 1 lần
+    const enrichedProducts = await this.enrichProducts(
+      Array.from(allProducts.values()),
       userId
     );
+
+    // Tạo map để lookup enriched products
+    const enrichedMap = new Map(enrichedProducts.map((p) => [p.id, p]));
+
+    // --------------------------
+    // 5️⃣ Phân bổ lại kết quả cho từng category
+    // --------------------------
+    const listings: TopListingResponse = {
+      endingSoon: endingSoonRows
+        .map((p) => enrichedMap.get(p.id)!)
+        .filter(Boolean),
+      hot: hotProducts.map((p) => enrichedMap.get(p.id)!).filter(Boolean),
+      highestPrice: highestRows
+        .map((p) => enrichedMap.get(p.id)!)
+        .filter(Boolean),
+    };
 
     return listings;
   }
