@@ -3,7 +3,7 @@ import { z } from "zod";
 export const updateProfileSchema = z.object({
   fullName: z.string().min(2).optional(),
   address: z.string().optional(),
-  avatarUrl: z.url().optional(),
+  // avatarUrl: z.url().optional(),
 });
 
 export const changePasswordSchema = z.object({

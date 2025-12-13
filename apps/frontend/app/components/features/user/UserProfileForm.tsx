@@ -64,6 +64,7 @@ const UserProfileForm = () => {
       const data = await api.users.updateProfile({
         fullName: fullname,
         email: email,
+        avatarUrl: "",
         address: address,
       });
       if (data?.success && data.data) {
