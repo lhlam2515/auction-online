@@ -1,4 +1,4 @@
-import type { LoginResponse, UserAuthData, UserRole } from "@repo/shared-types";
+import type { LoginResponse, UserRole } from "@repo/shared-types";
 import { eq, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -13,26 +13,6 @@ import {
 import { generateResetToken, getResetTokenExpiry } from "@/utils/jwt";
 
 export class AuthService {
-  async getAuthData(userId: string) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
-    if (!user) {
-      throw new NotFoundError("User not found");
-    }
-
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role as UserRole,
-      avatarUrl: user.avatarUrl || "",
-      accountStatus: user.accountStatus,
-    } as UserAuthData;
-  }
-
   async register(
     email: string,
     password: string,
@@ -172,7 +152,7 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string): Promise<LoginResponse> {
     try {
       // Find user in database (for status check)
       const existingUser = await db.query.users.findFirst({
@@ -222,7 +202,6 @@ export class AuthService {
           accountStatus: existingUser.accountStatus,
         },
         accessToken: authData.session.access_token || "",
-        refreshToken: authData.session.refresh_token || "",
       };
     } catch (error) {
       if (error instanceof UnauthorizedError) {

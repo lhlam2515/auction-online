@@ -1,5 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { ApiResponse, UserAuthData } from "@repo/shared-types";
+import type {
+  ApiResponse,
+  LoginResponse as AuthResponse,
+} from "@repo/shared-types";
 import {
   Controller,
   type DefaultValues,
@@ -68,16 +71,14 @@ const AuthForm = <T extends FieldValues>({
 
         // If login, save auth data
         if (formType === "LOGIN") {
-          const { user } = result.data as { user: UserAuthData };
+          const { user, accessToken } = result.data as AuthResponse;
 
-          if (user.accountStatus === "PENDING_VERIFICATION") {
+          if (user.accountState === "PENDING_VERIFICATION") {
             navigate(AUTH_ROUTES.VERIFY, { replace: true });
             return;
           }
 
-          // login() no longer receives accessToken parameter
-          // Token is now stored in httpOnly cookie by the browser
-          login(user);
+          login(accessToken, user);
 
           const redirectPath = getRedirectAfterLogin(user.role);
           if (from && isAuthRoute(from) === false) {

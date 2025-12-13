@@ -1,8 +1,9 @@
 import type {
   // Auth types
-  UserAuthData,
   RegisterRequest,
   LoginRequest,
+  LoginResponse,
+  RefreshResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
@@ -118,10 +119,6 @@ export const api = {
    */
   auth: {
     /**
-     * Get current authenticated user
-     */
-    me: () => apiCall<{ user: UserAuthData }>("GET", "/auth/me"),
-    /**
      * Register a new user account
      */
     register: (data: RegisterRequest) =>
@@ -131,7 +128,7 @@ export const api = {
      * User login
      */
     login: (data: LoginRequest) =>
-      apiCall<{ user: UserAuthData }>("POST", "/auth/login", data),
+      apiCall<LoginResponse>("POST", "/auth/login", data),
 
     /**
      * User logout
@@ -141,7 +138,7 @@ export const api = {
     /**
      * Refresh authentication token
      */
-    refreshToken: () => apiCall("POST", "/auth/refresh-token"),
+    refreshToken: () => apiCall<RefreshResponse>("POST", "/auth/refresh-token"),
 
     /**
      * Request password reset

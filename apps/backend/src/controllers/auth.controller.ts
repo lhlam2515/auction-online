@@ -1,31 +1,23 @@
 import type {
   RegisterRequest,
   LoginRequest,
+  LoginResponse,
+  RefreshResponse,
   VerifyOtpResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
   ResendOtpRequest,
   VerifyResetOtpRequest,
-  UserAuthData,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
+import { supabase } from "@/config/supabase";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { authService, otpService } from "@/services";
 import { UnauthorizedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
-
-export const getCurrentUser = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { id: userId } = req.user!;
-
-    const user = await authService.getAuthData(userId);
-
-    return ResponseHandler.sendSuccess<{ user: UserAuthData }>(res, { user });
-  }
-);
 
 export const register = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
@@ -48,34 +40,25 @@ export const login = asyncHandler(
     const body = req.body as LoginRequest;
     const { email, password } = body;
 
-    const { user, accessToken, refreshToken } = await authService.login(
-      email,
-      password
-    );
+    const result = await authService.login(email, password);
 
-    if (refreshToken) {
-      res.cookie("refreshToken", refreshToken, {
+    // Set HttpOnly cookie for refresh token
+    const { data: authData } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authData?.session?.refresh_token) {
+      res.cookie("refreshToken", authData.session.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/v1/auth",
+        path: "/api/v1/auth/refresh-token",
       });
     }
 
-    // SECURITY: Store accessToken in httpOnly cookie
-    // This prevents XSS attacks from stealing the token via localStorage
-    if (accessToken) {
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 60 * 60 * 1000, // 1 hour
-        path: "/api/v1",
-      });
-    }
-
-    return ResponseHandler.sendSuccess<{ user: UserAuthData }>(res, { user });
+    return ResponseHandler.sendSuccess<LoginResponse>(res, result);
   }
 );
 
@@ -84,9 +67,6 @@ export const logout = asyncHandler(
     const user = req.user!;
 
     const result = await authService.logout(user.id);
-
-    res.clearCookie("accessToken", { path: "/api/v1" });
-    res.clearCookie("refreshToken", { path: "/api/v1/auth" });
 
     return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
@@ -102,28 +82,20 @@ export const refreshToken = asyncHandler(
 
     const result = await authService.refreshToken(refreshToken);
 
+    // Set new HttpOnly cookie for refresh token
     if (result.refreshToken) {
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/v1/auth",
+        path: "/api/v1/auth/refresh-token",
       });
     }
 
-    if (result.accessToken) {
-      res.cookie("accessToken", result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 60 * 60 * 1000, // 1 hour
-        path: "/api/v1",
-      });
-    }
-
-    // Return empty response - token is in the cookie
-    return ResponseHandler.sendNoContent(res);
+    return ResponseHandler.sendSuccess<RefreshResponse>(res, {
+      accessToken: result.accessToken,
+    });
   }
 );
 
