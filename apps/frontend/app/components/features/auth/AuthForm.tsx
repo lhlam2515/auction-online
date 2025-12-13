@@ -127,7 +127,7 @@ const AuthForm = <T extends FieldValues>({
       id={formId}
       // @ts-expect-error - Generic type constraint between form and handler
       onSubmit={form.handleSubmit(handleSubmit)}
-      className="space-y-8"
+      className={formType === "LOGIN" ? "space-y-6" : "space-y-12"}
     >
       <div className="flex flex-col items-end gap-1">
         <FieldGroup className="gap-4">
@@ -170,18 +170,15 @@ const AuthForm = <T extends FieldValues>({
         </FieldGroup>
 
         {formType === "LOGIN" && (
-          <Link
-            to={AUTH_ROUTES.FORGOT_PASSWORD}
-            className="text-primary text-sm underline underline-offset-2"
-          >
-            Quên mật khẩu?
-          </Link>
+          <Button variant="link" asChild>
+            <Link to={AUTH_ROUTES.FORGOT_PASSWORD}>Quên mật khẩu?</Link>
+          </Button>
         )}
       </div>
 
       <Button
         type="submit"
-        className="min-h-12 w-full cursor-pointer text-xl"
+        className="min-h-12 w-full text-xl"
         disabled={form.formState.isSubmitting}
       >
         {form.formState.isSubmitting && <Spinner />}

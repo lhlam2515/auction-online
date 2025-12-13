@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { Link, Outlet } from "react-router";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -58,15 +59,11 @@ export default function AuthLayout() {
           {["/forgot-password", "/reset-password", "/verify"].includes(
             pathname
           ) && (
-            <Link
-              to={AUTH_ROUTES.LOGIN}
-              className="flex items-center gap-2 self-start"
-            >
-              <ArrowLeft />{" "}
-              <span className="text-primary underline underline-offset-2">
-                Quay lại đăng nhập
-              </span>
-            </Link>
+            <Button variant="link" asChild className="self-start">
+              <Link to={AUTH_ROUTES.LOGIN} className="flex items-center gap-2">
+                <ArrowLeft /> <span>Quay lại đăng nhập</span>
+              </Link>
+            </Button>
           )}
         </CardFooter>
       </Card>

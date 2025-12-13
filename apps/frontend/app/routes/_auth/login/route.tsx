@@ -10,8 +10,8 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Đăng nhập - AuctionHub" },
-    { name: "description", content: "Trang đăng nhập dành cho AuctionHub" },
+    { title: "Đăng nhập - Online Auction" },
+    { name: "description", content: "Trang đăng nhập dành cho Online Auction" },
   ];
 }
 

@@ -3,11 +3,11 @@ export const AUTH_PAGE_CONFIG: Record<
   { title: string; description: string }
 > = {
   "/login": {
-    title: "Đăng nhập — AuctionHub",
+    title: "Đăng nhập — Online Auction",
     description: "Đăng nhập để tiếp tục đấu giá",
   },
   "/register": {
-    title: "Đăng ký — AuctionHub",
+    title: "Đăng ký — Online Auction",
     description: "Tạo tài khoản mới để bắt đầu đấu giá",
   },
   "/forgot-password": {
