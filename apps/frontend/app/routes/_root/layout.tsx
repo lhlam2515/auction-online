@@ -8,7 +8,7 @@ export default function RootLayout() {
     <div className="root-layout">
       <Navbar />
 
-      <main className="container mx-auto min-h-screen">
+      <main className="mx-auto min-h-screen">
         <Outlet />
       </main>
 
