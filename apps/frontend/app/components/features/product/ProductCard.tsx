@@ -16,7 +16,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { APP_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice, getTimeRemaining } from "@/lib/utils";
 
 type ProductCardProps = {
   product: ProductListing;
@@ -25,39 +25,28 @@ type ProductCardProps = {
 
 const NEW_PRODUCT_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
 
-function formatCurrency(amount: string): string {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(Number(amount));
-}
-
 function formatTimeRemaining(endTime: Date): {
   text: string;
   isUrgent: boolean;
 } {
-  const now = new Date();
-  const diffMs = endTime.getTime() - now.getTime();
+  const timeData = getTimeRemaining(endTime);
 
-  if (diffMs <= 0) {
+  if (timeData.isExpired) {
     return {
       text: "Đã kết thúc",
       isUrgent: true,
     };
   }
 
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-  const isUrgent = diffMs < 60 * 60 * 1000; // dưới 1 giờ
+  const { days, hours, minutes, seconds } = timeData;
+  const isUrgent = timeData.total < 60 * 60 * 1000; // dưới 1 giờ
 
   let timeText = "";
   if (days > 0) timeText += `${days}d `;
-  if (hours > 0) timeText += `${hours}h `;
-  if (minutes > 0) timeText += `${minutes}m `;
-  if (seconds >= 0 && days === 0) timeText += `${seconds}s`;
+  if (hours >= 0) timeText += `${hours.toString().padStart(2, "0")}h `;
+  if (minutes >= 0) timeText += `${minutes.toString().padStart(2, "0")}m `;
+  if (seconds >= 0 && days === 0)
+    timeText += `${seconds.toString().padStart(2, "0")}s`;
 
   return {
     text: timeText.trim(),
@@ -187,7 +176,7 @@ const ProductCard = ({
 
             {/* Giá tiền - Font to để handle số tiền lớn */}
             <div className="text-accent text-2xl font-bold tracking-tight">
-              {formatCurrency(currentPrice ?? "0")}
+              {formatPrice(Number(currentPrice ?? "0"))}
             </div>
 
             {/* Thông tin phụ: Số lượt bid & Giá mua ngay */}
@@ -203,7 +192,7 @@ const ProductCard = ({
                   <span className="text-xs font-bold">
                     Mua ngay:{" "}
                     <span className="text-red-500">
-                      {formatCurrency(buyNowPrice)}
+                      {formatPrice(Number(buyNowPrice))}
                     </span>
                   </span>
                 </div>
