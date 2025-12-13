@@ -57,6 +57,7 @@ import type {
   Order,
   OrderPayment,
   CreateOrderRequest,
+  GetOrdersParams,
   UpdateShippingInfoRequest,
   OrderFeedbackRequest,
   MarkPaidRequest,
@@ -83,6 +84,7 @@ import type {
   ApiResponse,
   PaginatedResponse,
   PaginationParams,
+  OrderWithDetails,
 } from "@repo/shared-types";
 
 import { apiClient } from "@/lib/handlers/api";
@@ -503,10 +505,8 @@ export const api = {
     /**
      * Get user's orders
      */
-    getAll: (
-      params?: PaginationParams & { status?: string; role?: "buyer" | "seller" }
-    ) =>
-      apiCall<PaginatedResponse<Order>>(
+    getAll: (params?: GetOrdersParams) =>
+      apiCall<PaginatedResponse<OrderWithDetails>>(
         "GET",
         appendQueryParams("/orders", paramsToRecord(params))
       ),
@@ -514,7 +514,8 @@ export const api = {
     /**
      * Get order details
      */
-    getById: (orderId: string) => apiCall<Order>("GET", `/orders/${orderId}`),
+    getById: (orderId: string) =>
+      apiCall<OrderWithDetails>("GET", `/orders/${orderId}`),
 
     /**
      * Update shipping address (Buyer)
