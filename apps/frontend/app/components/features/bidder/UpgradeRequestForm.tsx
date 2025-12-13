@@ -1,146 +1,213 @@
-import { User, Lock, Store, Camera } from "lucide-react";
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Checkbox } from "@radix-ui/react-checkbox";
+import type { ApiResponse } from "@repo/shared-types";
+import { Store, Badge } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Controller,
+  type DefaultValues,
+  type FieldValues,
+  type Path,
+  type SubmitHandler,
+  useForm,
+} from "react-hook-form";
+import { toast } from "sonner";
+import { ZodType } from "zod";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldError,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
+import { useAuth } from "@/contexts/auth-provider";
 
-// TODO: Define props based on SRS requirements
-// type UpgradeRequestFormProps = {
-//   className?: string;
-//   [key: string]: any;
-// };
+interface AuthFormProps<T extends FieldValues> {
+  schema: ZodType<T>;
+  defaultValues: T;
+  onSubmit: (data: T) => Promise<ApiResponse>;
+}
 
-/**
- * Component: UpgradeRequestForm
- * Generated automatically based on Project Auction SRS.
- */
-const UpgradeRequestForm = () => {
-  //(props: UpgradeRequestFormProps) => {
-  const [sellerRequestStatus, setSellerRequestStatus] = useState<
-    "none" | "pending"
-  >("none");
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
+const UpgradeRequestForm = <T extends FieldValues>({
+  schema,
+  defaultValues,
+  onSubmit,
+}: AuthFormProps<T>) => {
+  const form = useForm<T>({
+    // Type assertion needed for generic Zod schema with react-hook-form
+    // @ts-expect-error - Generic type constraint incompatibility between Zod and react-hook-form
+    resolver: zodResolver(schema),
+    defaultValues: defaultValues as DefaultValues<T>,
+  });
 
-  const handleSellerRequest = () => {
-    setSellerRequestStatus("pending");
+  const handleSubmit: SubmitHandler<T> = async (data) => {
+    try {
+      const result = await onSubmit(data);
+
+      if (result?.success) {
+        toast.success(SUCCESS_MESSAGES.UPGRADE_SELLER);
+      } else {
+        toast.error(result?.message || ERROR_MESSAGES.SERVER_ERROR);
+      }
+    } catch (error: unknown) {
+      toast.error((error as Error)?.message || ERROR_MESSAGES.UNKNOWN_ERROR);
+    }
   };
+
+  const formatFieldName = (fieldName: string): string => {
+    const nameMap: Record<string, string> = {
+      reason: "Lý do bạn muốn trở thành người bán là gì ?",
+      agreedToTerms:
+        "Bạn có đồng ý với các điều khoản khi trở thành người bán ?",
+    };
+
+    return (
+      nameMap[fieldName] ||
+      fieldName.charAt(0).toUpperCase() + fieldName.slice(1)
+    );
+  };
+
+  const getInputType = (
+    fieldName: string
+  ): "text" | "checkbox" | "textarea" => {
+    const lowerName = fieldName.toLowerCase();
+    if (lowerName.includes("reason")) return "textarea";
+    if (lowerName.includes("agreed") || lowerName.includes("term"))
+      return "checkbox";
+    return "text";
+  };
+
+  const [sellerRequestStatus, setSellerRequestStatus] = useState(true);
+  const { user } = useAuth();
+  useEffect(() => {
+    if (user?.role === "SELLER") {
+      setSellerRequestStatus(false);
+    }
+  }, []);
   return (
-    <>
-      <Card className="border-2 border-slate-900">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Store className="h-5 w-5 text-slate-900" />
-              <CardTitle>Nâng Cấp Thành Người Bán</CardTitle>
-            </div>
-            {sellerRequestStatus === "pending" && (
-              <Badge
-                variant="secondary"
-                className="border-amber-200 bg-amber-100 text-amber-800"
-              >
-                Đang Chờ Duyệt
-              </Badge>
-            )}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Store className="h-5 w-5 text-slate-900" />
+            <CardTitle>Nâng Cấp Thành Người Bán</CardTitle>{" "}
           </div>
-          <CardDescription>
-            Yêu cầu quyền bán hàng trên nền tảng đấu giá
-          </CardDescription>
+        </div>
+        <CardDescription>
+          Yêu cầu quyền bán hàng trên nền tảng đấu giá
+        </CardDescription>
+      </CardHeader>
+      {sellerRequestStatus && (
+        <form
+          id="upgradeRequestForm"
+          // @ts-expect-error - Generic type constraint
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="space-y-8 p-4"
+        >
+          <div className="flex flex-col gap-1">
+            <FieldGroup className="gap-6">
+              {Object.keys(defaultValues).map((fieldKey) => {
+                const fieldName = fieldKey as Path<T>;
+                const inputType = getInputType(fieldName);
+
+                return (
+                  <Controller
+                    key={fieldName}
+                    control={form.control}
+                    name={fieldName}
+                    render={({ field, fieldState }) => (
+                      <Field
+                        data-invalid={fieldState.invalid}
+                        className="flex w-full flex-col gap-2"
+                      >
+                        {inputType === "checkbox" ? (
+                          <div className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4 shadow-sm">
+                            <Checkbox
+                              id={field.name}
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                            <div className="space-y-1 leading-none">
+                              <FieldLabel
+                                htmlFor={field.name}
+                                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {formatFieldName(field.name)}
+                              </FieldLabel>
+                            </div>
+                          </div>
+                        ) : inputType === "textarea" ? (
+                          <>
+                            <FieldLabel
+                              htmlFor={field.name}
+                              className="text-base font-semibold"
+                            >
+                              {formatFieldName(field.name)}
+                            </FieldLabel>
+                            <Textarea
+                              {...field}
+                              id={field.name}
+                              className="min-h-[100px] text-base"
+                              aria-invalid={fieldState.invalid}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <FieldLabel
+                              htmlFor={field.name}
+                              className="text-base font-semibold"
+                            >
+                              {formatFieldName(field.name)}
+                            </FieldLabel>
+                            <Input
+                              {...field}
+                              id={field.name}
+                              type={inputType}
+                              className="min-h-12 border text-base"
+                              aria-invalid={fieldState.invalid}
+                              required={inputType !== "text"} // Tùy chỉnh required
+                            />
+                          </>
+                        )}
+
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                );
+              })}
+            </FieldGroup>
+          </div>
+
+          <Button
+            type="submit"
+            className="min-h-12 w-full cursor-pointer text-xl"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting && <Spinner />}
+            {form.formState.isSubmitting ? "Đang gửi yêu cầu" : "Gửi yêu cầu"}
+          </Button>
+        </form>
+      )}
+      {!sellerRequestStatus && (
+        <CardHeader>
+          <CardDescription>Bạn đã là người bán</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {sellerRequestStatus === "none" ? (
-            <>
-              <div className="grid gap-2">
-                <Label htmlFor="seller-reason">
-                  Tại sao bạn muốn trở thành người bán?
-                </Label>
-                <Textarea
-                  id="seller-reason"
-                  placeholder="Chia sẻ lý do và kinh nghiệm của bạn..."
-                  rows={5}
-                  className="resize-none"
-                />
-                <p className="text-sm text-slate-500">
-                  Vui lòng mô tả chi tiết về mặt hàng bạn muốn bán và kinh
-                  nghiệm kinh doanh (nếu có)
-                </p>
-              </div>
-
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="terms"
-                  checked={agreeToTerms}
-                  onCheckedChange={(checked) =>
-                    setAgreeToTerms(checked as boolean)
-                  }
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <label
-                    htmlFor="terms"
-                    className="cursor-pointer text-sm leading-relaxed font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Tôi đồng ý với{" "}
-                    <a
-                      href="#"
-                      className="text-slate-900 underline hover:text-slate-700"
-                    >
-                      Điều khoản & Chính sách Người Bán
-                    </a>
-                  </label>
-                  <p className="text-sm text-slate-500">
-                    Bạn cam kết tuân thủ các quy định về bán hàng và đấu giá
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                className="w-full bg-slate-900 hover:bg-slate-800"
-                disabled={!agreeToTerms}
-                onClick={handleSellerRequest}
-              >
-                <Store className="mr-2 h-4 w-4" />
-                Gửi Yêu Cầu
-              </Button>
-            </>
-          ) : (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
-                    <Store className="h-5 w-5 text-amber-700" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h4 className="mb-1 font-semibold text-amber-900">
-                    Yêu Cầu Đang Được Xử Lý
-                  </h4>
-                  <p className="text-sm leading-relaxed text-amber-800">
-                    Yêu cầu nâng cấp thành người bán của bạn đang được quản trị
-                    viên xem xét. Chúng tôi sẽ phản hồi trong vòng 2-3 ngày làm
-                    việc qua email.
-                  </p>
-                  <p className="mt-2 text-xs text-amber-700">
-                    Ngày gửi yêu cầu: {new Date().toLocaleDateString("vi-VN")}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </>
+      )}
+    </Card>
   );
 };
 

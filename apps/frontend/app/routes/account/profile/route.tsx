@@ -55,7 +55,6 @@ export default function UserProfilePage() {
           }}
           onSubmit={handleSubmit}
         />
-        {/* Section 3: Upgrade to Seller (UC-B05) */}
       </div>
     </div>
   );

@@ -59,8 +59,8 @@ export const upgradeRequestSchema = z.object({
     .string()
     .min(20, "Vui lòng nhập lý do cụ thể hơn (tối thiểu 20 ký tự)")
     .max(500, "Lý do tối đa 500 ký tự"),
-  agreedToTerms: z.literal(true, {
-    error: "Bạn phải đồng ý với cam kết",
+  agreedToTerms: z.boolean().refine((val) => val === true, {
+    message: "Bạn phải đồng ý với các điều khoản để tiếp tục",
   }),
 });
 
