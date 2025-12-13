@@ -30,7 +30,9 @@ const CategoryNavBar = ({ categories }: CategoryNavBarProps) => {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Tất cả danh mục</NavigationMenuTrigger>
+          <NavigationMenuTrigger className="bg-sidebar">
+            Tất cả danh mục
+          </NavigationMenuTrigger>
           <NavigationMenuContent>
             {categories && (
               <ul
