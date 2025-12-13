@@ -103,28 +103,29 @@ const ProductCard = ({
 }: ProductCardProps) => {
   const [isWatchlisted, setIsWatchlisted] = React.useState(isWatching);
 
-  startTime = new Date(startTime);
-  endTime = new Date(endTime);
+  const startDateTime = new Date(startTime);
+  const endDateTime = new Date(endTime);
   const isNew =
-    new Date().getTime() - startTime.getTime() < NEW_PRODUCT_DURATION;
-  const timeDisplay = useCountdown(endTime);
+    new Date().getTime() - startDateTime.getTime() < NEW_PRODUCT_DURATION;
+  const timeDisplay = useCountdown(endDateTime);
 
   const toggleWatchlist = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
+    const prevIsWatchlisted = isWatchlisted;
     try {
-      setIsWatchlisted(!isWatchlisted);
+      setIsWatchlisted(!prevIsWatchlisted);
       await api.users.toggleWatchlist(id);
     } catch (error) {
-      setIsWatchlisted(isWatchlisted);
+      setIsWatchlisted(prevIsWatchlisted);
       logger.error("Failed to toggle watchlist:", error);
     }
   };
 
   return (
     <Link to={`/product/${id}`} className={cn("block h-full", className)}>
-      <Card className="group relative w-full max-w-[300px] min-w-[250px] overflow-hidden border py-0! transition-all duration-300 hover:shadow-lg">
+      <Card className="group relative w-full max-w-[300px] min-w-[250px] overflow-hidden border py-0 transition-all duration-300 hover:shadow-lg">
         {/* 1. Phần Ảnh & Badge */}
         <div className="relative aspect-square overflow-hidden bg-gray-100">
           <img
@@ -227,7 +228,7 @@ const ProductCard = ({
                 Ngày bắt đầu
               </p>
               <p className="font-medium text-gray-700">
-                {startTime.toLocaleDateString("vi-VN", {
+                {startDateTime.toLocaleDateString("vi-VN", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
