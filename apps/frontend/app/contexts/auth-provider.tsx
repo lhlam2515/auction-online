@@ -14,7 +14,6 @@ interface AuthContextType {
   refetchUser: () => Promise<void>;
 }
 
-// React 19: Render context directly without Context.Provider
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
@@ -92,7 +91,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refetchUser,
   };
 
-  return <AuthContext value={value}>{children}</AuthContext>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // Custom hook to use auth context
