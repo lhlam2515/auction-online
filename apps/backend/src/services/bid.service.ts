@@ -4,6 +4,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { db } from "@/config/database";
 import { bids, autoBids, products } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
+import { feedbackSchema } from "@/validations/order.validation";
 
 import { productService } from "./product.service";
 
@@ -52,7 +53,11 @@ export class BidService {
     // Update product current price
     await db
       .update(products)
-      .set({ currentPrice: currentPrice.toString(), updatedAt: new Date() })
+      .set({
+        currentPrice: currentPrice.toString(),
+        updatedAt: new Date(),
+        winnerId: bidderId,
+      })
       .where(eq(products.id, productId));
 
     return newBid;
@@ -82,6 +87,27 @@ export class BidService {
           eq(bids.status, "VALID")
         )
       );
+    await db
+      .update(autoBids)
+      .set({ isActive: false })
+      .where(
+        and(eq(autoBids.productId, productId), eq(autoBids.userId, bidderId))
+      );
+
+    if (ownerCheck.winnerId === bidderId) {
+      const secondWinner = await db.query.bids.findFirst({
+        where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
+        orderBy: desc(bids.amount),
+      });
+      console.log(secondWinner);
+      await db
+        .update(products)
+        .set({
+          currentPrice: secondWinner?.amount || "",
+          winnerId: secondWinner?.userId || "",
+        })
+        .where(eq(products.id, productId));
+    }
 
     // TODO: Send notification to bidder about being kicked
 
