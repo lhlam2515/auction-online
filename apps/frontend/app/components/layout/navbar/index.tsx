@@ -61,14 +61,10 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Button variant="outline" className="min-w-28" asChild>
+                <Button variant="secondary" className="min-w-28" asChild>
                   <Link to={AUTH_ROUTES.LOGIN}>Đăng nhập</Link>
                 </Button>
-                <Button
-                  variant="default"
-                  className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/80 min-w-28"
-                  asChild
-                >
+                <Button variant="default" className="min-w-28" asChild>
                   <Link to={AUTH_ROUTES.REGISTER}>Đăng ký</Link>
                 </Button>
               </>

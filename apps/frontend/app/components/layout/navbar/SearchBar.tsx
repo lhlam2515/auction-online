@@ -64,7 +64,7 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="min-w-40">
               <InputGroupButton
-                variant="default"
+                variant="secondary"
                 className="flex h-full cursor-pointer items-center justify-between gap-2 rounded-r-none"
               >
                 {selectedCategory.label}
@@ -88,7 +88,7 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
         <InputGroupInput
           type="text"
           placeholder="Tìm kiếm sản phẩm..."
-          className="bg-primary text-primary-foreground placeholder:text-primary-foreground/70 rounded-l-none"
+          className="bg-secondary text-secondary-foreground rounded-l-none"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -96,9 +96,10 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
         {/* Search Button */}
         <InputGroupAddon align="inline-end" className="pr-2">
           <InputGroupButton
+            variant="default"
             type="submit"
             size="icon-sm"
-            className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/80 h-9 w-9 rounded-l-none"
+            className="h-9 w-9 rounded-l-none"
             aria-label="Search"
           >
             <Search className="size-5" />
