@@ -54,6 +54,16 @@ export class UnauthorizedError extends AppError {
   }
 }
 
+export class UnverifiedEmailError extends AppError {
+  constructor(message: string = "Email not verified") {
+    super({
+      message,
+      statusCode: 401,
+      code: ErrorCodes.EMAIL_NOT_VERIFIED,
+    });
+  }
+}
+
 export class ForbiddenError extends AppError {
   constructor(message: string = "Access denied") {
     super({

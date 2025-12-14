@@ -19,6 +19,8 @@ export const STORAGE_KEYS = {
   USER: "user",
   THEME: "theme",
   LANGUAGE: "language",
+  PENDING_EMAIL: "pendingEmail",
+  RESET_TOKEN: "resetToken",
 } as const;
 
 // API Request Timeouts (ms)
@@ -126,6 +128,12 @@ export const SUCCESS_MESSAGES = {
   LOGIN: "Đăng nhập thành công!",
   LOGOUT: "Đăng xuất thành công!",
   REGISTER: "Đăng ký thành công! Vui lòng kiểm tra email để xác minh.",
+  OTP_VERIFIED: "Xác nhận email thành công! Bạn có thể đăng nhập ngay bây giờ.",
+  RESET_OTP_VERIFIED: "Xác nhận OTP thành công! Vui lòng đặt mật khẩu mới.",
+  FORGOT_PASSWORD:
+    "Nếu email này tồn tại, một OTP đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.",
+  RESET_PASSWORD:
+    "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.",
   UPDATE_PROFILE: "Cập nhật thông tin thành công!",
   CHANGE_PASSWORD: "Đổi mật khẩu thành công!",
   CREATE_PRODUCT: "Tạo sản phẩm thành công!",
