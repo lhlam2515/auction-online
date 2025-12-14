@@ -1,12 +1,33 @@
 /**
- * Base API response structure
+ * Success API response structure
  */
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
+export interface SuccessResponse<T = unknown> {
+  success: true;
+  data: T;
   message?: string;
-  errors?: string[];
 }
+
+/**
+ * Error API response structure
+ */
+export interface ErrorResponse {
+  success: false;
+  error: {
+    name: string;
+    message: string;
+    code: string;
+    statusCode: number;
+    timestamp: string;
+    path: string;
+    details?: any;
+    stack?: string;
+  };
+}
+
+/**
+ *  Generic API response type
+ */
+export type ApiResponse<T = unknown> = SuccessResponse<T> | ErrorResponse;
 
 /**
  * Pagination parameters for list requests
@@ -27,16 +48,6 @@ export interface PaginatedResponse<T> {
     total: number;
     totalPages: number;
   };
-}
-
-/**
- * API error response structure
- */
-export interface ApiError {
-  success: false;
-  message: string;
-  errors?: Record<string, string[]>;
-  statusCode?: number;
 }
 
 /**
