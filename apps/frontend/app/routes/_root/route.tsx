@@ -4,6 +4,7 @@ import { Link } from "react-router";
 
 import ProductGallery from "@/components/features/product/ProductGallery";
 import { Button } from "@/components/ui/button";
+import { APP_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 
@@ -50,11 +51,8 @@ export default function HomePage() {
           <p className="mb-6 text-lg text-slate-300 md:text-xl">
             Khám phá những sản phẩm hot nhất đang được săn đón
           </p>
-          <Button
-            size="lg"
-            className="bg-blue-600 px-8 text-white hover:bg-blue-700"
-          >
-            <Link to="/search">Xem tất cả</Link>
+          <Button size="lg" asChild>
+            <Link to={APP_ROUTES.SEARCH}>Xem tất cả</Link>
           </Button>
         </div>
       </section>
