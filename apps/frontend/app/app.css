@@ -127,4 +127,8 @@
   .sidebar-layout > .container {
     @apply mx-auto p-6;
   }
+
+  .error-message {
+    @apply text-destructive border-destructive/50 bg-destructive/10 rounded-lg border p-4 text-sm;
+  }
 }
