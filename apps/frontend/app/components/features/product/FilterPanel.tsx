@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { cn, formatPrice, debounce } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 type FilterPanelProps = {
   value: number[];
