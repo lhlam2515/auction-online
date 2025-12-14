@@ -26,25 +26,22 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = React.useState<string>("");
   const [sentOTP, setSentOTP] = React.useState<boolean>(false);
 
-  React.useEffect(() => {
-    if (email) {
-      setSentOTP(true);
-    }
-  }, [email]);
-
   return !sentOTP ? (
     <ForgotPasswordForm
       formType="REQUEST_OTP"
       schema={forgotPasswordSchema}
       defaultValues={{ email: "" }}
       onSubmit={(data) => api.auth.forgotPassword({ email: data.email })}
-      onSuccess={(data) => setEmail(data.email)}
+      onSuccess={(data) => {
+        setEmail(data.email);
+        setSentOTP(true);
+      }}
     />
   ) : (
     <VerifyOTPForm
       formType="PASSWORD_RESET"
       schema={verifyOtpSchema}
-      defaultValues={{ email: email as string, otp: "" }}
+      defaultValues={{ email, otp: "" }}
       onSubmit={(data) =>
         api.auth.verifyOtp({ email: data.email, otp: data.otp })
       }
