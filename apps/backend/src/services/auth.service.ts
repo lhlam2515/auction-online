@@ -9,6 +9,7 @@ import {
   BadRequestError,
   NotFoundError,
   UnauthorizedError,
+  UnverifiedEmailError,
 } from "@/utils/errors";
 import { generateResetToken, getResetTokenExpiry } from "@/utils/jwt";
 
@@ -209,7 +210,7 @@ export class AuthService {
 
       // Check if account is PENDING_VERIFICATION
       if (existingUser.accountStatus === "PENDING_VERIFICATION") {
-        throw new UnauthorizedError(
+        throw new UnverifiedEmailError(
           "Vui lòng xác minh địa chỉ email trước khi đăng nhập."
         );
       }

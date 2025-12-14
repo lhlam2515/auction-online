@@ -15,6 +15,7 @@ import {
 } from "@/constants/routes";
 import { useAuthForm } from "@/hooks/useAuthForm";
 import { api } from "@/lib/api-layer";
+import { ApiError } from "@/types/api";
 
 import AuthFormFields from "./AuthFormFields";
 interface AuthFormProps<T extends FieldValues> {
@@ -51,17 +52,26 @@ const AuthForm = <T extends FieldValues>(props: AuthFormProps<T>) => {
         navigate(AUTH_ROUTES.VERIFY_EMAIL, { replace: true });
       }
     },
-    onError: (data, error, errorMessage) => {
+    onError: (data, error, _errorMessage) => {
       const handleVerifyEmailError = async (email: string) => {
         // Store pending email for verification
         localStorage.setItem(STORAGE_KEYS.PENDING_EMAIL, email);
+
+        toast.info("Đang gửi lại email xác thực...");
+
         await api.auth.resendOtp({ email, purpose: "EMAIL_VERIFICATION" });
+
+        toast.success(
+          "OTP xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư đến của bạn."
+        );
+
         navigate(AUTH_ROUTES.VERIFY_EMAIL, { replace: true });
       };
 
       if (
         formType === "LOGIN" &&
-        errorMessage.toLowerCase().includes("xác minh")
+        error instanceof ApiError &&
+        error.code === "EMAIL_NOT_VERIFIED"
       ) {
         handleVerifyEmailError(data.email);
       }
