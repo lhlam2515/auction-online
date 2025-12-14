@@ -55,8 +55,8 @@ const ProductGallery = ({
       className={cn("max-w-7xl", className)}
     >
       <CarouselContent>{renderContent()}</CarouselContent>
-      <CarouselPrevious variant="default" className="left-0" />
-      <CarouselNext variant="default" className="right-0" />
+      <CarouselPrevious variant="ghost" className="left-0" />
+      <CarouselNext variant="ghost" className="right-0" />
     </Carousel>
   );
 };
