@@ -14,8 +14,7 @@ import { APP_ROUTES } from "@/constants/routes";
 import { buildUrlWithParams } from "@/lib/url";
 
 const sortOptions = [
-  { value: "hot", label: "Nổi bật" },
-  { value: "ending-soon", label: "Sắp kết thúc" },
+  { value: "ending_soon", label: "Sắp kết thúc" },
   { value: "newest", label: "Mới nhất" },
   { value: "price_asc", label: "Giá thấp đến cao" },
   { value: "price_desc", label: "Giá cao đến thấp" },

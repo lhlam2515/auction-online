@@ -1,7 +1,7 @@
 import type { CategoryTree } from "@repo/shared-types";
 import { ChevronDown, Search } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/input-group";
 import { APP_ROUTES } from "@/constants/routes";
 import { buildUrlWithParams } from "@/lib/url";
+import { debounce } from "@/lib/utils";
 
 type SearchBarProps = {
   categories: CategoryTree[];
@@ -25,6 +26,8 @@ type SearchBarProps = {
 const SearchBar = ({ categories = [] }: SearchBarProps) => {
   const [query, setQuery] = React.useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
   const categoryOptions = React.useMemo(
     () => [
       { label: "Tất cả danh mục", value: "" },
@@ -37,76 +40,90 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
     value: string;
   }>(categoryOptions[0]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim() && selectedCategory) {
-      const params = new URLSearchParams();
-      params.set("q", query.trim());
-      if (selectedCategory.value) {
-        params.set("category", selectedCategory.value);
-      }
+  // Debounced search navigation
+  const debouncedNavigate = React.useMemo(
+    () =>
+      debounce(() => {
+        if (query.trim()) {
+          const params = new URLSearchParams();
+          params.set("q", query.trim());
+          if (selectedCategory.value) {
+            params.set("category", selectedCategory.value);
+          }
+          navigate(
+            buildUrlWithParams(
+              APP_ROUTES.SEARCH,
+              [],
+              Object.fromEntries(params.entries())
+            )
+          );
+        }
+      }, 2000),
+    [query, selectedCategory.value, navigate]
+  );
 
-      navigate(
-        buildUrlWithParams(
-          APP_ROUTES.SEARCH,
-          [],
-          Object.fromEntries(params.entries())
-        )
-      );
+  // Trigger debounced search on query change
+  React.useEffect(() => {
+    debouncedNavigate();
+  }, [debouncedNavigate]);
+
+  // Reset search bar when navigating away from search page
+  React.useEffect(() => {
+    if (!location.pathname.startsWith(APP_ROUTES.SEARCH)) {
+      setQuery("");
+      setSelectedCategory(categoryOptions[0]);
     }
-  };
+  }, [location.pathname, categoryOptions]);
 
   return (
-    <form onSubmit={handleSearch} className="w-full">
-      <InputGroup className="max-w-xl border-none">
-        {/* Category Dropdown */}
-        <InputGroupAddon align="inline-start" className="pl-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="min-w-40">
-              <InputGroupButton
-                variant="secondary"
-                className="flex h-full cursor-pointer items-center justify-between gap-2 rounded-r-none"
+    <InputGroup className="max-w-xl border-none">
+      {/* Category Dropdown */}
+      <InputGroupAddon align="inline-start" className="pl-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="min-w-40">
+            <InputGroupButton
+              variant="secondary"
+              className="flex h-full cursor-pointer items-center justify-between gap-2 rounded-r-none"
+            >
+              {selectedCategory.label}
+              <ChevronDown className="size-5" />
+            </InputGroupButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {categoryOptions.map((category) => (
+              <DropdownMenuItem
+                key={category.value}
+                onClick={() => setSelectedCategory(category)}
               >
-                {selectedCategory.label}
-                <ChevronDown className="size-5" />
-              </InputGroupButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {categoryOptions.map((category) => (
-                <DropdownMenuItem
-                  key={category.value}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </InputGroupAddon>
+                {category.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </InputGroupAddon>
 
-        {/* Search Input */}
-        <InputGroupInput
-          type="text"
-          placeholder="Tìm kiếm sản phẩm..."
-          className="bg-secondary text-secondary-foreground rounded-l-none"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+      {/* Search Input */}
+      <InputGroupInput
+        type="text"
+        placeholder="Tìm kiếm sản phẩm..."
+        className="bg-secondary text-secondary-foreground rounded-l-none"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
 
-        {/* Search Button */}
-        <InputGroupAddon align="inline-end" className="pr-2">
-          <InputGroupButton
-            variant="default"
-            type="submit"
-            size="icon-sm"
-            className="h-9 w-9 rounded-l-none"
-            aria-label="Search"
-          >
-            <Search className="size-5" />
-          </InputGroupButton>
-        </InputGroupAddon>
-      </InputGroup>
-    </form>
+      {/* Search Button */}
+      <InputGroupAddon align="inline-end" className="pr-2">
+        <InputGroupButton
+          variant="default"
+          type="submit"
+          size="icon-sm"
+          className="h-9 w-9 rounded-l-none"
+          aria-label="Search"
+        >
+          <Search className="size-5" />
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   );
 };
 
