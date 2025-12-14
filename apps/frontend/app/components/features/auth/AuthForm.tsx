@@ -1,13 +1,20 @@
 import type { ApiResponse } from "@repo/shared-types";
 import { FormProvider, type FieldValues } from "react-hook-form";
+import { useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
 import { ZodType } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { SUCCESS_MESSAGES } from "@/constants/api";
+import { STORAGE_KEYS } from "@/constants/api";
+import {
+  isPublicRoute,
+  isAuthRoute,
+  getRedirectAfterLogin,
+  AUTH_ROUTES,
+} from "@/constants/routes";
 import { useAuthForm } from "@/hooks/useAuthForm";
-import { useAuthNavigation } from "@/hooks/useAuthNavigation";
+import { api } from "@/lib/api-layer";
 
 import AuthFormFields from "./AuthFormFields";
 interface AuthFormProps<T extends FieldValues> {
@@ -19,27 +26,45 @@ interface AuthFormProps<T extends FieldValues> {
 
 const AuthForm = <T extends FieldValues>(props: AuthFormProps<T>) => {
   const { formType, defaultValues } = props;
-  const { navigateAfterSuccess, navigateAfterError } = useAuthNavigation({
-    formType,
-  });
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { form, handleSubmit, isSubmitting, errors } = useAuthForm({
     ...props,
-    onSuccess: (data, result) => {
-      toast.success(
-        props.formType === "LOGIN"
-          ? SUCCESS_MESSAGES.LOGIN
-          : SUCCESS_MESSAGES.REGISTER
-      );
+    onSuccess: (data, result, message) => {
+      toast.success(message);
 
-      if (props.formType === "LOGIN") {
-        const { user } = result.data;
-        navigateAfterSuccess(user);
-      } else {
-        navigateAfterSuccess();
+      if (formType === "LOGIN" && result.data?.user) {
+        const from = location.state?.from?.pathname;
+
+        if (from && isPublicRoute(from) && !isAuthRoute(from)) {
+          navigate(from, { replace: true });
+          return;
+        }
+
+        navigate(from || getRedirectAfterLogin(result.data.user.role), {
+          replace: true,
+        });
+      } else if (formType === "REGISTER") {
+        // Store pending email for verification
+        localStorage.setItem(STORAGE_KEYS.PENDING_EMAIL, data.email);
+        navigate(AUTH_ROUTES.VERIFY_EMAIL, { replace: true });
       }
     },
-    onError: (error, errorMessage) => {
-      navigateAfterError(errorMessage);
+    onError: (data, error, errorMessage) => {
+      const handleVerifyEmailError = async (email: string) => {
+        // Store pending email for verification
+        localStorage.setItem(STORAGE_KEYS.PENDING_EMAIL, email);
+        await api.auth.resendOtp({ email, purpose: "EMAIL_VERIFICATION" });
+        navigate(AUTH_ROUTES.VERIFY_EMAIL, { replace: true });
+      };
+
+      if (
+        formType === "LOGIN" &&
+        errorMessage.toLowerCase().includes("xác minh")
+      ) {
+        handleVerifyEmailError(data.email);
+      }
     },
   });
 
@@ -63,20 +88,18 @@ const AuthForm = <T extends FieldValues>(props: AuthFormProps<T>) => {
 
         <AuthFormFields defaultValues={defaultValues} formType={formType} />
 
-        <div className="flex flex-col items-end gap-1">
-          <Button
-            type="submit"
-            className="min-h-12 w-full text-xl"
-            disabled={isSubmitting}
-          >
-            {isSubmitting && <Spinner />}
-            {isSubmitting
-              ? buttonText === "Đăng nhập"
-                ? "Đang đăng nhập..."
-                : "Đang đăng ký..."
-              : buttonText}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          className="min-h-12 w-full text-xl"
+          disabled={isSubmitting}
+        >
+          {isSubmitting && <Spinner />}
+          {isSubmitting
+            ? buttonText === "Đăng nhập"
+              ? "Đang đăng nhập..."
+              : "Đang đăng ký..."
+            : buttonText}
+        </Button>
       </form>
     </FormProvider>
   );

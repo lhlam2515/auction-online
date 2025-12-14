@@ -13,6 +13,7 @@ import {
 import { ZodType } from "zod";
 
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
+import { useAuth } from "@/contexts/auth-provider";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
 import logger from "@/lib/logger";
 
@@ -23,9 +24,10 @@ interface UseAuthFormConfig<T extends FieldValues> {
   formType: "LOGIN" | "REGISTER";
   onSuccess?: (
     data: T,
-    result: SuccessResponse<{ user: UserAuthData }>
+    result: SuccessResponse<{ user: UserAuthData } | null>,
+    message: string
   ) => void;
-  onError?: (error: unknown, errorMessage: string) => void;
+  onError?: (data: T, error: unknown, errorMessage: string) => void;
 }
 
 export const useAuthForm = <T extends FieldValues>({
@@ -42,6 +44,7 @@ export const useAuthForm = <T extends FieldValues>({
     resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
+  const { login } = useAuth();
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
     try {
@@ -49,7 +52,7 @@ export const useAuthForm = <T extends FieldValues>({
 
       const result = (await onSubmit(data)) as ApiResponse<{
         user: UserAuthData;
-      }>;
+      } | null>;
 
       if (!result.success) {
         logger.error("AuthForm handleSubmit error:", result.error);
@@ -62,10 +65,12 @@ export const useAuthForm = <T extends FieldValues>({
           ? SUCCESS_MESSAGES.LOGIN
           : SUCCESS_MESSAGES.REGISTER;
 
-      // Call onSuccess callback if provided
-      onSuccess?.(data, result);
+      if (formType === "LOGIN" && result.data?.user) {
+        login(result.data.user); // Update the auth context
+      }
 
-      return { success: true, data: result, message: successMessage };
+      // Call onSuccess callback if provided
+      onSuccess?.(data, result, successMessage);
     } catch (error) {
       const errorMessage = getErrorMessage(error);
 
@@ -78,9 +83,7 @@ export const useAuthForm = <T extends FieldValues>({
       showError(error, errorMessage);
 
       // Call onError callback if provided
-      onError?.(error, errorMessage);
-
-      return { success: false, error, message: errorMessage };
+      onError?.(data, error, errorMessage);
     }
   };
 
