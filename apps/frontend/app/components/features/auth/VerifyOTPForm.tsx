@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@repo/shared-types";
+import type { ApiResponse, VerifyOtpResponse } from "@repo/shared-types";
 import { Controller, type FieldValues, type Path } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -48,7 +48,14 @@ const VerifyOTPForm = <T extends FieldValues>(props: VerifyOTPFormProps<T>) => {
         localStorage.removeItem(STORAGE_KEYS.PENDING_EMAIL);
         navigate(AUTH_ROUTES.LOGIN, { replace: true });
       } else {
-        localStorage.removeItem(STORAGE_KEYS.RESET_EMAIL);
+        const { resetToken, expiresAt } = result.data as VerifyOtpResponse;
+        localStorage.setItem(STORAGE_KEYS.RESET_TOKEN, resetToken);
+        setTimeout(
+          () => {
+            localStorage.removeItem(STORAGE_KEYS.RESET_TOKEN);
+          },
+          new Date(expiresAt).getTime() - Date.now()
+        );
         navigate(AUTH_ROUTES.RESET_PASSWORD, { replace: true });
       }
     },
