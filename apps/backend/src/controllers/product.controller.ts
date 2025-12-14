@@ -35,7 +35,7 @@ export const searchProducts = asyncHandler(
 
 export const getTopListing = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const query = req.query as unknown as TopListingParams;
+    const query = res.locals.query as unknown as TopListingParams;
     // Get top products (ending soon, hot (most bids), highest price)
     const topListings = await productService.getTopListings(
       // query.type,
