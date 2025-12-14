@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { commonValidations } from "./common.validation";
 
 /**
@@ -29,12 +30,13 @@ export const registerSchema = z
   });
 
 /**
- * OTP (One-Time Password) verification schema
+ * OTP verification with email schema
  */
-export const otpSchema = z.object({
+export const verifyOtpSchema = z.object({
+  email: commonValidations.email.min(1, "Vui lòng nhập email"),
   otp: z
     .string()
-    .length(6, "Mã OTP phải có đúng 6 ký tự số") // [cite: 665]
+    .length(6, "Mã OTP phải có đúng 6 ký tự số")
     .regex(/^\d+$/, "Mã OTP chỉ được chứa số"),
 });
 
@@ -61,5 +63,5 @@ export const changePasswordSchema = z
  */
 export type LoginSchemaType = z.infer<typeof loginSchema>;
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
-export type OtpSchemaType = z.infer<typeof otpSchema>;
+export type VerifyOtpSchemaType = z.infer<typeof verifyOtpSchema>;
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
