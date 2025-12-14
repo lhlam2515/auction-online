@@ -27,28 +27,6 @@ export interface UpdateDescriptionRequest {
 }
 
 /**
- * Product search parameters
- */
-// export interface ProductSearchParams extends PaginationParams {
-//   category?: string;
-//   search?: string;
-//   minPrice?: number;
-//   maxPrice?: number;
-//   status?: ProductStatus;
-//   sortBy?: ProductSortOption;
-//   sortOrder?: "asc" | "desc";
-// }
-/**
- * Get product listing params
- */
-export interface ProductsQueryParams extends PaginationParams {
-  categoryId?: string;
-  sellerId?: string;
-  status?: ProductStatus;
-  search?: string;
-}
-
-/**
  * Auto extend product auction request
  */
 export interface AutoExtendRequest {
@@ -64,5 +42,5 @@ export interface SearchProductsParams extends PaginationParams {
   minPrice?: number;
   maxPrice?: number;
   status?: ProductStatus;
-  sort?: "newest" | "price_asc" | "price_desc" | "ending_soon";
+  sort?: ProductSortOption;
 }

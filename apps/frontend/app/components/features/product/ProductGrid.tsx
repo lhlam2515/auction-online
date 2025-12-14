@@ -1,7 +1,13 @@
+import type { ProductListing } from "@repo/shared-types";
 import React from "react";
 
-// TODO: Define props based on SRS requirements
+import { cn } from "@/lib/utils";
+
+import ProductCard, { ProductCardSkeleton } from "./ProductCard";
+
 type ProductGridProps = {
+  products: ProductListing[];
+  loading?: boolean;
   className?: string;
   [key: string]: any;
 };
@@ -10,11 +16,22 @@ type ProductGridProps = {
  * Component: ProductGrid
  * Generated automatically based on Project Auction SRS.
  */
-const ProductGrid = (props: ProductGridProps) => {
+const ProductGrid = ({ products, loading, className }: ProductGridProps) => {
   return (
-    <div className={props.className}>
-      {/* Implement logic for ProductGrid here */}
-      <p className="text-gray-500 italic">Component: ProductGrid</p>
+    <div
+      className={cn(
+        "grid grid-cols-1 place-items-center gap-6 md:grid-cols-2 lg:grid-cols-3",
+        className
+      )}
+    >
+      {loading
+        ? // Hiển thị 6 skeleton cards khi đang loading
+          Array.from({ length: 6 }, (_, index) => (
+            <ProductCardSkeleton key={index} />
+          ))
+        : products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
     </div>
   );
 };
