@@ -115,7 +115,6 @@ export default function SearchBrowsePage() {
           setProducts(product_res.data?.items || []);
           setTotalProducts(product_res.data?.pagination.total || 0);
           setTotalPages(product_res.data?.pagination.totalPages || 1);
-          console.log(product_res);
         }
       } catch (error) {
         if (isMounted)
