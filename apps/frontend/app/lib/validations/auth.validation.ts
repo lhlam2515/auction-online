@@ -59,6 +59,35 @@ export const changePasswordSchema = z
   });
 
 /**
+ * Forgot password form validation schema
+ */
+export const forgotPasswordSchema = z.object({
+  email: commonValidations.email.min(1, "Vui lòng nhập email"),
+});
+
+/**
+ * Reset password form validation schema
+ */
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "Mật khẩu mới phải tối thiểu 8 ký tự")
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+        message:
+          "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số",
+      })
+      .regex(/^(?=.*[!@#$%^&*])/, {
+        message: "Mật khẩu phải chứa ít nhất một ký tự đặc biệt",
+      }),
+    confirmNewPassword: z.string().min(1, "Xác nhận mật khẩu mới"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmNewPassword"],
+  });
+
+/**
  * Authentication validation schema types
  */
 export type LoginSchemaType = z.infer<typeof loginSchema>;
