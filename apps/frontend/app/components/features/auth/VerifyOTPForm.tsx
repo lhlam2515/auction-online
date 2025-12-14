@@ -131,7 +131,6 @@ const VerifyOTPForm = <T extends FieldValues>(props: VerifyOTPFormProps<T>) => {
                 aria-invalid={fieldState.invalid}
                 required
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               <div className="flex items-center">
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
