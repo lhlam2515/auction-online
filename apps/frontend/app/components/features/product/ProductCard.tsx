@@ -118,7 +118,7 @@ const ProductCard = ({
     <Link
       to={APP_ROUTES.PRODUCT(id)}
       className={cn(
-        "block h-full w-full max-w-[300px] min-w-[250px]",
+        "block h-full w-full max-w-[300px] min-w-[200px]",
         className
       )}
     >
@@ -156,7 +156,7 @@ const ProductCard = ({
         {/* 2. Phần Nội dung chính */}
         <CardContent className="flex flex-1 flex-col gap-3">
           {/* Tên sản phẩm */}
-          <h3 className="line-clamp-2 h-13 text-lg leading-tight font-semibold text-gray-900">
+          <h3 className="line-clamp-2 h-12 text-lg leading-tight font-semibold text-gray-900">
             {name}
           </h3>
 
@@ -246,7 +246,7 @@ export const ProductCardSkeleton = ({ className }: { className?: string }) => {
   return (
     <div
       className={cn(
-        "block h-full w-full max-w-[300px] min-w-[250px]",
+        "block h-full w-full max-w-[300px] min-w-[200px]",
         className
       )}
     >
