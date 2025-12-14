@@ -51,7 +51,7 @@ export class AuthService {
       ) {
         // Security: Return generic message to prevent email enumeration
         throw new BadRequestError(
-          "Registration failed. Please check your input and try again."
+          "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại."
         );
       }
 
@@ -69,7 +69,7 @@ export class AuthService {
       if (authError || !authData.user) {
         // Security: Return generic message
         throw new BadRequestError(
-          "Registration failed. Please check your input and try again."
+          "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại."
         );
       }
 
@@ -101,14 +101,16 @@ export class AuthService {
       // Send OTP email using OTP service
       await otpService.sendOtpEmail(email, "EMAIL_VERIFICATION");
 
-      return { message: "Registration successful. Please verify your email." };
+      return {
+        message: "Đăng ký thành công. Vui lòng xác minh email của bạn.",
+      };
     } catch (error) {
       // Don't reveal if email exists (security best practice)
       if (error instanceof BadRequestError) {
         throw error;
       }
       throw new BadRequestError(
-        "Registration failed. Please check your input and try again."
+        "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại."
       );
     }
   }
@@ -123,7 +125,7 @@ export class AuthService {
       );
 
       if (!verificationResult.isValid || !verificationResult.otpRecordId) {
-        throw new UnauthorizedError("OTP verification failed");
+        throw new UnauthorizedError("Xác minh OTP thất bại");
       }
 
       // Find user in database by email
@@ -132,7 +134,7 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new NotFoundError("User not found");
+        throw new NotFoundError("Không tìm thấy người dùng");
       }
 
       // Update user's accountStatus to ACTIVE
@@ -155,7 +157,8 @@ export class AuthService {
       );
 
       return {
-        message: "Email verification successful. You can now log in.",
+        message:
+          "Xác minh email thành công. Bạn có thể đăng nhập ngay bây giờ.",
       };
     } catch (error) {
       if (
@@ -165,8 +168,8 @@ export class AuthService {
         throw error;
       }
       throw new UnauthorizedError(
-        `Email verification failed: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Xác minh email thất bại: ${
+          error instanceof Error ? error.message : "Lỗi không xác định"
         }`
       );
     }
@@ -182,7 +185,7 @@ export class AuthService {
       // Check if user exists in database
       if (!existingUser) {
         // Security: Return generic message
-        throw new UnauthorizedError("Invalid email or password");
+        throw new UnauthorizedError("Email hoặc mật khẩu không hợp lệ");
       }
 
       // Authenticate with Supabase Auth
@@ -194,20 +197,20 @@ export class AuthService {
 
       if (authError || !authData.user || !authData.session) {
         // Security: Return generic message
-        throw new UnauthorizedError("Invalid email or password");
+        throw new UnauthorizedError("Email hoặc mật khẩu không hợp lệ");
       }
 
       // Check if account is BANNED
       if (existingUser.accountStatus === "BANNED") {
         throw new UnauthorizedError(
-          "Your account has been banned. Please contact support."
+          "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ hỗ trợ."
         );
       }
 
       // Check if account is PENDING_VERIFICATION
       if (existingUser.accountStatus === "PENDING_VERIFICATION") {
         throw new UnauthorizedError(
-          "Please verify your email address before logging in."
+          "Vui lòng xác minh địa chỉ email trước khi đăng nhập."
         );
       }
 
@@ -229,14 +232,14 @@ export class AuthService {
         throw error;
       }
       // Security: Return generic message
-      throw new UnauthorizedError("Invalid email or password");
+      throw new UnauthorizedError("Email hoặc mật khẩu không hợp lệ");
     }
   }
 
   async logout(_userId: string) {
     // Supabase handles session cleanup on client side
     // This method can be used for server-side cleanup (audit logs, etc.)
-    return { message: "Logged out successfully" };
+    return { message: "Đăng xuất thành công" };
   }
 
   async refreshToken(refreshToken: string) {
@@ -246,7 +249,7 @@ export class AuthService {
     });
 
     if (error || !data.user || !data.session) {
-      throw new UnauthorizedError("Failed to refresh token");
+      throw new UnauthorizedError("Không thể làm mới token");
     }
 
     return {
@@ -275,12 +278,12 @@ export class AuthService {
 
       return {
         message:
-          "If this email exists, a password reset OTP has been sent to your email address.",
+          "Nếu email này tồn tại, một OTP đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.",
       };
     } catch {
       return {
         message:
-          "If this email exists, a password reset OTP has been sent to your email address.",
+          "Nếu email này tồn tại, một OTP đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.",
       };
     }
   }
@@ -294,7 +297,7 @@ export class AuthService {
       );
 
       if (!verificationResult.isValid || !verificationResult.otpRecordId) {
-        throw new UnauthorizedError("OTP verification failed");
+        throw new UnauthorizedError("Xác minh OTP thất bại");
       }
 
       const user = await db.query.users.findFirst({
@@ -302,12 +305,12 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new NotFoundError("User not found");
+        throw new NotFoundError("Không tìm thấy người dùng");
       }
 
       if (user.accountStatus !== "ACTIVE") {
         throw new BadRequestError(
-          "Password reset is only allowed for active accounts."
+          "Đặt lại mật khẩu chỉ được phép cho tài khoản đang hoạt động."
         );
       }
 
@@ -335,8 +338,8 @@ export class AuthService {
         throw error;
       }
       throw new UnauthorizedError(
-        `OTP verification failed: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Xác minh OTP thất bại: ${
+          error instanceof Error ? error.message : "Lỗi không xác định"
         }`
       );
     }
@@ -349,13 +352,15 @@ export class AuthService {
       });
 
       if (!resetTokenRecord) {
-        throw new UnauthorizedError("Invalid or expired reset token.");
+        throw new UnauthorizedError(
+          "Token đặt lại không hợp lệ hoặc đã hết hạn."
+        );
       }
 
       // Check if reset token is expired
       if (new Date() > resetTokenRecord.expiresAt) {
         throw new UnauthorizedError(
-          "Reset token has expired. Please request a new password reset."
+          "Token đặt lại đã hết hạn. Vui lòng yêu cầu đặt lại mật khẩu mới."
         );
       }
 
@@ -365,12 +370,12 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new NotFoundError("User not found");
+        throw new NotFoundError("Không tìm thấy người dùng");
       }
 
       if (user.accountStatus !== "ACTIVE") {
         throw new BadRequestError(
-          "Password reset is only allowed for active accounts."
+          "Đặt lại mật khẩu chỉ được phép cho tài khoản đang hoạt động."
         );
       }
 
@@ -382,7 +387,7 @@ export class AuthService {
 
       if (updateError) {
         throw new BadRequestError(
-          `Failed to update password: ${updateError.message}`
+          `Không thể cập nhật mật khẩu: ${updateError.message}`
         );
       }
 
@@ -392,7 +397,8 @@ export class AuthService {
       );
 
       return {
-        message: "Password has been reset successfully. You can now log in.",
+        message:
+          "Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập ngay bây giờ.",
       };
     } catch (error) {
       if (
@@ -403,8 +409,8 @@ export class AuthService {
         throw error;
       }
       throw new BadRequestError(
-        `Password reset failed: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Đặt lại mật khẩu thất bại: ${
+          error instanceof Error ? error.message : "Lỗi không xác định"
         }`
       );
     }
