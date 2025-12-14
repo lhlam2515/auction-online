@@ -3,11 +3,11 @@ export const AUTH_PAGE_CONFIG: Record<
   { title: string; description: string }
 > = {
   "/login": {
-    title: "Đăng nhập — AuctionHub",
+    title: "Đăng nhập — Online Auction",
     description: "Đăng nhập để tiếp tục đấu giá",
   },
   "/register": {
-    title: "Đăng ký — AuctionHub",
+    title: "Đăng ký — Online Auction",
     description: "Tạo tài khoản mới để bắt đầu đấu giá",
   },
   "/forgot-password": {
@@ -18,8 +18,8 @@ export const AUTH_PAGE_CONFIG: Record<
     title: "Đặt lại mật khẩu",
     description: "Nhập mật khẩu mới cho tài khoản của bạn",
   },
-  "/verify": {
-    title: "Xác minh tài khoản",
-    description: "Nhập mã xác minh đã gửi đến email của bạn",
+  "/verify-email": {
+    title: "Xác nhận email",
+    description: "Vui lòng nhập mã OTP đã được gửi đến email của bạn",
   },
 };

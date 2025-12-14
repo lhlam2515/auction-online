@@ -1,6 +1,3 @@
-import { useCallback } from "react";
-import type { z } from "zod";
-
 import AuthForm from "@/components/features/auth/AuthForm";
 import { api } from "@/lib/api-layer";
 import { registerSchema } from "@/lib/validations/auth.validation";
@@ -16,14 +13,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function RegisterPage() {
-  const handleSubmit = useCallback(
-    async (data: z.infer<typeof registerSchema>) => {
-      const result = await api.auth.register(data);
-      return result;
-    },
-    []
-  );
-
   return (
     <AuthForm
       formType="REGISTER"
@@ -35,7 +24,7 @@ export default function RegisterPage() {
         password: "",
         confirmPassword: "",
       }}
-      onSubmit={handleSubmit}
+      onSubmit={(data) => api.auth.register(data)}
     />
   );
 }

@@ -14,7 +14,7 @@ export const AUTH_ROUTES = {
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
-  VERIFY: "/verify",
+  VERIFY_EMAIL: "/verify-email",
 } as const;
 
 // ==========================================

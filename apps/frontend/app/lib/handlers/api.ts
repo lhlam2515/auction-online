@@ -34,6 +34,15 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
+    // Skip token refresh for auth endpoints (except refresh-token itself)
+    // to avoid meaningless refresh attempts on login/register failures
+    if (
+      originalRequest.url?.includes("/auth/") &&
+      !originalRequest.url?.includes("/refresh-token")
+    ) {
+      return Promise.reject(error);
+    }
+
     // Handle 401 - try refresh token
     if (
       error.response?.status === 401 &&

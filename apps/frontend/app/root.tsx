@@ -37,13 +37,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <AuthProvider>
-          <ThemeProvider defaultTheme="light" storageKey="auction-ui-theme">
-            {/* Global layout wrapper with common elements */}
-            <div id="root">{children}</div>
-            <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="auction-ui-theme">
+          {/* Global layout wrapper with common elements */}
+          <div id="root">{children}</div>
+          <Toaster />
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -52,7 +50,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

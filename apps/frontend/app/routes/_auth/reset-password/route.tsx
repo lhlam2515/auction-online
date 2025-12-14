@@ -1,28 +1,53 @@
+import React from "react";
+import { useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
+
+import ForgotPasswordForm from "@/components/features/auth/ForgotPasswordForm";
+import { STORAGE_KEYS } from "@/constants/api";
+import { APP_ROUTES } from "@/constants/routes";
+import { api } from "@/lib/api-layer";
+import { resetPasswordSchema } from "@/lib/validations/auth.validation";
+
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Reset Password - Online Auction" },
+    { title: "Đặt lại mật khẩu - Online Auction" },
     {
       name: "description",
-      content: "Reset Password page for Online Auction App",
+      content:
+        "Đặt lại mật khẩu tài khoản của bạn trên hệ thống Online Auction.",
     },
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
-
 export default function ResetPasswordPage() {
+  const [resetToken] = React.useState(
+    () => localStorage.getItem(STORAGE_KEYS.RESET_TOKEN) || ""
+  );
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (!resetToken) {
+      const from = location.state?.from?.pathname;
+      toast.error("Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+      navigate(from || APP_ROUTES.HOME, { replace: true });
+    }
+  }, [navigate, location.state, resetToken]);
+
   return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Reset Password</h1>
-      <p>Content for Reset Password goes here.</p>
-    </div>
+    <ForgotPasswordForm
+      formType="RESET_PASSWORD"
+      schema={resetPasswordSchema}
+      defaultValues={{ newPassword: "", confirmNewPassword: "" }}
+      onSubmit={(data) =>
+        api.auth.resetPassword({
+          resetToken,
+          newPassword: data.newPassword,
+        })
+      }
+    />
   );
 }

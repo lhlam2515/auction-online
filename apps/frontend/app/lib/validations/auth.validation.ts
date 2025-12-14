@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { commonValidations } from "./common.validation";
 
 /**
@@ -29,12 +30,13 @@ export const registerSchema = z
   });
 
 /**
- * OTP (One-Time Password) verification schema
+ * OTP verification with email schema
  */
-export const otpSchema = z.object({
+export const verifyOtpSchema = z.object({
+  email: commonValidations.email.min(1, "Vui lòng nhập email"),
   otp: z
     .string()
-    .length(6, "Mã OTP phải có đúng 6 ký tự số") // [cite: 665]
+    .length(6, "Mã OTP phải có đúng 6 ký tự số")
     .regex(/^\d+$/, "Mã OTP chỉ được chứa số"),
 });
 
@@ -57,9 +59,38 @@ export const changePasswordSchema = z
   });
 
 /**
+ * Forgot password form validation schema
+ */
+export const forgotPasswordSchema = z.object({
+  email: commonValidations.email.min(1, "Vui lòng nhập email"),
+});
+
+/**
+ * Reset password form validation schema
+ */
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "Mật khẩu mới phải tối thiểu 8 ký tự")
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+        message:
+          "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số",
+      })
+      .regex(/^(?=.*[!@#$%^&*])/, {
+        message: "Mật khẩu phải chứa ít nhất một ký tự đặc biệt",
+      }),
+    confirmNewPassword: z.string().min(1, "Xác nhận mật khẩu mới"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmNewPassword"],
+  });
+
+/**
  * Authentication validation schema types
  */
 export type LoginSchemaType = z.infer<typeof loginSchema>;
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
-export type OtpSchemaType = z.infer<typeof otpSchema>;
+export type VerifyOtpSchemaType = z.infer<typeof verifyOtpSchema>;
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
