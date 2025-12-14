@@ -88,6 +88,7 @@ const ProductCard = ({
     endTime,
     bidCount,
     isWatching,
+    createdAt,
   },
   className,
 }: ProductCardProps) => {
@@ -96,7 +97,7 @@ const ProductCard = ({
   const startDateTime = new Date(startTime);
   const endDateTime = new Date(endTime);
   const isNew =
-    new Date().getTime() - startDateTime.getTime() < NEW_PRODUCT_DURATION;
+    new Date().getTime() - new Date(createdAt).getTime() < NEW_PRODUCT_DURATION;
   const timeDisplay = useCountdown(endDateTime);
 
   const toggleWatchlist = async (e: React.MouseEvent<HTMLButtonElement>) => {
