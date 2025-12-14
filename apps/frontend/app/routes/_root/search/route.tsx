@@ -175,7 +175,7 @@ export default function SearchBrowsePage() {
 
   const debouncedPriceRangeChange = React.useMemo(
     () => debounce(onPriceRangeChange, DELAYS.SEARCH),
-    []
+    [onPriceRangeChange]
   );
 
   const onCategoryChange = (newCategoryId: string) => {
