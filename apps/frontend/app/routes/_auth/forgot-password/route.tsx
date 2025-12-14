@@ -1,28 +1,53 @@
+import React from "react";
+
+import ForgotPasswordForm from "@/components/features/auth/ForgotPasswordForm";
+import VerifyOTPForm from "@/components/features/auth/VerifyOTPForm";
+import { api } from "@/lib/api-layer";
+import {
+  forgotPasswordSchema,
+  verifyOtpSchema,
+} from "@/lib/validations/auth.validation";
+
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Forgot Password - Online Auction" },
+    { title: "Quên mật khẩu - Online Auction" },
     {
       name: "description",
-      content: "Forgot Password page for Online Auction App",
+      content:
+        "Trang xác nhận quên mật khẩu cho người dùng trên Online Auction.",
     },
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
-
 export default function ForgotPasswordPage() {
-  return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Forgot Password</h1>
-      <p>Content for Forgot Password goes here.</p>
-    </div>
+  const [email, setEmail] = React.useState<string>("");
+  const [sentOTP, setSentOTP] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (email) {
+      setSentOTP(true);
+    }
+  }, [email]);
+
+  return !sentOTP ? (
+    <ForgotPasswordForm
+      formType="REQUEST_OTP"
+      schema={forgotPasswordSchema}
+      defaultValues={{ email: "" }}
+      onSubmit={(data) => api.auth.forgotPassword({ email: data.email })}
+      onSuccess={(data) => setEmail(data.email)}
+    />
+  ) : (
+    <VerifyOTPForm
+      formType="PASSWORD_RESET"
+      schema={verifyOtpSchema}
+      defaultValues={{ email: email as string, otp: "" }}
+      onSubmit={(data) =>
+        api.auth.verifyOtp({ email: data.email, otp: data.otp })
+      }
+    />
   );
 }
