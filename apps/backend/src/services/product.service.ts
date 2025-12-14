@@ -99,12 +99,12 @@ export class ProductService {
     // Price filter
     if (minPrice) {
       conditions.push(
-        sql`COALESCE(${products.currentPrice}, ${products.startPrice}) >= ${String(minPrice)}`
+        sql`COALESCE(${products.currentPrice}, ${products.startPrice}) >= ${minPrice}`
       );
     }
     if (maxPrice) {
       conditions.push(
-        sql`COALESCE(${products.currentPrice}, ${products.startPrice}) <= ${String(maxPrice)}`
+        sql`COALESCE(${products.currentPrice}, ${products.startPrice}) <= ${maxPrice}`
       );
     }
     // Build the base query
