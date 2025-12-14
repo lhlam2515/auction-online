@@ -5,11 +5,10 @@ export type { ProductStatus } from "../common/enums";
  * Product sort options
  */
 export type ProductSortOption =
+  | "newest"
   | "price_asc"
   | "price_desc"
-  | "ending_soon"
-  | "newest"
-  | "most_bids";
+  | "ending_soon";
 
 /**
  * Top listing type
