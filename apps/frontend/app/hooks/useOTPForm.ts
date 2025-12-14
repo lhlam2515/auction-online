@@ -18,8 +18,8 @@ interface UseOTPFormConfig<T extends FieldValues> {
   defaultValues: T;
   onSubmit: (data: T) => Promise<ApiResponse>;
   formType: "EMAIL_VERIFICATION" | "PASSWORD_RESET";
-  onSuccess?: (data: T, result: SuccessResponse) => void;
-  onError?: (error: unknown, errorMessage: string) => void;
+  onSuccess?: (data: T, result: SuccessResponse, message: string) => void;
+  onError?: (data: T, error: unknown, errorMessage: string) => void;
   enableResendCountdown?: boolean;
   resendCountdownSeconds?: number;
 }
@@ -75,9 +75,7 @@ export const useOTPForm = <T extends FieldValues>({
           : SUCCESS_MESSAGES.RESET_OTP_VERIFIED;
 
       // Call onSuccess callback if provided
-      onSuccess?.(data, result);
-
-      return { success: true, data: result, message: successMessage };
+      onSuccess?.(data, result, successMessage);
     } catch (error) {
       const errorMessage = getErrorMessage(error);
 
@@ -90,9 +88,7 @@ export const useOTPForm = <T extends FieldValues>({
       showError(error, errorMessage);
 
       // Call onError callback if provided
-      onError?.(error, errorMessage);
-
-      return { success: false, error, message: errorMessage };
+      onError?.(data, error, errorMessage);
     }
   };
 

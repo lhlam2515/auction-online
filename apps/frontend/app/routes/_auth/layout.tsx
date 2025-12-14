@@ -56,10 +56,8 @@ export default function AuthLayout() {
               </Link>
             </p>
           )}
-          {["/forgot-password", "/reset-password", "/verify"].includes(
-            pathname
-          ) && (
-            <Button variant="link" asChild className="self-start">
+          {!["/login", "/register"].includes(pathname) && (
+            <Button variant="link" asChild className="self-start p-0!">
               <Link to={AUTH_ROUTES.LOGIN} className="flex items-center gap-2">
                 <ArrowLeft /> <span>Quay lại đăng nhập</span>
               </Link>

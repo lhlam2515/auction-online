@@ -18,8 +18,8 @@ export const AUTH_PAGE_CONFIG: Record<
     title: "Đặt lại mật khẩu",
     description: "Nhập mật khẩu mới cho tài khoản của bạn",
   },
-  "/verify": {
-    title: "Xác minh tài khoản",
-    description: "Nhập mã xác minh đã gửi đến email của bạn",
+  "/verify-email": {
+    title: "Xác nhận email",
+    description: "Vui lòng nhập mã OTP đã được gửi đến email của bạn",
   },
 };

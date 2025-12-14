@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import {
   type RouteConfig,
   index,
@@ -11,7 +10,7 @@ export default [
   layout("routes/_auth/layout.tsx", [
     route("login", "routes/_auth/login/route.tsx"),
     route("register", "routes/_auth/register/route.tsx"),
-    route("verify", "routes/_auth/verify/route.tsx"),
+    route("verify-email", "routes/_auth/verify-email/route.tsx"),
     route("forgot-password", "routes/_auth/forgot-password/route.tsx"),
     route("reset-password", "routes/_auth/reset-password/route.tsx"),
   ]),
