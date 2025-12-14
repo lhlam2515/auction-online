@@ -1,3 +1,5 @@
+import React from "react";
+
 import VerifyOTPForm from "@/components/features/auth/VerifyOTPForm";
 import { STORAGE_KEYS } from "@/constants/api";
 import { api } from "@/lib/api-layer";
@@ -17,12 +19,16 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function VerifyEmailPage() {
+  const [pendingEmail] = React.useState(
+    () => localStorage.getItem(STORAGE_KEYS.PENDING_EMAIL) || ""
+  );
+
   return (
     <VerifyOTPForm
       formType="EMAIL_VERIFICATION"
       schema={verifyOtpSchema}
       defaultValues={{
-        email: localStorage.getItem(STORAGE_KEYS.PENDING_EMAIL) || "",
+        email: pendingEmail,
         otp: "",
       }}
       onSubmit={(data) => api.auth.verifyEmail(data)}

@@ -23,7 +23,9 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function ResetPasswordPage() {
-  const resetToken = localStorage.getItem(STORAGE_KEYS.RESET_TOKEN);
+  const [resetToken] = React.useState(
+    () => localStorage.getItem(STORAGE_KEYS.RESET_TOKEN) || ""
+  );
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -42,7 +44,7 @@ export default function ResetPasswordPage() {
       defaultValues={{ newPassword: "", confirmNewPassword: "" }}
       onSubmit={(data) =>
         api.auth.resetPassword({
-          resetToken: localStorage.getItem(STORAGE_KEYS.RESET_TOKEN) || "",
+          resetToken,
           newPassword: data.newPassword,
         })
       }
