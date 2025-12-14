@@ -282,10 +282,7 @@ export const api = {
     /**
      * Get top listings (ending soon, hot products, etc.)
      */
-    getTopListing: (params?: {
-      type?: "ending" | "hot" | "new";
-      limit?: number;
-    }) =>
+    getTopListing: (params?: { limit?: number }) =>
       apiCall<TopListingResponse>(
         "GET",
         appendQueryParams("/products/top-listing", params)
