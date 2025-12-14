@@ -183,14 +183,12 @@ export default function SearchBrowsePage() {
     next.delete("page");
     if (newCategoryId) {
       next.set("category", newCategoryId);
-    } else if (newCategoryId === "") {
+    } else {
       next.delete("category");
       next.delete("q");
       next.delete("minPrice");
       next.delete("maxPrice");
       next.delete("sort");
-    } else {
-      next.delete("category");
     }
     setSearchParams(next);
   };
