@@ -46,7 +46,9 @@ const PaginationBar = ({
     if (currentPage + delta < totalPages - 1) {
       rangeWithDots.push("...", totalPages);
     } else {
-      rangeWithDots.push(totalPages);
+      if (totalPages > 1) {
+        rangeWithDots.push(totalPages);
+      }
     }
 
     return rangeWithDots;
