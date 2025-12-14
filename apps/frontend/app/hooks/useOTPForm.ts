@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ApiResponse, SuccessResponse } from "@repo/shared-types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   type DefaultValues,
   type FieldValues,
@@ -37,6 +37,7 @@ export const useOTPForm = <T extends FieldValues>({
   const [resendCountdown, setResendCountdown] = useState(
     enableResendCountdown ? resendCountdownSeconds : 0
   );
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const form = useForm<T>({
     // Type assertion needed for generic Zod schema with react-hook-form
@@ -47,14 +48,17 @@ export const useOTPForm = <T extends FieldValues>({
 
   // Countdown timer for resend OTP
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
     if (enableResendCountdown && resendCountdown > 0) {
-      timer = setTimeout(() => {
-        setResendCountdown(resendCountdown - 1);
+      timerRef.current = setTimeout(() => {
+        setResendCountdown((prev) => prev - 1);
       }, 1000);
     }
+
     return () => {
-      if (timer) clearTimeout(timer);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = undefined;
+      }
     };
   }, [resendCountdown, enableResendCountdown]);
 
