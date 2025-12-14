@@ -108,6 +108,7 @@ router.post(
  */
 router.post(
   "/resend-otp",
+  authRateLimit, // SECURITY: Rate limiting to prevent abuse
   validate({ body: authValidation.resendOtpSchema }),
   authController.resendOtp
 );
