@@ -23,7 +23,6 @@ import type {
   ProductListing,
   CreateProductRequest,
   UpdateDescriptionRequest,
-  ProductsQueryParams,
   TopListingResponse,
   ProductImage,
   UpdateDescriptionResponse,
@@ -83,6 +82,7 @@ import type {
   ApiResponse,
   PaginatedResponse,
   PaginationParams,
+  SearchProductsParams,
   OrderWithDetails,
 } from "@repo/shared-types";
 
@@ -271,7 +271,7 @@ export const api = {
     /**
      * Search and filter products
      */
-    search: (params?: ProductsQueryParams) =>
+    search: (params?: SearchProductsParams) =>
       apiCall<PaginatedResponse<ProductListing>>(
         "GET",
         appendQueryParams("/products", paramsToRecord(params))

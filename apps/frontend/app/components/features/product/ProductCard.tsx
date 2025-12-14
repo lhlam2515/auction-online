@@ -88,6 +88,7 @@ const ProductCard = ({
     endTime,
     bidCount,
     isWatching,
+    createdAt,
   },
   className,
 }: ProductCardProps) => {
@@ -96,7 +97,7 @@ const ProductCard = ({
   const startDateTime = new Date(startTime);
   const endDateTime = new Date(endTime);
   const isNew =
-    new Date().getTime() - startDateTime.getTime() < NEW_PRODUCT_DURATION;
+    new Date().getTime() - new Date(createdAt).getTime() < NEW_PRODUCT_DURATION;
   const timeDisplay = useCountdown(endDateTime);
 
   const toggleWatchlist = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -117,7 +118,7 @@ const ProductCard = ({
     <Link
       to={APP_ROUTES.PRODUCT(id)}
       className={cn(
-        "block h-full w-full max-w-[300px] min-w-[250px]",
+        "block h-full w-full max-w-[300px] min-w-[200px]",
         className
       )}
     >
@@ -155,7 +156,7 @@ const ProductCard = ({
         {/* 2. Phần Nội dung chính */}
         <CardContent className="flex flex-1 flex-col gap-3">
           {/* Tên sản phẩm */}
-          <h3 className="line-clamp-2 h-13 text-lg leading-tight font-semibold text-gray-900">
+          <h3 className="line-clamp-2 h-12 text-lg leading-tight font-semibold text-gray-900">
             {name}
           </h3>
 
@@ -245,7 +246,7 @@ export const ProductCardSkeleton = ({ className }: { className?: string }) => {
   return (
     <div
       className={cn(
-        "block h-full w-full max-w-[300px] min-w-[250px]",
+        "block h-full w-full max-w-[300px] min-w-[200px]",
         className
       )}
     >

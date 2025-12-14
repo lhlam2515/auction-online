@@ -9,7 +9,18 @@ import type {
   ProductListing,
   GetSellerProductsParams,
 } from "@repo/shared-types";
-import { eq, desc, and, asc, count, sql, gt, inArray, not } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  and,
+  asc,
+  count,
+  sql,
+  gt,
+  inArray,
+  not,
+  or,
+} from "drizzle-orm";
 import slug from "slug";
 
 import { db } from "@/config/database";
@@ -74,77 +85,58 @@ export class ProductService {
 
     // Category filter
     if (categoryId) {
-      conditions.push(eq(products.categoryId, categoryId));
+      conditions.push(
+        or(
+          eq(products.categoryId, categoryId),
+          eq(categories.parentId, categoryId)
+        )
+      );
     }
 
     // Status filter (default to ACTIVE if not specified)
     conditions.push(eq(products.status, status));
 
-    // Create subquery for max bid amounts
-    const maxBidSub = db
-      .select({
-        productId: bids.productId,
-        maxAmount: sql`MAX(${bids.amount})`.as("maxAmount"),
-      })
-      .from(bids)
-      .where(eq(bids.status, "VALID"))
-      .groupBy(bids.productId)
-      .as("maxBid");
-
+    // Price filter
+    if (minPrice) {
+      conditions.push(
+        sql`COALESCE(${products.currentPrice}, ${products.startPrice}) >= ${minPrice}`
+      );
+    }
+    if (maxPrice) {
+      conditions.push(
+        sql`COALESCE(${products.currentPrice}, ${products.startPrice}) <= ${maxPrice}`
+      );
+    }
     // Build the base query
     const baseQuery = db
-      .select({
-        product: products,
-        currentPrice:
-          sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`.as(
-            "currentPrice"
-          ),
-      })
+      .select({ product: products })
       .from(products)
-      .leftJoin(maxBidSub, eq(maxBidSub.productId, products.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
       .$dynamic();
 
     // Apply WHERE conditions
     const queryWithWhere =
       conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
 
-    // Price range filter (applied as HAVING after GROUP BY from subquery)
-    const priceConditions = [];
-    if (minPrice !== undefined) {
-      priceConditions.push(
-        sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice}) >= ${minPrice}`
-      );
-    }
-    if (maxPrice !== undefined) {
-      priceConditions.push(
-        sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice}) <= ${maxPrice}`
-      );
-    }
-
-    const queryWithHaving =
-      priceConditions.length > 0
-        ? queryWithWhere.having(and(...priceConditions))
-        : queryWithWhere;
-
     // Apply sorting
     let finalQuery;
     switch (sort) {
       case "price_asc":
-        finalQuery = queryWithHaving.orderBy(
-          asc(sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`)
+        finalQuery = queryWithWhere.orderBy(
+          asc(sql`COALESCE(${products.currentPrice}, ${products.startPrice})`)
         );
         break;
       case "price_desc":
-        finalQuery = queryWithHaving.orderBy(
-          desc(sql`COALESCE(${maxBidSub.maxAmount}, ${products.startPrice})`)
+        finalQuery = queryWithWhere.orderBy(
+          desc(sql`COALESCE(${products.currentPrice}, ${products.startPrice})`)
         );
         break;
       case "ending_soon":
-        finalQuery = queryWithHaving.orderBy(asc(products.endTime));
+        finalQuery = queryWithWhere.orderBy(asc(products.endTime));
         break;
       case "newest":
       default:
-        finalQuery = queryWithHaving.orderBy(desc(products.createdAt));
+        finalQuery = queryWithWhere.orderBy(desc(products.createdAt));
         break;
     }
 
@@ -152,18 +144,13 @@ export class ProductService {
     const baseCountQuery = db
       .select({ count: sql`count(*)` })
       .from(products)
-      .leftJoin(maxBidSub, eq(maxBidSub.productId, products.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
       .$dynamic();
 
-    const countQueryWithWhere =
+    const countQuery =
       conditions.length > 0
         ? baseCountQuery.where(and(...conditions))
         : baseCountQuery;
-
-    const countQuery =
-      priceConditions.length > 0
-        ? countQueryWithWhere.having(and(...priceConditions))
-        : countQueryWithWhere;
 
     // Execute queries
     const [results, countResult] = await Promise.all([
