@@ -47,14 +47,15 @@ export const useOTPForm = <T extends FieldValues>({
 
   // Countdown timer for resend OTP
   useEffect(() => {
-    if (!enableResendCountdown) return;
-
-    if (resendCountdown > 0) {
-      const timer = setTimeout(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (enableResendCountdown && resendCountdown > 0) {
+      timer = setTimeout(() => {
         setResendCountdown(resendCountdown - 1);
       }, 1000);
-      return () => clearTimeout(timer);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [resendCountdown, enableResendCountdown]);
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
