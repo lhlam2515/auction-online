@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-named-as-default
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   Controller,
   type FieldValues,
@@ -103,9 +105,29 @@ const AuthFormFields = <T extends FieldValues>({
       {Object.keys(defaultValues)
         .filter(
           (field) =>
-            !(formType === "REGISTER" && ["fullName", "email"].includes(field))
+            !(
+              formType === "REGISTER" && ["fullName", "email"].includes(field)
+            ) && field !== "recaptchaToken"
         )
         .map((field) => renderField(field))}
+
+      <Controller
+        control={control}
+        name={"recaptchaToken" as Path<T>}
+        render={({ field, fieldState }) => (
+          <Field
+            data-invalid={fieldState.invalid}
+            className="flex w-full flex-col gap-2"
+          >
+            <ReCAPTCHA
+              sitekey={import.meta.env.VITE_CAPTCHA_SITE_KEY}
+              onChange={(token) => field.onChange(token)}
+              onExpired={() => field.onChange("")}
+            />
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
     </FieldGroup>
   );
 };
