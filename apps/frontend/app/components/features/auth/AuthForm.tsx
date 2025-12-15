@@ -18,6 +18,8 @@ import { api } from "@/lib/api-layer";
 import { ApiError } from "@/types/api";
 
 import AuthFormFields from "./AuthFormFields";
+import SocialAuthButtons from "./SocialAuthButtons";
+
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
   defaultValues: T;
@@ -110,6 +112,8 @@ const AuthForm = <T extends FieldValues>(props: AuthFormProps<T>) => {
               : "Đang đăng ký..."
             : buttonText}
         </Button>
+
+        <SocialAuthButtons disabled={isSubmitting} />
       </form>
     </FormProvider>
   );
