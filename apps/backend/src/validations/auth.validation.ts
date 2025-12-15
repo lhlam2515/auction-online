@@ -60,3 +60,14 @@ export const resendOtpSchema = z.object({
     error: "Purpose must be either EMAIL_VERIFICATION or PASSWORD_RESET",
   }),
 });
+
+export const signInWithOAuthSchema = z.object({
+  provider: z.enum(["google", "facebook"], {
+    error: "Provider must be either google or facebook",
+  }),
+  redirectTo: z.url({ error: "Invalid redirect URL" }).optional(),
+});
+
+export const handleOAuthCallbackSchema = z.object({
+  code: z.string().min(1, { error: "Authorization code is required" }),
+});

@@ -14,6 +14,7 @@ import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
 import { authService, otpService } from "@/services";
+import { setAuthCookies } from "@/utils/cookies";
 import { UnauthorizedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -53,27 +54,9 @@ export const login = asyncHandler(
       password
     );
 
-    if (refreshToken) {
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/v1/auth",
-      });
-    }
-
-    // SECURITY: Store accessToken in httpOnly cookie
-    // This prevents XSS attacks from stealing the token via localStorage
-    if (accessToken) {
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 60 * 60 * 1000, // 1 hour
-        path: "/api/v1",
-      });
-    }
+    // SECURITY: Store tokens in httpOnly cookies
+    // This prevents XSS attacks from stealing the tokens via localStorage
+    setAuthCookies(res, accessToken, refreshToken);
 
     return ResponseHandler.sendSuccess<{ user: UserAuthData }>(res, { user });
   }
@@ -102,25 +85,7 @@ export const refreshToken = asyncHandler(
 
     const result = await authService.refreshToken(refreshToken);
 
-    if (result.refreshToken) {
-      res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: "/api/v1/auth",
-      });
-    }
-
-    if (result.accessToken) {
-      res.cookie("accessToken", result.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 60 * 60 * 1000, // 1 hour
-        path: "/api/v1",
-      });
-    }
+    setAuthCookies(res, result.accessToken, result.refreshToken);
 
     // Return empty response - token is in the cookie
     return ResponseHandler.sendNoContent(res);
@@ -179,5 +144,28 @@ export const resendOtp = asyncHandler(
     const result = await otpService.resendOtp(email, purpose);
 
     return ResponseHandler.sendSuccess(res, null, 200, result.message);
+  }
+);
+
+export const signInWithOAuth = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { provider, redirectTo } = req.body;
+
+    const result = await authService.signInWithOAuth(provider, redirectTo);
+
+    return ResponseHandler.sendSuccess<{ redirectUrl: string }>(res, result);
+  }
+);
+
+export const handleOAuthCallback = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { code } = res.locals.query;
+
+    const { accessToken, refreshToken } =
+      await authService.handleOAuthCallback(code);
+
+    setAuthCookies(res, accessToken, refreshToken);
+
+    res.redirect(process.env.FRONTEND_URL!);
   }
 );

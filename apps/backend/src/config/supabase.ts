@@ -13,6 +13,7 @@ if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
 
 const clientOptions: SupabaseClientOptions<"public"> = {
   auth: {
+    flowType: "pkce",
     autoRefreshToken: false,
     persistSession: false,
     detectSessionInUrl: false,
