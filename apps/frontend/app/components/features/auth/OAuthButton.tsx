@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { ERROR_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 import { buildApiUrl } from "@/lib/url";
 
@@ -26,19 +27,24 @@ const OAuthButton = ({ provider, disabled }: OAuthButtonProps) => {
       });
 
       if (!result.success) {
-        throw new Error(result.error?.message || "OAuth sign-in failed");
+        throw new Error(
+          result.error?.message || "Đăng nhập bằng OAuth thất bại"
+        );
       }
 
       // Redirect to the OAuth provider's consent page
       window.location.href = result.data.redirectUrl;
-    } catch {
-      toast.error("An unexpected error occurred");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : ERROR_MESSAGES.SERVER_ERROR
+      );
       setIsLoading(false);
     }
   };
 
   const providerConfig = {
     google: {
+      provider: "Google",
       label: "Tiếp tục với Google",
       icon: (
         <img
@@ -51,6 +57,7 @@ const OAuthButton = ({ provider, disabled }: OAuthButtonProps) => {
       ),
     },
     facebook: {
+      provider: "Facebook",
       label: "Tiếp tục với Facebook",
       icon: (
         <img
@@ -76,7 +83,7 @@ const OAuthButton = ({ provider, disabled }: OAuthButtonProps) => {
     >
       {!isLoading && config.icon}
       {isLoading && <Spinner />}
-      {isLoading ? `Đang kết nối với ${provider}...` : config.label}
+      {isLoading ? `Đang kết nối với ${config.provider}...` : config.label}
     </Button>
   );
 };
