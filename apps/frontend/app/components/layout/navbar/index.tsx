@@ -5,6 +5,7 @@ import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ACCOUNT_ROUTES, APP_ROUTES, AUTH_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
@@ -16,7 +17,7 @@ import UserDropdownMenu from "./UserDropdownMenu";
 
 const Navbar = () => {
   const [categories, setCategories] = React.useState<CategoryTree[]>([]);
-  const { user, logout } = useAuth();
+  const { user, isLoading, logout } = useAuth();
 
   // Fetch categories on mount
   React.useEffect(() => {
@@ -49,7 +50,12 @@ const Navbar = () => {
           <SearchBar categories={categories} />
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            {user ? (
+            {isLoading ? (
+              <>
+                <Skeleton className="bg-muted h-8 w-32" />
+                <Skeleton className="bg-muted h-8 w-32" />
+              </>
+            ) : user ? (
               <>
                 <Button asChild variant="ghost">
                   <Link to={ACCOUNT_ROUTES.WATCHLIST}>

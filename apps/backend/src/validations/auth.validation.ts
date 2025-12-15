@@ -13,15 +13,24 @@ export const registerSchema = z.object({
     .string()
     .min(2, { error: "Full name must be at least 2 characters" }),
   address: z.string().optional(),
+  recaptchaToken: z
+    .string()
+    .min(1, { error: "reCaptcha verification required" }),
 });
 
 export const loginSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
   password: z.string().min(1, { error: "Password is required" }),
+  recaptchaToken: z
+    .string()
+    .min(1, { error: "reCaptcha verification required" }),
 });
 
 export const forgotPasswordSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
+  recaptchaToken: z
+    .string()
+    .min(1, { error: "reCaptcha verification required" }),
 });
 
 export const verifyEmailSchema = z.object({
@@ -50,4 +59,15 @@ export const resendOtpSchema = z.object({
   purpose: z.enum(["EMAIL_VERIFICATION", "PASSWORD_RESET"], {
     error: "Purpose must be either EMAIL_VERIFICATION or PASSWORD_RESET",
   }),
+});
+
+export const signInWithOAuthSchema = z.object({
+  provider: z.enum(["google", "facebook"], {
+    error: "Provider must be either google or facebook",
+  }),
+  redirectTo: z.url({ error: "Invalid redirect URL" }).optional(),
+});
+
+export const handleOAuthCallbackSchema = z.object({
+  code: z.string().min(1, { error: "Authorization code is required" }),
 });

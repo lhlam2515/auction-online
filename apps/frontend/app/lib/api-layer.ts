@@ -9,6 +9,7 @@ import type {
   ResendOtpRequest,
   VerifyOtpResponse,
   VerifyResetOtpRequest,
+  SignInWithOAuthRequest,
 
   // User types
   User,
@@ -173,6 +174,12 @@ export const api = {
      */
     resendOtp: (data: ResendOtpRequest) =>
       apiCall("POST", "/auth/resend-otp", data),
+
+    /**
+     * Sign in with OAuth provider
+     */
+    signInWithOAuth: (data: SignInWithOAuthRequest) =>
+      apiCall<{ redirectUrl: string }>("POST", "/auth/signin-with-oauth", data),
   },
 
   /**
