@@ -45,6 +45,7 @@ import type {
 
   // Question types
   ProductQuestion,
+  ProductQuestionWithUsers,
   AskQuestionRequest,
   AnswerQuestionRequest,
 
@@ -443,7 +444,10 @@ export const api = {
      * Get public Q&A for a product
      */
     getPublic: (productId: string) =>
-      apiCall<ProductQuestion[]>("GET", `/products/${productId}/questions`),
+      apiCall<ProductQuestionWithUsers[]>(
+        "GET",
+        `/products/${productId}/questions`
+      ),
 
     /**
      * Ask a question about a product
