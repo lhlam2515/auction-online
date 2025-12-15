@@ -36,6 +36,7 @@ import type {
 
   // Bid types
   Bid,
+  BidWithUser,
   PlaceBidRequest,
   CreateAutoBidRequest,
   UpdateAutoBidRequest,
@@ -392,7 +393,7 @@ export const api = {
      * Get bidding history for a product
      */
     getHistory: (productId: string, params?: PaginationParams) =>
-      apiCall<Bid[]>(
+      apiCall<BidWithUser[]>(
         "GET",
         appendQueryParams(`/products/${productId}/bids`, paramsToRecord(params))
       ),

@@ -19,7 +19,6 @@ export interface Bid {
  */
 export interface BidWithUser extends Bid {
   userName: string;
-  userAvatarUrl?: string;
 }
 
 /**

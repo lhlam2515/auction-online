@@ -40,6 +40,7 @@ import {
   ForbiddenError,
 } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
+import { maskName } from "@/utils/ultils";
 
 export class ProductService {
   // async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
@@ -535,15 +536,6 @@ export class ProductService {
       });
       userWatchSet = new Set(watchRows.map((w) => w.productId));
     }
-
-    // ===== Helper =====
-    const maskName = (fullName: string) => {
-      const parts = fullName.trim().split(/\s+/).filter(Boolean);
-      if (parts.length === 0) return "****";
-      if (parts.length === 1) return "****";
-      const last = parts[parts.length - 1];
-      return "****" + last;
-    };
 
     // ===== Lookup maps =====
     const categoryMap = new Map(categoriesRows.map((c) => [c.id, c]));
