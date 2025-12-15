@@ -165,11 +165,19 @@ const ForgotPasswordForm = <T extends FieldValues>({
                   data-invalid={fieldState.invalid}
                   className="flex w-full flex-col gap-2"
                 >
-                  <ReCAPTCHA
-                    sitekey={import.meta.env.VITE_CAPTCHA_SITE_KEY}
-                    onChange={(token) => field.onChange(token)}
-                    onExpired={() => field.onChange("")}
-                  />
+                  {typeof import.meta.env.VITE_CAPTCHA_SITE_KEY !== "string" ||
+                  !import.meta.env.VITE_CAPTCHA_SITE_KEY ? (
+                    <div className="error-message">
+                      Error: VITE_CAPTCHA_SITE_KEY environment variable is not
+                      set.
+                    </div>
+                  ) : (
+                    <ReCAPTCHA
+                      sitekey={import.meta.env.VITE_CAPTCHA_SITE_KEY}
+                      onChange={(token) => field.onChange(token)}
+                      onExpired={() => field.onChange("")}
+                    />
+                  )}
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}

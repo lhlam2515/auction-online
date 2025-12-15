@@ -27,6 +27,7 @@ router.get("/me", authenticate, authController.getCurrentUser);
  */
 router.post(
   "/register",
+  authRateLimit, // SECURITY: Rate limiting to prevent abuse
   verifyCaptcha,
   validate({ body: authValidation.registerSchema }),
   authController.register
