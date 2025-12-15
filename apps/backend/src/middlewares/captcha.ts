@@ -26,7 +26,7 @@ export const verifyCaptcha = async (
 
     const secretKey = process.env.CAPTCHA_SECRET_KEY;
     if (!secretKey) {
-      throw new Error("RECAPTCHA_SECRET_KEY not configured");
+      throw new Error("CAPTCHA_SECRET_KEY not configured");
     }
 
     // Verify token with Google reCaptcha API
@@ -58,7 +58,8 @@ export const verifyCaptcha = async (
       );
     }
 
-    // Verification passed, continue to next middleware
+    // Verification passed, remove recaptchaToken before continuing
+    delete req.body.recaptchaToken;
     next();
   } catch (error) {
     if (error instanceof BadRequestError) {
