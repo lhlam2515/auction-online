@@ -23,6 +23,7 @@ export default function RegisterPage() {
         address: "",
         password: "",
         confirmPassword: "",
+        recaptchaToken: "",
       }}
       onSubmit={(data) => api.auth.register(data)}
     />

@@ -138,7 +138,9 @@ export function isPublicRoute(pathname: string): boolean {
   return (
     isAuthRoute(pathname) ||
     publicPaths.some(
-      (path) => pathname === path || pathname.startsWith(path)
+      (path) =>
+        pathname === path ||
+        (pathname.startsWith(path) && path !== APP_ROUTES.HOME)
     ) ||
     pathname.startsWith("/products/")
   );
