@@ -6,18 +6,19 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 
 ## ✅ 1. Authentication & Authorization
 
-| Endpoint                           | Route File     | Controller                          | Validation                                |
-| ---------------------------------- | -------------- | ----------------------------------- | ----------------------------------------- |
-| POST /api/v1/auth/register         | auth.routes.ts | auth.controller.ts → register       | auth.validation.ts → registerSchema       |
-| POST /api/v1/auth/login            | auth.routes.ts | auth.controller.ts → login          | auth.validation.ts → loginSchema          |
-| POST /api/v1/auth/logout           | auth.routes.ts | auth.controller.ts → logout         | -                                         |
-| POST /api/v1/auth/refresh-token    | auth.routes.ts | auth.controller.ts → refreshToken   | -                                         |
-| POST /api/v1/auth/forgot-password  | auth.routes.ts | auth.controller.ts → forgotPassword | auth.validation.ts → forgotPasswordSchema |
-| POST /api/v1/auth/verify-email     | auth.routes.ts | auth.controller.ts → verifyEmail    | auth.validation.ts → verifyEmailSchema    |
-| POST /api/v1/auth/verify-reset-otp | auth.routes.ts | auth.controller.ts → verifyResetOtp | auth.validation.ts → verifyResetOtpSchema |
-| POST /api/v1/auth/reset-password   | auth.routes.ts | auth.controller.ts → resetPassword  | auth.validation.ts → resetPasswordSchema  |
-| POST /api/v1/auth/google           | auth.routes.ts | auth.controller.ts → googleLogin    | -                                         |
-| POST /api/v1/auth/resend-otp       | auth.routes.ts | auth.controller.ts → resendOtp      | auth.validation.ts → resendOtpSchema      |
+| Endpoint                            | Route File     | Controller                               | Validation                                     |
+| ----------------------------------- | -------------- | ---------------------------------------- | ---------------------------------------------- |
+| POST /api/v1/auth/register          | auth.routes.ts | auth.controller.ts → register            | auth.validation.ts → registerSchema            |
+| POST /api/v1/auth/login             | auth.routes.ts | auth.controller.ts → login               | auth.validation.ts → loginSchema               |
+| POST /api/v1/auth/logout            | auth.routes.ts | auth.controller.ts → logout              | -                                              |
+| POST /api/v1/auth/refresh-token     | auth.routes.ts | auth.controller.ts → refreshToken        | -                                              |
+| POST /api/v1/auth/forgot-password   | auth.routes.ts | auth.controller.ts → forgotPassword      | auth.validation.ts → forgotPasswordSchema      |
+| POST /api/v1/auth/verify-email      | auth.routes.ts | auth.controller.ts → verifyEmail         | auth.validation.ts → verifyEmailSchema         |
+| POST /api/v1/auth/verify-reset-otp  | auth.routes.ts | auth.controller.ts → verifyResetOtp      | auth.validation.ts → verifyResetOtpSchema      |
+| POST /api/v1/auth/reset-password    | auth.routes.ts | auth.controller.ts → resetPassword       | auth.validation.ts → resetPasswordSchema       |
+| POST /api/v1/auth/resend-otp        | auth.routes.ts | auth.controller.ts → resendOtp           | auth.validation.ts → resendOtpSchema           |
+| POST /api/v1/auth/signin-with-oauth | auth.routes.ts | auth.controller.ts → signInWithOAuth     | auth.validation.ts → signInWithOAuthSchema     |
+| GET /api/v1/auth/oauth/callback     | auth.routes.ts | auth.controller.ts → handleOAuthCallback | auth.validation.ts → handleOAuthCallbackSchema |
 
 ---
 

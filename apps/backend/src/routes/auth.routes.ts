@@ -120,4 +120,28 @@ router.post(
   authController.resendOtp
 );
 
+/**
+ * @route   POST /api/auth/signin-with-oauth
+ * @desc    Sign in or register user using third-party OAuth provider
+ * @access  Public
+ */
+router.post(
+  "/signin-with-oauth",
+  validate({ body: authValidation.signInWithOAuthSchema }),
+  authController.signInWithOAuth
+);
+
+/**
+ * @route   GET /api/auth/oauth/callback
+ * @desc    OAuth callback endpoint for third-party providers
+ * @access  Public
+ */
+router.get(
+  "/oauth/callback",
+  validate({
+    query: authValidation.handleOAuthCallbackSchema,
+  }),
+  authController.handleOAuthCallback
+);
+
 export default router;
