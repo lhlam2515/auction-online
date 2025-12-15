@@ -1,6 +1,8 @@
 import type { UserAuthData } from "@repo/shared-types";
 import React, { createContext } from "react";
+import { useLocation } from "react-router";
 
+import { isAuthRoute } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 
@@ -20,31 +22,38 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const location = useLocation();
   const [user, setUser] = React.useState<UserAuthData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const result = await api.auth.me();
-        if (result?.success && result.data?.user) {
-          setUser(result.data.user);
-          logger.info("Auth initialized from API", {
-            userId: result.data.user.id,
-          });
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        logger.error("Failed to initialize auth from API", error);
+  const initializeAuth = React.useCallback(async () => {
+    try {
+      const result = await api.auth.me();
+      if (result?.success && result.data?.user) {
+        setUser(result.data.user);
+        logger.info("Auth initialized from API", {
+          userId: result.data.user.id,
+        });
+      } else {
         setUser(null);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      logger.error("Failed to initialize auth from API", error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (isAuthRoute(location.pathname)) {
+      // Skip auth initialization on auth routes
+      setIsLoading(false);
+      return;
+    }
 
     initializeAuth();
-  }, []);
+  }, [initializeAuth, location.pathname]);
 
   // Login user
   const login = React.useCallback((userData: UserAuthData) => {
