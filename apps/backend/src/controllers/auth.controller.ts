@@ -159,13 +159,13 @@ export const signInWithOAuth = asyncHandler(
 
 export const handleOAuthCallback = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { code, next: redirectUrl } = res.locals.query;
+    const { code } = res.locals.query;
 
     const { accessToken, refreshToken } =
       await authService.handleOAuthCallback(code);
 
     setAuthCookies(res, accessToken, refreshToken);
 
-    res.redirect(process.env.FRONTEND_URL + (redirectUrl || "/"));
+    res.redirect(process.env.FRONTEND_URL!);
   }
 );

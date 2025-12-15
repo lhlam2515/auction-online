@@ -61,5 +61,4 @@ export const signInWithOAuthSchema = z.object({
 
 export const handleOAuthCallbackSchema = z.object({
   code: z.string().min(1, { error: "Authorization code is required" }),
-  next: z.url().optional(),
 });
