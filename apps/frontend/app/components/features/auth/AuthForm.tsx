@@ -15,7 +15,6 @@ import {
 } from "@/constants/routes";
 import { useAuthForm } from "@/hooks/useAuthForm";
 import { api } from "@/lib/api-layer";
-import logger from "@/lib/logger";
 import { ApiError } from "@/types/api";
 
 import AuthFormFields from "./AuthFormFields";
