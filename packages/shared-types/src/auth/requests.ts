@@ -63,3 +63,8 @@ export interface ResendOtpRequest {
   email: string;
   purpose: OtpPurpose;
 }
+
+export interface SignInWithOAuthRequest {
+  provider: "google" | "facebook";
+  redirectTo: string;
+}

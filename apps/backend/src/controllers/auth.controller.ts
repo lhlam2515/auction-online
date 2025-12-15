@@ -146,3 +146,26 @@ export const resendOtp = asyncHandler(
     return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
+
+export const signInWithOAuth = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { provider, redirectTo } = req.body;
+
+    const result = await authService.signInWithOAuth(provider, redirectTo);
+
+    return ResponseHandler.sendSuccess<{ redirectUrl: string }>(res, result);
+  }
+);
+
+export const handleOAuthCallback = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { code, next: redirectUrl } = res.locals.query;
+
+    const { accessToken, refreshToken } =
+      await authService.handleOAuthCallback(code);
+
+    setAuthCookies(res, accessToken, refreshToken);
+
+    res.redirect(process.env.FRONTEND_URL + (redirectUrl || "/"));
+  }
+);
