@@ -1,4 +1,4 @@
-import type { LoginResponse, UserAuthData, UserRole } from "@repo/shared-types";
+import type { UserAuthData, UserRole } from "@repo/shared-types";
 import { eq, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -417,9 +417,115 @@ export class AuthService {
     }
   }
 
-  async googleLogin(googleToken: string): Promise<LoginResponse> {
-    // TODO: verify google token, upsert user, issue tokens
-    throw new UnauthorizedError("Not implemented");
+  async signInWithOAuth(provider: "google" | "facebook", redirectTo: string) {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+        },
+      });
+
+      if (error || !data.url) {
+        throw new Error("Failed to initiate Google OAuth");
+      }
+
+      return { redirectUrl: data.url };
+    } catch (error) {
+      throw new Error(
+        `Google sign-in failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  async handleOAuthCallback(code: string) {
+    try {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error || !data.user || !data.session) {
+        throw new UnauthorizedError("OAuth callback failed");
+      }
+
+      const { session, user } = data;
+
+      let existingUser = await db.query.users.findFirst({
+        where: eq(users.email, user.email!),
+      });
+
+      // If user does not exist in our database, create a new profile
+      if (!existingUser) {
+        const fullName =
+          user.user_metadata.full_name ||
+          user.user_metadata.display_name ||
+          "Unknown";
+        const address = user.user_metadata.address || "Unknown";
+
+        // Generate unique username
+        let username = user.email!.split("@")[0];
+        const existingUsernames = await db.query.users.findMany({
+          where: sql`${users.username} LIKE ${username} || '%'`,
+        });
+        if (existingUsernames.length > 0) {
+          username = `${username}${existingUsernames.length + 1}`;
+        }
+
+        const [newUser] = await db
+          .insert(users)
+          .values({
+            id: user.id,
+            username,
+            email: user.email!,
+            fullName,
+            address,
+            avatarUrl: user.user_metadata.avatar_url || "",
+            accountStatus: "ACTIVE",
+          })
+          .returning();
+
+        if (!newUser) {
+          throw new Error("Failed to create user profile");
+        }
+      } else {
+        // If user exists but is BANNED, prevent login
+        if (existingUser.accountStatus === "BANNED") {
+          throw new UnauthorizedError(
+            "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ hỗ trợ."
+          );
+        }
+
+        // Update existing user's avatar URL from OAuth provider
+        const [updatedUser] = await db
+          .update(users)
+          .set({
+            avatarUrl: existingUser.avatarUrl || user.user_metadata.avatar_url,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, existingUser.id))
+          .returning();
+
+        if (!updatedUser) {
+          throw new Error("Failed to update user profile");
+        }
+
+        existingUser = updatedUser;
+      }
+
+      return {
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        throw error;
+      }
+      throw new UnauthorizedError(
+        `OAuth callback failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
   }
 }
 
