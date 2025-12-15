@@ -1,5 +1,5 @@
 import type { UserAuthData, UserRole } from "@repo/shared-types";
-import { eq, sql } from "drizzle-orm";
+import { eq, like, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase, supabaseAdmin } from "@/config/supabase";
@@ -7,6 +7,7 @@ import { passwordResetTokens, users } from "@/models";
 import { otpService } from "@/services";
 import {
   BadRequestError,
+  ExternalServiceError,
   NotFoundError,
   UnauthorizedError,
   UnverifiedEmailError,
@@ -427,13 +428,13 @@ export class AuthService {
       });
 
       if (error || !data.url) {
-        throw new Error("Failed to initiate Google OAuth");
+        throw new ExternalServiceError("OAuth sign-in failed");
       }
 
       return { redirectUrl: data.url };
     } catch (error) {
-      throw new Error(
-        `Google sign-in failed: ${
+      throw new ExternalServiceError(
+        `OAuth sign-in failed: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
@@ -445,13 +446,17 @@ export class AuthService {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error || !data.user || !data.session) {
-        throw new UnauthorizedError("OAuth callback failed");
+        throw new ExternalServiceError("OAuth callback failed");
       }
 
       const { session, user } = data;
 
-      let existingUser = await db.query.users.findFirst({
-        where: eq(users.email, user.email!),
+      if (!user.email) {
+        throw new UnauthorizedError("Email người dùng chưa được xác minh");
+      }
+
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.email, user.email),
       });
 
       // If user does not exist in our database, create a new profile
@@ -465,7 +470,7 @@ export class AuthService {
         // Generate unique username
         let username = user.email!.split("@")[0];
         const existingUsernames = await db.query.users.findMany({
-          where: sql`${users.username} LIKE ${username} || '%'`,
+          where: like(users.username, `${username}%`),
         });
         if (existingUsernames.length > 0) {
           username = `${username}${existingUsernames.length + 1}`;
@@ -485,7 +490,7 @@ export class AuthService {
           .returning();
 
         if (!newUser) {
-          throw new Error("Failed to create user profile");
+          throw new Error("Tạo hồ sơ người dùng thất bại");
         }
       } else {
         // If user exists but is BANNED, prevent login
@@ -506,10 +511,8 @@ export class AuthService {
           .returning();
 
         if (!updatedUser) {
-          throw new Error("Failed to update user profile");
+          throw new Error("Cập nhật hồ sơ người dùng thất bại");
         }
-
-        existingUser = updatedUser;
       }
 
       return {
@@ -520,7 +523,7 @@ export class AuthService {
       if (error instanceof UnauthorizedError) {
         throw error;
       }
-      throw new UnauthorizedError(
+      throw new ExternalServiceError(
         `OAuth callback failed: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
