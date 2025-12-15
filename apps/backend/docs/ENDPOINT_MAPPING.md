@@ -16,7 +16,6 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 | POST /api/v1/auth/verify-email      | auth.routes.ts | auth.controller.ts → verifyEmail         | auth.validation.ts → verifyEmailSchema         |
 | POST /api/v1/auth/verify-reset-otp  | auth.routes.ts | auth.controller.ts → verifyResetOtp      | auth.validation.ts → verifyResetOtpSchema      |
 | POST /api/v1/auth/reset-password    | auth.routes.ts | auth.controller.ts → resetPassword       | auth.validation.ts → resetPasswordSchema       |
-| POST /api/v1/auth/google            | auth.routes.ts | auth.controller.ts → googleLogin         | -                                              |
 | POST /api/v1/auth/resend-otp        | auth.routes.ts | auth.controller.ts → resendOtp           | auth.validation.ts → resendOtpSchema           |
 | POST /api/v1/auth/signin-with-oauth | auth.routes.ts | auth.controller.ts → signInWithOAuth     | auth.validation.ts → signInWithOAuthSchema     |
 | GET /api/v1/auth/oauth/callback     | auth.routes.ts | auth.controller.ts → handleOAuthCallback | auth.validation.ts → handleOAuthCallbackSchema |
