@@ -64,6 +64,10 @@ export interface ResendOtpRequest {
   purpose: OtpPurpose;
 }
 
+/**
+ * Sign in with OAuth request
+ * Backend validation: auth.validation.ts → signInWithOAuthSchema
+ */
 export interface SignInWithOAuthRequest {
   provider: "google" | "facebook";
   redirectTo: string;
