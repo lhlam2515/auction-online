@@ -26,9 +26,13 @@ export const CategoryPanel = ({
       <CardContent className="space-y-2">
         <Button
           variant="ghost"
-          className={cn("h-8 w-full justify-start px-2 font-medium", {
-            "bg-accent text-accent-foreground dark:bg-accent/50": value === "",
-          })}
+          className={cn(
+            "hover:text-primary-foreground hover:bg-primary/50 h-8 w-full justify-start px-2 font-medium",
+            {
+              "bg-primary text-primary-foreground dark:bg-primary/50":
+                value === "",
+            }
+          )}
           onClick={() => handleCategoryChange && handleCategoryChange("")}
         >
           Tất cả sản phẩm
@@ -37,10 +41,13 @@ export const CategoryPanel = ({
           <div key={category.id} className="space-y-1">
             <Button
               variant="ghost"
-              className={cn("h-8 w-full justify-start px-2 font-medium", {
-                "bg-accent text-accent-foreground dark:bg-accent/50":
-                  value === category.id,
-              })}
+              className={cn(
+                "hover:text-primary-foreground hover:bg-primary/70 h-8 w-full justify-start px-2 font-medium",
+                {
+                  "bg-primary text-primary-foreground dark:bg-primary/50":
+                    value === category.id,
+                }
+              )}
               onClick={() =>
                 handleCategoryChange && handleCategoryChange(category.id)
               }
@@ -54,9 +61,10 @@ export const CategoryPanel = ({
                   key={child.id}
                   variant="ghost"
                   className={cn(
-                    "hover:text-muted text-muted-foreground h-8 w-full justify-start px-2 text-sm",
+                    "hover:text-primary-foreground hover:bg-primary/50 text-muted-foreground h-8 w-full justify-start px-2 text-sm",
                     {
-                      "bg-accent dark:bg-accent text-muted": value === child.id,
+                      "bg-primary dark:bg-primary text-muted":
+                        value === child.id,
                     }
                   )}
                   onClick={() =>

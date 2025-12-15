@@ -29,9 +29,18 @@ const SortDropdown = (props: SortDropdownProps) => {
           <SelectValue placeholder="Xếp theo" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="default">Mặc định</SelectItem>
+          <SelectItem
+            value="default"
+            className="hover:text-primary-foreground! hover:bg-primary!"
+          >
+            Mặc định
+          </SelectItem>
           {Object.values(SORT_OPTIONS).map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className="hover:text-primary-foreground! hover:bg-primary!"
+            >
               {option.label}
             </SelectItem>
           ))}

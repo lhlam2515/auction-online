@@ -53,7 +53,6 @@ const FilterPanel = ({
               setInternalValue(v);
               handlePriceRangeChange(v);
             }}
-            className="text-accent mt-2"
           />
           <div className="text-muted-foreground flex items-center justify-between text-sm">
             <span>{formatPrice(internalValue[0])}</span>

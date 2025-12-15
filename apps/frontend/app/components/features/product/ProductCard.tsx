@@ -168,7 +168,7 @@ const ProductCard = ({
               </span>
               {/* Thời gian còn lại */}
               <div
-                className={`flex items-center text-sm font-medium ${timeDisplay.isUrgent ? "text-red-600" : "text-blue-600"}`}
+                className={`flex items-center text-sm font-medium ${timeDisplay.isUrgent ? "text-destructive" : "text-primary"}`}
               >
                 <Clock className="mr-1 h-3.5 w-3.5" />
                 {timeDisplay.text}
@@ -176,7 +176,7 @@ const ProductCard = ({
             </div>
 
             {/* Giá tiền - Font to để handle số tiền lớn */}
-            <div className="text-accent text-2xl font-bold tracking-tight">
+            <div className="text-card-foreground text-2xl font-bold tracking-tight">
               {formatPrice(Number(currentPrice ?? "0"))}
             </div>
 
