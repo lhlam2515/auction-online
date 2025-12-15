@@ -46,8 +46,8 @@ const Sidebar = ({
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
                   isActive
-                    ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "text-muted-foreground hover:bg-primary/50 hover:text-primary-foreground"
                 )}
               >
                 {Icon ? <Icon className="h-4 w-4" /> : null}

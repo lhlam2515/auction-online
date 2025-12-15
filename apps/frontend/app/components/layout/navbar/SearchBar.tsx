@@ -94,6 +94,7 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
               <DropdownMenuItem
                 key={category.value}
                 onClick={() => setSelectedCategory(category)}
+                className="hover:text-primary-foreground! hover:bg-primary!"
               >
                 {category.label}
               </DropdownMenuItem>
