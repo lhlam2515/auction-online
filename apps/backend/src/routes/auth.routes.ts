@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import * as authController from "@/controllers/auth.controller";
 import { authenticate } from "@/middlewares/auth";
+import { verifyCaptcha } from "@/middlewares/captcha";
 import {
   authRateLimit,
   passwordResetRateLimit,
@@ -22,9 +23,11 @@ router.get("/me", authenticate, authController.getCurrentUser);
  * @route   POST /api/auth/register
  * @desc    Register new user account
  * @access  Public
+ * @middleware reCaptcha validation (BR-SYS-01)
  */
 router.post(
   "/register",
+  verifyCaptcha,
   validate({ body: authValidation.registerSchema }),
   authController.register
 );
@@ -33,10 +36,12 @@ router.post(
  * @route   POST /api/auth/login
  * @desc    Login with email and password
  * @access  Public
+ * @middleware reCaptcha validation (BR-SYS-01)
  */
 router.post(
   "/login",
   authRateLimit, // SECURITY: Rate limiting to prevent brute force attacks
+  verifyCaptcha,
   validate({ body: authValidation.loginSchema }),
   authController.login
 );
@@ -59,10 +64,12 @@ router.post("/refresh-token", authController.refreshToken);
  * @route   POST /api/auth/forgot-password
  * @desc    Request password reset OTP
  * @access  Public
+ * @middleware reCaptcha validation (BR-SYS-01)
  */
 router.post(
   "/forgot-password",
   passwordResetRateLimit, // SECURITY: Rate limiting to prevent abuse
+  verifyCaptcha,
   validate({ body: authValidation.forgotPasswordSchema }),
   authController.forgotPassword
 );

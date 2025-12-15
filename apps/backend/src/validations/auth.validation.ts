@@ -13,15 +13,24 @@ export const registerSchema = z.object({
     .string()
     .min(2, { error: "Full name must be at least 2 characters" }),
   address: z.string().optional(),
+  recaptchaToken: z
+    .string()
+    .min(1, { error: "reCaptcha verification required" }),
 });
 
 export const loginSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
   password: z.string().min(1, { error: "Password is required" }),
+  recaptchaToken: z
+    .string()
+    .min(1, { error: "reCaptcha verification required" }),
 });
 
 export const forgotPasswordSchema = z.object({
   email: z.email({ error: "Invalid email format" }),
+  recaptchaToken: z
+    .string()
+    .min(1, { error: "reCaptcha verification required" }),
 });
 
 export const verifyEmailSchema = z.object({

@@ -8,6 +8,7 @@ import { commonValidations } from "./common.validation";
 export const loginSchema = z.object({
   email: commonValidations.email.min(1, "Vui lòng nhập email"),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
+  recaptchaToken: z.string().min(1, "Vui lòng xác thực reCAPTCHA"),
 });
 
 /**
@@ -23,6 +24,7 @@ export const registerSchema = z
     address: z.string().min(5, "Địa chỉ quá ngắn").max(100, "Địa chỉ quá dài"),
     password: z.string().min(8, "Mật khẩu phải có tối thiểu 8 ký tự"), //
     confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
+    recaptchaToken: z.string().min(1, "Vui lòng xác thực reCAPTCHA"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",
@@ -63,6 +65,7 @@ export const changePasswordSchema = z
  */
 export const forgotPasswordSchema = z.object({
   email: commonValidations.email.min(1, "Vui lòng nhập email"),
+  recaptchaToken: z.string().min(1, "Vui lòng xác thực reCAPTCHA"),
 });
 
 /**

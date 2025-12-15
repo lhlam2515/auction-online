@@ -17,7 +17,7 @@ export default function LoginPage() {
     <AuthForm
       formType="LOGIN"
       schema={loginSchema}
-      defaultValues={{ email: "", password: "" }}
+      defaultValues={{ email: "", password: "", recaptchaToken: "" }}
       onSubmit={(data) => api.auth.login(data)}
     />
   );

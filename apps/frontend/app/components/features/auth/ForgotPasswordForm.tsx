@@ -1,5 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ApiResponse } from "@repo/shared-types";
+// eslint-disable-next-line import/no-named-as-default
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   FormProvider,
   useForm,
@@ -122,6 +124,7 @@ const ForgotPasswordForm = <T extends FieldValues>({
             .filter((field) =>
               formType === "REQUEST_OTP" ? field === "email" : field !== "email"
             )
+            .filter((field) => field !== "recaptchaToken")
             .map((field) => (
               <Controller
                 key={field}
@@ -153,6 +156,27 @@ const ForgotPasswordForm = <T extends FieldValues>({
                 )}
               />
             ))}
+          {formType === "REQUEST_OTP" && (
+            <Controller
+              control={form.control}
+              name={"recaptchaToken" as Path<T>}
+              render={({ field, fieldState }) => (
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="flex w-full flex-col gap-2"
+                >
+                  <ReCAPTCHA
+                    sitekey={import.meta.env.VITE_CAPTCHA_SITE_KEY}
+                    onChange={(token) => field.onChange(token)}
+                    onExpired={() => field.onChange("")}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          )}
         </FieldGroup>
 
         <Button
