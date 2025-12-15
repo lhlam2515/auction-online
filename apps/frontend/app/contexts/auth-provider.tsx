@@ -26,6 +26,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   React.useEffect(() => {
     const initializeAuth = async () => {
       try {
+        setIsLoading(true);
         const result = await api.auth.me();
         if (result?.success && result.data?.user) {
           setUser(result.data.user);
