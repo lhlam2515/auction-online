@@ -2,7 +2,7 @@ import { and, lt, eq } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
-import { auctionTimerQueue } from "@/config/queue";
+import { auctionTimerQueue, autoBidQueue } from "@/config/queue";
 import { products } from "@/models";
 
 class SystemService {
@@ -44,6 +44,21 @@ class SystemService {
       await existingJob.remove();
     }
     await this.scheduleAuctionEnd(auctionId, endTime);
+  }
+
+  /**
+   * Kích hoạt kiểm tra Auto Bid
+   * Gọi hàm này khi có người Ra giá (Place Bid)
+   */
+  async triggerAutoBidCheck(productId: string) {
+    await autoBidQueue.add(
+      "process-auto-bid",
+      { productId },
+      {
+        removeOnComplete: true,
+        priority: 1, // Ưu tiên cao
+      }
+    );
   }
 
   // ============================================================

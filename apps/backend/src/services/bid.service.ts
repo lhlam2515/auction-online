@@ -1,10 +1,11 @@
-import type { Bid, Product } from "@repo/shared-types";
+import type { Bid, Product, ProductStatus } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { bids, autoBids, products } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 
+import { orderService } from "./order.service";
 import { productService } from "./product.service";
 import { systemService } from "./system.service";
 
@@ -20,46 +21,136 @@ export class BidService {
     return productBids || ([] as Bid[]);
   }
 
-  async placeBid(productId: string, bidderId: string, amount: number) {
-    const product = await productService.getById(productId);
+  async placeBid(
+    productId: string,
+    bidderId: string,
+    amount: number,
+    isAuto: boolean = false,
+    inputTx?: unknown
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const executeLogic = async (tx: any) => {
+      const product = await tx.query.products.findFirst({
+        where: eq(products.id, productId),
+      });
 
-    let currentPrice = product.currentPrice
-      ? parseFloat(product.currentPrice)
-      : parseFloat(product.startPrice);
+      if (!product) throw new NotFoundError("Product");
 
-    if (amount >= currentPrice + parseFloat(product.stepPrice)) {
-      currentPrice = currentPrice + parseFloat(product.stepPrice);
-    } else {
-      throw new BadRequestError(
-        `Bid amount must be at least ${
-          currentPrice + parseFloat(product.stepPrice)
-        }`
+      if (product.sellerId === bidderId) {
+        throw new BadRequestError(
+          "Không thể tự đấu giá sản phẩm của chính mình"
+        );
+      }
+      if (product.status !== "ACTIVE") {
+        throw new BadRequestError("Phiên đấu giá không khả dụng");
+      }
+
+      const now = new Date();
+      if (product.startTime > now)
+        throw new BadRequestError("Phiên đấu giá chưa bắt đầu");
+      if (product.endTime < now)
+        throw new BadRequestError("Phiên đấu giá đã kết thúc");
+
+      if (product.winnerId === bidderId) {
+        throw new BadRequestError("Bạn đang là người giữ giá cao nhất rồi!");
+      }
+
+      const currentPrice = parseFloat(
+        product.currentPrice || product.startPrice
       );
+      const stepPrice = parseFloat(product.stepPrice);
+
+      // Logic: Nếu chưa có ai bid (currentPrice == startPrice và chưa có winner),
+      // thì bid tối thiểu = startPrice.
+      // Nếu đã có người bid, thì bid tối thiểu = currentPrice + stepPrice.
+      const minBidAmount = currentPrice + (!product.winnerId ? 0 : stepPrice);
+
+      if (amount < minBidAmount) {
+        throw new BadRequestError(
+          `Giá đặt phải tối thiểu là ${minBidAmount.toString()}`
+        );
+      }
+
+      // 5. Insert Bid mới
+      const [newBid] = await tx
+        .insert(bids)
+        .values({
+          productId: productId,
+          userId: bidderId,
+          amount: amount.toString(),
+          isAuto,
+          createdAt: new Date(),
+        })
+        .returning();
+
+      if (!newBid)
+        throw new BadRequestError("Đặt giá thất bại, vui lòng thử lại");
+
+      // Kiểm tra xem giá này có kích hoạt "Mua ngay" (Buy Now) không?
+      let newStatus = "ACTIVE";
+      const buyNowPrice = product.buyNowPrice
+        ? parseFloat(product.buyNowPrice)
+        : null;
+
+      if (buyNowPrice && amount >= buyNowPrice) {
+        newStatus = "SOLD";
+      }
+
+      await tx
+        .update(products)
+        .set({
+          currentPrice: amount.toString(),
+          winnerId: bidderId,
+          status: newStatus as ProductStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId));
+
+      if (newStatus === "SOLD") {
+        // Hủy tất cả auto-bids còn lại
+        await tx
+          .update(autoBids)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(
+            and(eq(autoBids.productId, productId), eq(autoBids.isActive, true))
+          );
+
+        // Tạo đơn hàng ngay khi đấu thành công
+        await orderService.createFromAuction(
+          productId,
+          bidderId,
+          product.sellerId,
+          amount,
+          true
+        );
+      }
+
+      return {
+        newBid,
+        product,
+        isBuyNow: newStatus === "SOLD",
+      };
+    };
+
+    // Thực thi Transaction
+    const result = inputTx
+      ? await executeLogic(inputTx)
+      : await db.transaction(executeLogic);
+
+    // --- LOGIC SAU TRANSACTION (Non-blocking) ---
+    // 1. Xử lý Auto-Extend (Anti-Sniping)
+    // Nếu bid vào những phút cuối, tự động gia hạn thêm thời gian
+    if (result.product.status === "ACTIVE") {
+      await this.handleAutoExtend(result.product, productId);
     }
 
-    const [newBid] = await db
-      .insert(bids)
-      .values({
-        productId: productId,
-        userId: bidderId,
-        amount: amount.toString(),
-      })
-      .returning();
-
-    if (!newBid) {
-      throw new BadRequestError("Failed to place bid");
+    // 2. Kích hoạt Auto-bid queue
+    // Chỉ kích hoạt nếu chưa phải là Buy Now
+    if (!result.isBuyNow) {
+      await systemService.triggerAutoBidCheck(productId);
     }
 
-    // Update product current price
-    await db
-      .update(products)
-      .set({ currentPrice: currentPrice.toString(), updatedAt: new Date() })
-      .where(eq(products.id, productId));
-
-    // Auto-extend nếu còn trong cửa sổ gia hạn
-    await this.handleAutoExtend(product, productId);
-
-    return newBid;
+    return result.newBid;
   }
 
   async kickBidder(
@@ -120,6 +211,9 @@ export class BidService {
       throw new BadRequestError("Failed to create auto-bid configuration");
     }
 
+    // Kích hoạt Auto-bid queue ngay sau khi tạo
+    await systemService.triggerAutoBidCheck(productId);
+
     return newAutoBid;
   }
 
@@ -152,6 +246,9 @@ export class BidService {
         updatedAt: new Date(),
       })
       .where(eq(autoBids.id, autoBidId));
+
+    // Kích hoạt Auto-bid queue ngay sau khi cập nhật
+    await systemService.triggerAutoBidCheck(autoBid.productId);
 
     return { message: "Auto-bid configuration updated successfully" };
   }
