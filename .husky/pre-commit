@@ -1,2 +1,1 @@
-# lint-staged temporarily disabled
-exit 0
+lint-staged
