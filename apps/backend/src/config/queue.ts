@@ -2,6 +2,8 @@ import { Queue } from "bullmq";
 import { config } from "dotenv";
 import IORedis from "ioredis";
 
+import logger from "./logger";
+
 config({ path: ".env" });
 
 if (!process.env.REDIS_URL) {
@@ -18,9 +20,9 @@ const connection = new IORedis(process.env.REDIS_URL as string, {
   retryStrategy: (times) => Math.min(times * 50, 2000), // Reconnect thông minh
 });
 
-connection.on("connect", () => console.log("✅ Connected to Upstash Redis"));
+connection.on("connect", () => logger.info("✅ Connected to Upstash Redis"));
 connection.on("error", (err) =>
-  console.error("❌ Redis Connection Error:", err)
+  logger.error("❌ Redis Connection Error:", err)
 );
 
 // Định nghĩa tên các Queue
