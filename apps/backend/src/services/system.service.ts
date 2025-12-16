@@ -1,9 +1,10 @@
-import { and, lt, eq } from "drizzle-orm";
+import { and, lt, eq, gt } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
 import { auctionTimerQueue, autoBidQueue } from "@/config/queue";
-import { products } from "@/models";
+import { products, autoBids } from "@/models";
+import { auctionService } from "@/services/auction.service";
 
 class SystemService {
   // ============================================================
@@ -101,6 +102,68 @@ class SystemService {
     }
 
     logger.info("✅ System Recovery: Recovery jobs enqueued.");
+  }
+
+  /**
+   * Xử lý lại auto-bid cho các đấu giá đang active
+   * Chạy khi Server khởi động để đảm bảo auto-bid không bị bỏ sót
+   */
+  async syncActiveAuctionAutoBids() {
+    logger.info(
+      "🔄 System Recovery: Processing auto-bids for active auctions..."
+    );
+    const now = new Date();
+
+    // Lấy tất cả auction đang active và chưa hết hạn
+    const activeAuctions = await db.query.products.findMany({
+      where: and(eq(products.status, "ACTIVE"), gt(products.endTime, now)),
+      limit: 500,
+    });
+
+    if (!activeAuctions.length) {
+      logger.info("✅ System Recovery: No active auctions found.");
+      return;
+    }
+
+    logger.info(
+      `🔄 System Recovery: Found ${activeAuctions.length} active auctions. Processing auto-bids...`
+    );
+
+    let processedCount = 0;
+    let errorCount = 0;
+
+    for (const auction of activeAuctions) {
+      try {
+        // Kiểm tra xem auction này có auto-bids không
+        const hasAutoBids = await db.query.autoBids.findFirst({
+          where: and(
+            eq(autoBids.productId, auction.id),
+            eq(autoBids.isActive, true)
+          ),
+        });
+
+        if (hasAutoBids) {
+          // Xử lý auto-bid cho auction này
+          const result = await auctionService.processAutoBid(auction.id);
+          if (result.status === "ok") {
+            processedCount++;
+            logger.info(
+              `✅ Processed auto-bid for auction #${auction.id} - Winner: ${result.winnerId}`
+            );
+          }
+        }
+      } catch (error) {
+        errorCount++;
+        logger.error(
+          `❌ Error processing auto-bid for auction #${auction.id}:`,
+          error
+        );
+      }
+    }
+
+    logger.info(
+      `✅ System Recovery: Auto-bid processing completed. Processed: ${processedCount}, Errors: ${errorCount}`
+    );
   }
 }
 
