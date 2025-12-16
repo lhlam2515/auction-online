@@ -1,4 +1,4 @@
-import type { Bid } from "@repo/shared-types";
+import type { Bid, Product } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -6,6 +6,7 @@ import { bids, autoBids, products } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 
 import { productService } from "./product.service";
+import { systemService } from "./system.service";
 
 export class BidService {
   async getHistory(productId: string) {
@@ -54,6 +55,9 @@ export class BidService {
       .update(products)
       .set({ currentPrice: currentPrice.toString(), updatedAt: new Date() })
       .where(eq(products.id, productId));
+
+    // Auto-extend nếu còn trong cửa sổ gia hạn
+    await this.handleAutoExtend(product, productId);
 
     return newBid;
   }
@@ -166,6 +170,43 @@ export class BidService {
       .where(and(eq(autoBids.id, autoBidId), eq(autoBids.userId, userId)));
 
     return { message: "Auto-bid configuration deleted successfully" };
+  }
+
+  private async getAutoExtendConfig() {
+    const settings = await db.query.auctionSettings.findFirst({
+      orderBy: (table, { desc }) => [desc(table.updatedAt)],
+    });
+
+    return {
+      thresholdMinutes: settings?.extendThresholdMinutes ?? 5,
+      durationMinutes: settings?.extendDurationMinutes ?? 10,
+    };
+  }
+
+  private async handleAutoExtend(product: Product, productId: string) {
+    if (!product.isAutoExtend) return;
+
+    const { thresholdMinutes, durationMinutes } =
+      await this.getAutoExtendConfig();
+    const now = new Date();
+    const productEnd = new Date(product.endTime);
+    const timeLeftMs = productEnd.getTime() - now.getTime();
+
+    if (timeLeftMs <= 0) return;
+
+    const thresholdMs = thresholdMinutes * 60 * 1000;
+    if (timeLeftMs > thresholdMs) return;
+
+    const newEndTime = new Date(
+      productEnd.getTime() + durationMinutes * 60 * 1000
+    );
+
+    await db
+      .update(products)
+      .set({ endTime: newEndTime, updatedAt: new Date() })
+      .where(eq(products.id, productId));
+
+    await systemService.rescheduleAuctionEnd(productId, newEndTime);
   }
 }
 
