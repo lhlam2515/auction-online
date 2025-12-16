@@ -50,4 +50,3 @@ drizzle/
 
 # Typescript
 *.tsbuildinfo
-package-lock.json

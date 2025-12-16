@@ -128,6 +128,8 @@ export class BidService {
 
       // Xử lý Auto-Extend (Anti-Sniping) INSIDE transaction để tránh race condition
       // Nếu bid vào những phút cuối, tự động gia hạn thêm thời gian
+      // NOTE: getAutoExtendConfig() is called inside transaction for atomicity.
+      // Consider caching this config in the future if performance becomes an issue.
       let extendedEndTime: Date | null = null;
       if (newStatus === "ACTIVE" && product.isAutoExtend) {
         const { thresholdMinutes, durationMinutes } =
@@ -145,11 +147,14 @@ export class BidService {
             extendedEndTime = newEndTime;
 
             // Cập nhật endTime INSIDE transaction
-            [product] = await tx
+            const [updatedProduct] = await tx
               .update(products)
               .set({ endTime: newEndTime, updatedAt: new Date() })
               .where(eq(products.id, productId))
               .returning();
+            
+            // Update product reference with extended end time
+            product = updatedProduct;
           }
         }
       }
