@@ -9,15 +9,8 @@ import { maskName } from "@/utils/ultils";
 import { productService } from "./product.service";
 
 export class BidService {
-  async getHistory(
-    productId: string,
-    sellerId?: string
-  ): Promise<BidWithUser[]> {
+  async getHistory(productId: string): Promise<BidWithUser[]> {
     const product = await productService.getById(productId);
-    let isSeller = false;
-    if (sellerId && product.sellerId === sellerId) {
-      isSeller = true;
-    }
 
     const productBids = await db
       .select({
@@ -33,16 +26,14 @@ export class BidService {
       })
       .from(bids)
       .leftJoin(users, eq(bids.userId, users.id))
-      .where(eq(bids.productId, productId))
+      .where(and(eq(bids.productId, productId), eq(bids.status, "VALID")))
       .orderBy(desc(bids.amount));
 
     return productBids.map((bid) => {
       return {
         ...bid,
-        userId: isSeller ? bid.userId : "",
-        userName: isSeller
-          ? bid.userName || "[Unknown]"
-          : maskName(bid.userName || "****"),
+        userId: bid.userId,
+        userName: maskName(bid.userName || "****"),
         ratingScore: bid.ratingScore ?? 0,
       };
     });
