@@ -6,8 +6,8 @@ import { bids, autoBids, products, users } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 import { maskName } from "@/utils/ultils";
 
-import { orderService } from "./order.service";
 import { emailService } from "./email.service";
+import { orderService } from "./order.service";
 import { productService } from "./product.service";
 import { systemService } from "./system.service";
 import { userService } from "./user.service";
@@ -243,7 +243,7 @@ export class BidService {
     productId: string,
     sellerId: string,
     bidderId: string,
-    reason?: string
+    reason: string
   ) {
     const ownerCheck = await db.query.products.findFirst({
       where: and(eq(products.id, productId), eq(products.sellerId, sellerId)),
@@ -314,7 +314,14 @@ export class BidService {
     // Kích hoạt Auto-bid queue để tìm người giữ giá mới
     await systemService.triggerAutoBidCheck(productId);
 
-    // TODO: Send notification to bidder about being kicked
+    // Notify bidder about being kicked
+    const bidder = await userService.getById(bidderId);
+    emailService.notifyBidRejected(
+      bidder.email,
+      ownerCheck.name,
+      reason,
+      productService.buildProductLink(productId)
+    );
 
     return { message: "Đã loại người đấu giá thành công" };
   }
