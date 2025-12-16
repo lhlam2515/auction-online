@@ -7,8 +7,10 @@ import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 import { maskName } from "@/utils/ultils";
 
 import { orderService } from "./order.service";
+import { emailService } from "./email.service";
 import { productService } from "./product.service";
 import { systemService } from "./system.service";
+import { userService } from "./user.service";
 
 export class BidService {
   async getHistory(productId: string): Promise<BidWithUser[]> {
@@ -201,6 +203,37 @@ export class BidService {
     // Chỉ kích hoạt nếu chưa phải là Buy Now
     if (!result.isBuyNow) {
       await systemService.triggerAutoBidCheck(productId);
+    }
+
+    const seller = await userService.getById(result.product.sellerId);
+    const bidder = await userService.getById(bidderId);
+
+    // Notify seller about new bid
+    emailService.notifySellerNewBid(
+      seller.email,
+      result.product.name,
+      amount,
+      bidder.fullName,
+      productService.buildProductLink(productId)
+    );
+
+    // Notify bidder about successful bid
+    emailService.notifyBidSuccess(
+      bidder.email,
+      result.product.name,
+      amount,
+      productService.buildProductLink(productId)
+    );
+
+    // Notify previous winner bidder about being outbid
+    if (result.product.winnerId && result.product.winnerId !== bidderId) {
+      const previousWinner = await userService.getById(result.product.winnerId);
+      emailService.notifyOutbidAlert(
+        previousWinner.email,
+        result.product.name,
+        amount,
+        productService.buildProductLink(productId)
+      );
     }
 
     return result.newBid;
