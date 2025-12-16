@@ -179,6 +179,56 @@ export class BidService {
         )
       );
 
+    // Cập nhật lại giá hiện tại và người giữ giá cao nhất
+    const topBid = await db.query.bids.findFirst({
+      where: and(
+        eq(bids.productId, productId),
+        eq(bids.status, "VALID")
+        // Loại bỏ bidder bị kick
+        // Note: Không dùng neq vì có thể có nhiều bidder bị kick
+        // Nên sẽ lọc thủ công bên dưới
+      ),
+      orderBy: desc(bids.amount),
+    });
+
+    const product = await productService.getById(productId);
+
+    if (topBid) {
+      await db
+        .update(products)
+        .set({
+          currentPrice: topBid.amount,
+          winnerId: topBid.userId,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId));
+    } else {
+      // Không còn ai giữ giá, reset về giá khởi điểm
+      await db
+        .update(products)
+        .set({
+          currentPrice: product.startPrice,
+          winnerId: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId));
+    }
+
+    // Hủy tất cả auto-bids của bidder bị kick
+    await db
+      .update(autoBids)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(
+        and(
+          eq(autoBids.productId, productId),
+          eq(autoBids.userId, bidderId),
+          eq(autoBids.isActive, true)
+        )
+      );
+
+    // Kích hoạt Auto-bid queue để tìm người giữ giá mới
+    await systemService.triggerAutoBidCheck(productId);
+
     // TODO: Send notification to bidder about being kicked
 
     return { message: "Bidder kicked successfully" };
