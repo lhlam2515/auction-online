@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
       formType="REQUEST_OTP"
       schema={forgotPasswordSchema}
       defaultValues={{ email: "", recaptchaToken: "" }}
-      onSubmit={(data) => api.auth.forgotPassword({ email: data.email })}
+      onSubmit={(data) => api.auth.forgotPassword(data)}
       onSuccess={(data) => {
         setEmail(data.email);
         setSentOTP(true);
