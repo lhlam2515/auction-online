@@ -147,14 +147,11 @@ export class BidService {
             extendedEndTime = newEndTime;
 
             // Cập nhật endTime INSIDE transaction
-            const [updatedProduct] = await tx
+            [product] = await tx
               .update(products)
               .set({ endTime: newEndTime, updatedAt: new Date() })
               .where(eq(products.id, productId))
               .returning();
-            
-            // Update product reference with extended end time
-            product = updatedProduct;
           }
         }
       }
