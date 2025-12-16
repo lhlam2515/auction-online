@@ -87,6 +87,7 @@ import type {
   PaginationParams,
   SearchProductsParams,
   OrderWithDetails,
+  ProductDetails,
 } from "@repo/shared-types";
 
 import { apiClient } from "@/lib/handlers/api";
@@ -299,7 +300,7 @@ export const api = {
      * Get product details
      */
     getById: (productId: string) =>
-      apiCall<Product>("GET", `/products/${productId}`),
+      apiCall<ProductDetails>("GET", `/products/${productId}`),
 
     /**
      * Get related products
@@ -427,13 +428,17 @@ export const api = {
      * Update auto-bid configuration
      */
     updateAutoBid: (autoBidId: string, data: UpdateAutoBidRequest) =>
-      apiCall<{ message: string }>("PUT", `/auto-bid/${autoBidId}`, data),
+      apiCall<{ message: string }>(
+        "PUT",
+        `/products/auto-bid/${autoBidId}`,
+        data
+      ),
 
     /**
      * Delete auto-bid configuration
      */
     deleteAutoBid: (autoBidId: string) =>
-      apiCall<{ message: string }>("DELETE", `/auto-bid/${autoBidId}`),
+      apiCall<{ message: string }>("DELETE", `/products/auto-bid/${autoBidId}`),
   },
 
   /**
