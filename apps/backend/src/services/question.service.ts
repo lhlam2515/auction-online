@@ -14,7 +14,9 @@ import {
   UnauthorizedError,
 } from "@/utils/errors";
 
+import { emailService } from "./email.service";
 import { productService } from "./product.service";
+import { userService } from "./user.service";
 
 export interface QuestionFilters {
   productId?: string;
@@ -83,7 +85,14 @@ export class QuestionService {
       })
       .returning();
 
-    // TODO: send email notification to seller
+    // Send email notification to seller
+    const seller = await userService.getById(sellerId);
+    emailService.notifyNewQuestion(
+      seller.email,
+      product.name,
+      question,
+      productService.buildProductLink(productId)
+    );
 
     return newQuestion;
   }
@@ -122,9 +131,34 @@ export class QuestionService {
       .where(eq(productQuestions.id, questionId))
       .returning();
 
-    // TODO: send email notification to asker
+    // Send email notification to asker
+    const askers = await this.getRelatedAskers(question.productId);
+    const bidders = await productService.getBidders(question.productId);
+    const uniqueUsers = new Map<string, (typeof askers)[0]>();
+    [...askers, ...bidders].forEach((user) => {
+      uniqueUsers.set(user.id, user);
+    });
+
+    const emails = Array.from(uniqueUsers.values()).map((user) => user.email);
+    emailService.notifySellerReplied(
+      emails,
+      product.name,
+      productService.buildProductLink(product.id)
+    );
 
     return updatedQuestion;
+  }
+
+  private async getRelatedAskers(productId: string) {
+    const result = await db.query.productQuestions.findMany({
+      where: and(
+        eq(productQuestions.productId, productId),
+        eq(productQuestions.isPublic, true)
+      ),
+      with: { user: true },
+    });
+
+    return result.map((q) => q.user);
   }
 }
 
