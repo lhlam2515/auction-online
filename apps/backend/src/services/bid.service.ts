@@ -34,7 +34,7 @@ export class BidService {
         where: eq(products.id, productId),
       });
 
-      if (!product) throw new NotFoundError("Product");
+      if (!product) throw new NotFoundError("Sản phẩm không tồn tại");
 
       if (product.sellerId === bidderId) {
         throw new BadRequestError(
@@ -165,7 +165,7 @@ export class BidService {
     });
 
     if (!ownerCheck) {
-      throw new ForbiddenError("You are not the owner of this product");
+      throw new ForbiddenError("Bạn không phải là chủ sở hữu của sản phẩm này");
     }
 
     await db
@@ -231,7 +231,7 @@ export class BidService {
 
     // TODO: Send notification to bidder about being kicked
 
-    return { message: "Bidder kicked successfully" };
+    return { message: "Đã loại người đấu giá thành công" };
   }
 
   async createAutoBid(productId: string, userId: string, maxAmount: number) {
@@ -244,7 +244,7 @@ export class BidService {
 
     if (checkExisting) {
       throw new BadRequestError(
-        "Auto-bid configuration already exists for this product"
+        "Cấu hình đấu giá tự động đã tồn tại cho sản phẩm này"
       );
     }
 
@@ -259,7 +259,7 @@ export class BidService {
       .returning();
 
     if (!newAutoBid) {
-      throw new BadRequestError("Failed to create auto-bid configuration");
+      throw new BadRequestError("Tạo cấu hình đấu giá tự động thất bại");
     }
 
     // Kích hoạt Auto-bid queue ngay sau khi tạo
@@ -276,7 +276,7 @@ export class BidService {
       ),
     });
     if (!autoBid) {
-      throw new NotFoundError("Auto-bid configuration not found");
+      throw new NotFoundError("Không tìm thấy cấu hình đấu giá tự động");
     }
     return autoBid;
   }
@@ -287,7 +287,7 @@ export class BidService {
     });
 
     if (!autoBid) {
-      throw new NotFoundError("Auto-bid configuration not found");
+      throw new NotFoundError("Không tìm thấy cấu hình đấu giá tự động");
     }
 
     await db
@@ -301,7 +301,7 @@ export class BidService {
     // Kích hoạt Auto-bid queue ngay sau khi cập nhật
     await systemService.triggerAutoBidCheck(autoBid.productId);
 
-    return { message: "Auto-bid configuration updated successfully" };
+    return { message: "Cập nhật cấu hình đấu giá tự động thành công" };
   }
 
   async deleteAutoBid(autoBidId: string, userId: string) {
@@ -310,14 +310,14 @@ export class BidService {
     });
 
     if (!autoBid) {
-      throw new NotFoundError("Auto-bid configuration not found");
+      throw new NotFoundError("Không tìm thấy cấu hình đấu giá tự động");
     }
 
     await db
       .delete(autoBids)
       .where(and(eq(autoBids.id, autoBidId), eq(autoBids.userId, userId)));
 
-    return { message: "Auto-bid configuration deleted successfully" };
+    return { message: "Xóa cấu hình đấu giá tự động thành công" };
   }
 
   private async getAutoExtendConfig() {
