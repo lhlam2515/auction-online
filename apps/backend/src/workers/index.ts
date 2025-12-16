@@ -39,9 +39,8 @@ export const startWorkers = () => {
   autoBidWorker = new Worker(
     QUEUE_NAMES.AUTO_BID,
     async (job: Job) => {
-      const { auctionId, currentPrice, currentBidderId } = job.data;
-
-      // TODO: Gọi hàm xử lý auto-bid trong auctionService
+      const { productId } = job.data;
+      await auctionService.processAutoBid(productId);
     },
     { connection: redisConnection }
   );

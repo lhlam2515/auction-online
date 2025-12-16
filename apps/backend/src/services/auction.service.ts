@@ -1,9 +1,11 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { bids, products } from "@/models";
+import { autoBids, bids, products } from "@/models";
 import { orderService } from "@/services/order.service";
 import { BadRequestError, NotFoundError } from "@/utils/errors";
+
+import { bidService } from "./bid.service";
 
 class AuctionService {
   /**
@@ -78,6 +80,88 @@ class AuctionService {
 
       // TODO: enqueue email thông báo người thắng cuộc
       return { status: "completed", winnerId: topBid.userId, finalPrice };
+    });
+  }
+
+  /**
+   * Proxy Bidding (AutoBid) cho một sản phẩm.
+   * Ý tưởng: giống eBay-style proxy:
+   *  - Lấy tất cả auto-bids đang active.
+   *  - Người có MaxBid cao nhất là winner.
+   *  - Giá hiện tại = min(MaxBid_winner, MaxBid_thứ2 + StepPrice), và không thấp hơn currentPrice/startPrice.
+   */
+  async processAutoBid(productId: string) {
+    return db.transaction(async (tx) => {
+      const product = await tx.query.products.findFirst({
+        where: eq(products.id, productId),
+      });
+
+      if (!product) {
+        throw new NotFoundError("Product");
+      }
+
+      // Chỉ xử lý trên phiên đang ACTIVE và chưa hết giờ
+      const now = new Date();
+      if (product.status !== "ACTIVE" || product.endTime <= now) {
+        return { status: "skipped" as const };
+      }
+
+      // Lấy tất cả auto-bids đang active cho sản phẩm
+      const proxies = await tx.query.autoBids.findMany({
+        where: and(
+          eq(autoBids.productId, productId),
+          eq(autoBids.isActive, true)
+        ),
+        orderBy: (table, { desc, asc }) => [
+          desc(table.maxAmount),
+          asc(table.createdAt),
+        ],
+      });
+
+      if (!proxies.length) {
+        return { status: "no-proxy" as const };
+      }
+
+      const step = Number(product.stepPrice);
+      const basePrice = product.currentPrice
+        ? Number(product.currentPrice)
+        : Number(product.startPrice);
+
+      // Nếu chỉ có một auto-bidder
+      if (proxies.length === 1) {
+        const winner = proxies[0];
+        // TH1: chưa ai đặt -> đặt = giá khởi điểm (hoặc giữ nguyên nếu đã có currentPrice)
+        const newPrice = basePrice;
+
+        await bidService.placeBid(productId, winner.userId, newPrice, true, tx);
+
+        return { status: "ok" as const, winnerId: winner.userId, newPrice };
+      }
+
+      // Nhiều auto-bidder: người đầu là MaxBid cao nhất, người thứ 2 là "giá giữ" thứ 2
+      const top = proxies[0];
+      const second = proxies[1];
+
+      const topMax = Number(top.maxAmount);
+      const secondMax = Number(second.maxAmount);
+
+      // Kiểm tra nếu không thể tăng ít nhất một bước giá
+      if (topMax < basePrice + step) {
+        return { status: "skipped" as const };
+      }
+
+      // Giá đề xuất theo rule: secondMax + step (nhưng không vượt quá topMax)
+      let suggestedPrice = secondMax + step;
+      if (suggestedPrice > topMax) {
+        suggestedPrice = topMax;
+      }
+
+      // Đảm bảo giá đưa ra lớn hơn ít nhất một bước giá so với giá hiện tại
+      const finalPrice = Math.max(basePrice + step, suggestedPrice);
+
+      await bidService.placeBid(productId, top.userId, finalPrice, true, tx);
+
+      return { status: "ok" as const, winnerId: top.userId, finalPrice };
     });
   }
 }
