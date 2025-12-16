@@ -1,5 +1,5 @@
 import type { Bid, BidWithUser } from "@repo/shared-types";
-import { eq, desc, and, is } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { bids, autoBids, products, users } from "@/models";
@@ -9,8 +9,15 @@ import { maskName } from "@/utils/ultils";
 import { productService } from "./product.service";
 
 export class BidService {
-  async getHistory(productId: string): Promise<BidWithUser[]> {
+  async getHistory(
+    productId: string,
+    sellerId?: string
+  ): Promise<BidWithUser[]> {
     const product = await productService.getById(productId);
+    let isSeller = false;
+    if (sellerId && product.sellerId === sellerId) {
+      isSeller = true;
+    }
 
     const productBids = await db
       .select({
@@ -22,6 +29,7 @@ export class BidService {
         isAuto: bids.isAuto,
         createdAt: bids.createdAt,
         userName: users.fullName,
+        ratingScore: users.ratingScore,
       })
       .from(bids)
       .leftJoin(users, eq(bids.userId, users.id))
@@ -31,8 +39,11 @@ export class BidService {
     return productBids.map((bid) => {
       return {
         ...bid,
-        userId: "",
-        userName: maskName(bid.userName || "****"),
+        userId: isSeller ? bid.userId : "",
+        userName: isSeller
+          ? bid.userName || "[Unknown]"
+          : maskName(bid.userName || "****"),
+        ratingScore: bid.ratingScore ?? 0,
       };
     });
   }
