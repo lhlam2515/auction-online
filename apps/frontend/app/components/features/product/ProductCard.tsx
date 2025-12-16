@@ -14,9 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { APP_ROUTES } from "@/constants/routes";
+import useCountdown from "@/hooks/useCountdown";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
-import { cn, formatPrice, getTimeRemaining } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 type ProductCardProps = {
   product: ProductListing;
@@ -24,52 +25,6 @@ type ProductCardProps = {
 };
 
 const NEW_PRODUCT_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
-
-function formatTimeRemaining(endTime: Date): {
-  text: string;
-  isUrgent: boolean;
-} {
-  const timeData = getTimeRemaining(endTime);
-
-  if (timeData.isExpired) {
-    return {
-      text: "Đã kết thúc",
-      isUrgent: true,
-    };
-  }
-
-  const { days, hours, minutes, seconds } = timeData;
-  const isUrgent = timeData.total < 60 * 60 * 1000; // dưới 1 giờ
-
-  let timeText = "";
-  if (days > 0) timeText += `${days}d `;
-  if (hours >= 0) timeText += `${hours.toString().padStart(2, "0")}h `;
-  if (minutes >= 0) timeText += `${minutes.toString().padStart(2, "0")}m `;
-  if (seconds >= 0 && days === 0)
-    timeText += `${seconds.toString().padStart(2, "0")}s`;
-
-  return {
-    text: timeText.trim(),
-    isUrgent,
-  };
-}
-
-// Custom hook để đếm ngược tự động
-function useCountdown(endTime: Date) {
-  const [timeDisplay, setTimeDisplay] = React.useState(() =>
-    formatTimeRemaining(endTime)
-  );
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeDisplay(formatTimeRemaining(endTime));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [endTime]);
-
-  return timeDisplay;
-}
 
 /**
  * Component: ProductCard
@@ -98,7 +53,7 @@ const ProductCard = ({
   const endDateTime = new Date(endTime);
   const isNew =
     new Date().getTime() - new Date(createdAt).getTime() < NEW_PRODUCT_DURATION;
-  const timeDisplay = useCountdown(endDateTime);
+  const timeDisplay = useCountdown(endDateTime, true);
 
   const toggleWatchlist = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
