@@ -30,7 +30,7 @@ export class BidService {
   ) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const executeLogic = async (tx: any) => {
-      const product = await tx.query.products.findFirst({
+      let product = await tx.query.products.findFirst({
         where: eq(products.id, productId),
       });
 
@@ -96,7 +96,7 @@ export class BidService {
         newStatus = "SOLD";
       }
 
-      await tx
+      [product] = await tx
         .update(products)
         .set({
           currentPrice: amount.toString(),
@@ -104,7 +104,8 @@ export class BidService {
           status: newStatus as ProductStatus,
           updatedAt: new Date(),
         })
-        .where(eq(products.id, productId));
+        .where(eq(products.id, productId))
+        .returning();
 
       if (newStatus === "SOLD") {
         // Hủy tất cả auto-bids còn lại
