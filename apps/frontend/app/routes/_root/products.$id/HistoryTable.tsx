@@ -48,7 +48,6 @@ export function HistoryTable({
       if (isMounted) {
         if (response.success && response.data) {
           setBids(response.data);
-          logger.info("Fetched bid history:", { data: response.data });
         } else {
           toast.error("Không thể tải lịch sử đấu giá");
         }
