@@ -8,6 +8,7 @@ import type {
   TopListingResponse,
   ProductListing,
   GetSellerProductsParams,
+  ProductDetails,
 } from "@repo/shared-types";
 import {
   eq,
@@ -200,6 +201,26 @@ export class ProductService {
     });
     if (!result) throw new NotFoundError("Product");
     return result;
+  }
+
+  async getProductDetailsById(productId: string): Promise<ProductDetails> {
+    const product = await this.getById(productId);
+
+    const [product_info] = await db
+      .select({ categories, users })
+      .from(products)
+      .where(eq(products.id, productId))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .leftJoin(users, eq(products.sellerId, users.id));
+
+    return {
+      ...product,
+      categoryName: product_info.categories?.name ?? "",
+      sellerName: product_info.users?.fullName ?? "",
+      sellerAvatarUrl: product_info.users?.avatarUrl ?? "",
+      sellerRatingScore: product_info.users?.ratingScore ?? 0,
+      sellerRatingCount: product_info.users?.ratingCount ?? 0,
+    };
   }
 
   async getTopListings(
