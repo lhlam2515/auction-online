@@ -290,26 +290,54 @@ class EmailService {
 
   /**
    * 2. NGƯỜI BÁN TRẢ LỜI -> Broadcast cho tất cả người liên quan
+   * (Kèm nội dung Q&A chi tiết)
    */
   public notifySellerReplied(
     emails: string[],
     productName: string,
+    questionContent: string, // Thêm tham số
+    answerContent: string, // Thêm tham số
     productLink: string
   ) {
     if (emails.length === 0) return;
 
-    const html = this.getBaseTemplate(
-      "Người bán đã trả lời câu hỏi 💬",
-      `<p>Người bán vừa đăng tải phản hồi mới cho thảo luận về sản phẩm <strong>${productName}</strong>.</p>
-       <p>Thông tin này có thể ảnh hưởng đến quyết định đấu giá của bạn. Hãy kiểm tra ngay!</p>`,
-      { link: productLink, text: "Xem câu trả lời" }
+    const htmlBody = `
+      <p>Người bán vừa phản hồi một thắc mắc về sản phẩm <strong>${productName}</strong> mà bạn đang theo dõi.</p>
+
+      <div style="margin-top: 25px;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <span style="background-color: ${COLORS.muted}; color: ${COLORS.mutedFg}; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 4px; text-transform: uppercase;">Câu hỏi</span>
+        </div>
+        <div style="background-color: ${COLORS.muted}; color: ${COLORS.secondaryFg}; padding: 15px; border-radius: 8px; font-style: italic; position: relative;">
+          "${questionContent}"
+        </div>
+      </div>
+
+      <div style="margin-top: 15px; margin-left: 20px; border-left: 2px dashed ${COLORS.border}; padding-left: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+           <span style="color: ${COLORS.primary}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Người bán trả lời</span>
+        </div>
+        <div style="background-color: #f0f7ff; border: 1px solid ${COLORS.primary}40; border-left: 4px solid ${COLORS.primary}; padding: 15px; border-radius: 4px; color: ${COLORS.foreground}; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          ${answerContent}
+        </div>
+      </div>
+
+      <p style="margin-top: 25px; font-size: 14px; color: ${COLORS.mutedFg};">
+        Thông tin này có thể ảnh hưởng đến quyết định đấu giá của bạn.
+      </p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Cập nhật thảo luận mới 💬",
+      htmlBody,
+      { link: productLink, text: "Tham gia thảo luận ngay" }
     );
 
-    // Sử dụng cơ chế BCC của hàm sendMail bên dưới
+    // Gửi BCC để bảo mật danh sách người nhận
     this.addToQueue(
       emails,
-      `[Thông báo] Cập nhật từ người bán về ${productName}`,
-      html
+      `[Hỏi-Đáp] Cập nhật mới về ${productName}`,
+      fullHtml
     );
   }
 

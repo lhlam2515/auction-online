@@ -143,6 +143,8 @@ export class QuestionService {
     emailService.notifySellerReplied(
       emails,
       product.name,
+      question.questionContent,
+      answerContent,
       productService.buildProductLink(product.id)
     );
 
