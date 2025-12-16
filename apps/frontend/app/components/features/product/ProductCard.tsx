@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { APP_ROUTES } from "@/constants/routes";
+import { useWatchlist } from "@/contexts/watchlist-provider";
 import useCountdown from "@/hooks/useCountdown";
-import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import { cn, formatPrice } from "@/lib/utils";
 
@@ -47,7 +47,17 @@ const ProductCard = ({
   },
   className,
 }: ProductCardProps) => {
-  const [isWatchlisted, setIsWatchlisted] = React.useState(isWatching);
+  const {
+    toggleWatchlist,
+    isInWatchlist,
+    isLoading: watchlistLoading,
+  } = useWatchlist();
+
+  // Memoize để tránh re-compute liên tục
+  const isProductInWatchlist = React.useMemo(
+    () => isInWatchlist(id),
+    [isInWatchlist, id]
+  );
 
   const startDateTime = new Date(startTime);
   const endDateTime = new Date(endTime);
@@ -55,16 +65,15 @@ const ProductCard = ({
     new Date().getTime() - new Date(createdAt).getTime() < NEW_PRODUCT_DURATION;
   const timeDisplay = useCountdown(endDateTime, true);
 
-  const toggleWatchlist = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleToggleWatchlist = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const prevIsWatchlisted = isWatchlisted;
     try {
-      setIsWatchlisted(!prevIsWatchlisted);
-      await api.users.toggleWatchlist(id);
+      await toggleWatchlist(id);
     } catch (error) {
-      setIsWatchlisted(prevIsWatchlisted);
       logger.error("Failed to toggle watchlist:", error);
     }
   };
@@ -96,16 +105,18 @@ const ProductCard = ({
           </div>
 
           {/* Nút Watchlist góc phải */}
-          <Button
-            size="icon"
-            variant="outline"
-            className="absolute top-3 right-3 rounded-full border-0 bg-white/80 shadow-sm backdrop-blur-sm hover:bg-white"
-            onClick={toggleWatchlist}
-          >
-            <Heart
-              className={`h-5 w-5 transition-colors ${isWatchlisted ? "fill-red-500 text-red-500" : "text-gray-600"}`}
-            />
-          </Button>
+          {!watchlistLoading && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="text-accent absolute top-3 right-3 rounded-full border-0 shadow-sm backdrop-blur-sm"
+              onClick={handleToggleWatchlist}
+            >
+              <Heart
+                className={`h-5 w-5 transition-colors ${isProductInWatchlist && "fill-red-500 text-red-500"}`}
+              />
+            </Button>
+          )}
         </div>
 
         {/* 2. Phần Nội dung chính */}

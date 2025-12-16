@@ -221,17 +221,14 @@ export const api = {
     /**
      * Get user's watchlist
      */
-    getWatchlist: (params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Product>>(
-        "GET",
-        appendQueryParams("/users/watchlist", paramsToRecord(params))
-      ),
+    getWatchlist: () =>
+      apiCall<Product[]>("GET", appendQueryParams("/users/watchlist")),
 
     /**
      * Add/Remove product from watchlist
      */
     toggleWatchlist: (productId: string) =>
-      apiCall<{ message: string; inWatchlist: boolean }>(
+      apiCall<{ inWatchlist: boolean }>(
         "POST",
         `/users/watchlist/${productId}`
       ),
