@@ -1,5 +1,11 @@
 import type { Product } from "@repo/shared-types";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import { api } from "@/lib/api-layer";
@@ -31,7 +37,7 @@ export function WatchlistProvider({ children }: WatchlistProviderProps) {
   const [watchList, setWatchList] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchWatchlist = async () => {
+  const fetchWatchlist = useCallback(async () => {
     // Chỉ fetch khi user đã authenticated
     if (!isAuthenticated) {
       setWatchList([]);
@@ -59,7 +65,7 @@ export function WatchlistProvider({ children }: WatchlistProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   const refreshWatchlist = async () => {
     if (isAuthenticated) {
