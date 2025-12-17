@@ -92,7 +92,7 @@ export function ProductImageGallery({
     return (
       <div className={cn("space-y-4", className)}>
         <div className="bg-muted relative flex aspect-square items-center justify-center overflow-hidden rounded-lg border">
-          <p className="text-muted-foreground">"Không có hình ảnh"</p>
+          <p className="text-muted-foreground">Không có hình ảnh</p>
         </div>
       </div>
     );
