@@ -8,6 +8,11 @@ import { auctionService } from "@/services/auction.service";
 
 class SystemService {
   // ============================================================
+  // CONSTANTS
+  // ============================================================
+  private readonly AUTO_BID_BATCH_SIZE = 50; // Số lượng auction xử lý cùng lúc
+
+  // ============================================================
   // JOB SCHEDULING (Lên lịch)
   // ============================================================
 
@@ -133,7 +138,6 @@ class SystemService {
    */
   private async processActiveAuctionAutoBidsAsync() {
     const now = new Date();
-    const BATCH_SIZE = 50; // Xử lý 50 auctions cùng lúc
 
     // Lấy tất cả auction đang active và chưa hết hạn
     const activeAuctions = await db.query.products.findMany({
@@ -147,15 +151,16 @@ class SystemService {
     }
 
     logger.info(
-      `🔄 System Recovery: Found ${activeAuctions.length} active auctions. Processing auto-bids in batches of ${BATCH_SIZE}...`
+      `🔄 System Recovery: Found ${activeAuctions.length} active auctions. Processing auto-bids in batches of ${this.AUTO_BID_BATCH_SIZE}...`
     );
 
     let processedCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
 
     // Xử lý theo batch để tránh overload
-    for (let i = 0; i < activeAuctions.length; i += BATCH_SIZE) {
-      const batch = activeAuctions.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < activeAuctions.length; i += this.AUTO_BID_BATCH_SIZE) {
+      const batch = activeAuctions.slice(i, i + this.AUTO_BID_BATCH_SIZE);
 
       const results = await Promise.allSettled(
         batch.map(async (auction) => {
@@ -167,24 +172,33 @@ class SystemService {
             ),
           });
 
-          if (hasAutoBids) {
-            // Xử lý auto-bid cho auction này
-            const result = await auctionService.processAutoBid(auction.id);
-            if (result.status === "ok") {
-              logger.info(
-                `✅ Processed auto-bid for auction #${auction.id} - Winner: ${result.winnerId}`
-              );
-              return { success: true, auctionId: auction.id };
-            }
+          if (!hasAutoBids) {
+            return { success: true, skipped: true, auctionId: auction.id };
           }
-          return { success: false, auctionId: auction.id };
+
+          // Xử lý auto-bid cho auction này
+          const result = await auctionService.processAutoBid(auction.id);
+          if (result.status === "ok") {
+            logger.info(
+              `✅ Processed auto-bid for auction #${auction.id} - Winner: ${result.winnerId}`
+            );
+            return { success: true, skipped: false, auctionId: auction.id };
+          }
+
+          return { success: false, skipped: false, auctionId: auction.id };
         })
       );
 
       // Đếm kết quả
       results.forEach((result) => {
-        if (result.status === "fulfilled" && result.value.success) {
-          processedCount++;
+        if (result.status === "fulfilled") {
+          if (result.value.success && !result.value.skipped) {
+            processedCount++;
+          } else if (result.value.success && result.value.skipped) {
+            skippedCount++;
+          } else if (!result.value.success) {
+            errorCount++;
+          }
         } else if (result.status === "rejected") {
           errorCount++;
           logger.error(`❌ Error processing auto-bid: ${result.reason}`);
@@ -192,12 +206,12 @@ class SystemService {
       });
 
       logger.info(
-        `🔄 System Recovery: Processed batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(activeAuctions.length / BATCH_SIZE)}`
+        `🔄 System Recovery: Processed batch ${Math.floor(i / this.AUTO_BID_BATCH_SIZE) + 1}/${Math.ceil(activeAuctions.length / this.AUTO_BID_BATCH_SIZE)}`
       );
     }
 
     logger.info(
-      `✅ System Recovery: Auto-bid processing completed. Processed: ${processedCount}, Errors: ${errorCount}`
+      `✅ System Recovery: Auto-bid processing completed. Processed: ${processedCount}, Skipped: ${skippedCount}, Errors: ${errorCount}`
     );
   }
 }
