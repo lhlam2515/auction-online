@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
 
 import ProductGallery from "./ProductGallery";
-import ProductGrid from "./ProductGrid";
 
 type RelatedProductsProps = {
   productId: string;
