@@ -204,17 +204,19 @@ export class ProductService {
   }
 
   async getProductDetailsById(productId: string): Promise<ProductDetails> {
-    const product = await this.getById(productId);
-
     const [product_info] = await db
-      .select({ categories, users })
+      .select({ products, categories, users })
       .from(products)
       .where(eq(products.id, productId))
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .leftJoin(users, eq(products.sellerId, users.id));
 
+    if (!product_info) {
+      throw new NotFoundError("Product");
+    }
+
     return {
-      ...product,
+      ...product_info.products,
       categoryName: product_info.categories?.name ?? "",
       sellerName: product_info.users?.fullName ?? "",
       sellerAvatarUrl: product_info.users?.avatarUrl ?? "",
