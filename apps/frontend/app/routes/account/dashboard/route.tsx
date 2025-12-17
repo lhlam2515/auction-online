@@ -33,72 +33,7 @@ import type { Route } from "./+types/route";
 // Mock Watchlist data
 // import { ProductCard } from "@/components/ui/product-card"
 
-// Mock Active Bids data
-const activeBids = [
-  {
-    id: "1",
-    productName: "iPhone 15 Pro Max 256GB",
-    currentPrice: 28500000,
-    myMaxBid: 30000000,
-    status: "leading" as const,
-    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: "2",
-    productName: "MacBook Pro M3 14 inch",
-    currentPrice: 45000000,
-    myMaxBid: 44000000,
-    status: "outbid" as const,
-    endTime: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: "3",
-    productName: "Samsung Galaxy S24 Ultra",
-    currentPrice: 25000000,
-    myMaxBid: 26000000,
-    status: "leading" as const,
-    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
-    image: "/placeholder.svg?height=200&width=200",
-  },
-];
-
 // Mock Won Auctions data
-const wonAuctions = [
-  {
-    id: "1",
-    productName: "iPad Pro 12.9 inch M2",
-    finalPrice: 22000000,
-    wonDate: "15/01/2024",
-    status: "unpaid" as const,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: "2",
-    productName: "Sony WH-1000XM5 Headphones",
-    finalPrice: 6500000,
-    wonDate: "12/01/2024",
-    status: "processing" as const,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: "3",
-    productName: "Apple Watch Series 9",
-    finalPrice: 9000000,
-    wonDate: "08/01/2024",
-    status: "completed" as const,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: "4",
-    productName: "Canon EOS R6 Mark II",
-    finalPrice: 52000000,
-    wonDate: "05/01/2024",
-    status: "cancelled" as const,
-    image: "/placeholder.svg?height=200&width=200",
-  },
-];
 
 // Mock Watchlist data
 const watchlistItems = [
@@ -135,10 +70,6 @@ const watchlistItems = [
     isNew: false,
   },
 ];
-
-function formatVietnameseCurrency(amount: number): string {
-  return amount.toLocaleString("vi-VN") + " đ";
-}
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -208,13 +139,13 @@ export default function AccountDashboardPage() {
         if (userRes?.success && userRes.data) {
           setUserData(userRes.data);
         } else {
-          toast.error(userRes?.message || ERROR_MESSAGES.SERVER_ERROR);
+          toast.error(ERROR_MESSAGES.SERVER_ERROR);
         }
 
         if (bidsRes?.success && bidsRes.data) {
           setActiveBidsData(bidsRes.data.items);
         } else {
-          toast.error(bidsRes?.message || ERROR_MESSAGES.SERVER_ERROR);
+          toast.error(ERROR_MESSAGES.SERVER_ERROR);
         }
       } catch (error) {
         toast.error(ERROR_MESSAGES.SERVER_ERROR);
@@ -274,141 +205,18 @@ export default function AccountDashboardPage() {
         </aside>
 
         {/* Main Content - Tabs */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quản lý đấu giá</CardTitle>
-              <CardDescription>
-                Theo dõi các phiên đấu giá của bạn
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="active" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="active">Đang đấu giá</TabsTrigger>
-                  <TabsTrigger value="won">Đã thắng</TabsTrigger>
-                  <TabsTrigger value="watchlist">Yêu thích</TabsTrigger>
-                </TabsList>
 
-                {/* Tab 1: Active Bids */}
-                <TabsContent value="active" className="space-y-4">
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Sản phẩm</TableHead>
-                          <TableHead>Giá hiện tại</TableHead>
-                          <TableHead>Giá tối đa của bạn</TableHead>
-                          <TableHead>Kết thúc</TableHead>
-                          <TableHead>Trạng thái</TableHead>
-                          <TableHead className="text-right">
-                            Hành động
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {activeBids.map((bid) => (
-                          <TableRow key={bid.id}>
-                            <TableCell className="font-medium">
-                              {bid.productName}
-                            </TableCell>
-                            <TableCell>
-                              {formatVietnameseCurrency(bid.currentPrice)}
-                            </TableCell>
-                            <TableCell>
-                              {formatVietnameseCurrency(bid.myMaxBid)}
-                            </TableCell>
-                            <TableCell>
-                              {bid.endTime.toLocaleString("vi-VN", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </TableCell>
-                            <TableCell>
-                              {bid.status === "leading" ? (
-                                <Badge className="bg-emerald-600 hover:bg-emerald-700">
-                                  Đang dẫn đầu
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant="outline"
-                                  className="border-amber-300 bg-amber-50 text-amber-700"
-                                >
-                                  Bị trả giá
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {bid.status === "outbid" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-amber-300 bg-transparent text-amber-700"
-                                >
-                                  Đấu lại
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
+        <Card>
+          <CardContent>
+            <Tabs>
+              {/* Tab 2: Won Auctions */}
 
-                {/* Tab 2: Won Auctions */}
-                <TabsContent value="won" className="space-y-4">
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Sản phẩm</TableHead>
-                          <TableHead>Giá cuối</TableHead>
-                          <TableHead>Ngày thắng</TableHead>
-                          <TableHead>Trạng thái</TableHead>
-                          <TableHead className="text-right">
-                            Hành động
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {wonAuctions.map((auction) => (
-                          <TableRow key={auction.id}>
-                            <TableCell className="font-medium">
-                              {auction.productName}
-                            </TableCell>
-                            <TableCell>
-                              {formatVietnameseCurrency(auction.finalPrice)}
-                            </TableCell>
-                            <TableCell>{auction.wonDate}</TableCell>
-                            <TableCell>
-                              {getStatusBadge(auction.status)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {auction.status === "unpaid" && (
-                                <Button
-                                  size="sm"
-                                  className="bg-slate-900 hover:bg-slate-800"
-                                >
-                                  Thanh toán
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-
-                {/* Tab 3: Watchlist */}
-                <TabsContent value="watchlist" className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {watchlist.map((item) => (
-                      <div key={item.id} className="group relative">
-                        {/* <ProductCard
+              {/* Tab 3: Watchlist */}
+              <TabsContent value="watchlist" className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {watchlist.map((item) => (
+                    <div key={item.id} className="group relative">
+                      {/* <ProductCard
                           id={item.id}
                           name={item.name}
                           image={item.image}
@@ -419,34 +227,33 @@ export default function AccountDashboardPage() {
                           endTime={item.endTime}
                           isNew={item.isNew}
                         /> */}
-                        {/* Remove button overlay */}
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 z-10 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleRemoveFromWatchlist(item.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {watchlist.length === 0 && (
-                    <div className="py-12 text-center">
-                      <p className="text-muted-foreground">
-                        Chưa có sản phẩm yêu thích nào
-                      </p>
+                      {/* Remove button overlay */}
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 z-10 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemoveFromWatchlist(item.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+                  ))}
+                </div>
+
+                {watchlist.length === 0 && (
+                  <div className="py-12 text-center">
+                    <p className="text-muted-foreground">
+                      Chưa có sản phẩm yêu thích nào
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
