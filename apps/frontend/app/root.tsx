@@ -13,6 +13,7 @@ import { AuthProvider } from "@/contexts/auth-provider";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { WatchlistProvider } from "./contexts/watchlist-provider";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -52,7 +53,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
-      <Outlet />
+      <WatchlistProvider>
+        <Outlet />
+      </WatchlistProvider>
     </AuthProvider>
   );
 }

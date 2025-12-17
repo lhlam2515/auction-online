@@ -18,8 +18,7 @@ export interface ProductQuestion {
  */
 export interface ProductQuestionWithUsers extends ProductQuestion {
   userName: string;
-  userAvatarUrl?: string;
-  answererName?: string;
-  answererAvatarUrl?: string;
-  productName: string;
+  userAvatarUrl: string | null;
+  answererName: string | null;
+  answererAvatarUrl: string | null;
 }

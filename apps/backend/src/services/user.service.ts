@@ -95,7 +95,7 @@ export class UserService {
       productId,
     });
 
-    return { message: "Product added to watchlist" };
+    return { inWatchlist: true };
   }
 
   async removeFromWatchlist(userId: string, productId: string) {
@@ -111,7 +111,7 @@ export class UserService {
         and(eq(watchLists.userId, userId), eq(watchLists.productId, productId))
       );
 
-    return { message: "Product removed from watchlist" };
+    return { inWatchlist: false };
   }
 
   async changePassword(

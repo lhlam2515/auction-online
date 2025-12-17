@@ -12,6 +12,7 @@ import type {
   RelatedProductsParams,
   ProductListing,
   PaginatedResponse,
+  ProductDetails,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -50,8 +51,8 @@ export const getProductDetails = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get product details
     const productId = req.params.id;
-    const product = await productService.getById(productId);
-    return ResponseHandler.sendSuccess<Product>(res, product);
+    const product = await productService.getProductDetailsById(productId);
+    return ResponseHandler.sendSuccess<ProductDetails>(res, product);
   }
 );
 
