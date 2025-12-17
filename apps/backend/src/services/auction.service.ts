@@ -33,7 +33,7 @@ class AuctionService {
 
       // Lấy bid cao nhất (ưu tiên amount cao, rồi đến thời gian sớm hơn)
       const topBid = await tx.query.bids.findFirst({
-        where: eq(bids.productId, productId),
+        where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
         orderBy: [desc(bids.amount), desc(bids.createdAt)],
       });
 
