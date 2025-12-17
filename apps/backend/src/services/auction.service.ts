@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { autoBids, bids, products } from "@/models";
@@ -34,7 +34,7 @@ class AuctionService {
       // Lấy bid cao nhất (ưu tiên amount cao, rồi đến thời gian sớm hơn)
       const topBid = await tx.query.bids.findFirst({
         where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
-        orderBy: [desc(bids.amount), desc(bids.createdAt)],
+        orderBy: [desc(bids.amount), asc(bids.createdAt)],
       });
 
       // Không có bid hợp lệ -> đánh dấu NO_SALE
