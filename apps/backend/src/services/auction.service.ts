@@ -131,7 +131,11 @@ class AuctionService {
       if (proxies.length === 1) {
         const winner = proxies[0];
         // TH1: chưa ai đặt -> đặt = giá khởi điểm (hoặc giữ nguyên nếu đã có currentPrice)
-        const newPrice = basePrice;
+        const newPrice = Math.min(parseFloat(winner.maxAmount), basePrice);
+
+        if (product.winnerId === winner.userId) {
+          return { status: "skipped" as const }; // Đã là người dẫn đầu, không cần đặt thêm
+        }
 
         await bidService.placeBid(productId, winner.userId, newPrice, true, tx);
 
@@ -151,10 +155,7 @@ class AuctionService {
       }
 
       // Giá đề xuất theo rule: secondMax + step (nhưng không vượt quá topMax)
-      let suggestedPrice = secondMax + step;
-      if (suggestedPrice > topMax) {
-        suggestedPrice = topMax;
-      }
+      const suggestedPrice = Math.min(secondMax + step, topMax);
 
       // Đảm bảo giá đưa ra lớn hơn ít nhất một bước giá so với giá hiện tại
       const finalPrice = Math.max(basePrice + step, suggestedPrice);
