@@ -1,4 +1,6 @@
 import type { User } from "@repo/shared-types";
+import { AxiosError, isAxiosError } from "axios";
+import { Lock, Store, Camera } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
@@ -69,15 +72,15 @@ const UserProfileForm = () => {
         toast.error(ERROR_MESSAGES.SERVER_ERROR);
       }
     } catch (error) {
-      // if (isAxiosError(error)) {
-      //   const backendMessage =
-      //     error.response?.data?.message || error.response?.data?.stack;
-      //   const errorMessage = backendMessage || error.message;
+      if (isAxiosError(error)) {
+        const backendMessage =
+          error.response?.data?.message || error.response?.data?.stack;
+        const errorMessage = backendMessage || error.message;
 
-      //   toast.error(errorMessage);
-      // } else {
-      toast.error("Lỗi không xác định");
-      // }
+        toast.error(errorMessage);
+      } else {
+        toast.error("Lỗi không xác định");
+      }
     }
   };
 
@@ -148,7 +151,7 @@ const UserProfileForm = () => {
               variant="outline"
               size="sm"
             >
-              {/* <Camera className="mr-2 h-4 w-4" /> */}
+              <Camera className="mr-2 h-4 w-4" />
               Thay Đổi Ảnh
             </Button>
           </div>
