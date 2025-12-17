@@ -23,6 +23,7 @@ import { KickDialog } from "./KickDialog";
 interface HistoryTableProps {
   productId: string;
   isSeller: boolean;
+  isEnded: boolean;
   className?: string;
   [key: string]: any;
 }
@@ -30,6 +31,7 @@ interface HistoryTableProps {
 export function HistoryTable({
   productId,
   isSeller,
+  isEnded,
   className,
 }: HistoryTableProps) {
   const [bids, setBids] = useState<BidWithUser[]>([]);
@@ -113,7 +115,7 @@ export function HistoryTable({
                   <TableHead>Người đấu giá</TableHead>
                   <TableHead>Điểm đánh giá</TableHead>
                   <TableHead className="text-right">Giá đặt</TableHead>
-                  {isSeller && (
+                  {isSeller && !isEnded && (
                     <TableHead className="text-right">Hành động</TableHead>
                   )}
                 </TableRow>
@@ -153,7 +155,7 @@ export function HistoryTable({
                       <TableCell className="text-right font-semibold">
                         {formatPrice(Number(bid.amount))}
                       </TableCell>
-                      {isSeller && (
+                      {isSeller && !isEnded && (
                         <TableCell className="text-right">
                           <Button
                             variant="outline"

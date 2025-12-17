@@ -14,16 +14,19 @@ import logger from "@/lib/logger";
 import { formatDate } from "@/lib/utils";
 
 interface ProductQAProps {
-  productId?: string;
+  productId: string;
   isLoggedIn: boolean;
   isSeller: boolean;
+  isEnded: boolean;
   className?: string;
+  [key: string]: any;
 }
 
 export function ProductQA({
   productId,
   isLoggedIn,
   isSeller,
+  isEnded,
   className,
 }: ProductQAProps) {
   const [questions, setQuestions] = useState<ProductQuestionWithUsers[]>([]);
@@ -127,8 +130,8 @@ export function ProductQA({
       </CardHeader>
 
       <CardContent>
-        {/* Question Input - Only for logged in buyers */}
-        {isLoggedIn && !isSeller && (
+        {/* Question Input - Only for logged in buyers when auction is not ended */}
+        {isLoggedIn && !isSeller && !isEnded && (
           <div className="mb-6 rounded-lg bg-slate-50 p-4 dark:bg-slate-800">
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Đặt câu hỏi cho người bán
