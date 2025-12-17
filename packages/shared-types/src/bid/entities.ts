@@ -34,3 +34,12 @@ export interface AutoBid {
   createdAt: Date | string;
   updatedAt: Date | string;
 }
+
+export interface MyAutoBid extends AutoBid {
+  product: {
+    productName: string;
+    currentPrice: string | null; // Decimal as string
+    endTime: Date | string;
+    winnerId: string | null;
+  };
+}
