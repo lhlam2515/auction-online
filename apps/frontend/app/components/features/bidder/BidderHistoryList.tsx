@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ERROR_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
-import { formatPrice } from "@/lib/utils";
+import { formatDate, formatPrice } from "@/lib/utils";
 
 // TODO: Define props based on SRS requirements
 type BidderHistoryListProps = {
@@ -128,15 +128,7 @@ const BidderHistoryList = (props: BidderHistoryListProps) => {
                   <TableCell>
                     {formatPrice(Number(bid.maxAmount || 0))}
                   </TableCell>
-                  <TableCell>
-                    {new Date(bid.product.endTime).toLocaleString("vi-VN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </TableCell>
+                  <TableCell>{formatDate(bid.product.endTime)}</TableCell>
                   <TableCell>
                     {Number(bid.product.currentPrice) <=
                     Number(bid.maxAmount) ? (
