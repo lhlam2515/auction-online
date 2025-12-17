@@ -357,7 +357,7 @@ export function BiddingDialog({
             {/* Buy Now Warning */}
             {buyNowPrice &&
               Number.parseInt(maxBid.replace(/\D/g, "")) >= buyNowPrice && (
-                <Alert className="flexborder-orange-200 bg-orange-50 text-orange-800">
+                <Alert className="border-orange-200 bg-orange-50 text-orange-800">
                   <AlertTriangleIcon className="h-4 w-4" />
                   <AlertDescription className="text-orange-800">
                     <strong>Lưu ý:</strong>
