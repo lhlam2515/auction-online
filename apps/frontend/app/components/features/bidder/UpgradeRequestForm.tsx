@@ -58,7 +58,7 @@ const UpgradeRequestForm = <T extends FieldValues>({
       if (result?.success) {
         toast.success(SUCCESS_MESSAGES.UPGRADE_SELLER);
       } else {
-        toast.error(result?.message || ERROR_MESSAGES.SERVER_ERROR);
+        toast.error(ERROR_MESSAGES.SERVER_ERROR);
       }
     } catch (error: unknown) {
       toast.error((error as Error)?.message || ERROR_MESSAGES.UNKNOWN_ERROR);
