@@ -7,7 +7,6 @@ import type {
 import { eq, and, aliasedTable } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { askQuestion } from "@/controllers/question.controller";
 import { productQuestions, users } from "@/models";
 import {
   BadRequestError,
