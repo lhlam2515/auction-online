@@ -147,7 +147,6 @@ export default function ProductDetailPage() {
               isLoggedIn={isLoggedIn}
               isSeller={isSeller}
               onBidClick={handleBidClick}
-              onBuyNowClick={handleBidClick}
             />
           </section>
 
@@ -183,7 +182,7 @@ export default function ProductDetailPage() {
             open={showBiddingDialog}
             onOpenChange={setShowBiddingDialog}
             product={product}
-            userRating={100}
+            userRating={userData?.ratingScore ?? 0}
           />
         </div>
       )}
