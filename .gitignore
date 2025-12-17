@@ -50,3 +50,6 @@ drizzle/
 
 # Typescript
 *.tsbuildinfo
+
+# NPM lock file (project uses pnpm)
+package-lock.json
