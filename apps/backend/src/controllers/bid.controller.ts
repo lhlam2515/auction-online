@@ -6,6 +6,7 @@ import type {
   UpdateAutoBidRequest,
   AutoBid,
   BidWithUser,
+  MyAutoBid,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -92,5 +93,13 @@ export const deleteAutoBid = asyncHandler(
     const result = await bidService.deleteAutoBid(autoBidId, userId);
 
     return ResponseHandler.sendSuccess(res, null, 200, result.message);
+  }
+);
+
+export const getMyAutoBid = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const result = await bidService.getMyAutoBid(userId);
+    return ResponseHandler.sendSuccess<MyAutoBid[]>(res, result);
   }
 );

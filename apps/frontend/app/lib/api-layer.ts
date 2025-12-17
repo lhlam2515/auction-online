@@ -28,6 +28,7 @@ import type {
   ProductImage,
   UpdateDescriptionResponse,
   UploadImagesResponse,
+  MyAutoBid,
 
   // Category types
   Category,
@@ -436,6 +437,8 @@ export const api = {
      */
     deleteAutoBid: (autoBidId: string) =>
       apiCall<{ message: string }>("DELETE", `/products/auto-bid/${autoBidId}`),
+
+    getMyAutoBid: () => apiCall<MyAutoBid[]>("GET", `/products/my-auto-bid`),
   },
 
   /**
