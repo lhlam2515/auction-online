@@ -228,7 +228,7 @@ export function WatchlistProvider({ children }: WatchlistProviderProps) {
       setWatchList([]);
       setIsLoading(false);
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, fetchWatchlist]);
 
   // Cleanup effect
   useEffect(() => {
