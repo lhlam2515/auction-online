@@ -14,9 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { APP_ROUTES } from "@/constants/routes";
-import { api } from "@/lib/api-layer";
+import { useWatchlist } from "@/contexts/watchlist-provider";
+import useCountdown from "@/hooks/useCountdown";
 import logger from "@/lib/logger";
-import { cn, formatPrice, getTimeRemaining } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 type ProductCardProps = {
   product: ProductListing;
@@ -24,52 +25,6 @@ type ProductCardProps = {
 };
 
 const NEW_PRODUCT_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
-
-function formatTimeRemaining(endTime: Date): {
-  text: string;
-  isUrgent: boolean;
-} {
-  const timeData = getTimeRemaining(endTime);
-
-  if (timeData.isExpired) {
-    return {
-      text: "Đã kết thúc",
-      isUrgent: true,
-    };
-  }
-
-  const { days, hours, minutes, seconds } = timeData;
-  const isUrgent = timeData.total < 60 * 60 * 1000; // dưới 1 giờ
-
-  let timeText = "";
-  if (days > 0) timeText += `${days}d `;
-  if (hours >= 0) timeText += `${hours.toString().padStart(2, "0")}h `;
-  if (minutes >= 0) timeText += `${minutes.toString().padStart(2, "0")}m `;
-  if (seconds >= 0 && days === 0)
-    timeText += `${seconds.toString().padStart(2, "0")}s`;
-
-  return {
-    text: timeText.trim(),
-    isUrgent,
-  };
-}
-
-// Custom hook để đếm ngược tự động
-function useCountdown(endTime: Date) {
-  const [timeDisplay, setTimeDisplay] = React.useState(() =>
-    formatTimeRemaining(endTime)
-  );
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeDisplay(formatTimeRemaining(endTime));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [endTime]);
-
-  return timeDisplay;
-}
 
 /**
  * Component: ProductCard
@@ -92,24 +47,33 @@ const ProductCard = ({
   },
   className,
 }: ProductCardProps) => {
-  const [isWatchlisted, setIsWatchlisted] = React.useState(isWatching);
+  const {
+    toggleWatchlist,
+    isInWatchlist,
+    isLoading: watchlistLoading,
+  } = useWatchlist();
+
+  // Memoize để tránh re-compute liên tục
+  const isProductInWatchlist = React.useMemo(
+    () => isInWatchlist(id),
+    [isInWatchlist, id]
+  );
 
   const startDateTime = new Date(startTime);
   const endDateTime = new Date(endTime);
   const isNew =
     new Date().getTime() - new Date(createdAt).getTime() < NEW_PRODUCT_DURATION;
-  const timeDisplay = useCountdown(endDateTime);
+  const timeDisplay = useCountdown(endDateTime, true);
 
-  const toggleWatchlist = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleToggleWatchlist = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const prevIsWatchlisted = isWatchlisted;
     try {
-      setIsWatchlisted(!prevIsWatchlisted);
-      await api.users.toggleWatchlist(id);
+      await toggleWatchlist(id);
     } catch (error) {
-      setIsWatchlisted(prevIsWatchlisted);
       logger.error("Failed to toggle watchlist:", error);
     }
   };
@@ -141,16 +105,18 @@ const ProductCard = ({
           </div>
 
           {/* Nút Watchlist góc phải */}
-          <Button
-            size="icon"
-            variant="outline"
-            className="absolute top-3 right-3 rounded-full border-0 bg-white/80 shadow-sm backdrop-blur-sm hover:bg-white"
-            onClick={toggleWatchlist}
-          >
-            <Heart
-              className={`h-5 w-5 transition-colors ${isWatchlisted ? "fill-red-500 text-red-500" : "text-gray-600"}`}
-            />
-          </Button>
+          {!watchlistLoading && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="text-accent absolute top-3 right-3 rounded-full border-0 shadow-sm backdrop-blur-sm"
+              onClick={handleToggleWatchlist}
+            >
+              <Heart
+                className={`h-5 w-5 transition-colors ${isProductInWatchlist && "fill-red-500 text-red-500"}`}
+              />
+            </Button>
+          )}
         </div>
 
         {/* 2. Phần Nội dung chính */}

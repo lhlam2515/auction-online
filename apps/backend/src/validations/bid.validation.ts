@@ -14,7 +14,7 @@ export const placeBidSchema = z.object({
 });
 
 export const kickBidderSchema = z.object({
-  userId: z.uuid({ error: "Invalid user ID" }),
+  bidderId: z.uuid({ error: "Invalid user ID" }),
   reason: z.string().min(10, { error: "Please provide a reason" }),
 });
 

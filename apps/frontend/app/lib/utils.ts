@@ -23,13 +23,15 @@ export function formatPrice(amount: number, currency = "VND"): string {
  * Format date for display
  */
 export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat("vi-VN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const d = new Date(date);
+  return d.toLocaleDateString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+    second: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 /**

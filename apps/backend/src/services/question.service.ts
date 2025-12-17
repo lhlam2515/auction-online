@@ -1,12 +1,13 @@
 import type {
   ProductQuestion,
+  ProductQuestionWithUsers,
   QuestionStatus,
   QuestionVisibility,
 } from "@repo/shared-types";
-import { eq, and } from "drizzle-orm";
+import { eq, and, aliasedTable } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { productQuestions } from "@/models";
+import { productQuestions, users } from "@/models";
 import {
   BadRequestError,
   NotFoundError,
@@ -24,19 +25,38 @@ export interface QuestionFilters {
 }
 
 export class QuestionService {
-  async getPublicQuestions(productId: string): Promise<ProductQuestion[]> {
+  async getPublicQuestions(
+    productId: string
+  ): Promise<ProductQuestionWithUsers[]> {
     // implement public questions retrieval
     const product = await productService.getById(productId);
+    const answerer = aliasedTable(users, "answerer");
     const questions = await db
-      .select()
+      .select({
+        question: productQuestions,
+        userName: users.fullName,
+        userAvatarUrl: users.avatarUrl,
+        answererName: answerer.fullName,
+        answererAvatarUrl: answerer.avatarUrl,
+      })
       .from(productQuestions)
+      .leftJoin(users, eq(productQuestions.userId, users.id))
+      .leftJoin(answerer, eq(productQuestions.answeredBy, answerer.id))
       .where(
         and(
           eq(productQuestions.productId, productId),
           eq(productQuestions.isPublic, true)
         )
       );
-    return questions;
+    return questions.map((q) => {
+      return {
+        ...q.question,
+        userName: q.userName || "Unknown",
+        userAvatarUrl: q.userAvatarUrl,
+        answererName: q.answererName,
+        answererAvatarUrl: q.answererAvatarUrl,
+      };
+    });
   }
 
   async askQuestion(

@@ -8,6 +8,7 @@ import type {
   TopListingResponse,
   ProductListing,
   GetSellerProductsParams,
+  ProductDetails,
 } from "@repo/shared-types";
 import {
   eq,
@@ -40,6 +41,7 @@ import {
   ForbiddenError,
 } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
+import { maskName } from "@/utils/ultils";
 
 export class ProductService {
   // async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
@@ -199,6 +201,28 @@ export class ProductService {
     });
     if (!result) throw new NotFoundError("Product");
     return result;
+  }
+
+  async getProductDetailsById(productId: string): Promise<ProductDetails> {
+    const [product_info] = await db
+      .select({ products, categories, users })
+      .from(products)
+      .where(eq(products.id, productId))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .leftJoin(users, eq(products.sellerId, users.id));
+
+    if (!product_info) {
+      throw new NotFoundError("Product");
+    }
+
+    return {
+      ...product_info.products,
+      categoryName: product_info.categories?.name ?? "",
+      sellerName: product_info.users?.fullName ?? "",
+      sellerAvatarUrl: product_info.users?.avatarUrl ?? "",
+      sellerRatingScore: product_info.users?.ratingScore ?? 0,
+      sellerRatingCount: product_info.users?.ratingCount ?? 0,
+    };
   }
 
   async getTopListings(
@@ -535,15 +559,6 @@ export class ProductService {
       });
       userWatchSet = new Set(watchRows.map((w) => w.productId));
     }
-
-    // ===== Helper =====
-    const maskName = (fullName: string) => {
-      const parts = fullName.trim().split(/\s+/).filter(Boolean);
-      if (parts.length === 0) return "****";
-      if (parts.length === 1) return "****";
-      const last = parts[parts.length - 1];
-      return "****" + last;
-    };
 
     // ===== Lookup maps =====
     const categoryMap = new Map(categoriesRows.map((c) => [c.id, c]));

@@ -75,3 +75,11 @@ export interface ProductWatchList {
   productId: string;
   createdAt: string;
 }
+
+export interface ProductDetails extends Product {
+  categoryName: string;
+  sellerName: string;
+  sellerAvatarUrl: string | null;
+  sellerRatingScore: number; // Average rating of the seller
+  sellerRatingCount: number; // Total number of ratings for the seller
+}
