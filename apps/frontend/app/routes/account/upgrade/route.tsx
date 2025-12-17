@@ -1,3 +1,10 @@
+import { useCallback } from "react";
+import type z from "zod";
+
+import UpgradeRequestForm from "@/components/features/bidder/UpgradeRequestForm";
+import { api } from "@/lib/api-layer";
+import { upgradeRequestSchema } from "@/lib/validations/user.validation";
+
 import type { Route } from "./+types/route";
 
 export function meta({}: Route.MetaArgs) {
@@ -10,19 +17,25 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
-
 export default function UpgradetoSellerPage() {
+  const handleSubmit = useCallback(
+    async (data: z.infer<typeof upgradeRequestSchema>) => {
+      const result = await api.users.requestSellerUpgrade({
+        reason: data.reason,
+      });
+      console.log(result);
+      return result;
+    },
+    []
+  );
   return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Upgrade to Seller</h1>
-      <p>Content for Upgrade to Seller goes here.</p>
-    </div>
+    <UpgradeRequestForm
+      schema={upgradeRequestSchema}
+      defaultValues={{
+        reason: "",
+        agreedToTerms: true,
+      }}
+      onSubmit={handleSubmit}
+    />
   );
 }
