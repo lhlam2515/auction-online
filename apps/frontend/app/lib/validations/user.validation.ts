@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { commonValidations } from "./common.validation";
 
 /**
@@ -10,6 +11,32 @@ export const updateProfileSchema = z.object({
   email: commonValidations.email,
   birthDate: z.coerce.date().max(new Date(), "Ngày sinh không hợp lệ"),
 });
+
+export const changePassword = z
+  .object({
+    currentPassword: z.string().min(1, "Vui lòng nhập mật khẩu cũ"),
+    newPassword: z
+      .string()
+      .min(8, { message: "Mật khẩu mới phải có ít nhất 8 ký tự" })
+      .regex(/[a-z]/, {
+        message: "Mật khẩu mới phải chứa ít nhất một chữ thường",
+      })
+      .regex(/[A-Z]/, { message: "Mật khẩu mới phải chứa ít nhất một chữ hoa" })
+      .regex(/[0-9]/, { message: "Mật khẩu mới phải chứa ít nhất một chữ số" })
+      .regex(/[^a-zA-Z0-9]/, {
+        message: "Mật khẩu mới phải chứa ít nhất một ký tự đặc biệt",
+      }),
+
+    confirmPassword: z.string().min(1, "Vui lòng xác nhận lại mật khẩu"),
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "Mật khẩu mới không được trùng mật khẩu cũ", // [cite: 648]
+    path: ["newPassword"],
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  });
 
 /**
  * User rating validation schema

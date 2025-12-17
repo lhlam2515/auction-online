@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import type z from "zod";
 
 import { api } from "@/lib/api-layer";
-import type { loginSchema } from "@/lib/validations/auth.validation";
 import { changePassword } from "@/lib/validations/user.validation";
 
 import type { Route } from "./+types/route";
