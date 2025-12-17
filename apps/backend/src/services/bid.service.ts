@@ -126,10 +126,41 @@ export class BidService {
         );
       }
 
+      // Xử lý Auto-Extend (Anti-Sniping) INSIDE transaction để tránh race condition
+      // Nếu bid vào những phút cuối, tự động gia hạn thêm thời gian
+      // NOTE: getAutoExtendConfig() is called inside transaction for atomicity.
+      // Consider caching this config in the future if performance becomes an issue.
+      let extendedEndTime: Date | null = null;
+      if (newStatus === "ACTIVE" && product.isAutoExtend) {
+        const { thresholdMinutes, durationMinutes } =
+          await this.getAutoExtendConfig();
+        const now = new Date();
+        const productEnd = new Date(product.endTime);
+        const timeLeftMs = productEnd.getTime() - now.getTime();
+
+        if (timeLeftMs > 0) {
+          const thresholdMs = thresholdMinutes * 60 * 1000;
+          if (timeLeftMs <= thresholdMs) {
+            const newEndTime = new Date(
+              productEnd.getTime() + durationMinutes * 60 * 1000
+            );
+            extendedEndTime = newEndTime;
+
+            // Cập nhật endTime INSIDE transaction
+            [product] = await tx
+              .update(products)
+              .set({ endTime: newEndTime, updatedAt: new Date() })
+              .where(eq(products.id, productId))
+              .returning();
+          }
+        }
+      }
+
       return {
         newBid,
         product,
         isBuyNow: newStatus === "SOLD",
+        extendedEndTime,
       };
     };
 
@@ -139,10 +170,9 @@ export class BidService {
       : await db.transaction(executeLogic);
 
     // --- LOGIC SAU TRANSACTION (Non-blocking) ---
-    // 1. Xử lý Auto-Extend (Anti-Sniping)
-    // Nếu bid vào những phút cuối, tự động gia hạn thêm thời gian
-    if (result.product.status === "ACTIVE") {
-      await this.handleAutoExtend(result.product, productId);
+    // 1. Reschedule auction end nếu có gia hạn
+    if (result.extendedEndTime) {
+      await systemService.rescheduleAuctionEnd(productId, result.extendedEndTime);
     }
 
     // 2. Kích hoạt Auto-bid queue
@@ -329,32 +359,6 @@ export class BidService {
       thresholdMinutes: settings?.extendThresholdMinutes ?? 5,
       durationMinutes: settings?.extendDurationMinutes ?? 10,
     };
-  }
-
-  private async handleAutoExtend(product: Product, productId: string) {
-    if (!product.isAutoExtend) return;
-
-    const { thresholdMinutes, durationMinutes } =
-      await this.getAutoExtendConfig();
-    const now = new Date();
-    const productEnd = new Date(product.endTime);
-    const timeLeftMs = productEnd.getTime() - now.getTime();
-
-    if (timeLeftMs <= 0) return;
-
-    const thresholdMs = thresholdMinutes * 60 * 1000;
-    if (timeLeftMs > thresholdMs) return;
-
-    const newEndTime = new Date(
-      productEnd.getTime() + durationMinutes * 60 * 1000
-    );
-
-    await db
-      .update(products)
-      .set({ endTime: newEndTime, updatedAt: new Date() })
-      .where(eq(products.id, productId));
-
-    await systemService.rescheduleAuctionEnd(productId, newEndTime);
   }
 }
 
