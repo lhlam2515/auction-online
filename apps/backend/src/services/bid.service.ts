@@ -1,24 +1,43 @@
-import type { Bid, ProductStatus } from "@repo/shared-types";
+import type { Bid, BidWithUser, ProductStatus } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { bids, autoBids, products } from "@/models";
+import { bids, autoBids, products, users } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
+import { maskName } from "@/utils/ultils";
 
 import { orderService } from "./order.service";
 import { productService } from "./product.service";
 import { systemService } from "./system.service";
 
 export class BidService {
-  async getHistory(productId: string) {
+  async getHistory(productId: string): Promise<BidWithUser[]> {
     const product = await productService.getById(productId);
 
-    const productBids = await db.query.bids.findMany({
-      where: eq(bids.productId, product.id),
-      orderBy: desc(bids.createdAt),
-    });
+    const productBids = await db
+      .select({
+        id: bids.id,
+        productId: bids.productId,
+        userId: bids.userId,
+        amount: bids.amount,
+        status: bids.status,
+        isAuto: bids.isAuto,
+        createdAt: bids.createdAt,
+        userName: users.fullName,
+        ratingScore: users.ratingScore,
+      })
+      .from(bids)
+      .leftJoin(users, eq(bids.userId, users.id))
+      .where(and(eq(bids.productId, productId), eq(bids.status, "VALID")))
+      .orderBy(desc(bids.amount));
 
-    return productBids || ([] as Bid[]);
+    return productBids.map((bid) => {
+      return {
+        ...bid,
+        userName: maskName(bid.userName || "****"),
+        ratingScore: bid.ratingScore ?? 0,
+      };
+    });
   }
 
   async placeBid(

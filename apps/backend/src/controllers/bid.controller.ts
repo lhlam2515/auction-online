@@ -5,6 +5,7 @@ import type {
   CreateAutoBidRequest,
   UpdateAutoBidRequest,
   AutoBid,
+  BidWithUser,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -17,7 +18,7 @@ export const getBiddingHistory = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const productId = req.params.id;
     const bids = await bidService.getHistory(productId);
-    return ResponseHandler.sendSuccess<Bid[]>(res, bids);
+    return ResponseHandler.sendSuccess<BidWithUser[]>(res, bids);
   }
 );
 

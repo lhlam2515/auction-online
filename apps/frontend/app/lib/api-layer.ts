@@ -36,6 +36,7 @@ import type {
 
   // Bid types
   Bid,
+  BidWithUser,
   PlaceBidRequest,
   CreateAutoBidRequest,
   UpdateAutoBidRequest,
@@ -44,6 +45,7 @@ import type {
 
   // Question types
   ProductQuestion,
+  ProductQuestionWithUsers,
   AskQuestionRequest,
   AnswerQuestionRequest,
 
@@ -85,6 +87,7 @@ import type {
   PaginationParams,
   SearchProductsParams,
   OrderWithDetails,
+  ProductDetails,
 } from "@repo/shared-types";
 
 import { apiClient } from "@/lib/handlers/api";
@@ -218,17 +221,14 @@ export const api = {
     /**
      * Get user's watchlist
      */
-    getWatchlist: (params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Product>>(
-        "GET",
-        appendQueryParams("/users/watchlist", paramsToRecord(params))
-      ),
+    getWatchlist: () =>
+      apiCall<Product[]>("GET", appendQueryParams("/users/watchlist")),
 
     /**
      * Add/Remove product from watchlist
      */
     toggleWatchlist: (productId: string) =>
-      apiCall<{ message: string; inWatchlist: boolean }>(
+      apiCall<{ inWatchlist: boolean }>(
         "POST",
         `/users/watchlist/${productId}`
       ),
@@ -297,7 +297,7 @@ export const api = {
      * Get product details
      */
     getById: (productId: string) =>
-      apiCall<Product>("GET", `/products/${productId}`),
+      apiCall<ProductDetails>("GET", `/products/${productId}`),
 
     /**
      * Get related products
@@ -392,7 +392,7 @@ export const api = {
      * Get bidding history for a product
      */
     getHistory: (productId: string, params?: PaginationParams) =>
-      apiCall<Bid[]>(
+      apiCall<BidWithUser[]>(
         "GET",
         appendQueryParams(`/products/${productId}/bids`, paramsToRecord(params))
       ),
@@ -425,13 +425,17 @@ export const api = {
      * Update auto-bid configuration
      */
     updateAutoBid: (autoBidId: string, data: UpdateAutoBidRequest) =>
-      apiCall<{ message: string }>("PUT", `/auto-bid/${autoBidId}`, data),
+      apiCall<{ message: string }>(
+        "PUT",
+        `/products/auto-bid/${autoBidId}`,
+        data
+      ),
 
     /**
      * Delete auto-bid configuration
      */
     deleteAutoBid: (autoBidId: string) =>
-      apiCall<{ message: string }>("DELETE", `/auto-bid/${autoBidId}`),
+      apiCall<{ message: string }>("DELETE", `/products/auto-bid/${autoBidId}`),
   },
 
   /**
@@ -442,7 +446,10 @@ export const api = {
      * Get public Q&A for a product
      */
     getPublic: (productId: string) =>
-      apiCall<ProductQuestion[]>("GET", `/products/${productId}/questions`),
+      apiCall<ProductQuestionWithUsers[]>(
+        "GET",
+        `/products/${productId}/questions`
+      ),
 
     /**
      * Ask a question about a product

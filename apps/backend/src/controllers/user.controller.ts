@@ -87,18 +87,18 @@ export const toggleWatchlist = asyncHandler(
 
     const exists = await userService.checkInWatchlist(userId, productId);
     if (exists) {
-      await userService.removeFromWatchlist(userId, productId);
+      const result = await userService.removeFromWatchlist(userId, productId);
       return ResponseHandler.sendSuccess(
         res,
-        null,
+        result,
         200,
         "Product removed from watchlist"
       );
     } else {
-      await userService.addToWatchlist(userId, productId);
+      const result = await userService.addToWatchlist(userId, productId);
       return ResponseHandler.sendSuccess(
         res,
-        null,
+        result,
         200,
         "Product added to watchlist"
       );
