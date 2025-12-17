@@ -37,6 +37,11 @@ class SystemService {
       logger.info(
         `⏰ Scheduled auction #${auctionId} to end in ${Math.round(delay / 1000 / 60)} minutes`
       );
+    } else {
+      logger.warn(
+        `⚠️ Cannot schedule auction #${auctionId} to end in the past (endTime: ${endTime.toISOString()}), finalizing immediately.`
+      );
+      await auctionService.finalizeAuction(auctionId);
     }
   }
 
@@ -95,15 +100,8 @@ class SystemService {
     );
 
     for (const auction of missedAuctions) {
-      // Xử lý ngay lập tức (delay = 0)
-      await auctionTimerQueue.add(
-        "finalize-auction",
-        { auctionId: auction.id },
-        {
-          jobId: `auction-recovery-${auction.id}`,
-          removeOnComplete: true,
-        }
-      );
+      // Lên lịch lại job kết thúc đấu giá ngay lập tức
+      await this.rescheduleAuctionEnd(auction.id, auction.endTime);
     }
 
     logger.info("✅ System Recovery: Recovery jobs enqueued.");
