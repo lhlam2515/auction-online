@@ -8,6 +8,11 @@ import { auctionService } from "@/services/auction.service";
 
 class SystemService {
   // ============================================================
+  // CONSTANTS
+  // ============================================================
+  private readonly AUTO_BID_BATCH_SIZE = 50; // Số lượng auction xử lý cùng lúc
+
+  // ============================================================
   // JOB SCHEDULING (Lên lịch)
   // ============================================================
 
@@ -106,12 +111,32 @@ class SystemService {
 
   /**
    * Xử lý lại auto-bid cho các đấu giá đang active
-   * Chạy khi Server khởi động để đảm bảo auto-bid không bị bỏ sót
+   * Chạy asynchronously sau khi Server khởi động để không block startup
    */
   async syncActiveAuctionAutoBids() {
     logger.info(
-      "🔄 System Recovery: Processing auto-bids for active auctions..."
+      "🔄 System Recovery: Scheduling auto-bid processing for active auctions..."
     );
+
+    // Chạy asynchronously để không block server startup
+    setImmediate(async () => {
+      try {
+        await this.processActiveAuctionAutoBidsAsync();
+      } catch (error) {
+        logger.error("❌ System Recovery: Failed to process auto-bids:", error);
+      }
+    });
+
+    logger.info(
+      "✅ System Recovery: Auto-bid processing scheduled (running in background)"
+    );
+  }
+
+  /**
+   * Xử lý auto-bid cho các auction đang active trong background
+   * Sử dụng Promise.allSettled() để xử lý theo batch
+   */
+  private async processActiveAuctionAutoBidsAsync() {
     const now = new Date();
 
     // Lấy tất cả auction đang active và chưa hết hạn
@@ -126,43 +151,67 @@ class SystemService {
     }
 
     logger.info(
-      `🔄 System Recovery: Found ${activeAuctions.length} active auctions. Processing auto-bids...`
+      `🔄 System Recovery: Found ${activeAuctions.length} active auctions. Processing auto-bids in batches of ${this.AUTO_BID_BATCH_SIZE}...`
     );
 
     let processedCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
 
-    for (const auction of activeAuctions) {
-      try {
-        // Kiểm tra xem auction này có auto-bids không
-        const hasAutoBids = await db.query.autoBids.findFirst({
-          where: and(
-            eq(autoBids.productId, auction.id),
-            eq(autoBids.isActive, true)
-          ),
-        });
+    // Xử lý theo batch để tránh overload
+    for (let i = 0; i < activeAuctions.length; i += this.AUTO_BID_BATCH_SIZE) {
+      const batch = activeAuctions.slice(i, i + this.AUTO_BID_BATCH_SIZE);
 
-        if (hasAutoBids) {
+      const results = await Promise.allSettled(
+        batch.map(async (auction) => {
+          // Kiểm tra xem auction này có auto-bids không
+          const hasAutoBids = await db.query.autoBids.findFirst({
+            where: and(
+              eq(autoBids.productId, auction.id),
+              eq(autoBids.isActive, true)
+            ),
+          });
+
+          if (!hasAutoBids) {
+            return { success: true, skipped: true, auctionId: auction.id };
+          }
+
           // Xử lý auto-bid cho auction này
           const result = await auctionService.processAutoBid(auction.id);
           if (result.status === "ok") {
-            processedCount++;
             logger.info(
               `✅ Processed auto-bid for auction #${auction.id} - Winner: ${result.winnerId}`
             );
+            return { success: true, skipped: false, auctionId: auction.id };
           }
+
+          return { success: false, skipped: false, auctionId: auction.id };
+        })
+      );
+
+      // Đếm kết quả
+      results.forEach((result) => {
+        if (result.status === "fulfilled") {
+          if (result.value.success && !result.value.skipped) {
+            processedCount++;
+          } else if (result.value.success && result.value.skipped) {
+            skippedCount++;
+          } else if (!result.value.success) {
+            errorCount++;
+          }
+        } else if (result.status === "rejected") {
+          errorCount++;
+          logger.error(`❌ Error processing auto-bid: ${result.reason}`);
         }
-      } catch (error) {
-        errorCount++;
-        logger.error(
-          `❌ Error processing auto-bid for auction #${auction.id}:`,
-          error
-        );
-      }
+      });
+
+      logger.info(
+        `🔄 System Recovery: Processed batch ${Math.floor(i / this.AUTO_BID_BATCH_SIZE) + 1}/${Math.ceil(activeAuctions.length / this.AUTO_BID_BATCH_SIZE)}`
+      );
     }
 
     logger.info(
-      `✅ System Recovery: Auto-bid processing completed. Processed: ${processedCount}, Errors: ${errorCount}`
+      `✅ System Recovery: Auto-bid processing completed. Processed: ${processedCount}, Skipped: ${skippedCount}, Errors: ${errorCount}`
     );
   }
 }
