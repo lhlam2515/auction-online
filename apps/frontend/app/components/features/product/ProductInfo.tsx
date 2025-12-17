@@ -17,8 +17,7 @@ import { useWatchlist } from "@/contexts/watchlist-provider";
 import useCountdown from "@/hooks/useCountdown";
 import logger from "@/lib/logger";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
-
-import { BuyNowDialog } from "../../../routes/_root/products.$id/BuyNowDialog";
+import { BuyNowDialog } from "@/routes/_root/products.$id/BuyNowDialog";
 
 interface ProductInfoProps {
   product: ProductDetails;
