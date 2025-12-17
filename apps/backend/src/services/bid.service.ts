@@ -1,4 +1,4 @@
-import type { Bid, Product, ProductStatus } from "@repo/shared-types";
+import type { Bid, ProductStatus } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -172,7 +172,10 @@ export class BidService {
     // --- LOGIC SAU TRANSACTION (Non-blocking) ---
     // 1. Reschedule auction end nếu có gia hạn
     if (result.extendedEndTime) {
-      await systemService.rescheduleAuctionEnd(productId, result.extendedEndTime);
+      await systemService.rescheduleAuctionEnd(
+        productId,
+        result.extendedEndTime
+      );
     }
 
     // 2. Kích hoạt Auto-bid queue
