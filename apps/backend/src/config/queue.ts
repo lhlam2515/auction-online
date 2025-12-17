@@ -10,12 +10,17 @@ if (!process.env.REDIS_URL) {
   throw new Error("REDIS_URL is not defined in environment variables");
 }
 
+// Cấu hình TLS: mặc định bật xác thực chứng chỉ (secure) cho production
+// Có thể tắt bằng cách set REDIS_TLS_REJECT_UNAUTHORIZED=false cho môi trường dev/test
+const rejectUnauthorized =
+  process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== "false";
+
 // Thiết lập kết nối Redis sử dụng ioredis
 const connection = new IORedis(process.env.REDIS_URL as string, {
   maxRetriesPerRequest: null, // Bắt buộc đối với BullMQ
   enableReadyCheck: false,
   tls: {
-    rejectUnauthorized: false, // Cần thiết khi kết nối Upstash qua TLS
+    rejectUnauthorized,
   },
   retryStrategy: (times) => Math.min(times * 50, 2000), // Reconnect thông minh
 });
