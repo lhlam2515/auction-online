@@ -6,7 +6,29 @@ import app from "./app";
 
 const PORT = process.env.PORT || 3000;
 
+let server: ReturnType<typeof app.listen>;
+
 const bootstrap = async () => {
+  process.on("SIGTERM", async () => {
+    logger.info("SIGTERM received. Shutting down...");
+    const timeout = setTimeout(() => {
+      logger.info("Shutdown timeout, forcing exit...");
+      process.exit(0);
+    }, 30000); // 30 seconds timeout
+
+    try {
+      await stopWorkers(); // Đợi worker làm nốt job đang dang dở rồi mới tắt
+      if (server) {
+        await new Promise((resolve) => server.close(resolve));
+      }
+    } catch (error) {
+      logger.error("Error during shutdown:", error);
+    } finally {
+      clearTimeout(timeout);
+      process.exit(0);
+    }
+  });
+
   try {
     startWorkers();
 
@@ -16,15 +38,8 @@ const bootstrap = async () => {
     // Xử lý auto-bid cho các auction đang active
     await systemService.syncActiveAuctionAutoBids();
 
-    const server = app.listen(PORT, () => {
-      console.log(`🚀 Server is running at http://localhost:${PORT}`);
-    });
-
-    process.on("SIGTERM", async () => {
-      console.log("SIGTERM received. Shutting down...");
-      await stopWorkers(); // Đợi worker làm nốt job đang dang dở rồi mới tắt
-      server.close();
-      process.exit(0);
+    server = app.listen(PORT, () => {
+      logger.info(`🚀 Server is running at http://localhost:${PORT}`);
     });
   } catch (error) {
     logger.error("❌ Failed to start server:", error);
