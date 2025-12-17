@@ -32,7 +32,6 @@ export class BidService {
     return productBids.map((bid) => {
       return {
         ...bid,
-        userId: bid.userId,
         userName: maskName(bid.userName || "****"),
         ratingScore: bid.ratingScore ?? 0,
       };
