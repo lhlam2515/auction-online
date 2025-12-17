@@ -10,7 +10,7 @@ let auctionTimerWorker: Worker;
 let autoBidWorker: Worker;
 
 export const startWorkers = () => {
-  if (emailWorker) return; // Tránh khởi tạo 2 lần
+  if (emailWorker && auctionTimerWorker && autoBidWorker) return; // Tránh khởi tạo 2 lần
 
   logger.info("⚙️ Starting Background Workers...");
 
