@@ -1,4 +1,3 @@
-// @/config/mailer.ts
 import { config } from "dotenv";
 import nodemailer from "nodemailer";
 
@@ -21,7 +20,7 @@ for (const varName of requiredEnvVars) {
 const transporter = nodemailer.createTransport({
   host: process.env.MAILER_HOST,
   port: Number(process.env.MAILER_PORT),
-  secure: process.env.MAILER_SECURE === "true", // Nên cấu hình rõ ràng trong .env
+  secure: process.env.MAILER_SECURE === "true",
   pool: true, // Giữ kết nối để tái sử dụng
   maxConnections: 5,
   maxMessages: 100,
@@ -31,6 +30,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const MAILER_FROM = process.env.MAILER_FROM!;
+export const MAILER_FROM = process.env.MAILER_FROM as string;
 export type MailerTransporter = typeof transporter;
 export default transporter;
