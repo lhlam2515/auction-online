@@ -3,6 +3,7 @@ import { Worker, Job } from "bullmq";
 import logger from "@/config/logger";
 import { redisConnection, QUEUE_NAMES } from "@/config/queue";
 import { auctionService } from "@/services/auction.service";
+import { emailService } from "@/services/email.service";
 
 // Khai báo biến global để quản lý worker
 let emailWorker: Worker;
@@ -19,7 +20,7 @@ export const startWorkers = () => {
     QUEUE_NAMES.EMAIL,
     async (job: Job) => {
       const { to, subject, html } = job.data;
-      // TODO: Gọi hàm gửi email từ emailService
+      await emailService.processEmailJob(to, subject, html);
     },
     { connection: redisConnection }
   );

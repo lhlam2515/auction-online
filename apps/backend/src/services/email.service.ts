@@ -2,13 +2,7 @@ import type { OtpPurpose } from "@repo/shared-types";
 
 import logger from "@/config/logger";
 import transporter, { MAILER_FROM, MailerTransporter } from "@/config/mailer";
-
-interface EmailJob {
-  to: string | string[]; // Hỗ trợ gửi 1 người hoặc danh sách (BCC)
-  subject: string;
-  html: string; // Lưu HTML đã render sẵn
-  retryCount: number; // Số lần đã thử gửi lại
-}
+import { emailQueue } from "@/config/queue";
 
 // Cấu hình nội dung cho OTP
 const OTP_CONTENT = {
@@ -39,15 +33,12 @@ const COLORS = {
 };
 
 class EmailService {
-  private queue: EmailJob[] = [];
-  private isProcessing: boolean = false;
   private transporter: MailerTransporter;
   private mailerFrom: string = MAILER_FROM;
 
   constructor() {
     this.transporter = transporter;
     this.verifyConnection();
-    this.processQueue();
   }
 
   private async verifyConnection() {
@@ -96,7 +87,7 @@ class EmailService {
     `;
 
     const fullHtml = this.getBaseTemplate(content.title, htmlBody);
-    this.addToQueue(email, content.subject, fullHtml);
+    this.queueEmail(email, content.subject, fullHtml);
   }
 
   // ============================================================
@@ -120,7 +111,7 @@ class EmailService {
        <p>Chúc bạn may mắn và chiến thắng phiên đấu giá này.</p>`,
       { link: productLink, text: "Xem sản phẩm" }
     );
-    this.addToQueue(email, `[Thành công] Bạn đã ra giá ${productName}`, html);
+    this.queueEmail(email, `[Thành công] Bạn đã ra giá ${productName}`, html);
   }
 
   /**
@@ -139,7 +130,7 @@ class EmailService {
        <p>Giá hiện tại: <strong>${newPrice.toLocaleString("vi-VN")} đ</strong></p>`,
       { link: productLink, text: "Theo dõi đấu giá" }
     );
-    this.addToQueue(email, `[Cập nhật] Giá mới cho ${productName}`, html);
+    this.queueEmail(email, `[Cập nhật] Giá mới cho ${productName}`, html);
   }
 
   /**
@@ -163,7 +154,7 @@ class EmailService {
        <p>Hãy hành động ngay trước khi phiên đấu giá kết thúc!</p>`,
       { link: productLink, text: "Ra giá lại ngay" }
     );
-    this.addToQueue(
+    this.queueEmail(
       email,
       `[Báo động] Bạn đã bị vượt giá ${productName}`,
       html
@@ -186,7 +177,7 @@ class EmailService {
        <p>Vui lòng kiểm tra lại thông tin hoặc liên hệ quản trị viên.</p>`,
       { link: productLink, text: "Xem lại sản phẩm" }
     );
-    this.addToQueue(
+    this.queueEmail(
       email,
       `[Từ chối] Ra giá thất bại cho ${productName}`,
       html
@@ -211,7 +202,7 @@ class EmailService {
        <p>Bạn có thể gia hạn hoặc đăng lại sản phẩm này bất cứ lúc nào.</p>`,
       { link: productLink, text: "Quản lý sản phẩm" }
     );
-    this.addToQueue(
+    this.queueEmail(
       email,
       `[Kết thúc] Không có người mua ${productName}`,
       html
@@ -239,7 +230,7 @@ class EmailService {
        <p>Vui lòng liên hệ người bán sớm nhất để hoàn tất giao dịch.</p>`,
       { link: productLink, text: "Xem chi tiết giao dịch" }
     );
-    this.addToQueue(
+    this.queueEmail(
       winnerEmail,
       `[Chiến thắng] Bạn đã trúng thầu ${productName}`,
       winnerHtml
@@ -254,7 +245,7 @@ class EmailService {
        <p>Vui lòng kiểm tra hệ thống để tiến hành giao hàng.</p>`,
       { link: productLink, text: "Xem chi tiết" }
     );
-    this.addToQueue(
+    this.queueEmail(
       sellerEmail,
       `[Thành công] Kết thúc đấu giá ${productName}`,
       sellerHtml
@@ -285,7 +276,7 @@ class EmailService {
        <p>Trả lời nhanh chóng sẽ giúp tăng độ uy tín và khả năng bán hàng.</p>`,
       { link: productLink, text: "Trả lời ngay" }
     );
-    this.addToQueue(email, `[Câu hỏi] Sản phẩm ${productName}`, html);
+    this.queueEmail(email, `[Câu hỏi] Sản phẩm ${productName}`, html);
   }
 
   /**
@@ -334,7 +325,7 @@ class EmailService {
     );
 
     // Gửi BCC để bảo mật danh sách người nhận
-    this.addToQueue(
+    this.queueEmail(
       emails,
       `[Hỏi-Đáp] Cập nhật mới về ${productName}`,
       fullHtml
@@ -345,58 +336,37 @@ class EmailService {
   // CORE: QUEUE & SENDING LOGIC
   // ============================================================
 
-  private addToQueue(to: string | string[], subject: string, html: string) {
-    this.queue.push({
-      to,
-      subject,
-      html,
-      retryCount: 0,
-    });
-
-    if (!this.isProcessing) {
-      this.processQueue();
-    }
-  }
-
-  private async processQueue() {
-    if (this.queue.length === 0) {
-      this.isProcessing = false;
-      return;
-    }
-
-    this.isProcessing = true;
-    const job = this.queue.shift();
-
-    if (!job) return;
-
+  async processEmailJob(to: string | string[], subject: string, html: string) {
     try {
       await this.transporter.sendMail({
         from: `"Sàn Đấu Giá" <${this.mailerFrom}>`,
-        to: Array.isArray(job.to) ? undefined : job.to,
-        bcc: Array.isArray(job.to) ? job.to : undefined,
-        subject: job.subject,
-        html: job.html,
+        to: Array.isArray(to) ? undefined : to,
+        bcc: Array.isArray(to) ? to : undefined,
+        subject: subject,
+        html: html,
       });
 
       logger.info(
-        `[Email Sent] To: ${Array.isArray(job.to) ? "Multiple Users" : job.to} | Subject: ${job.subject}`
+        `[Email Sent] To: ${Array.isArray(to) ? "Multiple Users" : to} | Subject: ${subject}`
       );
     } catch (error) {
-      logger.error(`[Email Failed] To: ${job.to}`, error);
-
-      if (job.retryCount < 3) {
-        job.retryCount++;
-        this.queue.push(job);
-        logger.warn(`Re-queuing job (Attempt ${job.retryCount})...`);
-      } else {
-        logger.error(`[Email Dropped] Gave up on: ${job.to}`);
-      }
+      logger.error(`[Email Failed] To: ${to}`, error);
     }
+  }
 
-    // Delay 500ms
-    setTimeout(() => {
-      this.processQueue();
-    }, 500);
+  private async queueEmail(
+    to: string | string[],
+    subject: string,
+    html: string
+  ) {
+    await emailQueue.add(
+      "send-email",
+      { to, subject, html },
+      {
+        removeOnComplete: true,
+        attempts: 3, // Retry 3 lần nếu lỗi
+      }
+    );
   }
 
   private getBaseTemplate(
