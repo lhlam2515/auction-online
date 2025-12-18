@@ -9,6 +9,7 @@ export interface ProductCore {
   slug: string; // SEO-friendly URL
   sellerId: string;
   categoryId: string;
+  freeToBid: boolean;
   startPrice: string; // Decimal as string
   stepPrice: string; // Decimal as string
   buyNowPrice: string | null; // Decimal as string

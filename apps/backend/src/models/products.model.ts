@@ -50,6 +50,7 @@ export const products = pgTable(
     name: t.text("name").notNull(),
     slug: t.text("slug").notNull(), // SEO-friendly URL
     description: t.text("description").notNull(),
+    freeToBid: t.boolean("free_to_bid").notNull().default(true),
 
     // Pricing - optimized with constraints
     startPrice: t.numeric("start_price", { precision: 15, scale: 2 }).notNull(),
