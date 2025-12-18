@@ -490,7 +490,14 @@ export class ProductService {
       with: { user: true },
     });
 
-    return histories.map((bid) => bid.user);
+    // Deduplicate users by ID using JavaScript
+    const userMap = new Map();
+    histories.forEach((bid) => {
+      if (bid.user) {
+        userMap.set(bid.user.id, bid.user);
+      }
+    });
+    return Array.from(userMap.values());
   }
 
   buildProductLink(productId: string): string {
