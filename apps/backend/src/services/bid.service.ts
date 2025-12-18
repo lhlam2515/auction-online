@@ -1,4 +1,4 @@
-import type { Bid, BidWithUser, ProductStatus } from "@repo/shared-types";
+import type { BidWithUser, ProductStatus } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -53,7 +53,13 @@ export class BidService {
     const executeLogic = async (tx: any) => {
       let product = await tx.query.products.findFirst({
         where: eq(products.id, productId),
+        with: {
+          seller: { columns: { email: true } },
+          winner: { columns: { email: true } },
+        },
       });
+      const sellerEmail = product?.seller?.email || "";
+      const previousWinnerEmail = product?.winner?.email || "";
 
       if (!product) throw new NotFoundError("Sản phẩm không tồn tại");
 
@@ -180,6 +186,8 @@ export class BidService {
       return {
         newBid,
         product,
+        sellerEmail,
+        previousWinnerEmail,
         isBuyNow: newStatus === "SOLD",
         extendedEndTime,
       };
@@ -205,12 +213,12 @@ export class BidService {
       await systemService.triggerAutoBidCheck(productId);
     }
 
-    const seller = await userService.getById(result.product.sellerId);
+    // 3. Gửi email thông báo
     const bidder = await userService.getById(bidderId);
 
     // Notify seller about new bid
     emailService.notifySellerNewBid(
-      seller.email,
+      result.sellerEmail,
       result.product.name,
       amount,
       bidder.fullName,
@@ -225,11 +233,10 @@ export class BidService {
       productService.buildProductLink(productId)
     );
 
-    // Notify previous winner bidder about being outbid
-    if (result.product.winnerId && result.product.winnerId !== bidderId) {
-      const previousWinner = await userService.getById(result.product.winnerId);
+    // Notify previous winner about being outbid
+    if (result.previousWinnerEmail) {
       emailService.notifyOutbidAlert(
-        previousWinner.email,
+        result.previousWinnerEmail,
         result.product.name,
         amount,
         productService.buildProductLink(productId)
