@@ -252,11 +252,11 @@ export class BidService {
     bidderId: string,
     reason: string
   ) {
-    const ownerCheck = await db.query.products.findFirst({
+    const product = await db.query.products.findFirst({
       where: and(eq(products.id, productId), eq(products.sellerId, sellerId)),
     });
 
-    if (!ownerCheck) {
+    if (!product) {
       throw new ForbiddenError("Bạn không phải là chủ sở hữu của sản phẩm này");
     }
 
@@ -278,12 +278,9 @@ export class BidService {
         eq(bids.status, "VALID")
         // Loại bỏ bidder bị kick
         // Note: Không dùng neq vì có thể có nhiều bidder bị kick
-        // Nên sẽ lọc thủ công bên dưới
       ),
       orderBy: desc(bids.amount),
     });
-
-    const product = await productService.getById(productId);
 
     if (topBid) {
       await db
@@ -325,7 +322,7 @@ export class BidService {
     const bidder = await userService.getById(bidderId);
     emailService.notifyBidRejected(
       bidder.email,
-      ownerCheck.name,
+      product.name,
       reason,
       productService.buildProductLink(productId)
     );
