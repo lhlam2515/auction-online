@@ -43,7 +43,7 @@ export const productSchema = z
       return data.buyNowPrice >= data.startPrice + data.stepPrice;
     },
     {
-      message: "Giá mua ngay phải lớn hơn giá khởi điểm",
+      message: "Giá mua ngay phải lớn hơn giá khởi điểm + bước giá",
       path: ["buyNowPrice"],
     }
   )
@@ -56,6 +56,25 @@ export const productSchema = z
     {
       message: "Thời gian kết thúc phải trong tương lai",
       path: ["endTime"],
+    }
+  )
+  .refine(
+    (data) => {
+      return data.startPrice % data.stepPrice === 0;
+    },
+    {
+      message: "Giá khởi điểm phải là bội số của bước giá",
+      path: ["startPrice"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (!data.buyNowPrice) return true;
+      return data.buyNowPrice % data.stepPrice === 0;
+    },
+    {
+      message: "Giá mua ngay phải là bội số của bước giá",
+      path: ["buyNowPrice"],
     }
   );
 

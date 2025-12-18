@@ -383,6 +383,23 @@ export class ProductService {
       throw new BadRequestError("End time must be after current time");
     }
 
+    if (startPrice % stepPrice !== 0) {
+      throw new BadRequestError("Start price must be a multiple of step price");
+    }
+
+    if (buyNowPrice != null) {
+      if (buyNowPrice < startPrice + stepPrice) {
+        throw new BadRequestError(
+          "Buy now price must be greater than start price + step price"
+        );
+      }
+      if (buyNowPrice % stepPrice !== 0) {
+        throw new BadRequestError(
+          "Buy now price must be a multiple of step price"
+        );
+      }
+    }
+
     const nameTrimmed = name.trim();
     const baseSlug = slug(nameTrimmed);
     let slugifiedName = baseSlug;
