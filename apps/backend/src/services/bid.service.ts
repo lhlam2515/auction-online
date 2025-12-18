@@ -1,4 +1,4 @@
-import type { Bid, BidWithUser } from "@repo/shared-types";
+import type { Bid, BidWithUser, ProductStatus } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -6,7 +6,9 @@ import { bids, autoBids, products, users } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 import { maskName } from "@/utils/ultils";
 
+import { orderService } from "./order.service";
 import { productService } from "./product.service";
+import { systemService } from "./system.service";
 
 export class BidService {
   async getHistory(productId: string): Promise<BidWithUser[]> {
@@ -38,43 +40,170 @@ export class BidService {
     });
   }
 
-  async placeBid(productId: string, bidderId: string, amount: number) {
-    const product = await productService.getById(productId);
+  async placeBid(
+    productId: string,
+    bidderId: string,
+    amount: number,
+    isAuto: boolean = false,
+    inputTx?: unknown
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const executeLogic = async (tx: any) => {
+      let product = await tx.query.products.findFirst({
+        where: eq(products.id, productId),
+      });
 
-    let currentPrice = product.currentPrice
-      ? parseFloat(product.currentPrice)
-      : parseFloat(product.startPrice);
+      if (!product) throw new NotFoundError("Sản phẩm không tồn tại");
 
-    if (amount >= currentPrice + parseFloat(product.stepPrice)) {
-      currentPrice = currentPrice + parseFloat(product.stepPrice);
-    } else {
-      throw new BadRequestError(
-        `Bid amount must be at least ${
-          currentPrice + parseFloat(product.stepPrice)
-        }`
+      if (product.sellerId === bidderId) {
+        throw new BadRequestError(
+          "Không thể tự đấu giá sản phẩm của chính mình"
+        );
+      }
+      if (product.status !== "ACTIVE") {
+        throw new BadRequestError("Phiên đấu giá không khả dụng");
+      }
+
+      const now = new Date();
+      if (product.startTime > now)
+        throw new BadRequestError("Phiên đấu giá chưa bắt đầu");
+      if (product.endTime < now)
+        throw new BadRequestError("Phiên đấu giá đã kết thúc");
+
+      if (product.winnerId === bidderId) {
+        throw new BadRequestError("Bạn đang là người giữ giá cao nhất rồi!");
+      }
+
+      const currentPrice = parseFloat(
+        product.currentPrice || product.startPrice
+      );
+      const stepPrice = parseFloat(product.stepPrice);
+
+      // Logic: Nếu chưa có ai bid (currentPrice == startPrice và chưa có winner),
+      // thì bid tối thiểu = startPrice.
+      // Nếu đã có người bid, thì bid tối thiểu = currentPrice + stepPrice.
+      const minBidAmount = currentPrice + (!product.winnerId ? 0 : stepPrice);
+
+      if (amount < minBidAmount) {
+        throw new BadRequestError(
+          `Giá đặt phải tối thiểu là ${minBidAmount.toString()}`
+        );
+      }
+
+      // 5. Insert Bid mới
+      const [newBid] = await tx
+        .insert(bids)
+        .values({
+          productId: productId,
+          userId: bidderId,
+          amount: amount.toString(),
+          isAuto,
+          createdAt: new Date(),
+        })
+        .returning();
+
+      if (!newBid)
+        throw new BadRequestError("Đặt giá thất bại, vui lòng thử lại");
+
+      // Kiểm tra xem giá này có kích hoạt "Mua ngay" (Buy Now) không?
+      let newStatus = "ACTIVE";
+      const buyNowPrice = product.buyNowPrice
+        ? parseFloat(product.buyNowPrice)
+        : null;
+
+      if (buyNowPrice && amount >= buyNowPrice) {
+        newStatus = "SOLD";
+      }
+
+      [product] = await tx
+        .update(products)
+        .set({
+          currentPrice: amount.toString(),
+          winnerId: bidderId,
+          status: newStatus as ProductStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId))
+        .returning();
+
+      if (newStatus === "SOLD") {
+        // Hủy tất cả auto-bids còn lại
+        await tx
+          .update(autoBids)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(
+            and(eq(autoBids.productId, productId), eq(autoBids.isActive, true))
+          );
+
+        // Tạo đơn hàng ngay khi đấu thành công
+        await orderService.createFromAuction(
+          productId,
+          bidderId,
+          product.sellerId,
+          amount,
+          true
+        );
+      }
+
+      // Xử lý Auto-Extend (Anti-Sniping) INSIDE transaction để tránh race condition
+      // Nếu bid vào những phút cuối, tự động gia hạn thêm thời gian
+      // NOTE: getAutoExtendConfig() is called inside transaction for atomicity.
+      // Consider caching this config in the future if performance becomes an issue.
+      let extendedEndTime: Date | null = null;
+      if (newStatus === "ACTIVE" && product.isAutoExtend) {
+        const { thresholdMinutes, durationMinutes } =
+          await this.getAutoExtendConfig();
+        const now = new Date();
+        const productEnd = new Date(product.endTime);
+        const timeLeftMs = productEnd.getTime() - now.getTime();
+
+        if (timeLeftMs > 0) {
+          const thresholdMs = thresholdMinutes * 60 * 1000;
+          if (timeLeftMs <= thresholdMs) {
+            const newEndTime = new Date(
+              productEnd.getTime() + durationMinutes * 60 * 1000
+            );
+            extendedEndTime = newEndTime;
+
+            // Cập nhật endTime INSIDE transaction
+            [product] = await tx
+              .update(products)
+              .set({ endTime: newEndTime, updatedAt: new Date() })
+              .where(eq(products.id, productId))
+              .returning();
+          }
+        }
+      }
+
+      return {
+        newBid,
+        product,
+        isBuyNow: newStatus === "SOLD",
+        extendedEndTime,
+      };
+    };
+
+    // Thực thi Transaction
+    const result = inputTx
+      ? await executeLogic(inputTx)
+      : await db.transaction(executeLogic);
+
+    // --- LOGIC SAU TRANSACTION (Non-blocking) ---
+    // 1. Reschedule auction end nếu có gia hạn
+    if (result.extendedEndTime) {
+      await systemService.rescheduleAuctionEnd(
+        productId,
+        result.extendedEndTime
       );
     }
 
-    const [newBid] = await db
-      .insert(bids)
-      .values({
-        productId: productId,
-        userId: bidderId,
-        amount: amount.toString(),
-      })
-      .returning();
-
-    if (!newBid) {
-      throw new BadRequestError("Failed to place bid");
+    // 2. Kích hoạt Auto-bid queue
+    // Chỉ kích hoạt nếu chưa phải là Buy Now
+    if (!result.isBuyNow) {
+      await systemService.triggerAutoBidCheck(productId);
     }
 
-    // Update product current price
-    await db
-      .update(products)
-      .set({ currentPrice: currentPrice.toString(), updatedAt: new Date() })
-      .where(eq(products.id, productId));
-
-    return newBid;
+    return result.newBid;
   }
 
   async kickBidder(
@@ -88,7 +217,7 @@ export class BidService {
     });
 
     if (!ownerCheck) {
-      throw new ForbiddenError("You are not the owner of this product");
+      throw new ForbiddenError("Bạn không phải là chủ sở hữu của sản phẩm này");
     }
 
     await db
@@ -102,9 +231,59 @@ export class BidService {
         )
       );
 
+    // Cập nhật lại giá hiện tại và người giữ giá cao nhất
+    const topBid = await db.query.bids.findFirst({
+      where: and(
+        eq(bids.productId, productId),
+        eq(bids.status, "VALID")
+        // Loại bỏ bidder bị kick
+        // Note: Không dùng neq vì có thể có nhiều bidder bị kick
+        // Nên sẽ lọc thủ công bên dưới
+      ),
+      orderBy: desc(bids.amount),
+    });
+
+    const product = await productService.getById(productId);
+
+    if (topBid) {
+      await db
+        .update(products)
+        .set({
+          currentPrice: topBid.amount,
+          winnerId: topBid.userId,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId));
+    } else {
+      // Không còn ai giữ giá, reset về giá khởi điểm
+      await db
+        .update(products)
+        .set({
+          currentPrice: product.startPrice,
+          winnerId: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId));
+    }
+
+    // Hủy tất cả auto-bids của bidder bị kick
+    await db
+      .update(autoBids)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(
+        and(
+          eq(autoBids.productId, productId),
+          eq(autoBids.userId, bidderId),
+          eq(autoBids.isActive, true)
+        )
+      );
+
+    // Kích hoạt Auto-bid queue để tìm người giữ giá mới
+    await systemService.triggerAutoBidCheck(productId);
+
     // TODO: Send notification to bidder about being kicked
 
-    return { message: "Bidder kicked successfully" };
+    return { message: "Đã loại người đấu giá thành công" };
   }
 
   async createAutoBid(productId: string, userId: string, maxAmount: number) {
@@ -117,7 +296,7 @@ export class BidService {
 
     if (checkExisting) {
       throw new BadRequestError(
-        "Auto-bid configuration already exists for this product"
+        "Cấu hình đấu giá tự động đã tồn tại cho sản phẩm này"
       );
     }
 
@@ -132,8 +311,11 @@ export class BidService {
       .returning();
 
     if (!newAutoBid) {
-      throw new BadRequestError("Failed to create auto-bid configuration");
+      throw new BadRequestError("Tạo cấu hình đấu giá tự động thất bại");
     }
+
+    // Kích hoạt Auto-bid queue ngay sau khi tạo
+    await systemService.triggerAutoBidCheck(productId);
 
     return newAutoBid;
   }
@@ -146,7 +328,7 @@ export class BidService {
       ),
     });
     if (!autoBid) {
-      throw new NotFoundError("Auto-bid configuration not found");
+      throw new NotFoundError("Không tìm thấy cấu hình đấu giá tự động");
     }
     return autoBid;
   }
@@ -157,7 +339,7 @@ export class BidService {
     });
 
     if (!autoBid) {
-      throw new NotFoundError("Auto-bid configuration not found");
+      throw new NotFoundError("Không tìm thấy cấu hình đấu giá tự động");
     }
 
     await db
@@ -168,7 +350,10 @@ export class BidService {
       })
       .where(eq(autoBids.id, autoBidId));
 
-    return { message: "Auto-bid configuration updated successfully" };
+    // Kích hoạt Auto-bid queue ngay sau khi cập nhật
+    await systemService.triggerAutoBidCheck(autoBid.productId);
+
+    return { message: "Cập nhật cấu hình đấu giá tự động thành công" };
   }
 
   async deleteAutoBid(autoBidId: string, userId: string) {
@@ -177,14 +362,25 @@ export class BidService {
     });
 
     if (!autoBid) {
-      throw new NotFoundError("Auto-bid configuration not found");
+      throw new NotFoundError("Không tìm thấy cấu hình đấu giá tự động");
     }
 
     await db
       .delete(autoBids)
       .where(and(eq(autoBids.id, autoBidId), eq(autoBids.userId, userId)));
 
-    return { message: "Auto-bid configuration deleted successfully" };
+    return { message: "Xóa cấu hình đấu giá tự động thành công" };
+  }
+
+  private async getAutoExtendConfig() {
+    const settings = await db.query.auctionSettings.findFirst({
+      orderBy: (table, { desc }) => [desc(table.updatedAt)],
+    });
+
+    return {
+      thresholdMinutes: settings?.extendThresholdMinutes ?? 5,
+      durationMinutes: settings?.extendDurationMinutes ?? 10,
+    };
   }
 }
 

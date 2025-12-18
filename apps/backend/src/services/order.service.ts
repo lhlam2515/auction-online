@@ -65,7 +65,13 @@ export class OrderService {
       if (buyNow) {
         await tx
           .update(products)
-          .set({ status: "SOLD", winnerId: winnerId, endTime: new Date() })
+          .set({
+            status: "SOLD",
+            winnerId: winnerId,
+            currentPrice: finalPrice.toString(),
+            endTime: new Date(),
+            updatedAt: new Date(),
+          })
           .where(eq(products.id, productId));
       }
 
