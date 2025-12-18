@@ -361,7 +361,7 @@ export class ProductService {
       startPrice,
       buyNowPrice,
       stepPrice,
-      startTime,
+      freeToBid,
       endTime,
       isAutoExtend,
       images,
@@ -379,8 +379,8 @@ export class ProductService {
     });
     if (!category) throw new NotFoundError("Category");
 
-    if (new Date(endTime) <= new Date(startTime)) {
-      throw new BadRequestError("End time must be after start time");
+    if (new Date(endTime) <= new Date()) {
+      throw new BadRequestError("End time must be after current time");
     }
 
     const nameTrimmed = name.trim();
@@ -408,8 +408,9 @@ export class ProductService {
           startPrice: Number(startPrice),
           stepPrice: Number(stepPrice),
           buyNowPrice: buyNowPrice != null ? Number(buyNowPrice) : null,
+          freeToBid,
           status: "ACTIVE",
-          startTime: new Date(startTime),
+          startTime: new Date(),
           endTime: new Date(endTime),
           isAutoExtend: isAutoExtend ?? true,
         } as any)
