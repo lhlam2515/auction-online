@@ -1,4 +1,4 @@
-import { Worker, Job } from "bullmq";
+import { Worker, Job, type WorkerOptions } from "bullmq";
 
 import logger from "@/config/logger";
 import { redisConnection, QUEUE_NAMES } from "@/config/queue";
@@ -9,6 +9,32 @@ import { emailService } from "@/services/email.service";
 let emailWorker: Worker;
 let auctionTimerWorker: Worker;
 let autoBidWorker: Worker;
+
+const workerConfig: WorkerOptions = {
+  connection: redisConnection,
+
+  // 1. QUAN TRỌNG NHẤT: Giảm tần suất check job treo
+  // Mặc định 5000ms (5s) -> Tăng lên 60000ms (1 phút)
+  // Giúp giảm số lệnh đi 12 lần!
+  stalledInterval: 60000,
+
+  // 2. Lock Duration phải luôn lớn hơn stalledInterval
+  // Thời gian tối đa 1 job được phép chạy trước khi bị coi là treo
+  lockDuration: 60000 * 2,
+
+  // 3. Tắt Metrics (Thống kê)
+  // Mặc định BullMQ ghi stats liên tục -> Tắt đi tiết kiệm cực nhiều
+  metrics: {
+    maxDataPoints: 0,
+  },
+
+  // 4. Giới hạn số lượng xử lý song song (Tùy server yếu hay mạnh)
+  concurrency: 5,
+
+  // 5. Khi hàng đợi rỗng, đợi bao lâu mới check tiếp? (Polling)
+  // Tăng lên để worker không hỏi Redis liên tục khi không có việc
+  drainDelay: 10000, // 10 giây
+};
 
 export const startWorkers = () => {
   if (emailWorker && auctionTimerWorker && autoBidWorker) return; // Tránh khởi tạo 2 lần
@@ -22,7 +48,7 @@ export const startWorkers = () => {
       const { to, subject, html } = job.data;
       await emailService.processEmailJob(to, subject, html);
     },
-    { connection: redisConnection }
+    workerConfig
   );
 
   // 2. AUCTION TIMER WORKER
@@ -33,7 +59,7 @@ export const startWorkers = () => {
       await auctionService.finalizeAuction(auctionId);
       logger.info(`⏳ Auction finalized: #${auctionId}`);
     },
-    { connection: redisConnection }
+    workerConfig
   );
 
   // 3. AUTO BID WORKER
@@ -43,7 +69,7 @@ export const startWorkers = () => {
       const { productId } = job.data;
       await auctionService.processAutoBid(productId);
     },
-    { connection: redisConnection }
+    workerConfig
   );
 
   const workers = [emailWorker, auctionTimerWorker, autoBidWorker];
