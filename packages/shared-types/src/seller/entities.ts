@@ -29,13 +29,7 @@ export interface SellerUpgradeRequest {
  * Seller dashboard statistics
  */
 export interface SellerStats {
-  totalProducts: number;
-  activeProducts: number;
-  soldProducts: number;
+  totalActiveProducts: number;
+  totalSoldProducts: number;
   totalRevenue: string; // Decimal as string
-  pendingOrders: number;
-  completedOrders: number;
-  averageRating: number;
-  viewsThisMonth: number;
-  salesThisMonth: number;
 }

@@ -70,6 +70,7 @@ import type {
   // Seller types
   GetSellerProductsParams,
   GetSellerOrdersParams,
+  SellerStats,
 
   // Rating types
   CreateRatingRequest,
@@ -389,6 +390,11 @@ export const api = {
         "GET",
         appendQueryParams("/seller/selling-orders", paramsToRecord(params))
       ),
+
+    /**
+     * Get seller's dashboard statistics
+     */
+    getStats: () => apiCall<SellerStats>("GET", "/seller/stats"),
   },
 
   /**

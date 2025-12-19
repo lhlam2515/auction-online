@@ -10,6 +10,8 @@ const router = Router();
 // All routes require Seller authentication
 router.use(authenticate, authorize("SELLER"));
 
+router.get("/stats", sellerController.getStats);
+
 /**
  * @route   GET /api/seller/products
  * @desc    Get seller's products (manage listing)

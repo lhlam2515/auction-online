@@ -6,7 +6,7 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { orderService, productService } from "@/services";
+import { orderService, productService, sellerService } from "@/services";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
 
@@ -36,5 +36,14 @@ export const getSellingOrders = asyncHandler(
     );
 
     ResponseHandler.sendSuccess(res, paginatedOrders);
+  }
+);
+
+export const getStats = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: sellerId } = req.user!;
+
+    const stats = await sellerService.getStats(sellerId);
+    ResponseHandler.sendSuccess(res, stats);
   }
 );
