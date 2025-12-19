@@ -18,7 +18,7 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { productService, uploadService } from "@/services";
+import { ProductService, productService, uploadService } from "@/services";
 import { BadRequestError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -146,5 +146,13 @@ export const uploadImages = asyncHandler(
     );
 
     return ResponseHandler.sendSuccess<UploadImagesResponse>(res, urls, 201);
+  }
+);
+
+export const getWatchListByCard = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const listCard = await productService.getWatchListByCard(userId);
+    return ResponseHandler.sendSuccess<ProductListing[]>(res, listCard);
   }
 );

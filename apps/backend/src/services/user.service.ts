@@ -1,4 +1,4 @@
-import type { Product } from "@repo/shared-types";
+import type { Product, ProductListing } from "@repo/shared-types";
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -178,6 +178,41 @@ export class UserService {
 
     return bidHistory.map((item) => item);
   }
+
+  // async getWatchListByCard(userId: string) {
+  //   const existingUser = await this.getById(userId); // ensure user exists
+
+  //   const items = await db.query.watchLists.findMany({
+  //     where: eq(watchLists.userId, existingUser.id),
+  //     with: {
+  //       product: {
+  //         with: {
+  //           seller: true,
+  //           winner: true,
+  //           images: true,
+  //           category: true,
+  //         },
+  //       },
+  //     },
+  //   });
+
+  //   const products: ProductListing[] = items.map((item) => ({
+  //     ...item.product,
+  //     buyNowPrice: item.product.buyNowPrice ?? null,
+  //     currentPrice: item.product.currentPrice ?? null,
+
+  //     mainImageUrl: item.product.images[0].imageUrl,
+
+  //     sellerName: item.product.seller.fullName || "Unknow",
+  //     sellerAvatarUrl: item.product.seller.avatarUrl || null,
+
+  //     categoryName: item.product.category.name,
+  //     currentWinnerName: item.product.winner?.fullName,
+  //     isWatching: true,
+  //   }));
+
+  //   return products;
+  // }
 
   async getWonAuctions(userId: string) {
     // TODO: get auctions won by user
