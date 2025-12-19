@@ -1,12 +1,11 @@
 import type { User } from "@repo/shared-types";
-import { Camera } from "lucide-react";
+import { Lock, User as UserIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { z } from "zod";
 
 import ChangePasswordForm from "@/components/features/user/ChangePasswordForm";
+import ChangeUserAvatar from "@/components/features/user/ChangeUserAvatar";
 import UserProfileForm from "@/components/features/user/UserProfileForm";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,8 +19,9 @@ import logger from "@/lib/logger";
 import {
   changePassword,
   updateProfileSchema,
-  type UpdateProfileSchemaType,
 } from "@/lib/validations/user.validation";
+
+type ProfileFormData = z.infer<typeof updateProfileSchema>;
 
 import type { Route } from "./+types/route";
 
@@ -40,7 +40,7 @@ export default function UserProfilePage() {
   const [userData, setUserData] = useState<User>();
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  const defaultValues: UpdateProfileSchemaType = useMemo(
+  const defaultValues: ProfileFormData = useMemo(
     () => ({
       fullName: userData?.fullName || "",
       email: userData?.email || "",
@@ -75,21 +75,18 @@ export default function UserProfilePage() {
     fetchData();
   }, []);
 
-  const handleProfileSubmit = useCallback(
-    async (data: UpdateProfileSchemaType) => {
-      const result = await api.users.updateProfile({
-        fullName: data.fullName,
-        email: data.email,
-        birthDate: data.birthDate
-          ? data.birthDate.toISOString().split("T")[0]
-          : null,
-        address: data.address || "",
-        avatarUrl: userData?.avatarUrl || null,
-      });
-      return result;
-    },
-    [userData?.avatarUrl]
-  );
+  const handleProfileSubmit = useCallback(async (data: ProfileFormData) => {
+    const result = await api.users.updateProfile({
+      fullName: data.fullName,
+      email: data.email,
+      birthDate: data.birthDate
+        ? data.birthDate.toISOString().split("T")[0]
+        : null,
+      address: data.address || "",
+      avatarUrl: "",
+    });
+    return result;
+  }, []);
 
   const handlePasswordSubmit = useCallback(
     async (data: z.infer<typeof changePassword>) => {
@@ -102,81 +99,68 @@ export default function UserProfilePage() {
     []
   );
   return (
-    <div className="flex flex-col">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-slate-900">
-          Cài Đặt Tài Khoản
-        </h1>
-        <p className="text-slate-600">
-          Quản lý thông tin cá nhân và cài đặt bảo mật
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        {/* Section 1: Personal Info */}
-        <Card className="grid grid-cols-2">
-          <CardContent className="space-y-6">
-            <UserProfileForm
-              schema={updateProfileSchema}
-              defaultValues={defaultValues}
-              onSubmit={handleProfileSubmit}
-              isLoading={isLoadingProfile}
-            />
-          </CardContent>
-
-          <CardHeader>
-            <div className="flex flex-col items-center gap-2">
-              <CardTitle className="text-2xl">Thông Tin Cá Nhân</CardTitle>
-              <CardDescription className="text-xl">
+    <div className="space-y-6">
+      {/* Section 1: Personal Info */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+              <UserIcon className="text-primary h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl">Thông tin cá nhân</CardTitle>
+              <CardDescription className="text-lg">
                 Cập nhật thông tin cá nhân của bạn
               </CardDescription>
             </div>
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="size-40">
-                {userData && userData.avatarUrl ? (
-                  <AvatarImage
-                    src={userData.avatarUrl}
-                    alt={userData.fullName}
-                    className="object-cover"
-                    width={24}
-                    height={24}
-                  />
-                ) : (
-                  <AvatarFallback>
-                    {userData?.fullName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()
-                      .slice(0, 2)}
-                  </AvatarFallback>
-                )}
-              </Avatar>
+          </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 space-y-6">
+          <UserProfileForm
+            schema={updateProfileSchema}
+            defaultValues={defaultValues}
+            onSubmit={handleProfileSubmit}
+            isLoading={isLoadingProfile}
+          />
+          <ChangeUserAvatar
+            userData={userData}
+            onAvatarUpdate={(newAvatarUrl: string) =>
+              setUserData((prev: User | undefined) =>
+                prev ? { ...prev, avatarUrl: newAvatarUrl } : prev
+              )
+            }
+          />
+        </CardContent>
+      </Card>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="hover:bg-primary hover:text-primary-foreground cursor-pointer"
-              >
-                <Camera className="mr-2 h-4 w-4" />
-                Thay Đổi Ảnh
-              </Button>
+      {/* Section 2: Security */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+              <Lock className="text-primary h-5 w-5" />
             </div>
-          </CardHeader>
-        </Card>
+            <div>
+              <CardTitle className="text-2xl">Bảo Mật Tài Khoản</CardTitle>
+              <CardDescription className="text-lg">
+                Thay đổi mật khẩu để bảo vệ tài khoản của bạn
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
 
-        {/* Section 2: Security */}
-        <ChangePasswordForm
-          schema={changePassword}
-          defaultValues={{
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-          }}
-          onSubmit={handlePasswordSubmit}
-        />
-      </div>
+        <CardContent>
+          <ChangePasswordForm
+            schema={changePassword}
+            defaultValues={{
+              currentPassword: "",
+              newPassword: "",
+              confirmPassword: "",
+            }}
+            onSubmit={handlePasswordSubmit}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

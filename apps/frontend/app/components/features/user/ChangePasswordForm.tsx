@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { ZodType } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   FieldGroup,
   Field,
@@ -75,64 +74,62 @@ const ChangePasswordForm = <T extends FieldValues>({
   };
 
   return (
-    <Card>
-      <form
-        id="changePassword"
-        // @ts-expect-error - Generic type constraint between form and handler
-        onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-8 p-4"
-      >
-        <div className="flex flex-col items-end gap-1">
-          <FieldGroup className="gap-4">
-            {Object.keys(defaultValues).map((field) => (
-              <Controller
-                key={field}
-                control={form.control}
-                name={field as Path<T>}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="flex w-full flex-col gap-2"
+    <form
+      id="changePassword"
+      // @ts-expect-error - Generic type constraint between form and handler
+      onSubmit={form.handleSubmit(handleSubmit)}
+      className="space-y-8 p-4"
+    >
+      <div className="flex flex-col items-end gap-1">
+        <FieldGroup className="gap-4">
+          {Object.keys(defaultValues).map((field) => (
+            <Controller
+              key={field}
+              control={form.control}
+              name={field as Path<T>}
+              render={({ field, fieldState }) => (
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="flex w-full flex-col gap-2"
+                >
+                  <FieldLabel
+                    htmlFor={field.name}
+                    className="text-base font-semibold"
                   >
-                    <FieldLabel
-                      htmlFor={field.name}
-                      className="text-base font-semibold"
-                    >
-                      {formatFieldName(field.name)}
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      type={getInputType(field.name)}
-                      className="min-h-12 border text-base"
-                      aria-invalid={fieldState.invalid}
-                      autoComplete={
-                        field.name.includes("password")
-                          ? "current-password"
-                          : "off"
-                      }
-                      required
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            ))}
-          </FieldGroup>
-        </div>
+                    {formatFieldName(field.name)}
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type={getInputType(field.name)}
+                    className="min-h-12 border text-base"
+                    aria-invalid={fieldState.invalid}
+                    autoComplete={
+                      field.name.includes("password")
+                        ? "current-password"
+                        : "off"
+                    }
+                    required
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          ))}
+        </FieldGroup>
+      </div>
 
-        <Button
-          type="submit"
-          className="min-h-12 w-full cursor-pointer text-xl"
-          disabled={form.formState.isSubmitting}
-        >
-          {form.formState.isSubmitting && <Spinner />}
-          {form.formState.isSubmitting ? "Đang đổi mật khẩu" : "Đổi mật khẩu"}
-        </Button>
-      </form>
-    </Card>
+      <Button
+        type="submit"
+        className="min-h-12 w-full cursor-pointer text-xl"
+        disabled={form.formState.isSubmitting}
+      >
+        {form.formState.isSubmitting && <Spinner />}
+        {form.formState.isSubmitting ? "Đang đổi mật khẩu" : "Đổi mật khẩu"}
+      </Button>
+    </form>
   );
 };
 
