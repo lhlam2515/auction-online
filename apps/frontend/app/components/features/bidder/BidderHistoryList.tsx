@@ -1,6 +1,5 @@
-import type { User, MyAutoBid, Order } from "@repo/shared-types";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import type { MyAutoBid } from "@repo/shared-types";
+import { useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,41 +12,22 @@ import {
   Table,
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
-import { ERROR_MESSAGES } from "@/constants/api";
-import { api } from "@/lib/api-layer";
 import { formatDate, formatPrice } from "@/lib/utils";
 
-// TODO: Define props based on SRS requirements
 type BidderHistoryListProps = {
-  className?: string;
-  [key: string]: any;
+  activeBids: MyAutoBid[];
 };
 
 /**
  * Component: BidderHistoryList
- * Generated automatically based on Project Auction SRS.
+ * Displays a list of active bids for the current user.
  */
-const BidderHistoryList = (props: BidderHistoryListProps) => {
-  const [activeBidsData, setActiveBidsData] = useState<MyAutoBid[]>([]);
-  useEffect(() => {
-    const fetchUserDate = async () => {
-      try {
-        const bidsRes = await api.bids.getMyAutoBid();
-        console.log(bidsRes);
-        if (bidsRes?.success && bidsRes.data) {
-          setActiveBidsData(bidsRes.data);
-          console.log("Hello");
-        } else {
-          toast.error(ERROR_MESSAGES.SERVER_ERROR);
-        }
-      } catch (error) {
-        toast.error(ERROR_MESSAGES.SERVER_ERROR);
-      }
-    };
-    fetchUserDate();
-  }, []);
+const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
+  const filteredActiveBids = useMemo(() => {
+    const now = new Date();
+    return activeBids.filter((bid) => new Date(bid.product.endTime) > now);
+  }, [activeBids]);
 
-  const now = new Date();
   return (
     <TabsContent value="active" className="space-y-4">
       <div className="rounded-md border">
@@ -63,50 +43,58 @@ const BidderHistoryList = (props: BidderHistoryListProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {activeBidsData
-              .filter((bid) => new Date(bid.product.endTime) > now)
-              .map((bid) => (
-                <TableRow key={bid.id}>
-                  <TableCell className="font-medium">
-                    {bid.product.productName}
-                  </TableCell>
-                  <TableCell>
-                    {formatPrice(Number(bid.product.currentPrice || 0))}
-                  </TableCell>
-                  <TableCell>
-                    {formatPrice(Number(bid.maxAmount || 0))}
-                  </TableCell>
-                  <TableCell>{formatDate(bid.product.endTime)}</TableCell>
-                  <TableCell>
-                    {Number(bid.product.currentPrice) <=
-                    Number(bid.maxAmount) ? (
-                      <Badge className="bg-emerald-600 hover:bg-emerald-700">
-                        Đang dẫn đầu
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="border-amber-300 bg-amber-50 text-amber-700"
-                      >
-                        Bị trả giá
-                      </Badge>
-                    )}
-                  </TableCell>
+            {filteredActiveBids.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="py-4 text-center">
+                  Không có đấu giá đang hoạt động.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredActiveBids.map((bid) => {
+                const isLeading =
+                  Number(bid.product.currentPrice) <= Number(bid.maxAmount);
 
-                  <TableCell className="text-right">
-                    {Number(bid.product.currentPrice) >
-                      Number(bid.maxAmount) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-amber-300 bg-transparent text-amber-700"
-                      >
-                        Đấu lại
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                return (
+                  <TableRow key={bid.id}>
+                    <TableCell className="font-medium">
+                      {bid.product.name}
+                    </TableCell>
+                    <TableCell>
+                      {formatPrice(Number(bid.product.currentPrice || 0))}
+                    </TableCell>
+                    <TableCell>
+                      {formatPrice(Number(bid.maxAmount || 0))}
+                    </TableCell>
+                    <TableCell>{formatDate(bid.product.endTime)}</TableCell>
+                    <TableCell>
+                      {isLeading ? (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-700">
+                          Đang dẫn đầu
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-300 bg-amber-50 text-amber-700"
+                        >
+                          Bị trả giá
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {!isLeading && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-amber-300 bg-transparent text-amber-700"
+                        >
+                          Đấu lại
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>
