@@ -132,8 +132,10 @@ export class QuestionService {
       .returning();
 
     // Send email notification to asker
-    const askers = await this.getRelatedAskers(question.productId);
-    const bidders = await productService.getBidders(question.productId);
+    const [askers, bidders] = await Promise.all([
+      this.getRelatedAskers(question.productId),
+      productService.getBidders(question.productId),
+    ]);
     const uniqueUsers = new Map<string, (typeof askers)[0]>();
     [...askers, ...bidders].forEach((user) => {
       uniqueUsers.set(user.id, user);
