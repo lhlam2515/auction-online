@@ -1,4 +1,3 @@
-import { Link } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
@@ -73,13 +72,14 @@ export const RichTextEditor = forwardRef<
   ) => {
     const editor = useEditor({
       extensions: [
-        Link.configure({
-          openOnClick: false, // Completely disable default navigation behavior
-          HTMLAttributes: {
-            class: "text-blue-500 underline hover:text-blue-700",
+        StarterKit.configure({
+          link: {
+            openOnClick: false, // Disable default navigation behavior
+            HTMLAttributes: {
+              class: "text-blue-500 underline hover:text-blue-700",
+            },
           },
         }),
-        StarterKit,
         Placeholder.configure({
           placeholder: placeholder || "Nhập nội dung...",
         }),
