@@ -21,6 +21,7 @@ export class UserService {
     userId: string,
     fullName: string | null,
     address: string | null,
+    birthDate: string | null,
     avatarUrl: string | null
   ) {
     const existingUser = await this.getById(userId); // ensure user exists
@@ -28,6 +29,7 @@ export class UserService {
     const updates = {
       fullName: fullName || existingUser.fullName,
       address: address || existingUser.address,
+      birthDate: birthDate || existingUser.birthDate,
       avatarUrl: avatarUrl || existingUser.avatarUrl,
     };
 

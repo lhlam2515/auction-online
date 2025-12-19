@@ -15,6 +15,7 @@ export const users = pgTable(
     email: t.text("email").notNull(), // Synced from Supabase auth.users.email
     username: t.text("username").notNull().unique(), // Unique username
     fullName: t.text("full_name").notNull(),
+    birthDate: t.date("birth_date"),
     role: userRoleEnum("role").notNull().default("BIDDER"),
     accountStatus: accountStatusEnum("account_status")
       .notNull()

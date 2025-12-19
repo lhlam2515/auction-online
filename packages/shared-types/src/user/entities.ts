@@ -18,6 +18,7 @@ export interface User extends UserCore {
   accountStatus: AccountStatus;
   address: string | null;
   avatarUrl: string | null;
+  birthDate: Date | string | null;
 
   // Credit scoring fields
   ratingScore: number; // 0-5 range
