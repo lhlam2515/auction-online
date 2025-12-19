@@ -9,7 +9,12 @@ import { commonValidations } from "./common.validation";
 export const updateProfileSchema = z.object({
   fullName: commonValidations.requiredString(2, "Họ tên quá ngắn"),
   email: commonValidations.email,
-  birthDate: z.coerce.date().max(new Date(), "Ngày sinh không hợp lệ"),
+  birthDate: z.coerce
+    .date()
+    .max(new Date(), "Ngày sinh không hợp lệ")
+    .optional(),
+  address: z.string().optional(),
+  avatarUrl: z.url().optional(),
 });
 
 export const changePassword = z

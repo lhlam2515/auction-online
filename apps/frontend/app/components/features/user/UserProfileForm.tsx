@@ -1,163 +1,175 @@
-import type { User } from "@repo/shared-types";
-import { AxiosError, isAxiosError } from "axios";
-import { Lock, Store, Camera } from "lucide-react";
-import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { ApiResponse } from "@repo/shared-types";
+import { useEffect } from "react";
+import {
+  Controller,
+  type DefaultValues,
+  type FieldValues,
+  type Path,
+  type SubmitHandler,
+  useForm,
+} from "react-hook-form";
 import { toast } from "sonner";
+import type { ZodType } from "zod";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  FieldGroup,
+  Field,
+  FieldLabel,
+  FieldError,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
-import { api } from "@/lib/api-layer";
+import { Spinner } from "@/components/ui/spinner";
+import { SUCCESS_MESSAGES } from "@/constants/api";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 
-// TODO: Define props based on SRS requirements
-// type UserProfileFormProps = {
-//   className?: string;
-//   [key: string]: any;
-// };
+interface UserProfileFormProps<T extends FieldValues> {
+  schema: ZodType<T>;
+  defaultValues: T;
+  onSubmit: (data: T) => Promise<ApiResponse>;
+  isLoading?: boolean;
+}
 
-/**
- * Component: UserProfileForm
- * Generated automatically based on Project Auction SRS.
- */
+const UserProfileForm = <T extends FieldValues>({
+  schema,
+  defaultValues,
+  onSubmit,
+  isLoading = false,
+}: UserProfileFormProps<T>) => {
+  const form = useForm<T>({
+    // Type assertion needed for generic Zod schema with react-hook-form
+    // @ts-expect-error - Generic type constraint incompatibility between Zod and react-hook-form
+    resolver: zodResolver(schema),
+    defaultValues: defaultValues as DefaultValues<T>,
+  });
 
-const UserProfileForm = () => {
-  //(props: UserProfileFormProps) => {
-  const [userData, setUserData] = useState<User>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [fullname, setFullname] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
+  // Reset form when defaultValues change
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await api.users.getProfile();
-        if (data?.success && data.data) {
-          setUserData(data.data);
-          setFullname(data.data.fullName);
-          setEmail(data.data.email);
-          setAddress(data.data.address || "");
-        } else {
-          toast.error(ERROR_MESSAGES.SERVER_ERROR);
-        }
-      } catch (error) {
-        toast.error(ERROR_MESSAGES.SERVER_ERROR);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
-  const handleSave = async () => {
+  const handleSubmit: SubmitHandler<T> = async (data) => {
     try {
-      const data = await api.users.updateProfile({
-        fullName: fullname,
-        email: email,
-        avatarUrl: "",
-        address: address,
-      });
-      if (data?.success) {
-        toast.success(SUCCESS_MESSAGES.UPDATE_PROFILE);
-      } else {
-        toast.error(ERROR_MESSAGES.SERVER_ERROR);
-      }
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const backendMessage =
-          error.response?.data?.message || error.response?.data?.stack;
-        const errorMessage = backendMessage || error.message;
+      form.clearErrors();
 
-        toast.error(errorMessage);
-      } else {
-        toast.error("Lỗi không xác định");
+      const result = (await onSubmit(data)) as ApiResponse;
+
+      if (!result.success) {
+        toast.error(
+          result.error?.message || "Lỗi khi cập nhật thông tin cá nhân"
+        );
+        return;
       }
+
+      toast.success(SUCCESS_MESSAGES.UPDATE_PROFILE);
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+
+      form.setError("root", { message: errorMessage });
+
+      showError(error, errorMessage);
     }
   };
 
+  const formatFieldName = (fieldName: string): string => {
+    const nameMap: Record<string, string> = {
+      fullName: "Họ và Tên",
+      email: "Email",
+      birthDate: "Ngày Sinh",
+      address: "Địa Chỉ",
+    };
+
+    return nameMap[fieldName] || fieldName;
+  };
+
+  const getInputType = (fieldName: string): string => {
+    if (fieldName === "email") return "email";
+    if (fieldName === "birthDate") return "date";
+    return "text";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Spinner />
+        <span className="ml-2">Đang tải thông tin...</span>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <Card className="grid grid-cols-2">
-        <CardContent className="space-y-6">
-          {/* Personal Info Form */}
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="fullname">Họ và Tên</Label>
-              <Input
-                id="fullname"
-                defaultValue={userData?.fullName}
-                onChange={(e) => setFullname(e.target.value)}
-              />
-            </div>
+    <form
+      id="user-profile-form"
+      // @ts-expect-error - Generic type constraint between form and handler
+      onSubmit={form.handleSubmit(handleSubmit)}
+      className="space-y-8"
+      noValidate
+    >
+      {form.formState.errors.root && (
+        <div className="error-message">
+          <p>{form.formState.errors.root.message}</p>
+        </div>
+      )}
+      <FieldGroup className="gap-4">
+        {Object.keys(defaultValues).map((field) => (
+          <Controller
+            key={field}
+            control={form.control}
+            name={field as Path<T>}
+            render={({ field, fieldState }) => (
+              <Field
+                data-invalid={fieldState.invalid}
+                className="flex w-full flex-col gap-2"
+              >
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-base font-semibold"
+                >
+                  {formatFieldName(field.name)}
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type={getInputType(field.name)}
+                  value={
+                    field.name === "birthDate" &&
+                    (field.value as any) instanceof Date
+                      ? (field.value as Date).toISOString().split("T")[0]
+                      : field.value || ""
+                  }
+                  onChange={(e) => {
+                    if (field.name === "birthDate") {
+                      const dateValue = e.target.value
+                        ? new Date(e.target.value)
+                        : undefined;
+                      field.onChange(dateValue);
+                    } else {
+                      field.onChange(e);
+                    }
+                  }}
+                  className="border text-base"
+                  aria-invalid={fieldState.invalid}
+                  required
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        ))}
+      </FieldGroup>
 
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                defaultValue={userData?.email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="address">Địa Chỉ</Label>
-              <Textarea
-                id="address"
-                defaultValue={userData?.address || ""}
-                rows={3}
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <Button
-            className="bg-slate-900 text-white hover:bg-slate-500"
-            type="button"
-            onClick={handleSave}
-          >
-            Lưu Thay Đổi
-          </Button>
-        </CardContent>
-        <CardHeader>
-          {/* <div className="flex items-center gap-2"> */}
-
-          {/* //</div> */}
-          <div className="flex flex-col items-center gap-2">
-            <CardTitle className="text-2xl">Thông Tin Cá Nhân</CardTitle>
-            <CardDescription className="text-xl">
-              Cập nhật thông tin cá nhân của bạn
-            </CardDescription>
-          </div>
-          <div className="flex flex-col items-center gap-4">
-            <Avatar className="h-35 w-35">
-              <AvatarImage src="" />
-              <AvatarFallback className="bg-slate-900 text-xl text-white">
-                NA
-              </AvatarFallback>
-            </Avatar>
-
-            <Button
-              className="bg-slate-900 text-white hover:bg-slate-500"
-              variant="outline"
-              size="sm"
-            >
-              <Camera className="mr-2 h-4 w-4" />
-              Thay Đổi Ảnh
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
-    </>
+      <Button
+        type="submit"
+        className="cursor-pointer"
+        disabled={form.formState.isSubmitting}
+      >
+        {form.formState.isSubmitting && <Spinner />}
+        {form.formState.isSubmitting ? "Đang lưu..." : "Lưu Thay Đổi"}
+      </Button>
+    </form>
   );
 };
 
