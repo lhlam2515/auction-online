@@ -1,4 +1,9 @@
-import type { User, MyAutoBid, Order } from "@repo/shared-types";
+import type {
+  User,
+  MyAutoBid,
+  Order,
+  OrderWithDetails,
+} from "@repo/shared-types";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -79,7 +84,7 @@ function getStatusBadge(
   }
 }
 const WonAuctionList = (props: WonAuctionListProps) => {
-  const [userOrder, setUserOrder] = useState<Order[]>([]);
+  const [userOrder, setUserOrder] = useState<OrderWithDetails[]>([]);
   useEffect(() => {
     const fetchUserDate = async () => {
       try {
@@ -115,7 +120,9 @@ const WonAuctionList = (props: WonAuctionListProps) => {
           <TableBody>
             {userOrder.map((auction) => (
               <TableRow key={auction.id}>
-                <TableCell className="font-medium">{auction.id}</TableCell>
+                <TableCell className="font-medium">
+                  {auction.product.name}
+                </TableCell>
                 <TableCell>
                   {formatPrice(Number(auction.finalPrice || "0"))}
                 </TableCell>

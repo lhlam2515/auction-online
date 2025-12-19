@@ -360,6 +360,12 @@ export const api = {
       apiCall<UploadImagesResponse>("POST", "/products/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       }),
+
+    /**
+     * Watch list by card
+     */
+    getWatchListByCard: () =>
+      apiCall<ProductListing[]>("GET", "/products/watch-list-by-card"),
   },
 
   /**

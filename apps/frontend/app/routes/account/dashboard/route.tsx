@@ -3,6 +3,7 @@ import { Trash2, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import ProductCard from "@/components/features/product/ProductCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -81,49 +82,6 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-function getStatusBadge(
-  status: "unpaid" | "processing" | "completed" | "cancelled"
-) {
-  switch (status) {
-    case "unpaid":
-      return (
-        <Badge
-          variant="outline"
-          className="border-amber-300 bg-amber-50 text-amber-700"
-        >
-          Chưa thanh toán
-        </Badge>
-      );
-    case "processing":
-      return (
-        <Badge
-          variant="outline"
-          className="border-blue-300 bg-blue-50 text-blue-700"
-        >
-          Đang xử lý
-        </Badge>
-      );
-    case "completed":
-      return (
-        <Badge
-          variant="outline"
-          className="border-emerald-300 bg-emerald-50 text-emerald-700"
-        >
-          Hoàn thành
-        </Badge>
-      );
-    case "cancelled":
-      return (
-        <Badge
-          variant="outline"
-          className="border-red-300 bg-red-50 text-red-700"
-        >
-          Đã hủy
-        </Badge>
-      );
-  }
-}
-
 export default function AccountDashboardPage() {
   const [userData, setUserData] = useState<User>();
   const [activeBidsData, setActiveBidsData] = useState<Bid[]>([]);
@@ -160,7 +118,6 @@ export default function AccountDashboardPage() {
   const handleRemoveFromWatchlist = (id: string) => {
     setWatchlist(watchlist.filter((item) => item.id !== id));
   };
-  console.log("User Data:", userData);
 
   return (
     <div className="container mx-auto py-8">
@@ -206,54 +163,7 @@ export default function AccountDashboardPage() {
 
         {/* Main Content - Tabs */}
 
-        <Card>
-          <CardContent>
-            <Tabs>
-              {/* Tab 2: Won Auctions */}
-
-              {/* Tab 3: Watchlist */}
-              <TabsContent value="watchlist" className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {watchlist.map((item) => (
-                    <div key={item.id} className="group relative">
-                      {/* <ProductCard
-                          id={item.id}
-                          name={item.name}
-                          image={item.image}
-                          currentPrice={item.currentPrice}
-                          buyNowPrice={item.buyNowPrice}
-                          topBidder={item.topBidder}
-                          bidCount={item.bidCount}
-                          endTime={item.endTime}
-                          isNew={item.isNew}
-                        /> */}
-                      {/* Remove button overlay */}
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 z-10 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleRemoveFromWatchlist(item.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-
-                {watchlist.length === 0 && (
-                  <div className="py-12 text-center">
-                    <p className="text-muted-foreground">
-                      Chưa có sản phẩm yêu thích nào
-                    </p>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <Card></Card>
       </div>
     </div>
   );
