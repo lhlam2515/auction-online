@@ -6,6 +6,8 @@ import { orderService } from "@/services/order.service";
 import { BadRequestError, NotFoundError } from "@/utils/errors";
 
 import { bidService } from "./bid.service";
+import { emailService } from "./email.service";
+import { productService } from "./product.service";
 
 class AuctionService {
   /**
@@ -16,6 +18,10 @@ class AuctionService {
     return db.transaction(async (tx) => {
       const product = await tx.query.products.findFirst({
         where: eq(products.id, productId),
+        with: {
+          seller: { columns: { email: true } },
+          winner: { columns: { email: true, fullName: true } },
+        },
       });
 
       if (!product) {
@@ -52,6 +58,13 @@ class AuctionService {
           })
           .where(eq(products.id, productId));
 
+        // Gửi email thông báo không có người mua
+        emailService.notifyAuctionEndNoWinner(
+          product.seller.email,
+          product.name,
+          productService.buildProductLink(productId)
+        );
+
         return { status: "no_sale" };
       }
 
@@ -78,7 +91,16 @@ class AuctionService {
         false
       );
 
-      // TODO: enqueue email thông báo người thắng cuộc
+      // Gửi email thông báo chúc mừng người thắng
+      emailService.notifyAuctionEndSuccess(
+        product.seller.email,
+        product.winner!.email,
+        product.name,
+        finalPrice,
+        product.winner!.fullName,
+        productService.buildProductLink(productId)
+      );
+
       return { status: "completed", winnerId: topBid.userId, finalPrice };
     });
   }

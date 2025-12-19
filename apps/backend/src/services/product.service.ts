@@ -484,6 +484,26 @@ export class ProductService {
     return this.getById(productId);
   }
 
+  async getBidders(productId: string) {
+    const histories = await db.query.bids.findMany({
+      where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
+      with: { user: true },
+    });
+
+    // Deduplicate users by ID using JavaScript
+    const userMap = new Map();
+    histories.forEach((bid) => {
+      if (bid.user) {
+        userMap.set(bid.user.id, bid.user);
+      }
+    });
+    return Array.from(userMap.values());
+  }
+
+  buildProductLink(productId: string): string {
+    return `${process.env.FRONTEND_URL}/products/${productId}`;
+  }
+
   /**
    * Enrich a list of products with related data in batch to avoid N+1 queries.
    */

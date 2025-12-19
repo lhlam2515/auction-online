@@ -6,9 +6,11 @@ import { bids, autoBids, products, users } from "@/models";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 import { maskName } from "@/utils/ultils";
 
+import { emailService } from "./email.service";
 import { orderService } from "./order.service";
 import { productService } from "./product.service";
 import { systemService } from "./system.service";
+import { userService } from "./user.service";
 
 export class BidService {
   async getHistory(productId: string): Promise<BidWithUser[]> {
@@ -51,7 +53,13 @@ export class BidService {
     const executeLogic = async (tx: any) => {
       let product = await tx.query.products.findFirst({
         where: eq(products.id, productId),
+        with: {
+          seller: { columns: { email: true } },
+          winner: { columns: { email: true } },
+        },
       });
+      const sellerEmail = product?.seller?.email || "";
+      const previousWinnerEmail = product?.winner?.email || "";
 
       if (!product) throw new NotFoundError("Sản phẩm không tồn tại");
 
@@ -174,6 +182,8 @@ export class BidService {
       return {
         newBid,
         product,
+        sellerEmail,
+        previousWinnerEmail,
         isBuyNow: newStatus === "SOLD",
         extendedEndTime,
       };
@@ -199,6 +209,36 @@ export class BidService {
       await systemService.triggerAutoBidCheck(productId);
     }
 
+    // 3. Gửi email thông báo
+    const bidder = await userService.getById(bidderId);
+
+    // Notify seller about new bid
+    emailService.notifySellerNewBid(
+      result.sellerEmail,
+      result.product.name,
+      amount,
+      bidder.fullName,
+      productService.buildProductLink(productId)
+    );
+
+    // Notify bidder about successful bid
+    emailService.notifyBidSuccess(
+      bidder.email,
+      result.product.name,
+      amount,
+      productService.buildProductLink(productId)
+    );
+
+    // Notify previous winner about being outbid
+    if (result.previousWinnerEmail) {
+      emailService.notifyOutbidAlert(
+        result.previousWinnerEmail,
+        result.product.name,
+        amount,
+        productService.buildProductLink(productId)
+      );
+    }
+
     return result.newBid;
   }
 
@@ -206,13 +246,13 @@ export class BidService {
     productId: string,
     sellerId: string,
     bidderId: string,
-    reason?: string
+    reason: string
   ) {
-    const ownerCheck = await db.query.products.findFirst({
+    const product = await db.query.products.findFirst({
       where: and(eq(products.id, productId), eq(products.sellerId, sellerId)),
     });
 
-    if (!ownerCheck) {
+    if (!product) {
       throw new ForbiddenError("Bạn không phải là chủ sở hữu của sản phẩm này");
     }
 
@@ -234,12 +274,9 @@ export class BidService {
         eq(bids.status, "VALID")
         // Loại bỏ bidder bị kick
         // Note: Không dùng neq vì có thể có nhiều bidder bị kick
-        // Nên sẽ lọc thủ công bên dưới
       ),
       orderBy: desc(bids.amount),
     });
-
-    const product = await productService.getById(productId);
 
     if (topBid) {
       await db
@@ -277,7 +314,14 @@ export class BidService {
     // Kích hoạt Auto-bid queue để tìm người giữ giá mới
     await systemService.triggerAutoBidCheck(productId);
 
-    // TODO: Send notification to bidder about being kicked
+    // Notify bidder about being kicked
+    const bidder = await userService.getById(bidderId);
+    emailService.notifyBidRejected(
+      bidder.email,
+      product.name,
+      reason,
+      productService.buildProductLink(productId)
+    );
 
     return { message: "Đã loại người đấu giá thành công" };
   }

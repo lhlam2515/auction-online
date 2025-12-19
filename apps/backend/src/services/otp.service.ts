@@ -67,7 +67,7 @@ export class OtpService {
       });
 
       // Queue OTP email
-      await emailService.queueOtpEmail(email, otpCode);
+      emailService.sendOtpEmail(email, otpCode, purpose);
 
       return { otpCode };
     } catch (error) {

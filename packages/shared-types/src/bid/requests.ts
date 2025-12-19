@@ -28,5 +28,5 @@ export interface UpdateAutoBidRequest {
  */
 export interface KickBidderRequest {
   bidderId: string;
-  reason?: string;
+  reason: string;
 }
