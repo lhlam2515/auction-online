@@ -18,6 +18,7 @@ import type {
   UpgradeRequestData,
   PublicProfile,
   UserRatingSummary,
+  MyAutoBid,
 
   // Product types
   Product,
@@ -28,7 +29,6 @@ import type {
   ProductImage,
   UpdateDescriptionResponse,
   UploadImagesResponse,
-  MyAutoBid,
 
   // Category types
   Category,
@@ -238,7 +238,7 @@ export const api = {
      * Get user's bidding history
      */
     getBids: (params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Bid>>(
+      apiCall<MyAutoBid[]>(
         "GET",
         appendQueryParams("/users/bids", paramsToRecord(params))
       ),
@@ -443,8 +443,6 @@ export const api = {
      */
     deleteAutoBid: (autoBidId: string) =>
       apiCall<{ message: string }>("DELETE", `/products/auto-bid/${autoBidId}`),
-
-    getMyAutoBid: () => apiCall<MyAutoBid[]>("GET", `/products/my-auto-bid`),
   },
 
   /**

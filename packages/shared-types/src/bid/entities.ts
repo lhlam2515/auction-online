@@ -37,7 +37,7 @@ export interface AutoBid {
 
 export interface MyAutoBid extends AutoBid {
   product: {
-    productName: string;
+    name: string;
     currentPrice: string | null; // Decimal as string
     endTime: Date | string;
     winnerId: string | null;

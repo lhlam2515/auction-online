@@ -1,4 +1,4 @@
-import type { Product } from "@repo/shared-types";
+import type { MyAutoBid, Product } from "@repo/shared-types";
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -170,13 +170,24 @@ export class UserService {
   }
 
   async getBiddingHistory(userId: string) {
-    const existingUser = await this.getById(userId); // ensure user exists
+    const existingUser = await this.getById(userId);
 
-    const bidHistory = await db.query.bids.findMany({
+    const bidHistory = await db.query.autoBids.findMany({
       where: eq(bids.userId, existingUser.id),
+      with: {
+        product: {
+          columns: {
+            name: true,
+            currentPrice: true,
+            endTime: true,
+            winnerId: true,
+          },
+        },
+      },
+      orderBy: (bid, { desc }) => [desc(bid.createdAt)],
     });
 
-    return bidHistory.map((item) => item);
+    return bidHistory as MyAutoBid[];
   }
 
   async getWonAuctions(userId: string) {

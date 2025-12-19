@@ -1,4 +1,4 @@
-import type { Bid, BidWithUser, ProductStatus } from "@repo/shared-types";
+import type { BidWithUser, ProductStatus } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -377,31 +377,6 @@ export class BidService {
       thresholdMinutes: settings?.extendThresholdMinutes ?? 5,
       durationMinutes: settings?.extendDurationMinutes ?? 10,
     };
-  }
-
-  async getMyAutoBid(userId: string) {
-    const myAutoBid = await db
-      .select({
-        id: autoBids.id,
-        productId: autoBids.productId,
-        userId: autoBids.userId,
-        maxAmount: autoBids.maxAmount,
-        isActive: autoBids.isActive,
-        createdAt: autoBids.createdAt,
-        updatedAt: autoBids.updatedAt,
-
-        product: {
-          productName: products.name, // Giả sử trong DB cột tên là 'name'
-          currentPrice: products.currentPrice, // Giả sử cột là 'currentPrice' hoặc 'price'
-          endTime: products.endTime,
-          winnerId: products.winnerId,
-        },
-      })
-      .from(autoBids)
-      .innerJoin(products, eq(autoBids.productId, products.id))
-      .where(and(eq(autoBids.userId, userId), eq(autoBids.isActive, true)))
-      .orderBy(desc(autoBids.createdAt));
-    return myAutoBid;
   }
 }
 

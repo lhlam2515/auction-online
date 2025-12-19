@@ -95,11 +95,3 @@ export const deleteAutoBid = asyncHandler(
     return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
 );
-
-export const getMyAutoBid = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { id: userId } = req.user!;
-    const result = await bidService.getMyAutoBid(userId);
-    return ResponseHandler.sendSuccess<MyAutoBid[]>(res, result);
-  }
-);

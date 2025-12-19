@@ -7,13 +7,6 @@ import * as bidValidation from "@/validations/bid.validation";
 
 const router = Router();
 
-router.get(
-  "/my-auto-bid",
-  authenticate,
-  authorize("BIDDER", "SELLER"),
-  bidController.getMyAutoBid
-);
-
 /**
  * @route   GET /api/products/:id/bids
  * @desc    Get bidding history of a product
