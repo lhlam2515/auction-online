@@ -1,8 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Checkbox } from "@radix-ui/react-checkbox";
 import type { ApiResponse } from "@repo/shared-types";
-import { Store, Badge } from "lucide-react";
-import { useEffect, useState } from "react";
 import {
   Controller,
   type DefaultValues,
@@ -12,15 +9,10 @@ import {
   useForm,
 } from "react-hook-form";
 import { toast } from "sonner";
-import { ZodType } from "zod";
+import type { ZodType } from "zod";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FieldGroup,
   Field,
@@ -31,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
-import { useAuth } from "@/contexts/auth-provider";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
@@ -88,126 +79,98 @@ const UpgradeRequestForm = <T extends FieldValues>({
     return "text";
   };
 
-  const [sellerRequestStatus, setSellerRequestStatus] = useState(true);
-  const { user } = useAuth();
-  useEffect(() => {
-    if (user?.role === "SELLER") {
-      setSellerRequestStatus(false);
-    }
-  }, []);
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Store className="h-5 w-5 text-slate-900" />
-            <CardTitle>Nâng Cấp Thành Người Bán</CardTitle>{" "}
-          </div>
-        </div>
-        <CardDescription>
-          Yêu cầu quyền bán hàng trên nền tảng đấu giá
-        </CardDescription>
-      </CardHeader>
-      {sellerRequestStatus && (
-        <form
-          id="upgradeRequestForm"
-          // @ts-expect-error - Generic type constraint
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className="space-y-8 p-4"
-        >
-          <div className="flex flex-col gap-1">
-            <FieldGroup className="gap-6">
-              {Object.keys(defaultValues).map((fieldKey) => {
-                const fieldName = fieldKey as Path<T>;
-                const inputType = getInputType(fieldName);
+    <form
+      id="upgradeRequestForm"
+      // @ts-expect-error - Generic type constraint
+      onSubmit={form.handleSubmit(handleSubmit)}
+      className="space-y-8"
+      noValidate
+    >
+      <FieldGroup className="gap-6">
+        {Object.keys(defaultValues).map((fieldKey) => {
+          const fieldName = fieldKey as Path<T>;
+          const inputType = getInputType(fieldName);
 
-                return (
-                  <Controller
-                    key={fieldName}
-                    control={form.control}
-                    name={fieldName}
-                    render={({ field, fieldState }) => (
-                      <Field
-                        data-invalid={fieldState.invalid}
-                        className="flex w-full flex-col gap-2"
+          return (
+            <Controller
+              key={fieldName}
+              control={form.control}
+              name={fieldName}
+              render={({ field, fieldState }) => (
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="flex w-full flex-col gap-2"
+                >
+                  {inputType === "checkbox" ? (
+                    <div className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4 shadow-sm">
+                      <Checkbox
+                        id={field.name}
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <div className="space-y-1 leading-none">
+                        <FieldLabel
+                          htmlFor={field.name}
+                          className="text-sm leading-none font-medium"
+                        >
+                          {formatFieldName(field.name)}
+                        </FieldLabel>
+                      </div>
+                    </div>
+                  ) : inputType === "textarea" ? (
+                    <>
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className="text-base font-semibold"
                       >
-                        {inputType === "checkbox" ? (
-                          <div className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4 shadow-sm">
-                            <Checkbox
-                              id={field.name}
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                            <div className="space-y-1 leading-none">
-                              <FieldLabel
-                                htmlFor={field.name}
-                                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {formatFieldName(field.name)}
-                              </FieldLabel>
-                            </div>
-                          </div>
-                        ) : inputType === "textarea" ? (
-                          <>
-                            <FieldLabel
-                              htmlFor={field.name}
-                              className="text-base font-semibold"
-                            >
-                              {formatFieldName(field.name)}
-                            </FieldLabel>
-                            <Textarea
-                              {...field}
-                              id={field.name}
-                              className="min-h-[100px] text-base"
-                              aria-invalid={fieldState.invalid}
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <FieldLabel
-                              htmlFor={field.name}
-                              className="text-base font-semibold"
-                            >
-                              {formatFieldName(field.name)}
-                            </FieldLabel>
-                            <Input
-                              {...field}
-                              id={field.name}
-                              type={inputType}
-                              className="min-h-12 border text-base"
-                              aria-invalid={fieldState.invalid}
-                              required={inputType !== "text"} // Tùy chỉnh required
-                            />
-                          </>
-                        )}
+                        {formatFieldName(field.name)}
+                      </FieldLabel>
+                      <Textarea
+                        {...field}
+                        id={field.name}
+                        className="min-h-[100px] text-base"
+                        aria-invalid={fieldState.invalid}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className="text-base font-semibold"
+                      >
+                        {formatFieldName(field.name)}
+                      </FieldLabel>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        type={inputType}
+                        className="min-h-12 border text-base"
+                        aria-invalid={fieldState.invalid}
+                        required={inputType !== "text"} // Tùy chỉnh required
+                      />
+                    </>
+                  )}
 
-                        {fieldState.invalid && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    )}
-                  />
-                );
-              })}
-            </FieldGroup>
-          </div>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          );
+        })}
+      </FieldGroup>
 
-          <Button
-            type="submit"
-            className="min-h-12 w-full cursor-pointer text-xl"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting && <Spinner />}
-            {form.formState.isSubmitting ? "Đang gửi yêu cầu" : "Gửi yêu cầu"}
-          </Button>
-        </form>
-      )}
-      {!sellerRequestStatus && (
-        <CardHeader>
-          <CardDescription>Bạn đã là người bán</CardDescription>
-        </CardHeader>
-      )}
-    </Card>
+      <Button
+        type="submit"
+        className="min-h-12 w-full cursor-pointer text-xl"
+        disabled={form.formState.isSubmitting}
+      >
+        {form.formState.isSubmitting && <Spinner />}
+        {form.formState.isSubmitting ? "Đang gửi yêu cầu" : "Gửi yêu cầu"}
+      </Button>
+    </form>
   );
 };
 
