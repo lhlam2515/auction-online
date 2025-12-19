@@ -39,7 +39,6 @@ export default function UpgradeToSellerPage() {
       const result = await api.users.requestSellerUpgrade({
         reason: data.reason,
       });
-      console.log(result);
       return result;
     },
     []

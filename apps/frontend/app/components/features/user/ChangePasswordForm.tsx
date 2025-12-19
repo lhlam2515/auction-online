@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
+import { SUCCESS_MESSAGES } from "@/constants/api";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
@@ -42,15 +43,22 @@ const ChangePasswordForm = <T extends FieldValues>({
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
     try {
-      const result = await onSubmit(data);
+      form.clearErrors();
 
-      if (result?.success) {
-        toast.success(SUCCESS_MESSAGES.CHANGE_PASSWORD);
-      } else {
-        toast.error(ERROR_MESSAGES.SERVER_ERROR);
+      const result = (await onSubmit(data)) as ApiResponse;
+
+      if (!result.success) {
+        toast.error(result.error?.message || "Lỗi khi đổi mật khẩu");
+        return;
       }
-    } catch (error: unknown) {
-      toast.error((error as Error)?.message || ERROR_MESSAGES.UNKNOWN_ERROR);
+
+      toast.success(SUCCESS_MESSAGES.CHANGE_PASSWORD);
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+
+      form.setError("root", { message: errorMessage });
+
+      showError(error, errorMessage);
     }
   };
 
@@ -78,8 +86,14 @@ const ChangePasswordForm = <T extends FieldValues>({
       id="changePassword"
       // @ts-expect-error - Generic type constraint between form and handler
       onSubmit={form.handleSubmit(handleSubmit)}
-      className="space-y-8 p-4"
+      className="space-y-8"
+      noValidate
     >
+      {form.formState.errors.root && (
+        <div className="error-message">
+          <p>{form.formState.errors.root.message}</p>
+        </div>
+      )}
       <div className="flex flex-col items-end gap-1">
         <FieldGroup className="gap-4">
           {Object.keys(defaultValues).map((field) => (

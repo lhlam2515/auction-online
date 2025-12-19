@@ -22,7 +22,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
+import { SUCCESS_MESSAGES } from "@/constants/api";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
@@ -44,15 +45,22 @@ const UpgradeRequestForm = <T extends FieldValues>({
 
   const handleSubmit: SubmitHandler<T> = async (data) => {
     try {
-      const result = await onSubmit(data);
+      form.clearErrors();
 
-      if (result?.success) {
-        toast.success(SUCCESS_MESSAGES.UPGRADE_SELLER);
-      } else {
-        toast.error(ERROR_MESSAGES.SERVER_ERROR);
+      const result = (await onSubmit(data)) as ApiResponse;
+
+      if (!result.success) {
+        toast.error(result.error?.message || "Lỗi khi gửi yêu cầu nâng cấp");
+        return;
       }
-    } catch (error: unknown) {
-      toast.error((error as Error)?.message || ERROR_MESSAGES.UNKNOWN_ERROR);
+
+      toast.success(SUCCESS_MESSAGES.UPGRADE_SELLER);
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+
+      form.setError("root", { message: errorMessage });
+
+      showError(error, errorMessage);
     }
   };
 
@@ -87,6 +95,11 @@ const UpgradeRequestForm = <T extends FieldValues>({
       className="space-y-8"
       noValidate
     >
+      {form.formState.errors.root && (
+        <div className="error-message">
+          <p>{form.formState.errors.root.message}</p>
+        </div>
+      )}
       <FieldGroup className="gap-6">
         {Object.keys(defaultValues).map((fieldKey) => {
           const fieldName = fieldKey as Path<T>;
