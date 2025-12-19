@@ -21,6 +21,8 @@ import {
   inArray,
   not,
   or,
+  lt,
+  ne,
 } from "drizzle-orm";
 import slug from "slug";
 
@@ -175,11 +177,17 @@ export class ProductService {
   ): Promise<PaginatedResponse<ProductListing>> {
     const { page = 1, limit = 10, status } = params;
     const offset = (page - 1) * limit;
+    const now = new Date();
 
     // Build base query conditions
     const conditions = [eq(products.sellerId, sellerId)];
     if (status) {
-      conditions.push(eq(products.status, status));
+      if (status === "ENDED") {
+        conditions.push(lt(products.endTime, now));
+        conditions.push(ne(products.status, "SOLD"));
+      } else {
+        conditions.push(eq(products.status, status));
+      }
     }
     const results = await db.query.products.findMany({
       where: and(...conditions),
