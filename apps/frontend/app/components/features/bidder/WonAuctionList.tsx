@@ -20,7 +20,7 @@ import {
 import { TabsContent } from "@/components/ui/tabs";
 import { ERROR_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
-import { formatPrice } from "@/lib/utils";
+import { formatDate, formatPrice } from "@/lib/utils";
 
 // TODO: Define props based on SRS requirements
 type WonAuctionListProps = {
@@ -126,7 +126,7 @@ const WonAuctionList = (props: WonAuctionListProps) => {
                 <TableCell>
                   {formatPrice(Number(auction.finalPrice || "0"))}
                 </TableCell>
-                <TableCell>{auction.createdAt.toString()}</TableCell>
+                <TableCell>{formatDate(auction.createdAt)}</TableCell>
                 <TableCell>{getStatusBadge(auction.status)}</TableCell>
                 <TableCell className="text-right">
                   {auction.status === "PENDING" && (

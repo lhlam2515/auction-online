@@ -1,31 +1,17 @@
-import type { User, Bid } from "@repo/shared-types";
-import { Trash2, Star } from "lucide-react";
+import type {
+  User,
+  OrderWithDetails,
+  PaginatedResponse,
+} from "@repo/shared-types";
+import { Star, DollarSign, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import ProductCard from "@/components/features/product/ProductCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
-import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
+import { formatPrice } from "@/lib/utils";
 
 import type { Route } from "./+types/route";
 
@@ -84,24 +70,26 @@ export function meta({}: Route.MetaArgs) {
 
 export default function AccountDashboardPage() {
   const [userData, setUserData] = useState<User>();
-  const [activeBidsData, setActiveBidsData] = useState<Bid[]>([]);
+  const [userOrder, setUserOrder] =
+    useState<PaginatedResponse<OrderWithDetails>>();
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchUserDate = async () => {
       try {
         setIsLoading(true);
-        const [userRes, bidsRes] = await Promise.all([
+        const [userRes, orderRes] = await Promise.all([
           api.users.getProfile(),
-          api.users.getBids({ page: 1, limit: 10 }),
+          api.orders.getAll(),
         ]);
+
         if (userRes?.success && userRes.data) {
           setUserData(userRes.data);
         } else {
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
         }
 
-        if (bidsRes?.success && bidsRes.data) {
-          setActiveBidsData(bidsRes.data.items);
+        if (orderRes?.success && orderRes.data) {
+          setUserOrder(orderRes.data);
         } else {
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
         }
@@ -113,12 +101,8 @@ export default function AccountDashboardPage() {
     };
     fetchUserDate();
   }, []);
-  const [watchlist, setWatchlist] = useState(watchlistItems);
-
-  const handleRemoveFromWatchlist = (id: string) => {
-    setWatchlist(watchlist.filter((item) => item.id !== id));
-  };
-
+  const totalOrders = userOrder?.items.length;
+  const orders = userOrder?.items.filter((item) => item.status === "COMPLETED");
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -163,7 +147,74 @@ export default function AccountDashboardPage() {
 
         {/* Main Content - Tabs */}
 
-        <Card></Card>
+        <aside className="lg:col-span-3">
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Card 1: Tổng chi tiêu */}
+            <Card className="overflow-hidden border-none shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
+                    <DollarSign className="h-6 w-6" />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="text-2xl font-bold text-slate-900">
+                    {formatPrice(
+                      userOrder?.items.reduce(
+                        (total, item) => total + Number(item.finalPrice ?? 0),
+                        0
+                      ) || 0
+                    )}
+                  </h3>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Tổng chi tiêu
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 2: Tổng đơn đặt hàng */}
+            <Card className="overflow-hidden border-none shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="rounded-lg bg-emerald-100 p-3 text-emerald-600">
+                    <ShoppingCart className="h-6 w-6" />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="text-2xl font-bold text-slate-900">
+                    {totalOrders || "0"}
+                  </h3>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Tổng đơn đặt hàng
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 3: Đơn thành công */}
+            <Card className="overflow-hidden border-none shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="rounded-lg bg-purple-100 p-3 text-purple-600">
+                    <ShoppingCart className="h-6 w-6" />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="text-2xl font-bold text-slate-900">
+                    {orders?.length || "0"}
+                  </h3>
+                  <p className="text-muted-foreground text-sm font-medium">
+                    Tổng đơn thành công
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </aside>
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import ProductCard from "@/components/features/product/ProductCard";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
