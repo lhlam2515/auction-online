@@ -14,9 +14,12 @@ export const productSchema = z
     categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
 
     // Pricing validation
-    startPrice: commonValidations.price(1000, "Giá khởi điểm tối thiểu 1000đ"),
-    stepPrice: z.number().int().min(1000, "Bước giá tối thiểu 1000đ"),
-    buyNowPrice: z.number().optional().nullable(),
+    startPrice: commonValidations.price(
+      1000,
+      "Giá khởi điểm tối thiểu là 1.000 đ"
+    ),
+    stepPrice: z.number().int().min(1000, "Bước giá tối thiểu là 1.000 đ"),
+    buyNowPrice: z.number().optional(),
     freeToBid: z.boolean(),
 
     // Time validation
