@@ -70,10 +70,6 @@ export class BidService {
       if (product.endTime < now)
         throw new BadRequestError("Phiên đấu giá đã kết thúc");
 
-      if (product.winnerId === bidderId) {
-        throw new BadRequestError("Bạn đang là người giữ giá cao nhất rồi!");
-      }
-
       const currentPrice = parseFloat(
         product.currentPrice || product.startPrice
       );
