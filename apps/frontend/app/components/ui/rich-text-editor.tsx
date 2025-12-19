@@ -15,7 +15,7 @@ import {
   Underline,
   LinkIcon,
 } from "lucide-react";
-import { forwardRef, useImperativeHandle, useEffect } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

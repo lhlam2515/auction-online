@@ -123,7 +123,7 @@ export default function CreateProductPage() {
     const newImages = files.map((file) => ({
       file,
       previewUrl: URL.createObjectURL(file),
-      id: Date.now() + Math.random().toString(36), // Generate unique ID
+      id: crypto.randomUUID(), // Generate unique ID
     }));
 
     setSelectedImages((prev) => [...prev, ...newImages]);
@@ -203,6 +203,9 @@ export default function CreateProductPage() {
 
         // Cleanup preview URLs
         selectedImages.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+        // Reset form
+        form.reset();
+        setSelectedImages([]);
 
         setTimeout(() => {
           navigate(APP_ROUTES.PRODUCT(response.data.id));
@@ -210,10 +213,6 @@ export default function CreateProductPage() {
       } else {
         throw new Error("Product creation failed");
       }
-
-      // Reset form
-      form.reset();
-      setSelectedImages([]);
     } catch (error) {
       toast.error("Lỗi khi tạo sản phẩm");
       logger.error("Product creation failed:", error);
@@ -506,7 +505,6 @@ export default function CreateProductPage() {
                               type="time"
                               className="mt-1"
                               step="60"
-                              pattern="[0-9]{2}:[0-9]{2}"
                               placeholder="HH:MM"
                               defaultValue={
                                 field.value
@@ -519,8 +517,8 @@ export default function CreateProductPage() {
                                     e.target.value.split(":");
                                   const newDate = new Date(field.value);
                                   newDate.setHours(
-                                    parseInt(hours),
-                                    parseInt(minutes)
+                                    parseInt(hours, 10),
+                                    parseInt(minutes, 10)
                                   );
                                   field.onChange(newDate);
                                 }

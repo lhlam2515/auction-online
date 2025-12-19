@@ -46,7 +46,7 @@ export const productSchema = z
       return data.buyNowPrice >= data.startPrice + data.stepPrice;
     },
     {
-      message: "Giá mua ngay phải lớn hơn giá khởi điểm + bước giá",
+      message: "Giá mua ngay phải lớn hơn hoặc bằng giá khởi điểm + bước giá",
       path: ["buyNowPrice"],
     }
   )
