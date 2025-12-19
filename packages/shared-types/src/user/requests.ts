@@ -4,7 +4,9 @@
  */
 export interface UpdateProfileRequest {
   fullName: string | null;
+  email: string | null;
   address: string | null;
+  birthDate: string | null;
   avatarUrl: string | null;
 }
 

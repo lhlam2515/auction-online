@@ -1,4 +1,4 @@
-import type { Bid, BidWithUser, ProductStatus } from "@repo/shared-types";
+import type { BidWithUser, ProductStatus } from "@repo/shared-types";
 import { eq, desc, and } from "drizzle-orm";
 
 import { db } from "@/config/database";

@@ -7,7 +7,7 @@ import type {
   PublicProfile,
   UserRatingSummary,
   Product,
-  Bid,
+  MyAutoBid,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -28,13 +28,15 @@ export const getProfile = asyncHandler(
 
 export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { fullName, address, avatarUrl } = req.body as UpdateProfileRequest;
+    const { fullName, address, birthDate, avatarUrl } =
+      req.body as UpdateProfileRequest;
     const { id: userId } = req.user!;
 
     const updatedUser = await userService.updateProfile(
       userId,
       fullName,
       address,
+      birthDate,
       avatarUrl
     );
 
@@ -122,7 +124,7 @@ export const getBiddingHistory = asyncHandler(
 
     const biddingHistory = await userService.getBiddingHistory(userId);
 
-    return ResponseHandler.sendSuccess<Bid[]>(res, biddingHistory);
+    return ResponseHandler.sendSuccess<MyAutoBid[]>(res, biddingHistory);
   }
 );
 

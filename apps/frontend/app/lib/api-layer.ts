@@ -18,6 +18,7 @@ import type {
   UpgradeRequestData,
   PublicProfile,
   UserRatingSummary,
+  MyAutoBid,
 
   // Product types
   Product,
@@ -237,7 +238,7 @@ export const api = {
      * Get user's bidding history
      */
     getBids: (params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Bid>>(
+      apiCall<MyAutoBid[]>(
         "GET",
         appendQueryParams("/users/bids", paramsToRecord(params))
       ),
@@ -359,6 +360,12 @@ export const api = {
       apiCall<UploadImagesResponse>("POST", "/products/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       }),
+
+    /**
+     * Watch list by card
+     */
+    getWatchListByCard: () =>
+      apiCall<ProductListing[]>("GET", "/products/watch-list-by-card"),
   },
 
   /**

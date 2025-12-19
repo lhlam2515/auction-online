@@ -1,3 +1,5 @@
+import WatchList from "@/components/features/bidder/WatchList";
+
 import type { Route } from "./+types/route";
 
 export function meta({}: Route.MetaArgs) {
@@ -7,19 +9,6 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
-
 export default function WatchListPage() {
-  return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Watch List</h1>
-      <p>Content for Watch List goes here.</p>
-    </div>
-  );
+  return <WatchList />;
 }
