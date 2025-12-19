@@ -107,7 +107,7 @@ export default function CreateProductPage() {
     return () => {
       selectedImages.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     };
-  }, [selectedImages]);
+  }, []);
 
   // Handle image selection (preview only)
   const handleImageUpload = async (
