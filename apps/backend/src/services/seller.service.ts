@@ -1,13 +1,8 @@
+import type { SellerStats } from "@repo/shared-types";
 import { eq, and, count, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, products } from "@/models";
-
-export interface SellerStats {
-  totalActiveProducts: number;
-  totalSoldProducts: number;
-  totalRevenue: string; // Decimal as string
-}
 
 export class SellerService {
   async getStats(sellerId: string): Promise<SellerStats> {
@@ -35,10 +30,25 @@ export class SellerService {
     const totalSoldProducts = soldStatsResult[0]?.totalSold || 0;
     const totalRevenue = soldStatsResult[0]?.totalRevenue || "0";
 
+    // Get total products ever listed
+    const totalProductsResult = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.sellerId, sellerId));
+
+    const totalProductsEverListed = totalProductsResult[0]?.count || 0;
+
+    // Calculate success rate
+    const successRate =
+      totalProductsEverListed > 0
+        ? totalSoldProducts / totalProductsEverListed
+        : 0;
+
     return {
       totalActiveProducts,
       totalSoldProducts,
       totalRevenue,
+      successRate,
     };
   }
 }

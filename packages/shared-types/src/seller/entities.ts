@@ -32,4 +32,5 @@ export interface SellerStats {
   totalActiveProducts: number;
   totalSoldProducts: number;
   totalRevenue: string; // Decimal as string
+  successRate: number; // Success rate as decimal (0-1)
 }

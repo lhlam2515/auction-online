@@ -1,3 +1,4 @@
+import type { SellerStats } from "@repo/shared-types";
 import { Package, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,24 +44,11 @@ const StatsCard = ({
 };
 
 interface SellerStatsCardsProps {
-  stats: {
-    totalActiveProducts: number;
-    totalSoldProducts: number;
-    totalRevenue: string;
-  };
+  stats: SellerStats;
   className?: string;
 }
 
 const SellerStatsCards = ({ stats, className }: SellerStatsCardsProps) => {
-  const successRate =
-    stats.totalActiveProducts + stats.totalSoldProducts > 0
-      ? Math.round(
-          (stats.totalSoldProducts /
-            (stats.totalActiveProducts + stats.totalSoldProducts)) *
-            100
-        )
-      : 0;
-
   return (
     <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-4", className)}>
       <StatsCard
@@ -89,7 +77,7 @@ const SellerStatsCards = ({ stats, className }: SellerStatsCardsProps) => {
       />
       <StatsCard
         title="Tỷ lệ thành công"
-        value={`${successRate}%`}
+        value={`${Math.round(stats.successRate * 100)}%`}
         icon={<TrendingUp className="h-5 w-5" />}
         iconColor="text-orange-600"
         bgColor="bg-orange-50"
