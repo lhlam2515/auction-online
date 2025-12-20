@@ -22,6 +22,7 @@ import type {
 
   // Product types
   Product,
+  ProductDetails,
   ProductListing,
   CreateProductRequest,
   UpdateDescriptionRequest,
@@ -57,6 +58,7 @@ import type {
 
   // Order types
   Order,
+  OrderWithDetails,
   OrderPayment,
   CreateOrderRequest,
   GetOrdersParams,
@@ -68,6 +70,7 @@ import type {
   // Seller types
   GetSellerProductsParams,
   GetSellerOrdersParams,
+  SellerStats,
 
   // Rating types
   CreateRatingRequest,
@@ -87,8 +90,6 @@ import type {
   PaginatedResponse,
   PaginationParams,
   SearchProductsParams,
-  OrderWithDetails,
-  ProductDetails,
 } from "@repo/shared-types";
 
 import { apiClient } from "@/lib/handlers/api";
@@ -385,10 +386,15 @@ export const api = {
      * Get seller's order history
      */
     getOrders: (params?: GetSellerOrdersParams) =>
-      apiCall<PaginatedResponse<Order>>(
+      apiCall<PaginatedResponse<OrderWithDetails>>(
         "GET",
         appendQueryParams("/seller/selling-orders", paramsToRecord(params))
       ),
+
+    /**
+     * Get seller's dashboard statistics
+     */
+    getStats: () => apiCall<SellerStats>("GET", "/seller/stats"),
   },
 
   /**

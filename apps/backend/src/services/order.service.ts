@@ -158,7 +158,14 @@ export class OrderService {
 
     const ordersList = await db.query.orders.findMany({
       where: and(whereCondition, statusCondition),
-      with: { product: true, winner: true, seller: true, payments: true },
+      with: {
+        product: {
+          with: { images: true },
+        },
+        winner: true,
+        seller: true,
+        payments: true,
+      },
       orderBy: (orders, { desc }) => [desc(orders.createdAt)],
       limit,
       offset,
@@ -171,7 +178,7 @@ export class OrderService {
         product: {
           name: order.product.name,
           slug: order.product.slug,
-          thumbnail: undefined, // Could fetch thumbnail if needed
+          thumbnail: order.product.images.find((img) => img.isMain)?.imageUrl,
         },
         winner: {
           fullName: order.winner.fullName,
