@@ -184,7 +184,8 @@ export class ProductService {
     if (status) {
       if (status === "ENDED") {
         conditions.push(lt(products.endTime, now));
-        conditions.push(ne(products.status, "SOLD"));
+        conditions.push(ne(products.status, "PENDING"));
+        conditions.push(ne(products.status, "ACTIVE"));
       } else {
         conditions.push(eq(products.status, status));
       }
