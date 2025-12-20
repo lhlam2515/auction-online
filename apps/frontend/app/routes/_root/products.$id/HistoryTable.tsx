@@ -148,7 +148,7 @@ export function HistoryTable({
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                           <span className="font-semibold text-amber-500">
-                            {bid.ratingScore}/10
+                            {bid.ratingScore * 100}%
                           </span>
                         </div>
                       </TableCell>

@@ -165,7 +165,7 @@ export function ProductMainInfo({
               <div className="mt-2 flex items-center gap-1">
                 <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                 <span className="text-lg font-semibold text-amber-500">
-                  {product.sellerRatingScore}/10
+                  {product.sellerRatingScore * 100}%
                 </span>
                 <span className="text-muted-foreground ml-1 text-sm">
                   ({product.sellerRatingCount} đánh giá)
