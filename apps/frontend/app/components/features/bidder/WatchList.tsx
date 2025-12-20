@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import ProductCard from "@/components/features/product/ProductCard";
 import { Card, CardContent } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 
@@ -21,18 +22,21 @@ type WatchListProps = {
 
 const WatchList = (props: WatchListProps) => {
   const [watchlist, setWatchlist] = useState<ProductListing[]>([]);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
         const list = await api.products.getWatchListByCard();
-        console.log(list);
+
         if (list?.success && list.data) {
           setWatchlist(list.data);
         } else {
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
+          setLoading(false);
         }
       } catch (error) {
         toast.error(ERROR_MESSAGES.SERVER_ERROR);
+        setLoading(false);
       }
     };
     fetchData();
@@ -40,19 +44,26 @@ const WatchList = (props: WatchListProps) => {
   return (
     <CardContent>
       {/* Tab 3: Watchlist */}
-      {/* <TabsContent value="watchlist" className="space-y-4"> */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {watchlist.map((item) => {
-          console.log(item);
-          return (
-            <div key={item.id} className="group relative">
-              <ProductCard product={item} className="col-span-1" />
-            </div>
-          );
-        })}
-      </div>
 
-      {watchlist.length === 0 && (
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Spinner />
+          <span className="ml-2">Đang tải dữ liệu theo dõi</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {watchlist.map((item) => {
+            console.log(item);
+            return (
+              <div key={item.id} className="group relative">
+                <ProductCard product={item} className="col-span-1" />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {watchlist.length === 0 && !loading && (
         <div className="py-12 text-center">
           <p className="text-muted-foreground">
             Chưa có sản phẩm yêu thích nào

@@ -83,7 +83,7 @@ export default function UserProfilePage() {
         ? data.birthDate.toISOString().split("T")[0]
         : null,
       address: data.address || "",
-      avatarUrl: "",
+      avatarUrl: data.avatarUrl || "",
     });
     return result;
   }, []);

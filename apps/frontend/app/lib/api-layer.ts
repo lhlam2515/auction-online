@@ -91,6 +91,7 @@ import type {
   PaginationParams,
   SearchProductsParams,
 } from "@repo/shared-types";
+import { data } from "react-router";
 
 import { apiClient } from "@/lib/handlers/api";
 import { appendQueryParams } from "@/lib/url";

@@ -15,49 +15,6 @@ import { formatPrice } from "@/lib/utils";
 
 import type { Route } from "./+types/route";
 
-// import { ProductCard } from "@/components/ui/product-card"
-
-// Mock Watchlist data
-// import { ProductCard } from "@/components/ui/product-card"
-
-// Mock Won Auctions data
-
-// Mock Watchlist data
-const watchlistItems = [
-  {
-    id: "5",
-    name: "Rolex Submariner Date",
-    image: "/placeholder.svg?height=300&width=400",
-    currentPrice: 250000000,
-    buyNowPrice: 280000000,
-    topBidder: "****Minh",
-    bidCount: 45,
-    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    isNew: false,
-  },
-  {
-    id: "6",
-    name: "Gaming PC RTX 4090",
-    image: "/placeholder.svg?height=300&width=400",
-    currentPrice: 65000000,
-    buyNowPrice: 75000000,
-    topBidder: "****Hùng",
-    bidCount: 28,
-    endTime: new Date(Date.now() + 12 * 60 * 60 * 1000),
-    isNew: true,
-  },
-  {
-    id: "7",
-    name: "Louis Vuitton Neverfull MM",
-    image: "/placeholder.svg?height=300&width=400",
-    currentPrice: 35000000,
-    topBidder: "****Lan",
-    bidCount: 18,
-    endTime: new Date(Date.now() + 45 * 60 * 1000),
-    isNew: false,
-  },
-];
-
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Account Dashboard - Online Auction" },
@@ -150,7 +107,7 @@ export default function AccountDashboardPage() {
         <aside className="lg:col-span-3">
           <div className="grid gap-4 md:grid-cols-3">
             {/* Card 1: Tổng chi tiêu */}
-            <Card className="overflow-hidden border-none shadow-sm">
+            <Card className="overflow-hidden shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
@@ -175,7 +132,7 @@ export default function AccountDashboardPage() {
             </Card>
 
             {/* Card 2: Tổng đơn đặt hàng */}
-            <Card className="overflow-hidden border-none shadow-sm">
+            <Card className="overflow-hidden shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="rounded-lg bg-emerald-100 p-3 text-emerald-600">
@@ -195,7 +152,7 @@ export default function AccountDashboardPage() {
             </Card>
 
             {/* Card 3: Đơn thành công */}
-            <Card className="overflow-hidden border-none shadow-sm">
+            <Card className="overflow-hidden shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="rounded-lg bg-purple-100 p-3 text-purple-600">

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api-layer";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
 import logger from "@/lib/logger";
 
@@ -74,21 +75,27 @@ export default function ChangeUserAvatar({
 
     try {
       // TODO: Implement avatar upload logic
-      // You need to create an API endpoint for uploading avatar images
-      // For example: const result = await api.users.uploadAvatar(formData);
-      // Then update the profile with the new avatar URL
+      const user = await api.users.getProfile();
+      console.log(file);
+      if (user.success && user.data) {
+        const updated = await api.users.updateProfile({
+          fullName: user.data.fullName,
+          email: user.data.email,
+          address: user.data.address,
+          birthDate: (user.data.birthDate || "").toString(),
+          avatarUrl: file.toString(),
+        });
 
-      // Placeholder: Simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Placeholder: Assume upload successful and get new URL
-      const newAvatarUrl = "https://example.com/avatar.jpg"; // Replace with actual URL
+        // Placeholder: Assume upload successful and get new URL
 
-      logger.info("Avatar upload simulated successfully");
+        logger.info("Avatar upload simulated successfully");
 
-      // Update the avatar URL
-      if (onAvatarUpdate) {
-        onAvatarUpdate(newAvatarUrl);
+        // Update the avatar URL
+        if (onAvatarUpdate) {
+          onAvatarUpdate(file.toString());
+        }
       }
     } catch (error) {
       const errorMessage = getErrorMessage(error);
