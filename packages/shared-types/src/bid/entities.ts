@@ -41,5 +41,6 @@ export interface MyAutoBid extends AutoBid {
     currentPrice: string | null; // Decimal as string
     endTime: Date | string;
     winnerId: string | null;
+    imageUrl: string | null;
   };
 }
