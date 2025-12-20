@@ -6,13 +6,16 @@ import {
   Gavel,
   Clock,
   Calendar,
+  Pencil,
 } from "lucide-react";
 import React from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
+import { SELLER_ROUTES } from "@/constants/routes";
 import { useWatchlist } from "@/contexts/watchlist-provider";
 import useCountdown from "@/hooks/useCountdown";
 import logger from "@/lib/logger";
@@ -179,11 +182,24 @@ export function ProductMainInfo({
       {/* Action Buttons */}
 
       {isSeller ? (
-        <div className="flex gap-3">{/* Buttons for seller */}</div>
+        <div className="flex gap-3">
+          <Button
+            size="lg"
+            variant="default"
+            className="flex h-14 flex-1 items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
+            asChild
+          >
+            <Link to={SELLER_ROUTES.PRODUCT(product.id)}>
+              <Pencil className="h-4 w-4" />
+              Chỉnh sửa sản phẩm
+            </Link>
+          </Button>
+        </div>
       ) : isLoggedIn && !isAuctionEnded ? (
         <div className="flex gap-3">
           <Button
             size="lg"
+            variant="default"
             className="h-14 flex-1 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
             onClick={handleBidClick}
           >
