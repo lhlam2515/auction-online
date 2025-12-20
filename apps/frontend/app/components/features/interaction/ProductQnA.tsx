@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProductQuestionWithUsers } from "@repo/shared-types";
-import { MessageCircle, Send } from "lucide-react";
+import { Loader2, MessageCircle, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -163,6 +163,7 @@ export function ProductQA({
         <div className="space-y-6">
           {loading ? (
             <p className="text-muted-foreground text-center">
+              <Loader2 className="mr-2 inline-block h-5 w-5 animate-spin" />
               Đang tải câu hỏi...
             </p>
           ) : questions.length === 0 ? (
