@@ -43,7 +43,7 @@ export function BiddingDialog({
   const [isLoadingAutoBid, setIsLoadingAutoBid] = useState(false);
 
   const minBid = currentPrice + stepPrice;
-  const isEligible = userRating >= 80;
+  const isEligible = product.freeToBid || userRating >= 80;
   const isUpdatingAutoBid = existingAutoBid !== null;
   const minRequiredBid = isUpdatingAutoBid
     ? Math.max(minBid, Number(existingAutoBid.maxAmount) + stepPrice)
@@ -241,8 +241,7 @@ export function BiddingDialog({
                 <Alert variant="destructive">
                   <AlertTriangleIcon className="h-4 w-4" />
                   <AlertDescription>
-                    Điểm uy tín của bạn quá thấp (&lt;80%) để đấu giá sản phẩm
-                    này.
+                    Điểm uy tín của bạn quá thấp để đấu giá sản phẩm này.
                     <br />
                     <span className="text-sm">
                       Điểm hiện tại: {userRating}% - Yêu cầu tối thiểu: 80%

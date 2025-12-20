@@ -31,10 +31,6 @@ export default function ProductDetailPage() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  if (!id) {
-    return <div>Invalid product ID.</div>;
-  }
-
   const [loading, setLoading] = React.useState(false);
   const [product, setProduct] = React.useState<ProductDetails>();
   const [isSeller, setIsSeller] = React.useState(false);
@@ -52,6 +48,12 @@ export default function ProductDetailPage() {
         setLoading(true);
 
         // Fetch product first
+        if (!id) {
+          if (isMounted) {
+            navigate("/not-found", { replace: true });
+          }
+          return;
+        }
         const product_res = await api.products.getById(id);
 
         // If product fetch fails, redirect to not found
@@ -182,7 +184,7 @@ export default function ProductDetailPage() {
             open={showBiddingDialog}
             onOpenChange={setShowBiddingDialog}
             product={product}
-            userRating={userData?.ratingScore ?? 0}
+            userRating={userData?.ratingScore ? userData?.ratingScore * 100 : 0}
           />
         </div>
       )}
