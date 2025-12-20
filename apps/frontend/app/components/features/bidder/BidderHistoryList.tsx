@@ -1,8 +1,9 @@
 import type { MyAutoBid } from "@repo/shared-types";
+import { Package } from "lucide-react";
 import { useMemo } from "react";
+import { Link } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   TableHeader,
   TableRow,
@@ -12,6 +13,7 @@ import {
   Table,
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
+import { APP_ROUTES } from "@/constants/routes";
 import { formatDate, formatPrice } from "@/lib/utils";
 
 type BidderHistoryListProps = {
@@ -39,7 +41,6 @@ const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
               <TableHead>Giá tối đa của bạn</TableHead>
               <TableHead>Kết thúc</TableHead>
               <TableHead>Trạng thái</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -57,7 +58,20 @@ const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
                 return (
                   <TableRow key={bid.id}>
                     <TableCell className="font-medium">
-                      {bid.product.name}
+                      {/* { ? (
+                        <img
+                          src={order.product.thumbnail}
+                          alt={order.product.name}
+                          className="h-10 w-10 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200">
+                          <Package className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )} */}
+                      <Link to={APP_ROUTES.PRODUCT(bid.productId)}>
+                        {bid.product.name}
+                      </Link>
                     </TableCell>
                     <TableCell>
                       {formatPrice(Number(bid.product.currentPrice || 0))}
@@ -78,17 +92,6 @@ const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
                         >
                           Bị trả giá
                         </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {!isLeading && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-amber-300 bg-transparent text-amber-700"
-                        >
-                          Đấu lại
-                        </Button>
                       )}
                     </TableCell>
                   </TableRow>
