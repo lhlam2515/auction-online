@@ -26,10 +26,11 @@ const WatchList = (props: WatchListProps) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log("day ne");
         const list = await api.products.getWatchListByCard();
-
         if (list?.success && list.data) {
           setWatchlist(list.data);
+          setLoading(false);
         } else {
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
           setLoading(false);
