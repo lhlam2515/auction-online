@@ -1,5 +1,5 @@
 import type { MyAutoBid, OrderWithDetails } from "@repo/shared-types";
-import { Eye } from "lucide-react";
+import { Eye, Package } from "lucide-react";
 import { Link } from "react-router";
 
 import OrderStatusBadge from "@/components/common/OrderStatusBadge";
@@ -13,7 +13,7 @@ import {
   Table,
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
-import { ACCOUNT_ROUTES } from "@/constants/routes";
+import { ACCOUNT_ROUTES, APP_ROUTES } from "@/constants/routes";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
 type WonAuctionListProps = {
@@ -55,7 +55,27 @@ const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
                 return (
                   <TableRow key={bid.id}>
                     <TableCell className="font-medium">
-                      {bid.product.name}
+                      <div className="flex items-center gap-3">
+                        {bid.product.imageUrl ? (
+                          <img
+                            src={bid.product.imageUrl}
+                            alt={bid.product.name}
+                            className="h-10 w-10 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200">
+                            <Package className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        <div>
+                          <Link
+                            to={APP_ROUTES.PRODUCT(bid.productId)}
+                            className="font-medium hover:underline"
+                          >
+                            {bid.product.name}
+                          </Link>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {formatPrice(Number(bid.product.currentPrice || 0))}

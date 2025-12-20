@@ -54,24 +54,30 @@ const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
               filteredActiveBids.map((bid) => {
                 const isLeading =
                   Number(bid.product.currentPrice) <= Number(bid.maxAmount);
-
                 return (
                   <TableRow key={bid.id}>
                     <TableCell className="font-medium">
-                      {/* { ? (
-                        <img
-                          src={order.product.thumbnail}
-                          alt={order.product.name}
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200">
-                          <Package className="h-5 w-5 text-gray-400" />
+                      <div className="flex items-center gap-3">
+                        {bid.product.imageUrl ? (
+                          <img
+                            src={bid.product.imageUrl}
+                            alt={bid.product.name}
+                            className="h-10 w-10 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200">
+                            <Package className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        <div>
+                          <Link
+                            to={APP_ROUTES.PRODUCT(bid.productId)}
+                            className="font-medium hover:underline"
+                          >
+                            {bid.product.name}
+                          </Link>
                         </div>
-                      )} */}
-                      <Link to={APP_ROUTES.PRODUCT(bid.productId)}>
-                        {bid.product.name}
-                      </Link>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {formatPrice(Number(bid.product.currentPrice || 0))}

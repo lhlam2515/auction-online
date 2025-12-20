@@ -1,4 +1,6 @@
 import type { MyAutoBid } from "@repo/shared-types";
+import { Package } from "lucide-react";
+import { Link } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,6 +12,7 @@ import {
   Table,
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
+import { APP_ROUTES } from "@/constants/routes";
 import { formatDate, formatPrice } from "@/lib/utils";
 
 type LoseAuctionListProps = {
@@ -45,7 +48,28 @@ const LoseAuctionList = ({ lostBids }: LoseAuctionListProps) => {
               lostBids.map((bid) => (
                 <TableRow key={bid.id}>
                   <TableCell className="font-medium">
-                    {bid.product.name}
+                    <div className="flex items-center gap-3">
+                      {bid.product.imageUrl ? (
+                        <img
+                          src={bid.product.imageUrl}
+                          alt={bid.product.name}
+                          className="h-10 w-10 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200">
+                          <Package className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <Link
+                          to={APP_ROUTES.PRODUCT(bid.productId)}
+                          className="font-medium hover:underline"
+                        >
+                          {bid.product.name}
+                        </Link>
+                      </div>
+                    </div>
+                    {/* {bid.product.name} */}
                   </TableCell>
                   <TableCell>
                     {formatPrice(Number(bid.product.currentPrice || 0))}
