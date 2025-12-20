@@ -38,7 +38,6 @@ export default function SellerProductsListPage() {
     Record<string, PaginatedResponse<ProductListing> | null>
   >({
     ACTIVE: null,
-    SOLD: null,
     ENDED: null,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -110,7 +109,6 @@ export default function SellerProductsListPage() {
   const tabCounts: Record<string, number> = useMemo(() => {
     return {
       ACTIVE: tabsData.ACTIVE?.pagination.total || 0,
-      SOLD: tabsData.SOLD?.pagination.total || 0,
       ENDED: tabsData.ENDED?.pagination.total || 0,
     };
   }, [tabsData]);
