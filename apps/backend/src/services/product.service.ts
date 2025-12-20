@@ -513,6 +513,26 @@ export class ProductService {
     return `${process.env.FRONTEND_URL}/products/${productId}`;
   }
 
+  async getWatchListByCard(userId: string): Promise<ProductListing[]> {
+    // const existingUser = await this.getById(userId); // ensure user exists
+
+    const items = await db.query.watchLists.findMany({
+      where: eq(watchLists.userId, userId),
+      with: {
+        product: true,
+      },
+    });
+
+    const productsList: Product[] = items.map((item) => ({
+      ...item.product,
+      buyNowPrice: item.product.buyNowPrice ?? null,
+      currentPrice: item.product.currentPrice ?? null,
+    }));
+
+    const enrichedProducts = await this.enrichProducts(productsList, userId);
+    return enrichedProducts;
+  }
+
   /**
    * Enrich a list of products with related data in batch to avoid N+1 queries.
    */
