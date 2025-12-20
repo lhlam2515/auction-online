@@ -1,4 +1,4 @@
-import type { ProductDetails } from "@repo/shared-types";
+import type { ProductDetails, User } from "@repo/shared-types";
 import {
   Heart,
   Star,
@@ -6,24 +6,28 @@ import {
   Gavel,
   Clock,
   Calendar,
+  Pencil,
 } from "lucide-react";
 import React from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
+import { SELLER_ROUTES } from "@/constants/routes";
 import { useWatchlist } from "@/contexts/watchlist-provider";
 import useCountdown from "@/hooks/useCountdown";
 import logger from "@/lib/logger";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
+import { BiddingDialog } from "@/routes/_root/products.$id/BidForm";
 import { BuyNowDialog } from "@/routes/_root/products.$id/BuyNowDialog";
 
 interface ProductInfoProps {
   product: ProductDetails;
   isLoggedIn: boolean;
   isSeller: boolean;
-  onBidClick: () => void;
+  userData?: User;
   className?: string;
   [key: string]: any;
 }
@@ -34,7 +38,7 @@ export function ProductMainInfo({
   product,
   isLoggedIn,
   isSeller,
-  onBidClick,
+  userData,
   className,
 }: ProductInfoProps) {
   const {
@@ -45,6 +49,9 @@ export function ProductMainInfo({
 
   // State cho BuyNow dialog
   const [showBuyNowDialog, setShowBuyNowDialog] = React.useState(false);
+
+  // State cho BiddingDialog
+  const [showBiddingDialog, setShowBiddingDialog] = React.useState(false);
 
   // Memoize để tránh re-compute liên tục
   const isProductInWatchlist = React.useMemo(
@@ -87,6 +94,14 @@ export function ProductMainInfo({
       setShowBuyNowDialog(true);
     } else {
       toast.error("Sản phẩm này không hỗ trợ mua ngay");
+    }
+  };
+
+  const handleBidClick = () => {
+    if (isLoggedIn) {
+      setShowBiddingDialog(true);
+    } else {
+      toast.error("Vui lòng đăng nhập để đặt giá.");
     }
   };
 
@@ -153,7 +168,7 @@ export function ProductMainInfo({
               <div className="mt-2 flex items-center gap-1">
                 <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                 <span className="text-lg font-semibold text-amber-500">
-                  {product.sellerRatingScore}/10
+                  {product.sellerRatingScore * 100}%
                 </span>
                 <span className="text-muted-foreground ml-1 text-sm">
                   ({product.sellerRatingCount} đánh giá)
@@ -167,13 +182,26 @@ export function ProductMainInfo({
       {/* Action Buttons */}
 
       {isSeller ? (
-        <div className="flex gap-3">{/* Buttons for seller */}</div>
+        <div className="flex gap-3">
+          <Button
+            size="lg"
+            variant="default"
+            className="flex h-14 flex-1 items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
+            asChild
+          >
+            <Link to={SELLER_ROUTES.PRODUCT(product.id)}>
+              <Pencil className="h-4 w-4" />
+              Chỉnh sửa sản phẩm
+            </Link>
+          </Button>
+        </div>
       ) : isLoggedIn && !isAuctionEnded ? (
         <div className="flex gap-3">
           <Button
             size="lg"
+            variant="default"
             className="h-14 flex-1 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
-            onClick={onBidClick}
+            onClick={handleBidClick}
           >
             <Gavel className="mr-2 h-5 w-5" />
             Đặt giá
@@ -216,6 +244,14 @@ export function ProductMainInfo({
         open={showBuyNowDialog}
         onOpenChange={setShowBuyNowDialog}
         product={product}
+      />
+
+      {/* Bidding Dialog */}
+      <BiddingDialog
+        open={showBiddingDialog}
+        onOpenChange={setShowBiddingDialog}
+        product={product}
+        userRating={userData?.ratingScore ? userData?.ratingScore * 100 : 0}
       />
     </div>
   );

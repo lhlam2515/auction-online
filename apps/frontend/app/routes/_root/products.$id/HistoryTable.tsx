@@ -1,5 +1,12 @@
 import type { BidWithUser } from "@repo/shared-types";
-import { Star, ChevronDown, ChevronUp, Gavel, UserMinus } from "lucide-react";
+import {
+  Star,
+  ChevronDown,
+  ChevronUp,
+  Gavel,
+  UserMinus,
+  Loader2,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -99,6 +106,7 @@ export function HistoryTable({
       <CardContent>
         {loading ? (
           <p className="text-muted-foreground text-center">
+            <Loader2 className="mr-2 inline-block h-5 w-5 animate-spin" />
             Đang tải lịch sử đấu giá...
           </p>
         ) : bids.length === 0 ? (
@@ -148,7 +156,7 @@ export function HistoryTable({
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                           <span className="font-semibold text-amber-500">
-                            {bid.ratingScore}/10
+                            {bid.ratingScore * 100}%
                           </span>
                         </div>
                       </TableCell>

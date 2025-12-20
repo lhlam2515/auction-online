@@ -14,7 +14,6 @@ import logger from "@/lib/logger";
 import { HistoryTable } from "@/routes/_root/products.$id/HistoryTable";
 
 import type { Route } from "./+types/route";
-import { BiddingDialog } from "./BidForm";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -31,17 +30,12 @@ export default function ProductDetailPage() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  if (!id) {
-    return <div>Invalid product ID.</div>;
-  }
-
   const [loading, setLoading] = React.useState(false);
   const [product, setProduct] = React.useState<ProductDetails>();
   const [isSeller, setIsSeller] = React.useState(false);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [userData, setUserData] = React.useState<User>();
 
-  const [showBiddingDialog, setShowBiddingDialog] = React.useState(false);
   const [isEnded, setIsEnded] = React.useState(true);
 
   React.useEffect(() => {
@@ -52,6 +46,12 @@ export default function ProductDetailPage() {
         setLoading(true);
 
         // Fetch product first
+        if (!id) {
+          if (isMounted) {
+            navigate("/not-found", { replace: true });
+          }
+          return;
+        }
         const product_res = await api.products.getById(id);
 
         // If product fetch fails, redirect to not found
@@ -122,14 +122,6 @@ export default function ProductDetailPage() {
     }
   }, [isLoading, user, product]);
 
-  const handleBidClick = () => {
-    if (isLoggedIn) {
-      setShowBiddingDialog(true);
-    } else {
-      toast.error("Vui lòng đăng nhập để đặt giá.");
-    }
-  };
-
   return (
     <>
       {!loading && product && (
@@ -146,7 +138,7 @@ export default function ProductDetailPage() {
               product={product}
               isLoggedIn={isLoggedIn}
               isSeller={isSeller}
-              onBidClick={handleBidClick}
+              userData={userData}
             />
           </section>
 
@@ -177,13 +169,6 @@ export default function ProductDetailPage() {
           <section className="mb-8">
             <RelatedProducts productId={product.id} />
           </section>
-
-          <BiddingDialog
-            open={showBiddingDialog}
-            onOpenChange={setShowBiddingDialog}
-            product={product}
-            userRating={userData?.ratingScore ?? 0}
-          />
         </div>
       )}
     </>

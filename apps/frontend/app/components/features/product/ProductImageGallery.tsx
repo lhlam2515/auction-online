@@ -109,6 +109,7 @@ export function ProductImageGallery({
         />
       </div>
 
+      {/* Thumbnail Gallery */}
       <div className="relative">
         <div
           ref={scrollContainerRef}
@@ -116,7 +117,7 @@ export function ProductImageGallery({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUpOrLeave}
           onMouseLeave={handleMouseUpOrLeave}
-          className={`scrollbar-thin flex gap-2 overflow-x-auto py-2 select-none ${
+          className={`scrollbar-thin flex gap-2 overflow-x-auto p-2 select-none ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
         >
