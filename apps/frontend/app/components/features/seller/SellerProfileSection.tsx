@@ -124,7 +124,11 @@ const SellerProfileSection = ({
                       : "text-slate-700"
                   )}
                 >
-                  {daysLeft ? `Còn ${daysLeft} ngày` : "Vĩnh viễn"}
+                  {daysLeft
+                    ? daysLeft < 0
+                      ? "Đã hết hạn"
+                      : `Còn ${daysLeft} ngày`
+                    : "Vĩnh viễn"}
                 </span>
               </div>
               <Separator />
