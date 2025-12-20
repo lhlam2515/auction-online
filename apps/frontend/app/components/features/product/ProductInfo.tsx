@@ -1,4 +1,4 @@
-import type { ProductDetails } from "@repo/shared-types";
+import type { ProductDetails, User } from "@repo/shared-types";
 import {
   Heart,
   Star,
@@ -17,13 +17,14 @@ import { useWatchlist } from "@/contexts/watchlist-provider";
 import useCountdown from "@/hooks/useCountdown";
 import logger from "@/lib/logger";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
+import { BiddingDialog } from "@/routes/_root/products.$id/BidForm";
 import { BuyNowDialog } from "@/routes/_root/products.$id/BuyNowDialog";
 
 interface ProductInfoProps {
   product: ProductDetails;
   isLoggedIn: boolean;
   isSeller: boolean;
-  onBidClick: () => void;
+  userData?: User;
   className?: string;
   [key: string]: any;
 }
@@ -34,7 +35,7 @@ export function ProductMainInfo({
   product,
   isLoggedIn,
   isSeller,
-  onBidClick,
+  userData,
   className,
 }: ProductInfoProps) {
   const {
@@ -45,6 +46,9 @@ export function ProductMainInfo({
 
   // State cho BuyNow dialog
   const [showBuyNowDialog, setShowBuyNowDialog] = React.useState(false);
+
+  // State cho BiddingDialog
+  const [showBiddingDialog, setShowBiddingDialog] = React.useState(false);
 
   // Memoize để tránh re-compute liên tục
   const isProductInWatchlist = React.useMemo(
@@ -87,6 +91,14 @@ export function ProductMainInfo({
       setShowBuyNowDialog(true);
     } else {
       toast.error("Sản phẩm này không hỗ trợ mua ngay");
+    }
+  };
+
+  const handleBidClick = () => {
+    if (isLoggedIn) {
+      setShowBiddingDialog(true);
+    } else {
+      toast.error("Vui lòng đăng nhập để đặt giá.");
     }
   };
 
@@ -173,7 +185,7 @@ export function ProductMainInfo({
           <Button
             size="lg"
             className="h-14 flex-1 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
-            onClick={onBidClick}
+            onClick={handleBidClick}
           >
             <Gavel className="mr-2 h-5 w-5" />
             Đặt giá
@@ -216,6 +228,14 @@ export function ProductMainInfo({
         open={showBuyNowDialog}
         onOpenChange={setShowBuyNowDialog}
         product={product}
+      />
+
+      {/* Bidding Dialog */}
+      <BiddingDialog
+        open={showBiddingDialog}
+        onOpenChange={setShowBiddingDialog}
+        product={product}
+        userRating={userData?.ratingScore ? userData?.ratingScore * 100 : 0}
       />
     </div>
   );

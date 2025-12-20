@@ -14,7 +14,6 @@ import logger from "@/lib/logger";
 import { HistoryTable } from "@/routes/_root/products.$id/HistoryTable";
 
 import type { Route } from "./+types/route";
-import { BiddingDialog } from "./BidForm";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -37,7 +36,6 @@ export default function ProductDetailPage() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [userData, setUserData] = React.useState<User>();
 
-  const [showBiddingDialog, setShowBiddingDialog] = React.useState(false);
   const [isEnded, setIsEnded] = React.useState(true);
 
   React.useEffect(() => {
@@ -124,14 +122,6 @@ export default function ProductDetailPage() {
     }
   }, [isLoading, user, product]);
 
-  const handleBidClick = () => {
-    if (isLoggedIn) {
-      setShowBiddingDialog(true);
-    } else {
-      toast.error("Vui lòng đăng nhập để đặt giá.");
-    }
-  };
-
   return (
     <>
       {!loading && product && (
@@ -148,7 +138,7 @@ export default function ProductDetailPage() {
               product={product}
               isLoggedIn={isLoggedIn}
               isSeller={isSeller}
-              onBidClick={handleBidClick}
+              userData={userData}
             />
           </section>
 
@@ -179,13 +169,6 @@ export default function ProductDetailPage() {
           <section className="mb-8">
             <RelatedProducts productId={product.id} />
           </section>
-
-          <BiddingDialog
-            open={showBiddingDialog}
-            onOpenChange={setShowBiddingDialog}
-            product={product}
-            userRating={userData?.ratingScore ? userData?.ratingScore * 100 : 0}
-          />
         </div>
       )}
     </>
