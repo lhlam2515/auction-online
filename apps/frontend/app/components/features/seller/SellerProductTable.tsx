@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { APP_ROUTES, SELLER_ROUTES } from "@/constants/routes";
-import { cn, formatPrice, formatTimeRemaining } from "@/lib/utils";
+import { cn, formatDate, formatPrice, formatTimeRemaining } from "@/lib/utils";
 
 type SellerProductTableProps = {
   products: ProductListing[];
@@ -112,7 +112,7 @@ const SellerProductTable = ({
             <TableHead>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Thời gian còn lại
+                {type === "active" ? "Thời gian còn lại" : "Ngày kết thúc"}
               </div>
             </TableHead>
             <TableHead>Trạng thái</TableHead>
@@ -125,7 +125,10 @@ const SellerProductTable = ({
               ? formatPrice(parseInt(product.currentPrice, 10))
               : "Chưa có giá thầu";
 
-            const timeDisplay = formatTimeRemaining(product.endTime);
+            const timeDisplay =
+              type === "active"
+                ? formatTimeRemaining(new Date(product.endTime))
+                : formatDate(new Date(product.endTime));
 
             const winnerDisplay =
               type === "active"
