@@ -70,6 +70,22 @@ export const upgradeRequestSchema = z.object({
 });
 
 /**
+ * Shipping information update validation schema
+ * @description Validates shipping address and phone number updates
+ */
+export const updateShippingInfoSchema = z.object({
+  shippingAddress: z.string().min(10, "Địa chỉ giao hàng quá ngắn"),
+  phoneNumber: z
+    .string()
+    .regex(
+      /^(0|\+84)(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5|8|9]|9[0-4|6-9])[0-9]{7}$/,
+      {
+        message: "Số điện thoại không hợp lệ",
+      }
+    ),
+});
+
+/**
  * User validation schema types
  */
 export type UpdateProfileSchemaType = z.infer<typeof updateProfileSchema>;
