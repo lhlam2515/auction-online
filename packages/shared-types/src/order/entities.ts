@@ -1,3 +1,5 @@
+import { RatingSummary } from "../rating";
+import { PublicProfile } from "../user";
 import type {
   OrderStatus,
   PaymentMethod,
@@ -47,11 +49,16 @@ export interface OrderWithDetails extends Order {
   winner: {
     fullName: string;
     email: string;
+    address: string;
+    ratingScore: number;
   };
   seller: {
     fullName: string;
     email: string;
+    address: string;
+    ratingScore: number;
   };
+  payment?: OrderPayment;
 }
 
 /**

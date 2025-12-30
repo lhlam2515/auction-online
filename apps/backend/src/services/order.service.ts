@@ -109,16 +109,17 @@ export class OrderService {
   async getById(orderId: string) {
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
-      with: { product: true, winner: true, seller: true },
+      with: {
+        product: { with: { images: true } },
+        winner: true,
+        seller: true,
+        payment: true,
+      },
     });
 
     if (!order) {
       throw new NotFoundError("Order");
     }
-
-    const thumbnail = await db.query.productImages.findFirst({
-      where: sql`${productImages.productId} = ${order.product.id} AND ${productImages.isMain} = true`,
-    });
 
     // Transform to match OrderWithDetails interface
     const transformedOrder = {
@@ -126,15 +127,21 @@ export class OrderService {
       product: {
         name: order.product.name,
         slug: order.product.slug,
-        thumbnail: thumbnail ? thumbnail.imageUrl : undefined,
+        thumbnail: order.product.images.find((img) => img.isMain)?.imageUrl,
       },
       winner: {
         fullName: order.winner.fullName,
         email: order.winner.email,
+        address: order.winner.address,
+        ratingScore: order.winner.ratingScore,
+        ratingCount: order.winner.ratingCount,
       },
       seller: {
         fullName: order.seller.fullName,
         email: order.seller.email,
+        address: order.seller.address,
+        ratingScore: order.seller.ratingScore,
+        ratingCount: order.seller.ratingCount,
       },
     };
 
@@ -158,12 +165,9 @@ export class OrderService {
     const ordersList = await db.query.orders.findMany({
       where: and(whereCondition, statusCondition),
       with: {
-        product: {
-          with: { images: true },
-        },
+        product: { with: { images: true } },
         winner: true,
         seller: true,
-        payments: true,
       },
       orderBy: (orders, { desc }) => [desc(orders.createdAt)],
       limit,
@@ -182,10 +186,14 @@ export class OrderService {
         winner: {
           fullName: order.winner.fullName,
           email: order.winner.email,
+          address: order.winner.address,
+          ratingScore: order.winner.ratingScore,
         },
         seller: {
           fullName: order.seller.fullName,
           email: order.seller.email,
+          address: order.seller.address,
+          ratingScore: order.seller.ratingScore,
         },
       };
     });
