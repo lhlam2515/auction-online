@@ -1,0 +1,121 @@
+import type { OrderWithDetails } from "@repo/shared-types";
+import { Clock, CheckCircle2, Package, AlertCircle, Info } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn, formatDate } from "@/lib/utils";
+
+import ShippingInfo from "./shipping-info";
+import TimelineItem from "./TimelineItem";
+
+interface AwaitingConfirmationStepProps {
+  order: OrderWithDetails;
+}
+
+export function AwaitingConfirmationStep({
+  order,
+}: AwaitingConfirmationStepProps) {
+  const paidAt = order.payment?.paidAt
+    ? new Date(order.payment.paidAt)
+    : new Date();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Chờ người bán xác nhận</CardTitle>
+        <CardDescription>
+          Người bán đang chuẩn bị và sẽ gửi hàng sớm nhất
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <Alert
+          className={cn({
+            "border-amber-300 bg-amber-50 text-amber-600":
+              !order.sellerConfirmedAt,
+            "border-blue-300 bg-blue-50 text-blue-600": order.sellerConfirmedAt,
+          })}
+        >
+          <Clock />
+          <AlertTitle>
+            {!order.sellerConfirmedAt
+              ? "Đơn hàng đang chờ người bán xác nhận đã nhận tiền. Người bán sẽ xác nhận trong vòng 24-48 giờ."
+              : "Người bán đã xác nhận nhận tiền và đang chuẩn bị hàng. Hàng sẽ được bàn giao để vận chuyển sớm nhất."}
+          </AlertTitle>
+        </Alert>
+
+        {/* Order Status Timeline */}
+        <div className="space-y-4">
+          <h4 className="font-semibold text-slate-900">Trạng thái đơn hàng</h4>
+          <div>
+            <TimelineItem
+              icon={CheckCircle2}
+              title="Thanh toán thành công"
+              description={formatDate(paidAt) || "Đã xác nhận"}
+              status="completed"
+            />
+
+            <TimelineItem
+              icon={AlertCircle}
+              title={
+                order.sellerConfirmedAt
+                  ? "Người bán đã xác nhận nhận tiền"
+                  : "Chờ người bán xác nhận nhận tiền"
+              }
+              description={
+                order.sellerConfirmedAt
+                  ? formatDate(order.sellerConfirmedAt)
+                  : "Đang chờ..."
+              }
+              status={order.sellerConfirmedAt ? "completed" : "active"}
+            />
+
+            <TimelineItem
+              icon={Package}
+              title={
+                order.sellerConfirmedAt
+                  ? "Người bán đang chuẩn bị hàng"
+                  : "Chờ chuẩn bị hàng"
+              }
+              description={
+                order.sellerConfirmedAt ? "Đang xử lý..." : "Chưa bắt đầu"
+              }
+              status={order.sellerConfirmedAt ? "active" : "pending"}
+            />
+          </div>
+        </div>
+
+        {/* Editable Shipping Info Notice */}
+        <Alert className="border-blue-300 bg-blue-50 text-blue-600">
+          <Info />
+          <AlertTitle className="line-clamp-none">
+            Bạn có thể chỉnh sửa thông tin giao hàng trong giai đoạn này. Sau
+            khi người bán bàn giao hàng, thông tin sẽ không thể thay đổi.
+          </AlertTitle>
+        </Alert>
+
+        {/* Shipping Address - Editable */}
+        <ShippingInfo
+          orderId={order.id}
+          shippingAddress={order.shippingAddress || order.winner.address}
+          phoneNumber={order.phoneNumber || ""}
+        />
+
+        {/* Help Section */}
+        <Alert className="border-amber-300 bg-amber-50 text-amber-600">
+          <AlertCircle />
+          <AlertTitle className="font-semibold">Lưu ý</AlertTitle>
+          <AlertDescription className="text-amber-600">
+            Nếu quá 48 giờ mà người bán chưa xác nhận nhận tiền hoặc chưa bàn
+            giao hàng, vui lòng liên hệ với bộ phận hỗ trợ để được giải quyết.
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  );
+}
