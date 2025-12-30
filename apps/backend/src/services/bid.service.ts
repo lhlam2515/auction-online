@@ -145,7 +145,8 @@ export class BidService {
           bidderId,
           product.sellerId,
           amount,
-          true
+          true,
+          tx
         );
       }
 
