@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
 import { ACCOUNT_ROUTES } from "@/constants/routes";
-import { formatDate, formatPrice } from "@/lib/utils";
+import { cn, formatDate, formatPrice } from "@/lib/utils";
 
 function getStatusBadge(
   status: "PENDING" | "PAID" | "SHIPPED" | "COMPLETED" | "CANCELLED"
@@ -130,11 +130,10 @@ const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
                       {order && (
                         <Button
                           size="sm"
-                          className={
-                            order.status === "PENDING"
-                              ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                              : "border-slate-300"
-                          }
+                          className={cn(
+                            order.status === "PENDING" &&
+                              "bg-emerald-500 hover:bg-emerald-300 hover:text-emerald-700"
+                          )}
                           onClick={() =>
                             navigate(ACCOUNT_ROUTES.ORDER(order.id))
                           }
