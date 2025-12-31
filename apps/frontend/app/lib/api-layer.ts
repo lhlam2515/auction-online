@@ -366,8 +366,14 @@ export const api = {
     /**
      * Watch list by card
      */
-    getWatchListByCard: () =>
-      apiCall<ProductListing[]>("GET", "/products/watch-list-by-card"),
+    getWatchListByCard: (params?: SearchProductsParams) =>
+      apiCall<ProductListing[]>(
+        "GET",
+        appendQueryParams(
+          "/products/watch-list-by-card",
+          paramsToRecord(params)
+        )
+      ),
   },
 
   /**

@@ -9,6 +9,7 @@ import type {
   ProductListing,
   GetSellerProductsParams,
   ProductDetails,
+  ProductSortOption,
 } from "@repo/shared-types";
 import {
   eq,
@@ -534,7 +535,10 @@ export class ProductService {
     return `${process.env.FRONTEND_URL}/products/${productId}`;
   }
 
-  async getWatchListByCard(userId: string): Promise<ProductListing[]> {
+  async getWatchListByCard(
+    userId: string,
+    sort?: ProductSortOption
+  ): Promise<ProductListing[]> {
     // const existingUser = await this.getById(userId); // ensure user exists
 
     const items = await db.query.watchLists.findMany({
@@ -551,6 +555,28 @@ export class ProductService {
     }));
 
     const enrichedProducts = await this.enrichProducts(productsList, userId);
+
+    if (sort) {
+      enrichedProducts.sort((a, b) => {
+        switch (sort) {
+          case "price_asc":
+            return (a.currentPrice || 0) - (b.currentPrice || 0);
+          case "price_desc":
+            return (b.currentPrice || 0) - (a.currentPrice || 0);
+          case "ending_soon":
+            return (
+              new Date(a.endTime).getTime() - new Date(b.endTime).getTime()
+            );
+          case "newest":
+            return (
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+          default:
+            return 0;
+        }
+      });
+    }
+
     return enrichedProducts;
   }
 

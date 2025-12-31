@@ -49,7 +49,7 @@ export default function WatchListPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const list = await api.products.getWatchListByCard();
+        const list = await api.products.getWatchListByCard(query);
         if (list?.success && list.data) {
           setWatchlist(list.data);
           setTotalProducts(list.data.length);
