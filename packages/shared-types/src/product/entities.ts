@@ -83,4 +83,5 @@ export interface ProductDetails extends Product {
   sellerAvatarUrl: string | null;
   sellerRatingScore: number; // Average rating of the seller
   sellerRatingCount: number; // Total number of ratings for the seller
+  orderId: string | null;
 }

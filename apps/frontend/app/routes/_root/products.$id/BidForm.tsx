@@ -293,13 +293,17 @@ export function BiddingDialog({
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              className="cursor-pointer"
+            >
               Hủy
             </Button>
             <Button
               onClick={handlePreSubmitValidation}
               disabled={(!isUpdatingAutoBid && !isEligible) || isLoadingAutoBid}
-              className="bg-slate-900 hover:bg-slate-800"
+              className="cursor-pointer bg-slate-900 hover:bg-slate-800"
             >
               {isUpdatingAutoBid
                 ? "Cập Nhật Giá"
@@ -376,6 +380,7 @@ export function BiddingDialog({
           <DialogFooter>
             <Button
               variant="outline"
+              className="cursor-pointer"
               onClick={() => setShowConfirmDialog(false)}
               disabled={isLoading}
             >
@@ -384,7 +389,7 @@ export function BiddingDialog({
             <Button
               onClick={handleBidSubmit}
               disabled={isLoading}
-              className="bg-slate-900 hover:bg-slate-800"
+              className="cursor-pointer bg-slate-900 hover:bg-slate-800"
             >
               {isLoading
                 ? "Đang xử lý..."

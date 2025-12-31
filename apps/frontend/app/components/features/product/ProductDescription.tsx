@@ -96,7 +96,7 @@ export function ProductDescription({
         {updatedDesc.length > 0 && (
           <Button
             variant="outline"
-            className="w-full bg-transparent"
+            className="w-full cursor-pointer bg-transparent"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (

@@ -53,6 +53,14 @@ const ProductGallery = ({
     ));
   };
 
+  if (products.length === 0 && !loading) {
+    return (
+      <p className="text-muted-foreground py-10 text-center italic">
+        Hiện không có sản phẩm phù hợp
+      </p>
+    );
+  }
+
   return (
     <Carousel
       opts={{

@@ -168,7 +168,7 @@ export function HistoryTable({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
+                            className="cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
                             onClick={() =>
                               setKickDialog({ open: true, bidder: bid })
                             }
@@ -186,7 +186,7 @@ export function HistoryTable({
             {bids.length > 5 && (
               <Button
                 variant="outline"
-                className="w-full bg-transparent"
+                className="w-full cursor-pointer bg-transparent"
                 onClick={() => setShowAll(!showAll)}
               >
                 {showAll ? (
@@ -197,7 +197,7 @@ export function HistoryTable({
                 ) : (
                   <>
                     <ChevronDown className="mr-2 h-4 w-4" />
-                    Xem thêm ({bids.length - 5} lượt đấu giá)
+                    Xem thêm ({bids.length - 5} lượt đặt giá)
                   </>
                 )}
               </Button>

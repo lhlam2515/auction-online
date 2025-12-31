@@ -34,7 +34,6 @@ export default function ProductDetailPage() {
   const [product, setProduct] = React.useState<ProductDetails>();
   const [isSeller, setIsSeller] = React.useState(false);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-  const [userData, setUserData] = React.useState<User>();
 
   const [isEnded, setIsEnded] = React.useState(true);
 
@@ -86,30 +85,6 @@ export default function ProductDetailPage() {
     };
   }, [id, navigate]);
 
-  React.useEffect(() => {
-    let isMounted = true;
-    const fetchUserData = async () => {
-      try {
-        if (user) {
-          const user_res = await api.users.getProfile();
-          if (isMounted) {
-            if (user_res.success && user_res.data) {
-              setUserData(user_res.data);
-            }
-          }
-        }
-      } catch (error) {
-        logger.error("Failed to fetch user data:", error);
-        toast.error("Không thể tải dữ liệu người dùng.");
-      }
-    };
-
-    fetchUserData();
-    return () => {
-      isMounted = false;
-    };
-  }, [user, isLoading]);
-
   // Handle user authentication state
   React.useEffect(() => {
     if (!isLoading) {
@@ -138,7 +113,7 @@ export default function ProductDetailPage() {
               product={product}
               isLoggedIn={isLoggedIn}
               isSeller={isSeller}
-              userData={userData}
+              userId={user?.id}
             />
           </section>
 

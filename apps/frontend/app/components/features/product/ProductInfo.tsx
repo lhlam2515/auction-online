@@ -15,9 +15,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
-import { SELLER_ROUTES } from "@/constants/routes";
+import { ACCOUNT_ROUTES, SELLER_ROUTES } from "@/constants/routes";
 import { useWatchlist } from "@/contexts/watchlist-provider";
 import useCountdown from "@/hooks/useCountdown";
+import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 import { BiddingDialog } from "@/routes/_root/products.$id/BidForm";
@@ -27,7 +28,7 @@ interface ProductInfoProps {
   product: ProductDetails;
   isLoggedIn: boolean;
   isSeller: boolean;
-  userData?: User;
+  userId?: string;
   className?: string;
   [key: string]: any;
 }
@@ -38,7 +39,7 @@ export function ProductMainInfo({
   product,
   isLoggedIn,
   isSeller,
-  userData,
+  userId,
   className,
 }: ProductInfoProps) {
   const {
@@ -46,6 +47,8 @@ export function ProductMainInfo({
     isInWatchlist,
     isLoading: watchlistLoading,
   } = useWatchlist();
+
+  const [userData, setUserData] = React.useState<User>();
 
   // State cho BuyNow dialog
   const [showBuyNowDialog, setShowBuyNowDialog] = React.useState(false);
@@ -59,22 +62,43 @@ export function ProductMainInfo({
     [isInWatchlist, product.id]
   );
 
-  const startDateTime = new Date(product.startTime);
   const endDateTime = new Date(product.endTime);
   const isAuctionEnded = new Date() > endDateTime;
 
-  let timeDisplay;
+  let timeDisplay = useCountdown(endDateTime, false);
   if (
-    endDateTime.getTime() - new Date().getTime() <
+    endDateTime.getTime() - new Date().getTime() >=
     RELATIVE_TIME_THRESHOLD_MS
   ) {
-    timeDisplay = useCountdown(endDateTime, false);
-  } else {
     timeDisplay = {
       text: formatDate(endDateTime),
       isUrgent: false,
     };
   }
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchUserData = async () => {
+      try {
+        if (isLoggedIn) {
+          const user_res = await api.users.getProfile();
+          if (isMounted) {
+            if (user_res.success && user_res.data) {
+              setUserData(user_res.data);
+            }
+          }
+        }
+      } catch (error) {
+        logger.error("Failed to fetch user data:", error);
+        toast.error("Không thể tải dữ liệu người dùng.");
+      }
+    };
+
+    fetchUserData();
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn]);
 
   const handleToggleWatchlist = async (
     e: React.MouseEvent<HTMLButtonElement>
@@ -82,11 +106,7 @@ export function ProductMainInfo({
     e.preventDefault();
     e.stopPropagation();
 
-    try {
-      await toggleWatchlist(product.id);
-    } catch (error) {
-      logger.error("Failed to toggle watchlist:", error);
-    }
+    await toggleWatchlist(product.id);
   };
 
   const handleBuyNowClick = () => {
@@ -180,9 +200,30 @@ export function ProductMainInfo({
       </Card>
 
       {/* Action Buttons */}
-
-      {isSeller ? (
+      {product.orderId && (isSeller || userId === product.winnerId) ? (
         <div className="flex gap-3">
+          {/* Complete Order */}
+          <Button
+            size="lg"
+            variant="default"
+            className="flex h-14 flex-1 items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
+            asChild
+          >
+            <Link
+              to={
+                isSeller
+                  ? SELLER_ROUTES.ORDER(product.orderId)
+                  : ACCOUNT_ROUTES.ORDER(product.orderId)
+              }
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Hoàn tất đơn hàng
+            </Link>
+          </Button>
+        </div>
+      ) : isSeller ? (
+        <div className="flex gap-3">
+          {/* Edit Product */}
           <Button
             size="lg"
             variant="default"
@@ -197,13 +238,14 @@ export function ProductMainInfo({
         </div>
       ) : isLoggedIn && !isAuctionEnded ? (
         <div className="flex gap-3">
+          {/* Bid Buttons */}
           <Button
             size="lg"
             variant="default"
-            className="h-14 flex-1 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
+            className="flex h-14 flex-1 cursor-pointer items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
             onClick={handleBidClick}
           >
-            <Gavel className="mr-2 h-5 w-5" />
+            <Gavel className="h-5 w-5" />
             Đặt giá
           </Button>
 
@@ -211,10 +253,10 @@ export function ProductMainInfo({
             <Button
               size="lg"
               variant="outline"
-              className="border-accent text-accent hover:bg-accent h-14 flex-1 bg-transparent text-lg font-semibold hover:text-white"
+              className="border-accent text-accent hover:bg-accent flex h-14 flex-1 cursor-pointer gap-2 bg-transparent text-lg font-semibold hover:text-white"
               onClick={handleBuyNowClick}
             >
-              <ShoppingCart className="mr-2 h-5 w-5" />
+              <ShoppingCart className="h-5 w-5" />
               Mua ngay
             </Button>
           )}
@@ -222,7 +264,7 @@ export function ProductMainInfo({
           <Button
             size="lg"
             variant="outline"
-            className="border-accent text-accent hover:bg-accent h-14 w-14 bg-transparent p-0"
+            className="border-accent text-accent hover:bg-accent h-14 w-14 cursor-pointer bg-transparent p-0"
             onClick={handleToggleWatchlist}
             disabled={watchlistLoading}
           >
