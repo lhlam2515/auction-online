@@ -3,16 +3,10 @@ import type {
   OrderWithDetails,
   PaymentMethod,
 } from "@repo/shared-types";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import {
-  orders,
-  productImages,
-  products,
-  orderPayments,
-  ratings,
-} from "@/models";
+import { orders, products, orderPayments, ratings } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
 export type ShippingAddress = {
