@@ -112,15 +112,6 @@ export default function WatchListPage() {
       </CardContent>
 
       <WatchList watchlist={watchlist} loading={loading} />
-
-      {/* <CardFooter>
-        {" "}
-        <PaginationBar
-          currentPage={parseInt(1, 10) || 1}
-          totalPages={5}
-          //onPageChange={onPageChange}
-        />
-      </CardFooter> */}
     </Card>
   );
 }
