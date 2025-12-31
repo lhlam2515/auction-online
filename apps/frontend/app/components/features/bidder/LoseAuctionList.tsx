@@ -105,13 +105,13 @@ const LoseAuctionList = ({ lostBids }: LoseAuctionListProps) => {
         </Table>
       </div>
 
-      {totalPages > 1 && (
+      <div className="mt-4">
         <PaginationBar
           currentPage={currentPage}
-          totalPages={totalPages}
+          totalPages={totalPages > 0 ? totalPages : 1}
           onPageChange={setCurrentPage}
         />
-      )}
+      </div>
     </TabsContent>
   );
 };
