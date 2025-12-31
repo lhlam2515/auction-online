@@ -1,47 +1,25 @@
-import type { User, Bid, Product, ProductListing } from "@repo/shared-types";
-import { Trash2 } from "lucide-react";
+import type { ProductListing } from "@repo/shared-types";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import ProductCard from "@/components/features/product/ProductCard";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 
 // TODO: Define props based on SRS requirements
-type WatchListProps = {
-  className?: string;
-  [key: string]: any;
-};
+interface WatchListProps {
+  watchlist: ProductListing[];
+  loading: boolean;
+}
 
 /**
  * Component: WatchList
  * Generated automatically based on Project Auction SRS.
  */
 
-const WatchList = (props: WatchListProps) => {
-  const [watchlist, setWatchlist] = useState<ProductListing[]>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log("day ne");
-        const list = await api.products.getWatchListByCard();
-        if (list?.success && list.data) {
-          setWatchlist(list.data);
-          setLoading(false);
-        } else {
-          toast.error(ERROR_MESSAGES.SERVER_ERROR);
-          setLoading(false);
-        }
-      } catch (error) {
-        toast.error(ERROR_MESSAGES.SERVER_ERROR);
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+const WatchList = ({ watchlist, loading }: WatchListProps) => {
   return (
     <CardContent>
       {/* Tab 3: Watchlist */}
