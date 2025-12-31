@@ -86,6 +86,19 @@ export const updateShippingInfoSchema = z.object({
 });
 
 /**
+ * Submit feedback validation schema
+ * @description Validates user feedback submissions with rating and optional comment
+ */
+export const submitFeedbackSchema = z.object({
+  rating: z
+    .union([z.literal(1), z.literal(-1), z.literal(0)])
+    .refine((val) => val !== 0, {
+      message: "Vui lòng chọn đánh giá Tích cực (+1) hoặc Tiêu cực (-1)",
+    }),
+  comment: z.string().optional(),
+});
+
+/**
  * User validation schema types
  */
 export type UpdateProfileSchemaType = z.infer<typeof updateProfileSchema>;
