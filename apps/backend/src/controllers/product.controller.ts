@@ -13,6 +13,7 @@ import type {
   ProductListing,
   PaginatedResponse,
   ProductDetails,
+  ProductSortOption,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -152,7 +153,8 @@ export const uploadImages = asyncHandler(
 export const getWatchListByCard = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: userId } = req.user!;
-    const listCard = await productService.getWatchListByCard(userId);
+    const { sort } = req.query as unknown as { sort?: ProductSortOption };
+    const listCard = await productService.getWatchListByCard(userId, sort);
     return ResponseHandler.sendSuccess<ProductListing[]>(res, listCard);
   }
 );

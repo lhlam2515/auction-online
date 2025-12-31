@@ -91,6 +91,7 @@ import type {
   PaginationParams,
   SearchProductsParams,
 } from "@repo/shared-types";
+import { data } from "react-router";
 
 import { apiClient } from "@/lib/handlers/api";
 import { appendQueryParams } from "@/lib/url";
@@ -365,8 +366,14 @@ export const api = {
     /**
      * Watch list by card
      */
-    getWatchListByCard: () =>
-      apiCall<ProductListing[]>("GET", "/products/watch-list-by-card"),
+    getWatchListByCard: (params?: SearchProductsParams) =>
+      apiCall<ProductListing[]>(
+        "GET",
+        appendQueryParams(
+          "/products/watch-list-by-card",
+          paramsToRecord(params)
+        )
+      ),
   },
 
   /**

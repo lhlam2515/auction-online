@@ -2,61 +2,21 @@ import type {
   User,
   OrderWithDetails,
   PaginatedResponse,
+  MyAutoBid,
 } from "@repo/shared-types";
-import { Star, DollarSign, ShoppingCart } from "lucide-react";
+import { BarChart3, LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import UserProfileSection from "@/components/features/user/UserProfileSection";
+import UserStatsCards from "@/components/features/user/UserStatsCards";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
+import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
-import { formatPrice } from "@/lib/utils";
 
 import type { Route } from "./+types/route";
-
-// import { ProductCard } from "@/components/ui/product-card"
-
-// Mock Watchlist data
-// import { ProductCard } from "@/components/ui/product-card"
-
-// Mock Won Auctions data
-
-// Mock Watchlist data
-const watchlistItems = [
-  {
-    id: "5",
-    name: "Rolex Submariner Date",
-    image: "/placeholder.svg?height=300&width=400",
-    currentPrice: 250000000,
-    buyNowPrice: 280000000,
-    topBidder: "****Minh",
-    bidCount: 45,
-    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    isNew: false,
-  },
-  {
-    id: "6",
-    name: "Gaming PC RTX 4090",
-    image: "/placeholder.svg?height=300&width=400",
-    currentPrice: 65000000,
-    buyNowPrice: 75000000,
-    topBidder: "****Hùng",
-    bidCount: 28,
-    endTime: new Date(Date.now() + 12 * 60 * 60 * 1000),
-    isNew: true,
-  },
-  {
-    id: "7",
-    name: "Louis Vuitton Neverfull MM",
-    image: "/placeholder.svg?height=300&width=400",
-    currentPrice: 35000000,
-    topBidder: "****Lan",
-    bidCount: 18,
-    endTime: new Date(Date.now() + 45 * 60 * 1000),
-    isNew: false,
-  },
-];
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -69,17 +29,20 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function AccountDashboardPage() {
+  const { user } = useAuth();
   const [userData, setUserData] = useState<User>();
   const [userOrder, setUserOrder] =
     useState<PaginatedResponse<OrderWithDetails>>();
+  const [userAutoBids, setUserAutoBids] = useState<MyAutoBid[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchUserDate = async () => {
       try {
         setIsLoading(true);
-        const [userRes, orderRes] = await Promise.all([
+        const [userRes, orderRes, autoBidsRes] = await Promise.all([
           api.users.getProfile(),
           api.orders.getAll(),
+          api.users.getBids(),
         ]);
 
         if (userRes?.success && userRes.data) {
@@ -93,6 +56,12 @@ export default function AccountDashboardPage() {
         } else {
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
         }
+
+        if (autoBidsRes?.success && autoBidsRes.data) {
+          setUserAutoBids(autoBidsRes.data);
+        } else {
+          toast.error(ERROR_MESSAGES.SERVER_ERROR);
+        }
       } catch (error) {
         toast.error(ERROR_MESSAGES.SERVER_ERROR);
       } finally {
@@ -101,121 +70,61 @@ export default function AccountDashboardPage() {
     };
     fetchUserDate();
   }, []);
-  const totalOrders = userOrder?.items.length;
-  const orders = userOrder?.items.filter((item) => item.status === "COMPLETED");
-  return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        {/* Sidebar - User Info */}
-        <aside className="lg:col-span-1">
-          <Card className="sticky top-4">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage
-                    src={userData?.avatarUrl || "/placeholder.svg"}
-                    alt={userData?.username || "User Avatar"}
-                  />
-                  <AvatarFallback className="bg-slate-900 text-2xl text-white">
-                    {userData?.fullName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
 
-                <div className="space-y-1">
-                  <h2 className="text-xl font-bold">{userData?.fullName}</h2>
-                  <p className="text-muted-foreground text-sm">
-                    {userData?.email}
-                  </p>
-                </div>
-
-                {/* Rating Score */}
-                <div className="w-full border-t pt-4">
-                  <div className="mb-2 flex items-center justify-center gap-2">
-                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-muted-foreground text-sm font-medium">
-                      Điểm đánh giá
-                    </span>
-                  </div>
-                  <div className="text-3xl font-bold text-slate-900">
-                    {userData?.ratingScore}%
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </aside>
-
-        {/* Main Content - Tabs */}
-
-        <aside className="lg:col-span-3">
-          <div className="grid gap-4 md:grid-cols-3">
-            {/* Card 1: Tổng chi tiêu */}
-            <Card className="overflow-hidden border-none shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
-                    <DollarSign className="h-6 w-6" />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <h3 className="text-2xl font-bold text-slate-900">
-                    {formatPrice(
-                      userOrder?.items.reduce(
-                        (total, item) => total + Number(item.finalPrice ?? 0),
-                        0
-                      ) || 0
-                    )}
-                  </h3>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Tổng chi tiêu
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Card 2: Tổng đơn đặt hàng */}
-            <Card className="overflow-hidden border-none shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="rounded-lg bg-emerald-100 p-3 text-emerald-600">
-                    <ShoppingCart className="h-6 w-6" />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <h3 className="text-2xl font-bold text-slate-900">
-                    {totalOrders || "0"}
-                  </h3>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Tổng đơn đặt hàng
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Card 3: Đơn thành công */}
-            <Card className="overflow-hidden border-none shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="rounded-lg bg-purple-100 p-3 text-purple-600">
-                    <ShoppingCart className="h-6 w-6" />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <h3 className="text-2xl font-bold text-slate-900">
-                    {orders?.length || "0"}
-                  </h3>
-                  <p className="text-muted-foreground text-sm font-medium">
-                    Tổng đơn thành công
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </aside>
+  if (isLoading) {
+    return (
+      <div className="text-muted-foreground flex min-h-[60vh] flex-col items-center justify-center gap-2">
+        <Spinner className="" />
+        <span>Đang tải dữ liệu người dùng...</span>
       </div>
+    );
+  }
+  return (
+    <div className="space-y-8 pb-10">
+      {/* 1. Profile / Header Section */}
+      <section>
+        {userData && (
+          <UserProfileSection
+            user={{ ...userData, role: user?.role ?? null }}
+          />
+        )}
+      </section>
+
+      {/* 2. Stats Section */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <LayoutDashboard className="text-muted-foreground h-5 w-5" />
+          <h2 className="text-lg font-semibold tracking-tight">
+            Tổng quan chi tiêu
+          </h2>
+        </div>
+        {userOrder && (
+          <UserStatsCards stats={userOrder.items} autoBids={userAutoBids} />
+        )}
+      </section>
+
+      {/* 3. Placeholder for Chart/Recent Activity (Để lấp đầy khoảng trắng dưới cùng) */}
+      <section className="grid gap-6 md:grid-cols-7">
+        {/* Vùng này dành cho Biểu đồ doanh thu (chiếm 4 phần) */}
+        <Card className="bg-muted/60 col-span-4 flex min-h-[300px] flex-col items-center justify-center border-dashed">
+          <div className="text-muted-foreground flex flex-col items-center gap-2">
+            <BarChart3 className="h-10 w-10 opacity-20" />
+            <p>Biểu đồ chi tiêu (Coming soon)</p>
+          </div>
+        </Card>
+
+        {/* Vùng này dành cho Sản phẩm sắp hết hạn / Hoạt động gần đây (chiếm 3 phần) */}
+        <Card className="col-span-3 min-h-[300px]">
+          <CardHeader>
+            <CardTitle className="text-base">Hoạt động gần đây</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-muted-foreground py-10 text-center text-sm">
+              Chưa có hoạt động mới
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
