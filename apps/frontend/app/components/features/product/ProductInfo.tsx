@@ -63,13 +63,11 @@ export function ProductMainInfo({
   const endDateTime = new Date(product.endTime);
   const isAuctionEnded = new Date() > endDateTime;
 
-  let timeDisplay;
+  let timeDisplay = useCountdown(endDateTime, false);
   if (
-    endDateTime.getTime() - new Date().getTime() <
+    endDateTime.getTime() - new Date().getTime() >=
     RELATIVE_TIME_THRESHOLD_MS
   ) {
-    timeDisplay = useCountdown(endDateTime, false);
-  } else {
     timeDisplay = {
       text: formatDate(endDateTime),
       isUrgent: false,
