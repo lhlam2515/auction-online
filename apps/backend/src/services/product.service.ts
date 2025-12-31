@@ -560,9 +560,9 @@ export class ProductService {
       enrichedProducts.sort((a, b) => {
         switch (sort) {
           case "price_asc":
-            return (a.currentPrice || 0) - (b.currentPrice || 0);
+            return Number(a.currentPrice || 0) - Number(b.currentPrice || 0);
           case "price_desc":
-            return (b.currentPrice || 0) - (a.currentPrice || 0);
+            return Number(b.currentPrice || 0) - Number(a.currentPrice || 0);
           case "ending_soon":
             return (
               new Date(a.endTime).getTime() - new Date(b.endTime).getTime()
