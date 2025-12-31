@@ -1,7 +1,8 @@
 import type { MyAutoBid, OrderWithDetails } from "@repo/shared-types";
-import { useNavigate } from "react-router";
+import { Eye } from "lucide-react";
+import { Link } from "react-router";
 
-import { Badge } from "@/components/ui/badge";
+import OrderStatusBadge from "@/components/common/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
 import {
   TableHeader,
@@ -13,59 +14,7 @@ import {
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
 import { ACCOUNT_ROUTES } from "@/constants/routes";
-import { formatDate, formatPrice } from "@/lib/utils";
-
-function getStatusBadge(
-  status: "PENDING" | "PAID" | "SHIPPED" | "COMPLETED" | "CANCELLED"
-) {
-  switch (status) {
-    case "PENDING":
-      return (
-        <Badge
-          variant="outline"
-          className="border-amber-300 bg-amber-50 text-amber-700"
-        >
-          Chưa thanh toán
-        </Badge>
-      );
-    case "PAID":
-      return (
-        <Badge
-          variant="outline"
-          className="border-green-300 bg-amber-50 text-amber-700"
-        >
-          Đã thanh toán
-        </Badge>
-      );
-    case "SHIPPED":
-      return (
-        <Badge
-          variant="outline"
-          className="border-blue-300 bg-blue-50 text-blue-700"
-        >
-          Đã vận chuyển
-        </Badge>
-      );
-    case "COMPLETED":
-      return (
-        <Badge
-          variant="outline"
-          className="border-emerald-300 bg-emerald-50 text-emerald-700"
-        >
-          Hoàn thành
-        </Badge>
-      );
-    case "CANCELLED":
-      return (
-        <Badge
-          variant="outline"
-          className="border-red-300 bg-red-50 text-red-700"
-        >
-          Đã hủy
-        </Badge>
-      );
-  }
-}
+import { cn, formatDate, formatPrice } from "@/lib/utils";
 
 type WonAuctionListProps = {
   wonBids: MyAutoBid[];
@@ -77,7 +26,6 @@ type WonAuctionListProps = {
  * Displays a list of won auctions for the current user.
  */
 const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
-  const navigate = useNavigate();
   // Tạo map từ productId đến order để dễ dàng lookup
   const orderMap = new Map(orders.map((order) => [order.productId, order]));
 
@@ -91,7 +39,7 @@ const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
               <TableHead>Giá cuối</TableHead>
               <TableHead>Ngày tạo</TableHead>
               <TableHead>Trạng thái</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
+              <TableHead>Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -118,30 +66,28 @@ const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
                         : formatDate(bid.product.endTime)}
                     </TableCell>
                     <TableCell>
-                      {order ? (
-                        getStatusBadge(order.status)
-                      ) : (
-                        <Badge className="bg-emerald-600 hover:bg-emerald-700">
-                          Đã thắng
-                        </Badge>
-                      )}
+                      {order && <OrderStatusBadge status={order.status} />}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell>
                       {order && (
                         <Button
                           size="sm"
-                          className={
-                            order.status === "PENDING"
-                              ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                              : "border-slate-300"
-                          }
-                          onClick={() =>
-                            navigate(ACCOUNT_ROUTES.ORDER(order.id))
-                          }
+                          className={cn(
+                            order.status === "PENDING" &&
+                              "border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-600"
+                          )}
+                          asChild
                         >
-                          {order.status === "PENDING"
-                            ? "Thanh toán"
-                            : "Xem chi tiết"}
+                          <Link to={ACCOUNT_ROUTES.ORDER(order.id)}>
+                            {order.status === "PENDING" ? (
+                              "Thanh toán"
+                            ) : (
+                              <>
+                                <Eye className="h-4 w-4" />
+                                <span>Xem chi tiết</span>
+                              </>
+                            )}
+                          </Link>
                         </Button>
                       )}
                     </TableCell>

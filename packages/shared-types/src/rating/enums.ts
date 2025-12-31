@@ -5,3 +5,8 @@ export type { RatingScore } from "../common/enums";
  * Rating type for different contexts
  */
 export type RatingType = "BUYER_TO_SELLER" | "SELLER_TO_BUYER";
+
+/**
+ * Rating values
+ */
+export type RatingValue = 1 | -1;
