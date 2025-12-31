@@ -26,6 +26,18 @@ const upload = multer({
 });
 
 /**
+ * @route   GET /api/products/watch-list-by-card
+ * @desc    Get the productListing for WatchList
+ * @access  User
+ */
+router.get(
+  "/watch-list-by-card",
+  authenticate,
+  authorize("BIDDER", "SELLER"),
+  productController.getWatchListByCard
+);
+
+/**
  * @route   GET /api/products
  * @desc    Search and filter products
  * @access  Public

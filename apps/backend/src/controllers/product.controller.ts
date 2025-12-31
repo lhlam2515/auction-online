@@ -148,3 +148,11 @@ export const uploadImages = asyncHandler(
     return ResponseHandler.sendSuccess<UploadImagesResponse>(res, urls, 201);
   }
 );
+
+export const getWatchListByCard = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const listCard = await productService.getWatchListByCard(userId);
+    return ResponseHandler.sendSuccess<ProductListing[]>(res, listCard);
+  }
+);

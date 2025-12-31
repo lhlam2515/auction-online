@@ -1,6 +1,18 @@
+import type { CategoryTree } from "@repo/shared-types";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import ProductForm from "@/components/features/product/ProductForm";
+import { api } from "@/lib/api-layer";
+import logger from "@/lib/logger";
+import {
+  productSchema,
+  type ProductSchemaType,
+} from "@/lib/validations/product.validation";
+
 import type { Route } from "./+types/route";
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Create Auction - Online Auction" },
     {
@@ -10,19 +22,131 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return {};
-}
+export default function CreateProductPage() {
+  const [categories, setCategories] = useState<CategoryTree[]>([]);
+  const [selectedImages, setSelectedImages] = useState<
+    { file: File; previewUrl: string; id: string }[]
+  >([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  return {};
-}
+  const defaultValues: ProductSchemaType = {
+    name: "",
+    categoryId: "",
+    startPrice: 0,
+    stepPrice: 0,
+    buyNowPrice: undefined,
+    freeToBid: false,
+    endTime: new Date(),
+    description: "",
+    images: [],
+    isAutoExtend: false,
+  };
 
-export default function CreateAuctionPage() {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.categories.getAll();
+        if (response.success && response.data) {
+          setCategories(response.data);
+        } else {
+          throw new Error("Failed to fetch categories");
+        }
+      } catch (error) {
+        toast.error("Không thể tải danh mục sản phẩm");
+        logger.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      selectedImages.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+    };
+  }, [selectedImages]);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+
+    if (selectedImages.length + files.length > 10) {
+      toast.error("Tối đa 10 ảnh được phép tải lên");
+      return;
+    }
+
+    const newImages = files.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      id: crypto.randomUUID(),
+    }));
+
+    setSelectedImages((prev) => [...prev, ...newImages]);
+    toast.success(`Đã chọn ${files.length} ảnh`);
+  };
+
+  const removeImage = (id: string) => {
+    const imageIndex = selectedImages.findIndex((img) => img.id === id);
+    if (imageIndex === -1) return;
+
+    const imageToRemove = selectedImages[imageIndex];
+    if (imageToRemove) {
+      URL.revokeObjectURL(imageToRemove.previewUrl);
+    }
+
+    setSelectedImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const handleCancel = () => {
+    selectedImages.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+    // Reset form and navigate back or reset state
+    window.history.back();
+  };
+
+  const handleSubmit = async (data: ProductSchemaType) => {
+    if (selectedImages.length < 4) {
+      toast.error("Vui lòng chọn tối thiểu 4 ảnh");
+      throw new Error("Minimum 4 images required");
+    }
+
+    setUploadingImages(true);
+
+    try {
+      const formData = new FormData();
+      selectedImages.forEach((image) => {
+        formData.append("images", image.file);
+      });
+
+      const uploadResponse = await api.products.uploadImages(formData);
+      if (!uploadResponse.success || !uploadResponse.data) {
+        throw new Error("Image upload failed");
+      }
+
+      const createProductData = {
+        ...data,
+        buyNowPrice: data.buyNowPrice,
+        startTime: new Date().toISOString(),
+        endTime: data.endTime.toISOString(),
+        images: uploadResponse.data.urls,
+      };
+
+      const response = await api.products.create(createProductData);
+      return response;
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
   return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">Create Auction</h1>
-      <p>Content for Create Auction goes here.</p>
-    </div>
+    <ProductForm
+      schema={productSchema}
+      defaultValues={defaultValues}
+      onSubmit={handleSubmit}
+      categories={categories}
+      selectedImages={selectedImages}
+      onImageUpload={handleImageUpload}
+      onImageRemove={removeImage}
+      uploadingImages={uploadingImages}
+      onCancel={handleCancel}
+    />
   );
 }

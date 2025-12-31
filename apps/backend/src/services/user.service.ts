@@ -184,12 +184,30 @@ export class UserService {
             endTime: true,
             winnerId: true,
           },
+          with: {
+            images: {
+              columns: {
+                imageUrl: true,
+              },
+              where: (images, { eq }) => eq(images.isMain, true),
+              limit: 1,
+            },
+          },
         },
       },
       orderBy: (bid, { desc }) => [desc(bid.createdAt)],
     });
 
-    return bidHistory as MyAutoBid[];
+    return bidHistory.map((item) => ({
+      ...item,
+      product: {
+        name: item.product.name,
+        currentPrice: item.product.currentPrice,
+        endTime: item.product.endTime,
+        winnerId: item.product.winnerId,
+        imageUrl: item.product.images[0]?.imageUrl || null,
+      },
+    })) as MyAutoBid[];
   }
 
   async getWonAuctions(userId: string) {

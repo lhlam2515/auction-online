@@ -373,7 +373,7 @@ export class ProductService {
       startPrice,
       buyNowPrice,
       stepPrice,
-      startTime,
+      freeToBid,
       endTime,
       isAutoExtend,
       images,
@@ -391,8 +391,25 @@ export class ProductService {
     });
     if (!category) throw new NotFoundError("Category");
 
-    if (new Date(endTime) <= new Date(startTime)) {
-      throw new BadRequestError("End time must be after start time");
+    if (new Date(endTime) <= new Date()) {
+      throw new BadRequestError("End time must be after current time");
+    }
+
+    if (startPrice % stepPrice !== 0) {
+      throw new BadRequestError("Start price must be a multiple of step price");
+    }
+
+    if (buyNowPrice != null) {
+      if (buyNowPrice < startPrice + stepPrice) {
+        throw new BadRequestError(
+          "Buy now price must be greater than start price + step price"
+        );
+      }
+      if (buyNowPrice % stepPrice !== 0) {
+        throw new BadRequestError(
+          "Buy now price must be a multiple of step price"
+        );
+      }
     }
 
     const nameTrimmed = name.trim();
@@ -420,8 +437,9 @@ export class ProductService {
           startPrice: Number(startPrice),
           stepPrice: Number(stepPrice),
           buyNowPrice: buyNowPrice != null ? Number(buyNowPrice) : null,
+          freeToBid,
           status: "ACTIVE",
-          startTime: new Date(startTime),
+          startTime: new Date(),
           endTime: new Date(endTime),
           isAutoExtend: isAutoExtend ?? true,
         } as any)
@@ -514,6 +532,26 @@ export class ProductService {
 
   buildProductLink(productId: string): string {
     return `${process.env.FRONTEND_URL}/products/${productId}`;
+  }
+
+  async getWatchListByCard(userId: string): Promise<ProductListing[]> {
+    // const existingUser = await this.getById(userId); // ensure user exists
+
+    const items = await db.query.watchLists.findMany({
+      where: eq(watchLists.userId, userId),
+      with: {
+        product: true,
+      },
+    });
+
+    const productsList: Product[] = items.map((item) => ({
+      ...item.product,
+      buyNowPrice: item.product.buyNowPrice ?? null,
+      currentPrice: item.product.currentPrice ?? null,
+    }));
+
+    const enrichedProducts = await this.enrichProducts(productsList, userId);
+    return enrichedProducts;
   }
 
   /**

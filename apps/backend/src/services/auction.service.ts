@@ -88,7 +88,8 @@ class AuctionService {
         topBid.userId,
         product.sellerId,
         finalPrice,
-        false
+        false,
+        tx
       );
 
       // Gửi email thông báo chúc mừng người thắng

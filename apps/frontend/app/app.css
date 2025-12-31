@@ -121,7 +121,7 @@
 
 @layer components {
   .sidebar-layout {
-    @apply container mt-4 flex h-full gap-4;
+    @apply container mt-4 flex items-start gap-4;
   }
 
   .sidebar-layout > .container {
@@ -130,5 +130,65 @@
 
   .error-message {
     @apply text-destructive border-destructive/50 bg-destructive/10 rounded-lg border p-4 text-sm;
+  }
+
+  /* TipTap Editor Styles */
+  .ProseMirror {
+    outline: none;
+  }
+
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: var(--muted-foreground);
+    pointer-events: none;
+    height: 0;
+  }
+
+  .ProseMirror ul {
+    list-style-type: disc;
+    padding-left: 2rem;
+  }
+  .ProseMirror ol {
+    list-style-type: decimal;
+    padding-left: 2rem;
+  }
+
+  .ProseMirror li {
+    margin: 0.25rem 0;
+  }
+
+  .ProseMirror a {
+    color: var(--primary);
+  }
+
+  .ProseMirror a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
+  .ProseMirror h1,
+  .ProseMirror h2,
+  .ProseMirror h3 {
+    font-weight: 600;
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  .ProseMirror h1:first-child,
+  .ProseMirror h2:first-child,
+  .ProseMirror h3:first-child {
+    margin: 0 0 0.5rem 0;
+  }
+
+  .ProseMirror h1 {
+    font-size: 1.5rem;
+  }
+
+  .ProseMirror h2 {
+    font-size: 1.25rem;
+  }
+
+  .ProseMirror h3 {
+    font-size: 1.125rem;
   }
 }
