@@ -1,7 +1,9 @@
 import type { MyAutoBid } from "@repo/shared-types";
 import { Package } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import PaginationBar from "@/components/features/product/PaginationBar";
 import { Badge } from "@/components/ui/badge";
 import {
   TableHeader,
@@ -19,11 +21,21 @@ type LoseAuctionListProps = {
   lostBids: MyAutoBid[];
 };
 
+const ITEMS_PER_PAGE = 5;
+
 /**
  * Component: LoseAuctionList
  * Displays a list of lost auctions for the current user.
  */
 const LoseAuctionList = ({ lostBids }: LoseAuctionListProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(lostBids.length / ITEMS_PER_PAGE);
+  const paginatedBids = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return lostBids.slice(start, start + ITEMS_PER_PAGE);
+  }, [lostBids, currentPage]);
+
   return (
     <TabsContent value="lost" className="space-y-4">
       <div className="rounded-md border">
@@ -38,14 +50,14 @@ const LoseAuctionList = ({ lostBids }: LoseAuctionListProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lostBids.length === 0 ? (
+            {paginatedBids.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-4 text-center">
                   Không có đấu giá đã thua.
                 </TableCell>
               </TableRow>
             ) : (
-              lostBids.map((bid) => (
+              paginatedBids.map((bid) => (
                 <TableRow key={bid.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
@@ -92,6 +104,14 @@ const LoseAuctionList = ({ lostBids }: LoseAuctionListProps) => {
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </TabsContent>
   );
 };

@@ -1,8 +1,11 @@
 import type { MyAutoBid, OrderWithDetails } from "@repo/shared-types";
 import { Eye, Package } from "lucide-react";
-import { Link } from "react-router";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router";
 
 import OrderStatusBadge from "@/components/common/OrderStatusBadge";
+import PaginationBar from "@/components/features/product/PaginationBar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   TableHeader,
@@ -21,13 +24,24 @@ type WonAuctionListProps = {
   orders: OrderWithDetails[];
 };
 
+const ITEMS_PER_PAGE = 5;
+
 /**
  * Component: WonAuctionList
  * Displays a list of won auctions for the current user.
  */
 const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Tạo map từ productId đến order để dễ dàng lookup
   const orderMap = new Map(orders.map((order) => [order.productId, order]));
+
+  const totalPages = Math.ceil(wonBids.length / ITEMS_PER_PAGE);
+  const paginatedBids = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return wonBids.slice(start, start + ITEMS_PER_PAGE);
+  }, [wonBids, currentPage]);
 
   return (
     <TabsContent value="won" className="space-y-4">
@@ -43,14 +57,14 @@ const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {wonBids.length === 0 ? (
+            {paginatedBids.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-4 text-center">
                   Không có đấu giá đã thắng.
                 </TableCell>
               </TableRow>
             ) : (
-              wonBids.map((bid) => {
+              paginatedBids.map((bid) => {
                 const order = orderMap.get(bid.productId);
                 return (
                   <TableRow key={bid.id}>
@@ -118,6 +132,14 @@ const WonAuctionList = ({ wonBids, orders }: WonAuctionListProps) => {
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </TabsContent>
   );
 };

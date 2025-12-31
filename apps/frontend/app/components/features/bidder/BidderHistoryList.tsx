@@ -1,8 +1,9 @@
 import type { MyAutoBid } from "@repo/shared-types";
 import { Package } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import PaginationBar from "@/components/features/product/PaginationBar";
 import { Badge } from "@/components/ui/badge";
 import {
   TableHeader,
@@ -20,15 +21,25 @@ type BidderHistoryListProps = {
   activeBids: MyAutoBid[];
 };
 
+const ITEMS_PER_PAGE = 5;
+
 /**
  * Component: BidderHistoryList
  * Displays a list of active bids for the current user.
  */
 const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
   const filteredActiveBids = useMemo(() => {
     const now = new Date();
     return activeBids.filter((bid) => new Date(bid.product.endTime) > now);
   }, [activeBids]);
+
+  const totalPages = Math.ceil(filteredActiveBids.length / ITEMS_PER_PAGE);
+  const paginatedBids = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredActiveBids.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredActiveBids, currentPage]);
 
   return (
     <TabsContent value="active" className="space-y-4">
@@ -44,14 +55,14 @@ const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredActiveBids.length === 0 ? (
+            {paginatedBids.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="py-4 text-center">
                   Không có đấu giá đang hoạt động.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredActiveBids.map((bid) => {
+              paginatedBids.map((bid) => {
                 const isLeading =
                   Number(bid.product.currentPrice) <= Number(bid.maxAmount);
                 return (
@@ -107,6 +118,14 @@ const BidderHistoryList = ({ activeBids }: BidderHistoryListProps) => {
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </TabsContent>
   );
 };
