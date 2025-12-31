@@ -153,7 +153,7 @@ const RatingForm = <T extends FieldValues>({
               <Textarea
                 {...field}
                 id={field.name}
-                placeholder="Để lại nhận xét của bạn về người bán..."
+                placeholder="Chia sẻ thêm về trải nghiệm của bạn..."
                 rows={5}
                 className="resize-none"
                 aria-invalid={fieldState.invalid}
