@@ -11,6 +11,7 @@ import {
   AwaitingConfirmationStep,
   ShippingStep,
   RatingStep,
+  CancelledOrder,
   type Step,
 } from "@/components/features/order";
 import {
@@ -75,7 +76,9 @@ export default function OrderDetailPage() {
 
         // Determine current step based on order status and seller confirmation
         // OrderStatus: "PENDING" | "PAID" | "SHIPPED" | "COMPLETED" | "CANCELLED"
-        if (orderData.status === "PENDING") {
+        if (orderData.status === "CANCELLED") {
+          setCurrentStep(0); // Đơn hàng đã hủy
+        } else if (orderData.status === "PENDING") {
           setCurrentStep(1); // Chưa thanh toán
         } else if (orderData.status === "PAID") {
           setCurrentStep(2); // Đã thanh toán, chờ người bán xác nhận và chuẩn bị hàng
@@ -177,7 +180,9 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Stepper */}
-          <OrderStepper currentStep={currentStep} steps={steps} />
+          {currentStep !== 0 && (
+            <OrderStepper currentStep={currentStep} steps={steps} />
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -188,6 +193,8 @@ export default function OrderDetailPage() {
 
             {/* Right Column - Step Content */}
             <div className="lg:col-span-2">
+              {currentStep === 0 && <CancelledOrder order={order} />}
+
               {currentStep === 1 && (
                 <PaymentStep order={order} onSuccess={handlePaymentSuccess} />
               )}

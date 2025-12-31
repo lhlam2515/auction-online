@@ -10,6 +10,7 @@ import {
   RatingStep,
   type Step,
 } from "@/components/features/order";
+import CancelledOrder from "@/components/features/order/CancelledOrder";
 import {
   PaymentConfirmationStep,
   ShippingConfirmationStep,
@@ -86,9 +87,8 @@ export default function SellerOrderDetailPage() {
           setCurrentStep(2); // Đơn hàng đã được gửi đi
         } else if (orderData.status === "COMPLETED") {
           setCurrentStep(3); // Đơn hàng hoàn thành, yêu cầu đánh giá
-        } else {
-          // PENDING hoặc CANCELLED, hiển thị bước 1
-          setCurrentStep(1);
+        } else if (orderData.status === "CANCELLED") {
+          setCurrentStep(0); // Đơn hàng đã hủy, không có bước tiếp theo
         }
       } catch (error) {
         toast.error(
@@ -179,7 +179,9 @@ export default function SellerOrderDetailPage() {
           </div>
 
           {/* Stepper */}
-          <OrderStepper currentStep={currentStep} steps={steps} />
+          {currentStep !== 0 && (
+            <OrderStepper currentStep={currentStep} steps={steps} />
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -190,6 +192,10 @@ export default function SellerOrderDetailPage() {
 
             {/* Right Column - Step Content */}
             <div className="lg:col-span-2">
+              {currentStep === 0 && (
+                <CancelledOrder order={order} isSeller={true} />
+              )}
+
               {currentStep === 1 && (
                 <PaymentConfirmationStep
                   order={order}
