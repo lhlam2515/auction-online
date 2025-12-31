@@ -6,7 +6,7 @@ import type {
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { orders, products, orderPayments, ratings } from "@/models";
+import { orders, products, orderPayments, ratings, users } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
 export type ShippingAddress = {
@@ -379,7 +379,6 @@ export class OrderService {
       })
       .where(eq(orders.id, orderId))
       .returning();
-    // TODO: Trigger rating flow - could create rating records or send notifications
 
     return updatedOrder;
   }
@@ -467,8 +466,25 @@ export class OrderService {
       })
       .returning();
 
-    // TODO: Update user's rating statistics
-    // TODO: Send notification to receiver
+    // Update receiver's rating score and count
+    const receiver = await db.query.users.findFirst({
+      where: eq(ratings.receiverId, receiverId),
+    });
+
+    if (receiver) {
+      const newRatingCount = receiver.ratingCount + 1;
+      const newRatingScore =
+        (receiver.ratingScore * receiver.ratingCount + rating) / newRatingCount;
+
+      await db
+        .update(users)
+        .set({
+          ratingScore: newRatingScore,
+          ratingCount: newRatingCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, receiverId));
+    }
 
     return newRating;
   }
