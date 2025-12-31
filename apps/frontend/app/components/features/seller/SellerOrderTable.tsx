@@ -1,8 +1,8 @@
 import type { OrderWithDetails } from "@repo/shared-types";
-import { Package, Eye, Truck, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Package, Eye } from "lucide-react";
 import { Link } from "react-router";
 
-import { Badge } from "@/components/ui/badge";
+import OrderStatusBadge from "@/components/common/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,63 +32,12 @@ const SellerOrderTable = ({ orders, className }: SellerOrderTableProps) => {
         <div className="text-center">
           <Package className="text-muted-foreground mx-auto h-10 w-10 opacity-50" />
           <p className="text-muted-foreground mt-2">
-            Danh sách đơn hàng sẽ hiển thị ở đây
+            Chưa có đơn hàng nào được tạo.
           </p>
         </div>
       </div>
     );
   }
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      PENDING: {
-        variant: "secondary" as const,
-        label: "Chờ xử lý",
-        className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
-        icon: Clock,
-      },
-      PAID: {
-        variant: "secondary" as const,
-        label: "Đã thanh toán",
-        className: "bg-blue-100 text-blue-800 hover:bg-blue-200",
-        icon: CheckCircle,
-      },
-      SHIPPED: {
-        variant: "secondary" as const,
-        label: "Đã giao hàng",
-        className: "bg-purple-100 text-purple-800 hover:bg-purple-200",
-        icon: Truck,
-      },
-      COMPLETED: {
-        variant: "secondary" as const,
-        label: "Hoàn thành",
-        className: "bg-green-100 text-green-800 hover:bg-green-200",
-        icon: CheckCircle,
-      },
-      CANCELLED: {
-        variant: "secondary" as const,
-        label: "Đã hủy",
-        className: "bg-red-100 text-red-800 hover:bg-red-200",
-        icon: XCircle,
-      },
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || {
-      variant: "secondary" as const,
-      label: status,
-      className: "bg-gray-100 text-gray-800 hover:bg-gray-200",
-      icon: Clock,
-    };
-
-    const Icon = config.icon;
-
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        <Icon className="mr-1 h-3 w-3" />
-        {config.label}
-      </Badge>
-    );
-  };
 
   return (
     <div className={cn("rounded-md border", className)}>
@@ -108,7 +57,7 @@ const SellerOrderTable = ({ orders, className }: SellerOrderTableProps) => {
           {orders.map((order) => (
             <TableRow key={order.id}>
               <TableCell className="font-medium">{order.orderNumber}</TableCell>
-              <TableCell>
+              <TableCell className="whitespace-normal">
                 <div className="flex items-center gap-3">
                   {order.product.thumbnail ? (
                     <img
@@ -142,10 +91,12 @@ const SellerOrderTable = ({ orders, className }: SellerOrderTableProps) => {
               <TableCell className="font-medium">
                 {formatPrice(parseInt(order.totalAmount, 10))}
               </TableCell>
-              <TableCell>{getStatusBadge(order.status)}</TableCell>
+              <TableCell>
+                <OrderStatusBadge status={order.status} />
+              </TableCell>
               <TableCell>{formatDate(order.createdAt)}</TableCell>
               <TableCell>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="default" size="sm" asChild>
                   <Link to={SELLER_ROUTES.ORDER(order.id)}>
                     <Eye className="mr-2 h-4 w-4" />
                     Xem chi tiết
