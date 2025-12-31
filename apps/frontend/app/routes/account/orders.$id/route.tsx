@@ -183,10 +183,7 @@ export default function OrderDetailPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Left Column - Order Summary */}
             <div className="lg:col-span-1">
-              <OrderSummaryCard
-                order={order}
-                showSellerDetails={currentStep >= 2}
-              />
+              <OrderSummaryCard order={order} />
             </div>
 
             {/* Right Column - Step Content */}

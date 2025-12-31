@@ -9,14 +9,12 @@ import { cn, formatPrice } from "@/lib/utils";
 
 interface OrderSummaryCardProps {
   order: OrderWithDetails;
-  sellerRating?: number;
-  showSellerDetails?: boolean;
-  onChatWithSeller?: () => void;
+  isSeller?: boolean;
 }
 
 export function OrderSummaryCard({
   order,
-  onChatWithSeller,
+  isSeller = false,
 }: OrderSummaryCardProps) {
   const finalPrice = parseFloat(order.finalPrice);
   const orderDate = new Date(order.createdAt).toLocaleDateString("vi-VN");
@@ -53,41 +51,51 @@ export function OrderSummaryCard({
         </div>
         <Separator />
         <div>
-          <h4 className="text-card-foreground mb-2 font-semibold">Người bán</h4>
+          <h4 className="text-card-foreground mb-2 font-semibold">
+            {isSeller ? "Người mua" : "Người bán"}
+          </h4>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-card-foreground">
-                {order.seller.fullName}
+                {isSeller ? order.winner.fullName : order.seller.fullName}
               </span>
               <Badge
                 variant="outline"
                 className={cn(
-                  order.seller.ratingScore >= 0.8
-                    ? "border-green-500 text-green-600"
-                    : order.seller.ratingScore >= 0.5
-                      ? "border-yellow-500 text-yellow-600"
-                      : "border-red-500 text-red-600",
-                  "px-2 py-1 text-sm"
+                  "px-2 py-1 text-sm",
+                  (isSeller
+                    ? order.winner.ratingScore
+                    : order.seller.ratingScore) >= 0.8
+                    ? "border-green-300 bg-green-50 text-green-600"
+                    : (isSeller
+                          ? order.winner.ratingScore
+                          : order.seller.ratingScore) >= 0.5
+                      ? "border-amber-300 bg-amber-50 text-amber-600"
+                      : "border-red-500 bg-red-50 text-red-600"
                 )}
               >
-                {order.seller.ratingScore}% Tích cực
+                {(isSeller
+                  ? order.winner.ratingScore * 100
+                  : order.seller.ratingScore * 100
+                ).toFixed(1)}
+                % Tích cực
               </Badge>
             </div>
             <div className="space-y-1 text-sm">
               <div className="text-muted-foreground flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{order.seller.address}</span>
+                <span>
+                  {isSeller
+                    ? order.shippingAddress || "Địa chỉ chưa được cung cấp"
+                    : order.seller.address}
+                </span>
               </div>
             </div>
           </div>
         </div>
-        <Button
-          className="w-full cursor-pointer"
-          size="lg"
-          onClick={onChatWithSeller}
-        >
-          <MessageCircle className="mr-2 h-4 w-4" />
-          Chat với người bán
+        <Button className="w-full cursor-pointer" size="lg">
+          <MessageCircle className="h-4 w-4" />
+          Chat với {isSeller ? "người mua" : "người bán"}
         </Button>
       </CardContent>
     </Card>
