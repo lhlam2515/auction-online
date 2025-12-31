@@ -30,6 +30,7 @@ import { db } from "@/config/database";
 import {
   bids,
   categories,
+  orders,
   productImages,
   products,
   productUpdates,
@@ -214,11 +215,12 @@ export class ProductService {
 
   async getProductDetailsById(productId: string): Promise<ProductDetails> {
     const [product_info] = await db
-      .select({ products, categories, users })
+      .select({ products, categories, users, orders })
       .from(products)
       .where(eq(products.id, productId))
       .leftJoin(categories, eq(products.categoryId, categories.id))
-      .leftJoin(users, eq(products.sellerId, users.id));
+      .leftJoin(users, eq(products.sellerId, users.id))
+      .leftJoin(orders, eq(products.id, orders.productId));
 
     if (!product_info) {
       throw new NotFoundError("Product");
@@ -231,6 +233,7 @@ export class ProductService {
       sellerAvatarUrl: product_info.users?.avatarUrl ?? "",
       sellerRatingScore: product_info.users?.ratingScore ?? 0,
       sellerRatingCount: product_info.users?.ratingCount ?? 0,
+      orderId: product_info.orders?.id ?? null,
     };
   }
 
