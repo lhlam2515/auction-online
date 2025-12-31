@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api-layer";
 import { cn } from "@/lib/utils";
-import { updateShippingInfoSchema } from "@/lib/validations/user.validation";
+import { updateShippingInfoSchema } from "@/lib/validations/order.validation";
 
 import ShippingInfoDisplay from "./ShippingInfoDisplay";
 import ShippingInfoForm from "./ShippingInfoForm";

@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
-import { submitFeedbackSchema } from "@/lib/validations/user.validation";
+import { submitFeedbackSchema } from "@/lib/validations/order.validation";
 
 interface RatingStepProps {
   order: OrderWithDetails;

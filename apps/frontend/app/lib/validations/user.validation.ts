@@ -70,35 +70,6 @@ export const upgradeRequestSchema = z.object({
 });
 
 /**
- * Shipping information update validation schema
- * @description Validates shipping address and phone number updates
- */
-export const updateShippingInfoSchema = z.object({
-  shippingAddress: z.string().min(10, "Địa chỉ giao hàng quá ngắn"),
-  phoneNumber: z
-    .string()
-    .regex(
-      /^(0|\+84)(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5|8|9]|9[0-4|6-9])[0-9]{7}$/,
-      {
-        message: "Số điện thoại không hợp lệ",
-      }
-    ),
-});
-
-/**
- * Submit feedback validation schema
- * @description Validates user feedback submissions with rating and optional comment
- */
-export const submitFeedbackSchema = z.object({
-  rating: z
-    .union([z.literal(1), z.literal(-1), z.literal(0)])
-    .refine((val) => val !== 0, {
-      message: "Vui lòng chọn đánh giá Tích cực (+1) hoặc Tiêu cực (-1)",
-    }),
-  comment: z.string().optional(),
-});
-
-/**
  * User validation schema types
  */
 export type UpdateProfileSchemaType = z.infer<typeof updateProfileSchema>;
