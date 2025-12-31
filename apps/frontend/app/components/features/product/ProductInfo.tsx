@@ -242,10 +242,10 @@ export function ProductMainInfo({
           <Button
             size="lg"
             variant="default"
-            className="h-14 flex-1 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
+            className="flex h-14 flex-1 cursor-pointer items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
             onClick={handleBidClick}
           >
-            <Gavel className="mr-2 h-5 w-5" />
+            <Gavel className="h-5 w-5" />
             Đặt giá
           </Button>
 
@@ -253,10 +253,10 @@ export function ProductMainInfo({
             <Button
               size="lg"
               variant="outline"
-              className="border-accent text-accent hover:bg-accent h-14 flex-1 bg-transparent text-lg font-semibold hover:text-white"
+              className="border-accent text-accent hover:bg-accent flex h-14 flex-1 cursor-pointer gap-2 bg-transparent text-lg font-semibold hover:text-white"
               onClick={handleBuyNowClick}
             >
-              <ShoppingCart className="mr-2 h-5 w-5" />
+              <ShoppingCart className="h-5 w-5" />
               Mua ngay
             </Button>
           )}
@@ -264,7 +264,7 @@ export function ProductMainInfo({
           <Button
             size="lg"
             variant="outline"
-            className="border-accent text-accent hover:bg-accent h-14 w-14 bg-transparent p-0"
+            className="border-accent text-accent hover:bg-accent h-14 w-14 cursor-pointer bg-transparent p-0"
             onClick={handleToggleWatchlist}
             disabled={watchlistLoading}
           >

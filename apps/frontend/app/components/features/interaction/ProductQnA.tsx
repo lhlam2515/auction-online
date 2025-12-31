@@ -147,7 +147,7 @@ export function ProductQA({
               <Button
                 onClick={handleQuestionSubmit}
                 disabled={!questionInput.trim() || isSubmitting}
-                className="self-end bg-slate-900 text-white hover:bg-slate-800"
+                className="cursor-pointer self-end bg-slate-900 text-white hover:bg-slate-800"
                 size="icon"
               >
                 <Send className="h-4 w-4" />
@@ -261,7 +261,7 @@ export function ProductQA({
                             !answerInputs[q.id]?.trim() ||
                             answeringQuestions[q.id]
                           }
-                          className="self-end bg-green-600 text-white hover:bg-green-700"
+                          className="cursor-pointer self-end bg-green-600 text-white hover:bg-green-700"
                           size="icon"
                         >
                           <Send className="h-4 w-4" />
