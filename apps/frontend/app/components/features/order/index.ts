@@ -12,3 +12,4 @@ export { ShippingStep } from "./ShippingStep";
 export { RatingStep } from "./RatingStep";
 
 export { default as CancelledOrder } from "./CancelledOrder";
+export { OrderChatPopup } from "./OrderChatPopup";
