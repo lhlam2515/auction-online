@@ -30,13 +30,13 @@ const bootstrap = async () => {
   });
 
   try {
-    // startWorkers();
+    startWorkers();
 
-    // // Khôi phục các auction đã bỏ sót (đã hết hạn)
-    // await systemService.syncMissedAuctions();
+    // Khôi phục các auction đã bỏ sót (đã hết hạn)
+    await systemService.syncMissedAuctions();
 
-    // // Xử lý auto-bid cho các auction đang active
-    // await systemService.syncActiveAuctionAutoBids();
+    // Xử lý auto-bid cho các auction đang active
+    await systemService.syncActiveAuctionAutoBids();
 
     server = app.listen(PORT, () => {
       logger.info(`🚀 Server is running at http://localhost:${PORT}`);
