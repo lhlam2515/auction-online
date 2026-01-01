@@ -778,10 +778,8 @@ export const api = {
       /**
        * Update category
        */
-      update: (
-        categoryId: string,
-        data: { name?: string; description?: string }
-      ) => apiCall<Category>("PUT", `/admin/categories/${categoryId}`, data),
+      update: (categoryId: string, data: { name: string }) =>
+        apiCall<Category>("PUT", `/admin/categories/${categoryId}`, data),
 
       /**
        * Delete category

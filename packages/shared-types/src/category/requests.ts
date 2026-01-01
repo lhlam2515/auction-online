@@ -12,8 +12,7 @@ export interface CreateCategoryRequest {
  * Update category request
  */
 export interface UpdateCategoryRequest {
-  name?: string;
-  parentId?: string | null;
+  name: string;
 }
 
 /**

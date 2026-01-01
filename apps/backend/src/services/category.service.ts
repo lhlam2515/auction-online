@@ -106,54 +106,16 @@ export class CategoryService {
     return newCategory;
   }
 
-  async updateCategory(
-    categoryId: string,
-    name?: string,
-    parentId?: string | null
-  ): Promise<Category> {
+  async updateCategory(categoryId: string, name: string): Promise<Category> {
     const category = await this.getById(categoryId);
 
-    let isUpdated = false;
-
-    // ----- Parent handling -----
-    let newParentId = category.parentId;
-    let newLevel = category.level;
-
-    if (parentId !== undefined && parentId !== category.parentId) {
-      if (parentId === null) {
-        newParentId = null;
-        newLevel = 0;
-        isUpdated = true;
-      } else {
-        const parent = await this.getById(parentId);
-
-        if (parent.id === categoryId) {
-          throw new BadRequestError("Category cannot be its own parent");
-        }
-
-        const level = parent.level + 1;
-        if (level >= 2) {
-          throw new BadRequestError("Cannot set category deeper than level 2");
-        }
-
-        newParentId = parentId;
-        newLevel = level;
-        isUpdated = true;
-      }
-    }
-
     // ----- Name + slug handling -----
-    const nameChanged =
-      name !== undefined && name.trim() !== category.name.trim();
+    const nameChanged = name.trim() !== category.name.trim();
 
-    const newName = nameChanged ? name! : category.name;
+    const newName = nameChanged ? name : category.name;
     const newSlug = nameChanged
-      ? await this.slugifiedCategoryName(name!)
+      ? await this.slugifiedCategoryName(name)
       : category.slug;
-
-    if (nameChanged) {
-      isUpdated = true;
-    }
 
     // ----- Update DB -----
     const [updatedCategory] = await db
@@ -161,9 +123,7 @@ export class CategoryService {
       .set({
         name: newName,
         slug: newSlug,
-        parentId: newParentId,
-        level: newLevel,
-        updatedAt: isUpdated ? new Date() : category.updatedAt,
+        updatedAt: nameChanged ? new Date() : category.updatedAt,
       })
       .where(eq(categories.id, categoryId))
       .returning();

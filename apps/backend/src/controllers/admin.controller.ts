@@ -131,8 +131,7 @@ export const updateCategory = asyncHandler(
     // Update category
     const updatedCategory = await categoryService.updateCategory(
       req.params.id,
-      body.name,
-      body.parentId
+      body.name
     );
     return ResponseHandler.sendSuccess<Category>(res, updatedCategory);
   }
