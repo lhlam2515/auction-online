@@ -3,14 +3,7 @@ import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase } from "@/config/supabase";
-import {
-  users,
-  watchLists,
-  upgradeRequests,
-  bids,
-  products,
-  productImages,
-} from "@/models";
+import { users, watchLists, upgradeRequests, bids, products } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 
 export class UserService {
@@ -27,9 +20,9 @@ export class UserService {
   async updateProfile(
     userId: string,
     fullName: string | null,
-    address: string | null,
-    birthDate: string | null,
-    avatarUrl: string | null
+    address?: string | null,
+    birthDate?: string | null,
+    avatarUrl?: string | null
   ) {
     const existingUser = await this.getById(userId); // ensure user exists
 

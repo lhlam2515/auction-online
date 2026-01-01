@@ -79,11 +79,9 @@ export default function UserProfilePage() {
     const result = await api.users.updateProfile({
       fullName: data.fullName,
       email: data.email,
-      birthDate: data.birthDate
-        ? data.birthDate.toISOString().split("T")[0]
-        : null,
-      address: data.address || "",
-      avatarUrl: data.avatarUrl || "",
+      birthDate: data.birthDate && data.birthDate.toISOString().split("T")[0],
+      address: data.address,
+      avatarUrl: data.avatarUrl,
     });
     return result;
   }, []);
