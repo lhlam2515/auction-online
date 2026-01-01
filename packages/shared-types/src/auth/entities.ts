@@ -11,6 +11,7 @@ export interface UserAuthData {
   role: UserRole;
   avatarUrl?: string;
   accountStatus: AccountStatus;
+  sellerExpireDate?: string | null; // ISO timestamp for seller expiration
 }
 
 /**
