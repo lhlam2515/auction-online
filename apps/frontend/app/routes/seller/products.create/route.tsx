@@ -2,6 +2,7 @@ import type { CategoryTree } from "@repo/shared-types";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
+import { ActiveSellerRoute } from "@/components/ActiveSellerRoute";
 import ProductForm from "@/components/features/product/ProductForm";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
@@ -137,16 +138,18 @@ export default function CreateProductPage() {
   };
 
   return (
-    <ProductForm
-      schema={productSchema}
-      defaultValues={defaultValues}
-      onSubmit={handleSubmit}
-      categories={categories}
-      selectedImages={selectedImages}
-      onImageUpload={handleImageUpload}
-      onImageRemove={removeImage}
-      uploadingImages={uploadingImages}
-      onCancel={handleCancel}
-    />
+    <ActiveSellerRoute>
+      <ProductForm
+        schema={productSchema}
+        defaultValues={defaultValues}
+        onSubmit={handleSubmit}
+        categories={categories}
+        selectedImages={selectedImages}
+        onImageUpload={handleImageUpload}
+        onImageRemove={removeImage}
+        uploadingImages={uploadingImages}
+        onCancel={handleCancel}
+      />
+    </ActiveSellerRoute>
   );
 }
