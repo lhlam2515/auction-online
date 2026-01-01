@@ -84,9 +84,9 @@ export function OrderChatPopup({
     );
 
     if (unreadMessages.length > 0) {
-      Promise.all(
-        unreadMessages.map((msg) => api.chat.markMessageRead(msg.id))
-      ).then(() => {
+      // Backend expects orderId in the route param to find the order context
+      // even though the route is named /messages/:id/read
+      api.chat.markMessageRead(order.id).then(() => {
         // Optimistically update local state
         setMessages((prev) =>
           prev.map((msg) =>
@@ -97,7 +97,7 @@ export function OrderChatPopup({
         );
       });
     }
-  }, [messages, isOpen, user]);
+  }, [messages, isOpen, user, order.id]);
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
