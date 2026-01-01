@@ -1,6 +1,15 @@
-import { z } from "zod";
+import { length, z } from "zod";
 
 import { imageFileSchema, commonValidations } from "./common.validation";
+
+/**
+ * Strip HTML tags from content to get plain text
+ * @param html HTML string
+ * @returns Plain text without HTML tags
+ */
+const stripHtmlTags = (html: string): string => {
+  return html.replace(/<[^>]*>/g, "").trim();
+};
 
 /**
  * Product creation/auction form validation schema
@@ -26,10 +35,19 @@ export const productSchema = z
     endTime: z.date({ error: "Vui lòng chọn ngày kết thúc" }),
 
     // Description validation
-    description: commonValidations.requiredString(
-      20,
-      "Mô tả cần chi tiết hơn (tối thiểu 20 ký tự)"
-    ),
+    description: z
+      .string()
+      .min(1, "Vui lòng nhập nội dung mô tả")
+      .refine(
+        (content) => {
+          const plainText = stripHtmlTags(content);
+          return plainText.length >= 20;
+        },
+        {
+          message:
+            "Nội dung mô tả cần ít nhất 20 ký tự (không tính các thẻ định dạng)",
+        }
+      ),
 
     // Image validation
     images: z
@@ -83,10 +101,22 @@ export const productSchema = z
 
 /**
  * Product description update validation schema
- * @description Validates description update with minimum content requirements
+ * @description Validates description update with minimum content requirements based on plain text
  */
 export const descriptionUpdateSchema = z.object({
-  content: commonValidations.requiredString(20, "Mô tả cần ít nhất 20 ký tự"),
+  content: z
+    .string()
+    .min(1, "Vui lòng nhập nội dung mô tả")
+    .refine(
+      (content) => {
+        const plainText = stripHtmlTags(content);
+        return plainText.length >= 20;
+      },
+      {
+        message:
+          "Nội dung mô tả cần ít nhất 20 ký tự (không tính các thẻ định dạng)",
+      }
+    ),
 });
 
 /**
