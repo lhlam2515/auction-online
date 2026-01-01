@@ -36,24 +36,36 @@ export default function ManageAuctionPage({ params }: Route.ComponentProps) {
   const [descriptionKey, setDescriptionKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
         const response = await api.products.getById(productId);
+        if (!isMounted) return;
+
         if (response.success && response.data) {
           setProduct(response.data);
         } else {
           toast.error("Không thể tải thông tin sản phẩm");
         }
       } catch (error) {
-        toast.error("Có lỗi khi tải thông tin sản phẩm");
+        if (isMounted) {
+          toast.error("Có lỗi khi tải thông tin sản phẩm");
+        }
         logger.error("Error fetching product:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchProduct();
+
+    return () => {
+      isMounted = false;
+    };
   }, [productId]);
 
   const handleDescriptionSuccess = () => {

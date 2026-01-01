@@ -112,7 +112,7 @@ export function AppendDescForm({ productId, onSuccess }: AppendDescFormProps) {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className={!isSubmitting ? "cursor-pointer" : ""}
+          className="cursor-pointer"
         >
           {isSubmitting && <Spinner />}
           {isSubmitting ? "Đang cập nhật..." : "Cập nhật mô tả"}
