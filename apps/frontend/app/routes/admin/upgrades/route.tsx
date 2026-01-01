@@ -1,11 +1,12 @@
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Approve Upgrades - Online Auction" },
+    { title: "Phê Duyệt Nâng Cấp - Online Auction" },
     {
       name: "description",
-      content: "Approve Upgrades page for Online Auction App",
+      content: "Trang phê duyệt nâng cấp cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

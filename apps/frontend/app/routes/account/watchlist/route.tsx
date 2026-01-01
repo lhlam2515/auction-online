@@ -3,13 +3,12 @@ import type {
   ProductSortOption,
   SearchProductsParams,
 } from "@repo/shared-types";
-import { Heart, UserIcon } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import { Heart } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import WatchList from "@/components/features/bidder/WatchList";
-import PaginationBar from "@/components/features/product/PaginationBar";
 import SortDropdown from "@/components/features/product/SortDropdown";
 import {
   CardHeader,
@@ -17,17 +16,20 @@ import {
   CardDescription,
   Card,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { ERROR_MESSAGES } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Watch List - Online Auction" },
-    { name: "description", content: "Watch List page for Online Auction App" },
+    { title: "Danh Sách Theo Dõi - Online Auction" },
+    {
+      name: "description",
+      content: "Trang danh sách theo dõi cho ứng dụng Đấu Giá Trực Tuyến",
+    },
   ];
 }
 

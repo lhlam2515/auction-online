@@ -19,12 +19,13 @@ import logger from "@/lib/logger";
 import type { Route } from "./+types/route";
 import { AppendDescForm } from "./AppendDescForm";
 
-export function meta(_args: Route.MetaArgs) {
+// eslint-disable-next-line no-empty-pattern
+export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Manage Auction - Online Auction" },
+    { title: "Quản Lý Đấu Giá - Online Auction" },
     {
       name: "description",
-      content: "Manage Auction page for Online Auction App",
+      content: "Trang quản lý đấu giá cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

@@ -14,10 +14,11 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Seller Dashboard - Online Auction" },
+    { title: "Bảng Điều Khiển Người Bán - Online Auction" },
     {
       name: "description",
-      content: "Seller Dashboard page for Online Auction App",
+      content:
+        "Trang bảng điều khiển người bán cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

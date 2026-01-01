@@ -18,12 +18,14 @@ import { api } from "@/lib/api-layer";
 
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Account Dashboard - Online Auction" },
+    { title: "Bảng Điều Khiển Tài Khoản - Online Auction" },
     {
       name: "description",
-      content: "Account Dashboard page for Online Auction App",
+      content:
+        "Trang bảng điều khiển tài khoản cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

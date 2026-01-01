@@ -28,10 +28,10 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "User Profile - Online Auction" },
+    { title: "Hồ Sơ Người Dùng - Online Auction" },
     {
       name: "description",
-      content: "User Profile page for Online Auction App",
+      content: "Trang hồ sơ người dùng cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

@@ -11,12 +11,13 @@ import {
 
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Manage Categories - Online Auction" },
+    { title: "Quản Lý Danh Mục - Online Auction" },
     {
       name: "description",
-      content: "Manage Categories page for Online Auction App",
+      content: "Trang quản lý danh mục cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

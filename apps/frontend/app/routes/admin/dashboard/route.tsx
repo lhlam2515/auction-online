@@ -1,11 +1,12 @@
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Admin Dashboard - Online Auction" },
+    { title: "Bảng Điều Khiển Quản Trị - Online Auction" },
     {
       name: "description",
-      content: "Admin Dashboard page for Online Auction App",
+      content: "Trang bảng điều khiển quản trị cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

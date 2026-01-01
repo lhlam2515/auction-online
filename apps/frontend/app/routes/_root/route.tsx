@@ -10,10 +10,14 @@ import logger from "@/lib/logger";
 
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Home Page - Online Auction" },
-    { name: "description", content: "Home Page page for Online Auction App" },
+    { title: "Trang Chủ - Online Auction" },
+    {
+      name: "description",
+      content: "Trang chủ của ứng dụng Đấu Giá Trực Tuyến",
+    },
   ];
 }
 

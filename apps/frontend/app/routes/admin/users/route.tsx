@@ -1,11 +1,12 @@
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Manage Users - Online Auction" },
+    { title: "Quản Lý Người Dùng - Online Auction" },
     {
       name: "description",
-      content: "Manage Users page for Online Auction App",
+      content: "Trang quản lý người dùng cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }

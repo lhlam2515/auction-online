@@ -23,8 +23,11 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "My Bids - Online Auction" },
-    { name: "description", content: "My Bids page for Online Auction App" },
+    { title: "Đấu Giá Của Tôi - Online Auction" },
+    {
+      name: "description",
+      content: "Trang đấu giá của tôi cho ứng dụng Đấu Giá Trực Tuyến",
+    },
   ];
 }
 

@@ -13,12 +13,13 @@ import {
 
 import type { Route } from "./+types/route";
 
-export function meta(_args: Route.MetaArgs) {
+// eslint-disable-next-line no-empty-pattern
+export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Create Auction - Online Auction" },
+    { title: "Tạo Đấu Giá - Online Auction" },
     {
       name: "description",
-      content: "Create Auction page for Online Auction App",
+      content: "Trang tạo đấu giá cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }
