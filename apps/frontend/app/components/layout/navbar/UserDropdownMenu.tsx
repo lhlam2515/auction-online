@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 
+import UserAvatar from "@/components/common/UserAvatar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,26 +46,12 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2">
-          <Avatar className="h-6 w-6">
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.fullName}
-                className="object-cover"
-                width={24}
-                height={24}
-              />
-            ) : (
-              <AvatarFallback>
-                {user.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </AvatarFallback>
-            )}
-          </Avatar>
+          <UserAvatar
+            name={user.fullName}
+            imageUrl={user.avatarUrl}
+            className="h-6 w-6"
+            fallbackClassName="text-sm"
+          />
           <span className="hidden lg:inline">{user.fullName}</span>
           <ChevronDown className="h-4 w-4" />
         </Button>

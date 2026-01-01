@@ -1,5 +1,6 @@
 import { Star, ShieldCheck, Clock } from "lucide-react";
 
+import UserAvatar from "@/components/common/UserAvatar";
 import { CreateProductButton } from "@/components/features/seller/CreateProductButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -48,20 +49,12 @@ const SellerProfileSection = ({
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           {/* Left: User Info */}
           <div className="flex items-start gap-4">
-            <Avatar className="h-26 w-26 border-4 border-white shadow-sm">
-              <AvatarImage
-                src={user.avatarUrl || undefined}
-                alt={user.fullName}
-              />
-              <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                {user.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={user.fullName}
+              imageUrl={user.avatarUrl}
+              className="h-26 w-26 border-2 border-white shadow-sm"
+              fallbackClassName="text-3xl"
+            />
 
             <div className="mt-1 space-y-1">
               <div className="flex items-center gap-2">

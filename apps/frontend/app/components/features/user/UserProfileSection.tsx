@@ -1,12 +1,8 @@
-import { Star, Plus, ShieldCheck, Clock } from "lucide-react";
-import { Link } from "react-router";
+import { Star, ShieldCheck } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import UserAvatar from "@/components/common/UserAvatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button"; // Import Button
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator"; // Import Separator
-import { SELLER_ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 interface UserProfileSectionProps {
@@ -24,25 +20,6 @@ interface UserProfileSectionProps {
 }
 
 const UserProfileSection = ({ user, className }: UserProfileSectionProps) => {
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return "Vĩnh viễn";
-    return new Date(date).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getDaysUntilExpiry = (expiryDate: Date | string | null) => {
-    if (!expiryDate) return null;
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - now.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
-  const daysLeft = getDaysUntilExpiry(user.sellerExpireDate);
-
   return (
     <Card
       className={cn(
@@ -54,20 +31,12 @@ const UserProfileSection = ({ user, className }: UserProfileSectionProps) => {
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           {/* Left: User Info */}
           <div className="flex items-start gap-4">
-            <Avatar className="h-26 w-26 border-4 border-white shadow-sm">
-              <AvatarImage
-                src={user.avatarUrl || undefined}
-                alt={user.fullName}
-              />
-              <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                {user.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={user.fullName}
+              imageUrl={user.avatarUrl}
+              className="h-26 w-26 border-2 border-white shadow-sm"
+              fallbackClassName="text-3xl"
+            />
 
             <div className="mt-1 space-y-1">
               <div className="flex items-center gap-2">
@@ -97,44 +66,6 @@ const UserProfileSection = ({ user, className }: UserProfileSectionProps) => {
               </div>
             </div>
           </div>
-
-          {/* Right: Actions & Status */}
-          {/* <div className="flex flex-col items-end gap-4 md:min-w-[250px] md:border-l md:pl-6">
-            <Button
-              className="shadow-primary/20 w-full shadow-lg transition-all hover:scale-[1.02]"
-              asChild
-            >
-              <Link to={SELLER_ROUTES.PRODUCT_CREATE}>
-                <Plus className="mr-2 h-4 w-4" /> Đăng sản phẩm mới
-              </Link>
-            </Button>
-
-            <div className="w-full space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-slate-500">
-                  <Clock className="h-4 w-4" /> Hiệu lực
-                </span>
-                <span
-                  className={cn(
-                    "font-medium",
-                    daysLeft && daysLeft <= 7
-                      ? "text-red-600"
-                      : "text-slate-700"
-                  )}
-                >
-                  {daysLeft
-                    ? daysLeft < 0
-                      ? "Đã hết hạn"
-                      : `Còn ${daysLeft} ngày`
-                    : "Vĩnh viễn"}
-                </span>
-              </div>
-              <Separator />
-              <div className="text-right text-xs text-slate-400">
-                Hết hạn: {formatDate(user.sellerExpireDate)}
-              </div>
-            </div>
-          </div> */}
         </div>
       </CardContent>
     </Card>
