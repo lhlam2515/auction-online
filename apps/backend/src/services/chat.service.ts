@@ -88,16 +88,32 @@ export class ChatService {
     }
 
     const productId = order.productId;
-    await db
-      .update(chatMessages)
-      .set({ isRead: true })
-      .where(
-        and(
-          eq(chatMessages.productId, productId),
-          eq(chatMessages.receiverId, userId),
-          inArray(chatMessages.id, messageIds ?? [])
-        )
-      );
+
+    // If messageIds is provided, mark specific messages as read
+    if (messageIds && messageIds.length > 0) {
+      await db
+        .update(chatMessages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(chatMessages.productId, productId),
+            eq(chatMessages.receiverId, userId),
+            inArray(chatMessages.id, messageIds)
+          )
+        );
+    } else {
+      // Otherwise mark ALL unread messages in this chat as read
+      await db
+        .update(chatMessages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(chatMessages.productId, productId),
+            eq(chatMessages.receiverId, userId),
+            eq(chatMessages.isRead, false)
+          )
+        );
+    }
 
     return { message: "Messages marked as read successfully" };
   }
