@@ -1,11 +1,16 @@
 import type { ChatMessage, OrderWithDetails } from "@repo/shared-types";
-import { X, Send, Minimize2, Loader2 } from "lucide-react";
+import { X, Send, Minimize2, Loader2, MessageCircle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardContent,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
@@ -64,11 +69,11 @@ export function OrderChatPopup({
     }
   }, [isOpen, order.id]);
 
-  //   useEffect(() => {
-  //     if (scrollRef.current) {
-  //       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  //     }
-  //   }, [messages, isOpen]);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isOpen]);
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -131,6 +136,50 @@ export function OrderChatPopup({
           </Button>
         </div>
       </CardHeader>
+      <CardContent className="relative flex-1 overflow-hidden bg-slate-50/50 p-0">
+        <div
+          className="absolute inset-0 space-y-1 overflow-y-auto p-4"
+          ref={scrollRef}
+        >
+          {isLoading && messages.length === 0 ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="text-muted-foreground flex h-full flex-col items-center justify-center p-4 text-center">
+              <MessageCircle className="mb-2 h-10 w-10 opacity-20" />
+              <p className="text-sm">Chưa có tin nhắn nào.</p>
+              <p className="text-xs">
+                Hãy bắt đầu trò chuyện với {otherPartyRole.toLowerCase()}!
+              </p>
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const isMe = msg.senderId === user.id;
+              return (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    "flex w-full",
+                    isMe ? "justify-end" : "justify-start"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                      isMe
+                        ? "bg-primary text-primary-foreground rounded-br-none"
+                        : "text-foreground rounded-bl-none border bg-white"
+                    )}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </CardContent>
 
       <CardFooter className="bg-background border-t p-3">
         <form
