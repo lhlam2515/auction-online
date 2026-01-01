@@ -75,6 +75,30 @@ export function OrderChatPopup({
     }
   }, [messages, isOpen]);
 
+  // Mark unread messages as read
+  useEffect(() => {
+    if (!isOpen || !user || messages.length === 0) return;
+
+    const unreadMessages = messages.filter(
+      (msg) => msg.senderId !== user.id && !msg.isRead
+    );
+
+    if (unreadMessages.length > 0) {
+      Promise.all(
+        unreadMessages.map((msg) => api.chat.markMessageRead(msg.id))
+      ).then(() => {
+        // Optimistically update local state
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.senderId !== user.id && !msg.isRead
+              ? { ...msg, isRead: true }
+              : msg
+          )
+        );
+      });
+    }
+  }, [messages, isOpen, user]);
+
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!newMessage.trim()) return;
@@ -100,6 +124,11 @@ export function OrderChatPopup({
   const isBuyer = user.id === order.winnerId;
   const otherParty = isBuyer ? order.seller : order.winner;
   const otherPartyRole = isBuyer ? "Người bán" : "Người mua";
+
+  // Find the last message sent by me to show status
+  const lastSentMessage = [...messages]
+    .reverse()
+    .find((m) => m.senderId === user.id);
 
   return (
     <Card className="border-primary/20 animate-in slide-in-from-bottom-10 fixed right-6 bottom-6 z-50 flex h-[500px] w-80 flex-col overflow-hidden shadow-xl duration-300 sm:w-96">
@@ -156,12 +185,14 @@ export function OrderChatPopup({
           ) : (
             messages.map((msg) => {
               const isMe = msg.senderId === user.id;
+              const isLastSent = lastSentMessage?.id === msg.id;
+
               return (
                 <div
                   key={msg.id}
                   className={cn(
-                    "flex w-full",
-                    isMe ? "justify-end" : "justify-start"
+                    "flex w-full flex-col",
+                    isMe ? "items-end" : "items-start"
                   )}
                 >
                   <div
@@ -174,6 +205,11 @@ export function OrderChatPopup({
                   >
                     {msg.content}
                   </div>
+                  {isMe && isLastSent && (
+                    <span className="text-muted-foreground mt-1 mr-1 text-[10px]">
+                      {msg.isRead ? "Đã xem" : "Đã gửi"}
+                    </span>
+                  )}
                 </div>
               );
             })
