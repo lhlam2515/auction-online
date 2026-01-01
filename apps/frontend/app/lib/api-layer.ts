@@ -769,11 +769,8 @@ export const api = {
       /**
        * Create new category
        */
-      create: (data: {
-        name: string;
-        description?: string;
-        parentId?: string;
-      }) => apiCall<Category>("POST", "/admin/categories", data),
+      create: (data: { name: string; parentId?: string }) =>
+        apiCall<Category>("POST", "/admin/categories", data),
 
       /**
        * Update category
