@@ -74,7 +74,7 @@ router.post(
 /**
  * @route   POST /api/orders/:id/confirm-payment
  * @desc    Seller confirms payment received
- * @access  Private (seller)
+ * @access  Private (seller, includes expired)
  */
 router.post(
   "/:id/confirm-payment",
@@ -88,7 +88,7 @@ router.post(
 /**
  * @route   POST /api/orders/:id/ship
  * @desc    Seller marks order as shipped
- * @access  Private (seller)
+ * @access  Private (seller, includes expired)
  */
 router.post(
   "/:id/ship",
@@ -114,7 +114,7 @@ router.post(
 /**
  * @route   POST /api/orders/:id/cancel
  * @desc    Cancel order
- * @access  Private (seller)
+ * @access  Private (seller, includes expired)
  */
 router.post(
   "/:id/cancel",

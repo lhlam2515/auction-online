@@ -1,12 +1,11 @@
-import { Star, Plus, ShieldCheck, Clock } from "lucide-react";
-import { Link } from "react-router";
+import { Star, ShieldCheck, Clock } from "lucide-react";
 
+import { CreateProductButton } from "@/components/features/seller/CreateProductButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button"; // Import Button
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator"; // Import Separator
-import { SELLER_ROUTES } from "@/constants/routes";
+import { Separator } from "@/components/ui/separator";
+import { useSellerStatus } from "@/hooks/useSellerStatus";
 import { cn } from "@/lib/utils";
 
 interface SellerProfileSectionProps {
@@ -26,6 +25,9 @@ const SellerProfileSection = ({
   user,
   className,
 }: SellerProfileSectionProps) => {
+  const { isExpired, shouldShowWarning, daysRemaining, expireDate } =
+    useSellerStatus();
+
   const formatDate = (date: Date | string | null) => {
     if (!date) return "Vĩnh viễn";
     return new Date(date).toLocaleDateString("vi-VN", {
@@ -34,16 +36,6 @@ const SellerProfileSection = ({
       day: "numeric",
     });
   };
-
-  const getDaysUntilExpiry = (expiryDate: Date | string | null) => {
-    if (!expiryDate) return null;
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - now.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
-  const daysLeft = getDaysUntilExpiry(user.sellerExpireDate);
 
   return (
     <Card
@@ -82,6 +74,19 @@ const SellerProfileSection = ({
                 >
                   <ShieldCheck className="h-3 w-3" /> Seller
                 </Badge>
+                {isExpired && (
+                  <Badge variant="destructive" className="gap-1">
+                    Đã hết hạn
+                  </Badge>
+                )}
+                {shouldShowWarning && !isExpired && (
+                  <Badge
+                    variant="outline"
+                    className="gap-1 border-amber-300 bg-amber-50 text-amber-600"
+                  >
+                    Sắp hết hạn
+                  </Badge>
+                )}
               </div>
 
               <p className="font-medium text-slate-500">@{user.username}</p>
@@ -102,14 +107,10 @@ const SellerProfileSection = ({
 
           {/* Right: Actions & Status */}
           <div className="flex flex-col items-end gap-4 md:min-w-[250px] md:border-l md:pl-6">
-            <Button
+            <CreateProductButton
               className="shadow-primary/20 w-full shadow-lg transition-all hover:scale-[1.02]"
-              asChild
-            >
-              <Link to={SELLER_ROUTES.PRODUCT_CREATE}>
-                <Plus className="mr-2 h-4 w-4" /> Đăng sản phẩm mới
-              </Link>
-            </Button>
+              size="default"
+            />
 
             <div className="w-full space-y-3">
               <div className="flex items-center justify-between text-sm">
@@ -119,21 +120,23 @@ const SellerProfileSection = ({
                 <span
                   className={cn(
                     "font-medium",
-                    daysLeft && daysLeft <= 7
+                    isExpired
                       ? "text-red-600"
-                      : "text-slate-700"
+                      : shouldShowWarning
+                        ? "text-amber-600"
+                        : "text-emerald-600"
                   )}
                 >
-                  {daysLeft
-                    ? daysLeft < 0
-                      ? "Đã hết hạn"
-                      : `Còn ${daysLeft} ngày`
-                    : "Vĩnh viễn"}
+                  {isExpired
+                    ? "Đã hết hạn"
+                    : daysRemaining !== null
+                      ? `Còn ${daysRemaining} ngày`
+                      : "Vĩnh viễn"}
                 </span>
               </div>
               <Separator />
-              <div className="text-right text-xs text-slate-400">
-                Hết hạn: {formatDate(user.sellerExpireDate)}
+              <div className="text-muted-foreground text-right text-xs">
+                Hết hạn: {formatDate(expireDate)}
               </div>
             </div>
           </div>

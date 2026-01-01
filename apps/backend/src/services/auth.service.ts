@@ -32,6 +32,7 @@ export class AuthService {
       role: user.role as UserRole,
       avatarUrl: user.avatarUrl || "",
       accountStatus: user.accountStatus,
+      sellerExpireDate: user.sellerExpireDate?.toISOString() || null,
     } as UserAuthData;
   }
 
@@ -225,6 +226,8 @@ export class AuthService {
           role: existingUser.role as UserRole,
           avatarUrl: authData.user.user_metadata?.avatar_url || "",
           accountStatus: existingUser.accountStatus,
+          sellerExpireDate:
+            existingUser.sellerExpireDate?.toISOString() || null,
         },
         accessToken: authData.session.access_token || "",
         refreshToken: authData.session.refresh_token || "",

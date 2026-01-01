@@ -37,7 +37,7 @@ router.post(
 /**
  * @route   POST /api/questions/:questionId/answer
  * @desc    Answer a question
- * @access  Private (Seller - owner)
+ * @access  Private (Seller - owner, includes expired)
  */
 router.post(
   "/questions/:questionId/answer",
