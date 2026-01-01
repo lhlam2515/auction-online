@@ -112,3 +112,52 @@ export const checkActiveAccount = (
   }
   next();
 };
+
+/**
+ * Check if seller is currently active (not expired)
+ */
+export const checkActiveSeller = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return next(new UnauthorizedError("Authentication required"));
+    }
+
+    if (req.user.role !== "SELLER") {
+      return next(
+        new ForbiddenError("You must be a seller to access this resource")
+      );
+    }
+
+    // Check seller expiration date
+    const seller = await db.query.users.findFirst({
+      where: eq(users.id, req.user.id),
+      columns: { sellerExpireDate: true },
+    });
+
+    if (!seller) {
+      return next(new UnauthorizedError("Seller not found"));
+    }
+
+    // If seller has expiration date and it has passed
+    if (
+      seller.sellerExpireDate &&
+      new Date(seller.sellerExpireDate) < new Date()
+    ) {
+      return next(
+        new ForbiddenError(
+          "Your seller account has expired. Please renew to continue selling."
+        )
+      );
+    }
+
+    next();
+  } catch (error) {
+    next(
+      new ExternalServiceError("Failed to verify seller status", error as Error)
+    );
+  }
+};
