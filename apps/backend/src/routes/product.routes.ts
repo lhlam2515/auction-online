@@ -122,12 +122,11 @@ router.post(
 /**
  * @route   DELETE /api/products/:id
  * @desc    Delete product (only if not active)
- * @access  Private (Active Seller only - not expired)
+ * @access  Private (Seller - owner)
  */
 router.delete(
   "/:id",
   authenticate,
-  checkActiveSeller,
   validate({ params: productValidation.productIdSchema }),
   productController.deleteProduct
 );
