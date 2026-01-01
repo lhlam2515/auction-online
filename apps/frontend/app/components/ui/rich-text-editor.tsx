@@ -55,7 +55,8 @@ const ToolbarButton = ({
     title={title}
     className={cn(
       "h-8 w-8 p-0",
-      isActive && "bg-muted-foreground text-accent-foreground"
+      isActive && "bg-muted-foreground text-accent-foreground",
+      !disabled && "cursor-pointer"
     )}
   >
     {children}
