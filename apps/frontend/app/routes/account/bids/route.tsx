@@ -3,9 +3,7 @@ import { History } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-import BidderHistoryList from "@/components/features/bidder/BidderHistoryList";
-import LoseAuctionList from "@/components/features/bidder/LoseAuctionList";
-import WonAuctionList from "@/components/features/bidder/WonAuctionList";
+import { BidsTable } from "@/components/features/bidding";
 import {
   Card,
   CardContent,
@@ -123,13 +121,13 @@ export default function MyBidsPage() {
               </TabsList>
 
               {/* Tab 1: Active Bids */}
-              <BidderHistoryList activeBids={activeBids} />
+              <BidsTable variant="active" bids={activeBids} />
 
               {/* Tab 2: Won Auctions */}
-              <WonAuctionList wonBids={wonBids} orders={orders} />
+              <BidsTable variant="won" bids={wonBids} orders={orders} />
 
               {/* Tab 3: Lost Auctions */}
-              <LoseAuctionList lostBids={lostBids} />
+              <BidsTable variant="lost" bids={lostBids} />
             </Tabs>
           )}
         </CardContent>
