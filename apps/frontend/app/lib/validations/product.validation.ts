@@ -82,6 +82,21 @@ export const productSchema = z
   );
 
 /**
+ * Product description update validation schema
+ * @description Validates description update with minimum content requirements
+ */
+export const descriptionUpdateSchema = z.object({
+  content: commonValidations.requiredString(20, "Mô tả cần ít nhất 20 ký tự"),
+});
+
+/**
  * Product validation schema type
  */
 export type ProductSchemaType = z.infer<typeof productSchema>;
+
+/**
+ * Description update schema type
+ */
+export type DescriptionUpdateSchemaType = z.infer<
+  typeof descriptionUpdateSchema
+>;

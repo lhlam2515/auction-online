@@ -1,14 +1,10 @@
-import type {
-  ProductDetails,
-  UpdateDescriptionRequest,
-} from "@repo/shared-types";
+import type { ProductDetails } from "@repo/shared-types";
 import { Edit } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { ProductDescription } from "@/components/features/product/ProductDescription";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,17 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  RichTextEditor,
-  type RichTextEditorRef,
-} from "@/components/ui/rich-text-editor";
 import { APP_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 
 import type { Route } from "./+types/route";
+import { AppendDescForm } from "./AppendDescForm";
 
-export function meta({}: Route.MetaArgs) {
+export function meta(_args: Route.MetaArgs) {
   return [
     { title: "Manage Auction - Online Auction" },
     {
@@ -40,9 +33,7 @@ export default function ManageAuctionPage({ params }: Route.ComponentProps) {
   const { id: productId } = params;
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [descriptionKey, setDescriptionKey] = useState(0); // Key to force ProductDescription re-render
-  const editorRef = useRef<RichTextEditorRef>(null);
+  const [descriptionKey, setDescriptionKey] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -65,35 +56,9 @@ export default function ManageAuctionPage({ params }: Route.ComponentProps) {
     fetchProduct();
   }, [productId]);
 
-  const handleUpdateDescription = async () => {
-    if (!editorRef.current) return;
-
-    const content = editorRef.current.getContent();
-    if (!content.trim() || content === "<p></p>") {
-      toast.error("Vui lòng nhập nội dung mô tả");
-      return;
-    }
-
-    try {
-      setUpdating(true);
-      const data: UpdateDescriptionRequest = { content };
-      const response = await api.products.updateDescription(productId, data);
-
-      if (response.success) {
-        toast.success("Đã cập nhật mô tả thành công");
-        // Clear the editor
-        editorRef.current.setContent("");
-        // Force ProductDescription to re-render by changing key
-        setDescriptionKey((prev) => prev + 1);
-      } else {
-        toast.error("Không thể cập nhật mô tả");
-      }
-    } catch (error) {
-      toast.error("Có lỗi khi cập nhật mô tả");
-      logger.error("Error updating description:", error);
-    } finally {
-      setUpdating(false);
-    }
+  const handleDescriptionSuccess = () => {
+    // Force ProductDescription to re-render by changing key
+    setDescriptionKey((prev) => prev + 1);
   };
 
   if (loading) {
@@ -151,32 +116,10 @@ export default function ManageAuctionPage({ params }: Route.ComponentProps) {
         />
 
         {/* Add Description Form */}
-        <div className="space-y-4">
-          <p className="text-lg font-semibold">Cập nhật mô tả</p>
-          <RichTextEditor
-            ref={editorRef}
-            placeholder="Nhập mô tả bổ sung cho sản phẩm..."
-            className="min-h-[200px]"
-            disabled={updating}
-          />
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => editorRef.current?.setContent("")}
-              disabled={updating}
-              className="cursor-pointer"
-            >
-              Xóa
-            </Button>
-            <Button
-              onClick={handleUpdateDescription}
-              disabled={updating}
-              className={!updating ? "cursor-pointer" : ""}
-            >
-              {updating ? "Đang cập nhật..." : "Cập nhật mô tả"}
-            </Button>
-          </div>
-        </div>
+        <AppendDescForm
+          productId={productId}
+          onSuccess={handleDescriptionSuccess}
+        />
       </CardContent>
     </Card>
   );
