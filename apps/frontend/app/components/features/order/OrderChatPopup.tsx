@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 interface OrderChatPopupProps {
@@ -64,10 +65,68 @@ export function OrderChatPopup({
   useEffect(() => {
     if (isOpen) {
       fetchMessages();
-      const interval = setInterval(fetchMessages, 5000);
-      return () => clearInterval(interval);
+
+      // Subscribe to Supabase Realtime
+      const channel = supabase
+        .channel(`chat:${order.productId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "chat_messages",
+          },
+          (payload) => {
+            const newMsg = payload.new as any;
+
+            // Client-side filtering to ensure we only get messages for this product
+            if (newMsg.product_id !== order.productId) return;
+
+            const mappedMsg: ChatMessage = {
+              id: newMsg.id,
+              productId: newMsg.product_id,
+              senderId: newMsg.sender_id,
+              receiverId: newMsg.receiver_id,
+              content: newMsg.content,
+              isRead: newMsg.is_read,
+              messageType: newMsg.message_type,
+              createdAt: newMsg.created_at,
+            };
+            setMessages((prev) => {
+              // Avoid duplicates
+              if (prev.some((m) => m.id === mappedMsg.id)) return prev;
+              return [...prev, mappedMsg];
+            });
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "chat_messages",
+          },
+          (payload) => {
+            const updatedMsg = payload.new as any;
+
+            if (updatedMsg.product_id !== order.productId) return;
+
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === updatedMsg.id
+                  ? { ...msg, isRead: updatedMsg.is_read }
+                  : msg
+              )
+            );
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
-  }, [isOpen, order.id]);
+  }, [isOpen, order.id, order.productId]);
 
   useEffect(() => {
     if (scrollRef.current) {

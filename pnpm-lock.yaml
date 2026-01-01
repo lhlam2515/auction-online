@@ -198,6 +198,9 @@ importers:
       '@repo/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@supabase/supabase-js':
+        specifier: ^2.86.0
+        version: 2.86.0
       '@tiptap/extension-color':
         specifier: ^3.14.0
         version: 3.14.0(@tiptap/extension-text-style@3.14.0(@tiptap/core@3.14.0(@tiptap/pm@3.14.0)))
