@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 
 import * as productController from "@/controllers/product.controller";
-import { authenticate, authorize } from "@/middlewares/auth";
+import { authenticate, authorize, checkActiveSeller } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 import * as productValidation from "@/validations/product.validation";
 
@@ -109,12 +109,12 @@ router.get(
 /**
  * @route   POST /api/products
  * @desc    Create new product listing
- * @access  Private (Seller)
+ * @access  Private (Active Seller only - not expired)
  */
 router.post(
   "/",
   authenticate,
-  authorize("SELLER"),
+  checkActiveSeller,
   validate({ body: productValidation.createProductSchema }),
   productController.createProduct
 );
@@ -122,12 +122,12 @@ router.post(
 /**
  * @route   DELETE /api/products/:id
  * @desc    Delete product (only if not active)
- * @access  Private (Seller - owner)
+ * @access  Private (Active Seller only - not expired)
  */
 router.delete(
   "/:id",
   authenticate,
-  authorize("SELLER"),
+  checkActiveSeller,
   validate({ params: productValidation.productIdSchema }),
   productController.deleteProduct
 );
@@ -166,13 +166,13 @@ router.put(
 
 /**
  * @route   POST /api/products/upload
- * @desc    Upload product images
- * @access  Private (Seller)
+ * @desc    Upload product images (for new products)
+ * @access  Private (Active Seller only - not expired)
  */
 router.post(
   "/upload",
   authenticate,
-  authorize("SELLER"),
+  checkActiveSeller,
   upload.array("images", 10),
   productController.uploadImages
 );
