@@ -3,7 +3,7 @@ import { Lock, User as UserIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { z } from "zod";
 
-import ChangePasswordForm from "@/components/features/user/ChangePasswordForm";
+import { ChangePasswordForm } from "@/components/features/auth";
 import ChangeUserAvatar from "@/components/features/user/ChangeUserAvatar";
 import UserProfileForm from "@/components/features/user/UserProfileForm";
 import {
