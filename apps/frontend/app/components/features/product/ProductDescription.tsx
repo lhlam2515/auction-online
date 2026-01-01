@@ -68,9 +68,9 @@ export function ProductDescription({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div key={"original"} className="ProseMirror space-y-2">
+        <div key={"original"} className="space-y-2">
           <div
-            className="prose prose-slate dark:prose-invert max-w-none"
+            className="ProseMirror prose prose-slate dark:prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: initialDescription }}
           />
         </div>
@@ -86,7 +86,7 @@ export function ProductDescription({
                   <span>Cập nhật lúc {formatDate(updateDateTime)}</span>
                 </div>
                 <div
-                  className="prose prose-slate dark:prose-invert max-w-none"
+                  className="ProseMirror prose prose-slate dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{ __html: paragraph.content }}
                 />
               </div>
