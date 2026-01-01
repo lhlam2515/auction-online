@@ -25,7 +25,8 @@ const SellerProfileSection = ({
   user,
   className,
 }: SellerProfileSectionProps) => {
-  const sellerStatus = useSellerStatus();
+  const { isExpired, shouldShowWarning, daysRemaining, expireDate } =
+    useSellerStatus();
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return "Vĩnh viễn";
@@ -73,12 +74,12 @@ const SellerProfileSection = ({
                 >
                   <ShieldCheck className="h-3 w-3" /> Seller
                 </Badge>
-                {sellerStatus.isExpired && (
+                {isExpired && (
                   <Badge variant="destructive" className="gap-1">
                     Đã hết hạn
                   </Badge>
                 )}
-                {sellerStatus.shouldShowWarning && !sellerStatus.isExpired && (
+                {shouldShowWarning && !isExpired && (
                   <Badge
                     variant="outline"
                     className="gap-1 border-amber-300 bg-amber-50 text-amber-600"
@@ -119,23 +120,23 @@ const SellerProfileSection = ({
                 <span
                   className={cn(
                     "font-medium",
-                    sellerStatus.isExpired
+                    isExpired
                       ? "text-red-600"
-                      : sellerStatus.shouldShowWarning
+                      : shouldShowWarning
                         ? "text-amber-600"
                         : "text-emerald-600"
                   )}
                 >
-                  {sellerStatus.isExpired
+                  {isExpired
                     ? "Đã hết hạn"
-                    : sellerStatus.daysRemaining !== null
-                      ? `Còn ${sellerStatus.daysRemaining} ngày`
+                    : daysRemaining !== null
+                      ? `Còn ${daysRemaining} ngày`
                       : "Vĩnh viễn"}
                 </span>
               </div>
               <Separator />
               <div className="text-muted-foreground text-right text-xs">
-                Hết hạn: {formatDate(sellerStatus.expireDate)}
+                Hết hạn: {formatDate(expireDate)}
               </div>
             </div>
           </div>

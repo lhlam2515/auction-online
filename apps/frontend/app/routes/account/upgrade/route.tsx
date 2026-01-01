@@ -94,7 +94,7 @@ export default function UpgradeToSellerPage() {
                 <CardDescription className="text-base">
                   Hết hạn vào{" "}
                   <span className="font-semibold">
-                    {formatDate(expireDate!)}
+                    {expireDate ? formatDate(expireDate) : "Không xác định"}
                   </span>
                 </CardDescription>
               </div>

@@ -1,6 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/contexts/auth-provider";
+
+const WARNING_DAYS_THRESHOLD = 3;
 
 export interface SellerStatus {
   isSeller: boolean;
@@ -8,15 +10,22 @@ export interface SellerStatus {
   isExpired: boolean;
   expireDate: Date | null;
   daysRemaining: number | null;
-  shouldShowWarning: boolean; // Show warning if < 3 days remaining
+  shouldShowWarning: boolean; // Show warning if < WARNING_DAYS_THRESHOLD days remaining
 }
 
 /**
  * Hook to check seller status and expiration
+ * Updates every hour to reflect real-time expiration status
  * @returns SellerStatus object with detailed seller information
  */
 export function useSellerStatus(): SellerStatus {
   const { user } = useAuth();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 3600000); // Update every hour
+    return () => clearInterval(interval);
+  }, []);
 
   return useMemo(() => {
     // Not a seller
@@ -43,7 +52,6 @@ export function useSellerStatus(): SellerStatus {
       };
     }
 
-    const now = new Date();
     const expireDate = new Date(user.sellerExpireDate);
     const isExpired = expireDate <= now;
     const isActive = !isExpired;
@@ -54,7 +62,7 @@ export function useSellerStatus(): SellerStatus {
     if (isActive) {
       const diffTime = expireDate.getTime() - now.getTime();
       daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      shouldShowWarning = daysRemaining < 3;
+      shouldShowWarning = daysRemaining < WARNING_DAYS_THRESHOLD;
     }
 
     return {
@@ -65,5 +73,5 @@ export function useSellerStatus(): SellerStatus {
       daysRemaining,
       shouldShowWarning,
     };
-  }, [user]);
+  }, [user, now]);
 }

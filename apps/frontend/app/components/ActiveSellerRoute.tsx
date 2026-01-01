@@ -20,7 +20,7 @@ export function ActiveSellerRoute({ children }: ActiveSellerRouteProps) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const sellerStatus = useSellerStatus();
+  const { isSeller, isExpired, expireDate } = useSellerStatus();
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -30,12 +30,12 @@ export function ActiveSellerRoute({ children }: ActiveSellerRouteProps) {
   }
 
   // Redirect if not a seller at all
-  if (!sellerStatus.isSeller) {
+  if (!isSeller) {
     return <Navigate to={ACCOUNT_ROUTES.UPGRADE} replace />;
   }
 
   // Show expired message if seller account is expired
-  if (sellerStatus.isExpired) {
+  if (isExpired) {
     return (
       <div className="container mx-auto max-w-2xl py-12">
         <Alert
@@ -46,9 +46,9 @@ export function ActiveSellerRoute({ children }: ActiveSellerRouteProps) {
           <AlertTitle>Tài Khoản Người Bán Đã Hết Hạn</AlertTitle>
           <AlertDescription>
             Tài khoản người bán của bạn đã hết hạn vào ngày{" "}
-            {formatDate(sellerStatus.expireDate!)}. Bạn vẫn có thể quản lý các
-            sản phẩm và đơn hàng hiện có, nhưng không thể tạo sản phẩm mới cho
-            đến khi gia hạn tài khoản người bán.
+            {expireDate ? formatDate(expireDate) : "không xác định"}. Bạn vẫn có
+            thể quản lý các sản phẩm và đơn hàng hiện có, nhưng không thể tạo
+            sản phẩm mới cho đến khi gia hạn tài khoản người bán.
           </AlertDescription>
         </Alert>
 

@@ -1,10 +1,8 @@
 import { PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { ACCOUNT_ROUTES, AUTH_ROUTES, SELLER_ROUTES } from "@/constants/routes";
-import { useAuth } from "@/contexts/auth-provider";
+import { SELLER_ROUTES } from "@/constants/routes";
 import { useSellerStatus } from "@/hooks/useSellerStatus";
 
 interface CreateProductButtonProps {
@@ -15,51 +13,25 @@ interface CreateProductButtonProps {
 
 /**
  * Button component for creating new products
- * - Redirects to upgrade page if not a seller
- * - Shows error toast if seller is expired
- * - Navigates to create product page if seller is active
+ * - Disabled if user is not authenticated, not a seller, or seller account is expired
+ * - Navigates to create product page only if seller is active
  */
 export function CreateProductButton({
   variant = "default",
   size = "default",
   className,
 }: CreateProductButtonProps) {
-  const { isAuthenticated } = useAuth();
   const sellerStatus = useSellerStatus();
   const navigate = useNavigate();
 
   const handleClick = () => {
-    // Not logged in
-    if (!isAuthenticated) {
-      navigate(AUTH_ROUTES.LOGIN);
-      return;
+    // Only allow creation if seller is active
+    if (sellerStatus.isActive) {
+      navigate(SELLER_ROUTES.PRODUCT_CREATE);
     }
-
-    // Not a seller
-    if (!sellerStatus.isSeller) {
-      navigate(ACCOUNT_ROUTES.UPGRADE);
-      return;
-    }
-
-    // Expired seller
-    if (sellerStatus.isExpired) {
-      toast.error(
-        "Tài khoản người bán của bạn đã hết hạn. Vui lòng gia hạn để tạo sản phẩm.",
-        {
-          action: {
-            label: "Gia Hạn",
-            onClick: () => navigate(ACCOUNT_ROUTES.UPGRADE),
-          },
-        }
-      );
-      return;
-    }
-
-    // Active seller - proceed to create
-    navigate(SELLER_ROUTES.PRODUCT_CREATE);
   };
 
-  const isDisabled = sellerStatus.isSeller && sellerStatus.isExpired;
+  const isDisabled = !sellerStatus.isActive;
 
   return (
     <Button
