@@ -1,5 +1,3 @@
-import React from "react";
-
 import {
   Select,
   SelectTrigger,
@@ -10,18 +8,13 @@ import {
 import { SORT_OPTIONS } from "@/constants/api";
 import { cn } from "@/lib/utils";
 
-type SortDropdownProps = {
+type ProductSortControlProps = {
+  value?: string;
   handleSortChange?: (value: string) => void;
   className?: string;
-  value?: string;
-  [key: string]: any;
 };
 
-/**
- * Component: SortDropdown
- * Generated automatically based on Project Auction SRS.
- */
-const SortDropdown = (props: SortDropdownProps) => {
+const ProductSortControl = (props: ProductSortControlProps) => {
   return (
     <div className={cn("", props.className)}>
       <Select onValueChange={props.handleSortChange} value={props.value}>
@@ -41,4 +34,4 @@ const SortDropdown = (props: SortDropdownProps) => {
   );
 };
 
-export default SortDropdown;
+export default ProductSortControl;

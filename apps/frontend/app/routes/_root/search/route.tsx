@@ -7,14 +7,14 @@ import type {
 import React from "react";
 import { useSearchParams } from "react-router";
 
-import { ProductGrid } from "@/components/features/product";
+import { PaginationBar } from "@/components/common";
 import {
-  CategoryPanel,
-  CategoryPanelSkeleton,
-} from "@/components/features/product/CategoryPanel";
-import FilterPanel from "@/components/features/product/FilterPanel";
-import PaginationBar from "@/components/features/product/PaginationBar";
-import SortDropdown from "@/components/features/product/SortDropdown";
+  ProductCategoryFilter,
+  ProductCategoryFilterSkeleton,
+  ProductGrid,
+  ProductPriceFilter,
+  ProductSortControl,
+} from "@/components/features/product";
 import { DELAYS } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 import { debounce } from "@/lib/utils";
@@ -204,12 +204,12 @@ export default function SearchBrowsePage() {
         {/* Side bar */}
         <aside className="space-y-6">
           {/* Category Tree */}
-          {loadingCategories && <CategoryPanelSkeleton />}
+          {loadingCategories && <ProductCategoryFilterSkeleton />}
           {errorCategories && (
             <p className="my-8 text-center text-red-600">{errorCategories}</p>
           )}
           {!loadingCategories && !errorCategories && (
-            <CategoryPanel
+            <ProductCategoryFilter
               categoryTrees={category}
               handleCategoryChange={onCategoryChange}
               value={categoryId}
@@ -217,7 +217,7 @@ export default function SearchBrowsePage() {
           )}
 
           {/* Filter panel */}
-          <FilterPanel
+          <ProductPriceFilter
             handlePriceRangeChange={debouncedPriceRangeChange}
             minPrice={DEFAULT_MIN_PRICE}
             maxPrice={DEFAULT_MAX_PRICE}
@@ -242,7 +242,10 @@ export default function SearchBrowsePage() {
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Sắp xếp:</span>
-              <SortDropdown handleSortChange={onSortChange} value={sort} />
+              <ProductSortControl
+                handleSortChange={onSortChange}
+                value={sort}
+              />
             </div>
           </div>
 

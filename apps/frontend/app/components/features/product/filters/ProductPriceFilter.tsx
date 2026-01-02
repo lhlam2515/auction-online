@@ -1,37 +1,36 @@
-import React from "react";
+import { useEffect, useState } from "react";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { cn, formatPrice } from "@/lib/utils";
 
-type FilterPanelProps = {
+type ProductPriceFilterProps = {
   value: number[];
   minPrice?: number;
   maxPrice?: number;
   stepPrice?: number;
   handlePriceRangeChange: (value: number[]) => void;
   className?: string;
-  [key: string]: any;
 };
 
-const FilterPanel = ({
-  className,
+const ProductPriceFilter = ({
   minPrice,
   maxPrice,
   stepPrice,
   value,
   handlePriceRangeChange,
-}: FilterPanelProps) => {
+  className,
+}: ProductPriceFilterProps) => {
   const min = minPrice || 0;
   const max = maxPrice || 50_000_000;
   const step = stepPrice || 1_000_000;
 
   // Internal state for smooth slider interaction
-  const [internalValue, setInternalValue] = React.useState(value);
+  const [internalValue, setInternalValue] = useState(value);
 
   // Sync internal state with external value when it changes
-  React.useEffect(() => {
+  useEffect(() => {
     setInternalValue(value);
   }, [value]);
 
@@ -69,4 +68,4 @@ const FilterPanel = ({
   );
 };
 
-export default FilterPanel;
+export default ProductPriceFilter;

@@ -11,3 +11,12 @@ export { default as ProductWatchlist } from "./display/ProductWatchlist";
 // Exporting all form components for the Product feature
 export { default as CreateProductForm } from "./forms/CreateProductForm";
 export { default as UpdateDescForm } from "./forms/UpdateDescForm";
+
+// Exporting all filter components for the Product feature
+export {
+  default as ProductCategoryFilter,
+  ProductCategoryFilterSkeleton,
+} from "./filters/ProductCategoryFilter";
+export { default as ProductPriceFilter } from "./filters/ProductPriceFilter";
+export { default as ProductSortControl } from "./filters/ProductSortControl";
+export { default as ProductSearchFilter } from "./filters/ProductSearchFilter";

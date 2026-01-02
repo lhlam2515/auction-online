@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
 import { OrderStatusBadge } from "@/components/common/badges";
-import PaginationBar from "@/components/features/product/PaginationBar";
+import PaginationBar from "@/components/common/PaginationBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

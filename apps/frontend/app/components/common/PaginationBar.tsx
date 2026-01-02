@@ -13,7 +13,6 @@ interface PaginationBarProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   className?: string;
-  [key: string]: any;
 }
 
 const PaginationBar = ({

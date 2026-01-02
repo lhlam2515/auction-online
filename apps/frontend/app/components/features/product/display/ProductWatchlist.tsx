@@ -1,8 +1,8 @@
 import type { ProductListing } from "@repo/shared-types";
 import { useMemo, useState } from "react";
 
+import { PaginationBar } from "@/components/common";
 import ProductCard from "@/components/features/product/display/ProductCard";
-import PaginationBar from "@/components/features/product/PaginationBar";
 import { CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 

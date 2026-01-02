@@ -8,8 +8,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
-import { ProductWatchlist } from "@/components/features/product";
-import SortDropdown from "@/components/features/product/SortDropdown";
+import {
+  ProductSortControl,
+  ProductWatchlist,
+} from "@/components/features/product";
 import {
   Card,
   CardHeader,
@@ -108,7 +110,7 @@ export default function WatchListPage() {
           {/* Sort Dropdown */}
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground text-sm">Sắp xếp:</span>
-            <SortDropdown handleSortChange={onSortChange} value={sort} />
+            <ProductSortControl handleSortChange={onSortChange} value={sort} />
           </div>
         </div>
       </CardContent>

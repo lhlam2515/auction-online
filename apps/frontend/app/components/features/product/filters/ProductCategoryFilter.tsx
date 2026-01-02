@@ -4,20 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-type CategoryPanelProps = {
-  className?: string;
+type ProductCategoryFilterProps = {
   categoryTrees: CategoryTree[];
   value?: string;
   handleCategoryChange?: (categoryId: string) => void;
-  [key: string]: any;
+  className?: string;
 };
 
-export const CategoryPanel = ({
-  className,
+const ProductCategoryFilter = ({
   categoryTrees,
   value,
   handleCategoryChange,
-}: CategoryPanelProps) => {
+  className,
+}: ProductCategoryFilterProps) => {
   return (
     <Card className={cn("gap-0", className)}>
       <CardHeader>
@@ -75,9 +74,9 @@ export const CategoryPanel = ({
 };
 
 /**
- * CategoryPanelSkeleton - Loading state cho CategoryPanel
+ * ProductCategoryFilterSkeleton - Loading state cho ProductCategoryFilter
  */
-export const CategoryPanelSkeleton = ({
+export const ProductCategoryFilterSkeleton = ({
   className,
 }: {
   className?: string;
@@ -102,4 +101,4 @@ export const CategoryPanelSkeleton = ({
   );
 };
 
-export default CategoryPanel;
+export default ProductCategoryFilter;
