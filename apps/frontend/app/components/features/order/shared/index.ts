@@ -1,6 +1,6 @@
 export { default as DeliveryInfoForm } from "./DeliveryInfoForm";
 export { default as OrderCancelledCard } from "./OrderCancelledCard";
-export { default as OrderChatPopup } from "./OrderChatPopup";
+export { default as PrivateChatWindow } from "../../interaction/PrivateChatWindow";
 export { default as OrderRatingStep } from "./OrderRatingStep";
 export { default as OrderStepper, type Step } from "./OrderStepper";
 export { default as OrderSummaryCard } from "./OrderSummaryCard";

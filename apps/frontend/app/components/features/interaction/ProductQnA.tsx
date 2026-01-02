@@ -11,7 +11,7 @@ import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import { formatDate } from "@/lib/utils";
 
-interface ProductQAProps {
+interface ProductQnAProps {
   productId: string;
   isLoggedIn: boolean;
   isSeller: boolean;
@@ -19,13 +19,13 @@ interface ProductQAProps {
   className?: string;
 }
 
-const ProductQA = ({
+const ProductQnA = ({
   productId,
   isLoggedIn,
   isSeller,
   isEnded,
   className,
-}: ProductQAProps) => {
+}: ProductQnAProps) => {
   const [questions, setQuestions] = useState<ProductQuestionWithUsers[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -282,4 +282,4 @@ const ProductQA = ({
   );
 };
 
-export default ProductQA;
+export default ProductQnA;

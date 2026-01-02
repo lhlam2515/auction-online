@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { BidHistoryTable } from "@/components/features/bidding";
-import ProductQA from "@/components/features/interaction/ProductQnA";
+import ProductQnA from "@/components/features/interaction/ProductQnA";
 import {
   ProductImageGallery,
   ProductInfo,
@@ -136,7 +136,7 @@ export default function ProductDetailPage() {
           </section>
 
           <section className="mb-8">
-            <ProductQA
+            <ProductQnA
               productId={product.id}
               isLoggedIn={isLoggedIn}
               isSeller={isSeller}
