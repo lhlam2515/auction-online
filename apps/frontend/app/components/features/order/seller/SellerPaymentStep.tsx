@@ -3,7 +3,7 @@ import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import AlertSection from "@/components/common/AlertSection";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 import { SellerCancelOrderDialog } from "./SellerCancelOrderDialog";
 import { SellerConfirmPaymentDialog } from "./SellerConfirmPaymentDialog";
@@ -108,31 +108,20 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Payment Status Alert */}
-        <Alert
-          className={cn(
+        <AlertSection
+          variant={isPaid ? "success" : "warning"}
+          icon={isPaid ? CheckCircle2 : Clock}
+          title={
+            isPaid ? "Thanh toán đã được xác nhận" : "Chờ xác nhận thanh toán"
+          }
+          description={
             isPaid
-              ? "border-emerald-300 bg-emerald-50 text-emerald-600"
-              : "border-amber-300 bg-amber-50 text-amber-600"
-          )}
-        >
-          {isPaid ? (
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          ) : (
-            <Clock className="h-4 w-4 text-amber-600" />
-          )}
-          <AlertTitle className="font-semibold">
-            {isPaid ? "Thanh toán đã được xác nhận" : "Chờ xác nhận thanh toán"}
-          </AlertTitle>
-          <AlertDescription
-            className={cn(isPaid ? "text-emerald-600" : "text-amber-600")}
-          >
-            {isPaid
               ? `Người mua đã thanh toán vào ${formatDate(
                   order.payment?.paidAt || new Date()
                 )}. Vui lòng chuẩn bị hàng và bàn giao trong vòng 24-48 giờ.`
-              : "Người mua chưa hoàn tất thanh toán. Vui lòng đợi hoặc liên hệ với người mua để nhắc nhở."}
-          </AlertDescription>
-        </Alert>
+              : "Người mua chưa hoàn tất thanh toán. Vui lòng đợi hoặc liên hệ với người mua để nhắc nhở."
+          }
+        />
 
         {/* Payment Details */}
         {isPaid && order.payment && (
@@ -150,20 +139,21 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
         {/* Action Buttons */}
         {!isPaid ? (
           <div className="space-y-4">
-            <Alert className="border-amber-300 bg-amber-50 text-amber-600">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle className="font-semibold">
-                Chưa thể bàn giao hàng
-              </AlertTitle>
-              <AlertDescription className="text-amber-600">
-                Vui lòng chờ người mua hoàn tất thanh toán trước khi tiếp tục.
-                {isOverdue && (
-                  <span className="mt-2 block font-medium">
-                    Đơn hàng đã quá 24 giờ. Bạn có thể hủy giao dịch nếu cần.
-                  </span>
-                )}
-              </AlertDescription>
-            </Alert>
+            <AlertSection
+              variant="warning"
+              icon={AlertCircle}
+              title="Chưa thể bàn giao hàng"
+              description={
+                <>
+                  Vui lòng chờ người mua hoàn tất thanh toán trước khi tiếp tục.
+                  {isOverdue && (
+                    <span className="mt-2 block font-medium">
+                      Đơn hàng đã quá 24 giờ. Bạn có thể hủy giao dịch nếu cần.
+                    </span>
+                  )}
+                </>
+              }
+            />
 
             {/* Cancel Order Button - Only show if overdue */}
             {isOverdue && (

@@ -1,8 +1,8 @@
 import type { OrderWithDetails } from "@repo/shared-types";
 import { Star } from "lucide-react";
 
+import AlertSection from "@/components/common/AlertSection";
 import RatingForm from "@/components/features/interaction/RatingForm";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -40,17 +40,12 @@ const OrderRatingStep = ({
       </CardHeader>
       <CardContent>
         {/* Info Alert */}
-        <Alert className="border-blue-300 bg-blue-50 text-blue-600">
-          <Star className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="font-semibold">
-            Đánh giá {isSeller ? "người mua" : "người bán"}
-          </AlertTitle>
-          <AlertDescription className="text-blue-600">
-            Đánh giá của bạn sẽ giúp cộng đồng Online Auction xây dựng một môi
-            trường mua bán tin cậy và minh bạch. Hãy trung thực và công bằng
-            trong đánh giá của bạn.
-          </AlertDescription>
-        </Alert>
+        <AlertSection
+          variant="info"
+          icon={Star}
+          title={`Đánh giá ${isSeller ? "người mua" : "người bán"}`}
+          description={`Đánh giá của bạn sẽ giúp cộng đồng Online Auction xây dựng một môi trường mua bán tin cậy và minh bạch. Hãy trung thực và công bằng trong đánh giá của bạn.`}
+        />
 
         <RatingForm
           schema={submitFeedbackSchema}

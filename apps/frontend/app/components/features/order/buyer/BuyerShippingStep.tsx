@@ -3,7 +3,7 @@ import { Truck, Package } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import AlertSection from "@/components/common/AlertSection";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -78,13 +78,11 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Alert className="border-blue-200 bg-blue-50">
-          <Truck className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            Đơn hàng đã được gửi đi vào {formatDate(shippedAt)}. Vui lòng kiểm
-            tra hàng kỹ càng khi nhận và xác nhận đã nhận hàng.
-          </AlertDescription>
-        </Alert>
+        <AlertSection
+          variant="info"
+          icon={Truck}
+          description={`Đơn hàng đã được gửi đi vào ${formatDate(shippedAt)}. Vui lòng kiểm tra hàng kỹ càng khi nhận và xác nhận đã nhận hàng.`}
+        />
 
         {/* Tracking Information */}
         {order.trackingNumber && (

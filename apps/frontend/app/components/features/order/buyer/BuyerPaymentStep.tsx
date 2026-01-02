@@ -3,7 +3,7 @@ import { CreditCard } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Alert, AlertTitle } from "@/components/ui/alert";
+import AlertSection from "@/components/common/AlertSection";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -83,13 +83,11 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Alert className="border-blue-300 bg-blue-50 text-blue-600">
-          <CreditCard />
-          <AlertTitle>
-            Sau khi thanh toán, người bán sẽ xác nhận và gửi hàng trong vòng
-            24-48 giờ.
-          </AlertTitle>
-        </Alert>
+        <AlertSection
+          variant="info"
+          icon={CreditCard}
+          description="Sau khi thanh toán, người bán sẽ xác nhận và gửi hàng trong vòng 24-48 giờ."
+        />
 
         {/* Payment Method Selection */}
         <div className="space-y-3">

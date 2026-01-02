@@ -1,8 +1,7 @@
 import type { OrderWithDetails, ShippingProvider } from "@repo/shared-types";
 import { Truck, AlertCircle } from "lucide-react";
 
-import ShippingInfo from "@/components/features/order/shared/shipping-info";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import AlertSection from "@/components/common/AlertSection";
 import {
   Card,
   CardContent,
@@ -15,6 +14,7 @@ import { formatDate } from "@/lib/utils";
 import { submitOrderShippingSchema } from "@/lib/validations/order.validation";
 
 import DeliveryInfoForm from "../shared/DeliveryInfoForm";
+import ShippingInfo from "../shared/shipping-info";
 
 interface SellerShippingStepProps {
   order: OrderWithDetails;
@@ -36,29 +36,26 @@ const SellerShippingStep = ({ order, onSuccess }: SellerShippingStepProps) => {
       <CardContent className="space-y-6">
         {/* Shipping Status Alert */}
         {isShipped && trackingNumberExists ? (
-          <Alert className="border-emerald-300 bg-emerald-50 text-emerald-600">
-            <Truck className="h-4 w-4 text-emerald-600" />
-            <AlertTitle className="font-semibold">
-              Hàng đã được gửi đi
-            </AlertTitle>
-            <AlertDescription className="text-emerald-600">
-              {` Hàng đã được bàn giao vào ${formatDate(order.shippedAt || new Date())}.`}
-              <span>
-                Mã vận đơn: <strong>{order.trackingNumber}</strong>
-              </span>
-            </AlertDescription>
-          </Alert>
+          <AlertSection
+            variant="success"
+            icon={Truck}
+            title="Hàng đã được gửi đi"
+            description={
+              <>
+                {` Hàng đã được bàn giao vào ${formatDate(order.shippedAt || new Date())}.`}
+                <span>
+                  Mã vận đơn: <strong>{order.trackingNumber}</strong>
+                </span>
+              </>
+            }
+          />
         ) : (
-          <Alert className="border-blue-300 bg-blue-50 text-blue-600">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="font-semibold">
-              Chuẩn bị bàn giao hàng
-            </AlertTitle>
-            <AlertDescription className="text-blue-600">
-              Vui lòng chuẩn bị sản phẩm và nhập thông tin vận chuyển để hoàn
-              tất đơn hàng.
-            </AlertDescription>
-          </Alert>
+          <AlertSection
+            variant="info"
+            icon={AlertCircle}
+            title="Chuẩn bị bàn giao hàng"
+            description="Vui lòng chuẩn bị sản phẩm và nhập thông tin vận chuyển để hoàn tất đơn hàng."
+          />
         )}
 
         {/* Shipping Address */}

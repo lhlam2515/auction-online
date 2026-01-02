@@ -1,7 +1,7 @@
 import type { OrderWithDetails } from "@repo/shared-types";
 import { Clock, CheckCircle2, Package, AlertCircle, Info } from "lucide-react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import AlertSection from "@/components/common/AlertSection";
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 import OrderTimelineItem from "../shared/OrderTimelineItem";
 import ShippingInfo from "../shared/shipping-info";
@@ -32,20 +32,15 @@ const BuyerAwaitingStep = ({ order }: BuyerAwaitingStepProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Alert
-          className={cn({
-            "border-amber-300 bg-amber-50 text-amber-600":
-              !order.sellerConfirmedAt,
-            "border-blue-300 bg-blue-50 text-blue-600": order.sellerConfirmedAt,
-          })}
-        >
-          <Clock />
-          <AlertTitle>
-            {!order.sellerConfirmedAt
+        <AlertSection
+          variant={!order.sellerConfirmedAt ? "warning" : "info"}
+          icon={Clock}
+          description={
+            !order.sellerConfirmedAt
               ? "Đơn hàng đang chờ người bán xác nhận đã nhận tiền. Người bán sẽ xác nhận trong vòng 24-48 giờ."
-              : "Người bán đã xác nhận nhận tiền và đang chuẩn bị hàng. Hàng sẽ được bàn giao để vận chuyển sớm nhất."}
-          </AlertTitle>
-        </Alert>
+              : "Người bán đã xác nhận nhận tiền và đang chuẩn bị hàng. Hàng sẽ được bàn giao để vận chuyển sớm nhất."
+          }
+        />
 
         {/* Order Status Timeline */}
         <div className="space-y-4">
@@ -89,13 +84,11 @@ const BuyerAwaitingStep = ({ order }: BuyerAwaitingStepProps) => {
         </div>
 
         {/* Editable Shipping Info Notice */}
-        <Alert className="border-blue-300 bg-blue-50 text-blue-600">
-          <Info />
-          <AlertTitle className="line-clamp-none">
-            Bạn có thể chỉnh sửa thông tin giao hàng trong giai đoạn này. Sau
-            khi người bán bàn giao hàng, thông tin sẽ không thể thay đổi.
-          </AlertTitle>
-        </Alert>
+        <AlertSection
+          variant="info"
+          icon={Info}
+          description="Bạn có thể chỉnh sửa thông tin giao hàng trong giai đoạn này. Sau khi người bán bàn giao hàng, thông tin sẽ không thể thay đổi."
+        />
 
         {/* Shipping Address - Editable */}
         <ShippingInfo
@@ -105,14 +98,11 @@ const BuyerAwaitingStep = ({ order }: BuyerAwaitingStepProps) => {
         />
 
         {/* Help Section */}
-        <Alert className="border-amber-300 bg-amber-50 text-amber-600">
-          <AlertCircle />
-          <AlertTitle className="font-semibold">Lưu ý</AlertTitle>
-          <AlertDescription className="text-amber-600">
-            Nếu quá 48 giờ mà người bán chưa xác nhận nhận tiền hoặc chưa bàn
-            giao hàng, vui lòng liên hệ với bộ phận hỗ trợ để được giải quyết.
-          </AlertDescription>
-        </Alert>
+        <AlertSection
+          variant="warning"
+          icon={AlertCircle}
+          description="Nếu quá 48 giờ mà người bán chưa xác nhận nhận tiền hoặc chưa bàn giao hàng, vui lòng liên hệ với bộ phận hỗ trợ để được giải quyết."
+        />
       </CardContent>
     </Card>
   );
