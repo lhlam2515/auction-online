@@ -47,7 +47,6 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
 
   const handleAddCategory = async (data: {
     name: string;
-    description?: string;
     parentId?: string;
   }) => {
     try {
