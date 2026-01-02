@@ -141,6 +141,6 @@ export const deleteCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const categoryId = req.params.id;
     await categoryService.deleteCategory(categoryId);
-    return ResponseHandler.sendSuccess(res, null, 204);
+    return ResponseHandler.sendSuccess(res, null, 200);
   }
 );

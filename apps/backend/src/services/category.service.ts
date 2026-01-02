@@ -140,9 +140,7 @@ export class CategoryService {
       .from(categories)
       .where(eq(categories.parentId, categoryId));
     if (childCount[0].value > 0) {
-      throw new BadRequestError(
-        "Cannot delete category with existing sub-categories"
-      );
+      throw new BadRequestError("Không thể xóa danh mục có danh mục con");
     }
 
     // Check for associated products
@@ -151,9 +149,7 @@ export class CategoryService {
       .from(products)
       .where(eq(products.categoryId, categoryId));
     if (productCount[0].value > 0) {
-      throw new BadRequestError(
-        "Cannot delete category with associated products"
-      );
+      throw new BadRequestError("Không thể xóa danh mục đang có sản phẩm");
     }
 
     // Proceed to delete
