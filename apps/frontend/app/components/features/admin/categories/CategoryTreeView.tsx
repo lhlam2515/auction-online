@@ -8,6 +8,7 @@ import {
   Trash,
 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ADMIN_ROUTES } from "@/constants/routes";
+import { appendQueryParams } from "@/lib/url";
 
 import { DeleteCategoryDialog, EditCategoryDialog } from "./dialogs";
 
@@ -69,7 +72,14 @@ const CategoryNode = ({
 
         <FolderTree className="text-muted-foreground h-4 w-4" />
 
-        <span className="flex-1 font-medium">{category.name}</span>
+        <Link
+          to={appendQueryParams(ADMIN_ROUTES.PRODUCTS, {
+            category: category.id,
+          })}
+          className="flex-1 font-medium hover:underline"
+        >
+          {category.name}
+        </Link>
 
         <span className="text-muted-foreground text-xs">
           {hasChildren ? `${category.children!.length} con` : ""}
