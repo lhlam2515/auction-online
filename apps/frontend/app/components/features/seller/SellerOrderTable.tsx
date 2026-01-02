@@ -2,7 +2,7 @@ import type { OrderWithDetails } from "@repo/shared-types";
 import { Package, Eye } from "lucide-react";
 import { Link } from "react-router";
 
-import OrderStatusBadge from "@/components/common/OrderStatusBadge";
+import { OrderStatusBadge } from "@/components/common/badges";
 import { Button } from "@/components/ui/button";
 import {
   Table,

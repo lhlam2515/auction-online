@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import type { ZodType } from "zod";
 
-import ConfirmationDialog from "@/components/common/ConfirmationDialog";
+import { ConfirmationDialog } from "@/components/common/feedback";
 import {
   Field,
   FieldDescription,

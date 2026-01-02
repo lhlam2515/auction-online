@@ -1,7 +1,7 @@
 import type { OrderWithDetails } from "@repo/shared-types";
 import { Star } from "lucide-react";
 
-import AlertSection from "@/components/common/AlertSection";
+import { AlertSection } from "@/components/common/feedback";
 import RatingForm from "@/components/features/interaction/RatingForm";
 import {
   Card,

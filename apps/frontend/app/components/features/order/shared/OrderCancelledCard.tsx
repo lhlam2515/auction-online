@@ -1,7 +1,7 @@
 import type { OrderWithDetails } from "@repo/shared-types";
 import { XCircle, AlertCircle } from "lucide-react";
 
-import AlertSection from "@/components/common/AlertSection";
+import { AlertSection } from "@/components/common/feedback";
 import {
   Card,
   CardContent,

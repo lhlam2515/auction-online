@@ -3,8 +3,7 @@ import { CheckCircle2, AlertCircle, Clock, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import AlertSection from "@/components/common/AlertSection";
-import ConfirmationDialog from "@/components/common/ConfirmationDialog";
+import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
 import {
   Card,
   CardContent,
