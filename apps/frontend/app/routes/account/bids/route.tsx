@@ -3,9 +3,7 @@ import { History } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-import BidderHistoryList from "@/components/features/bidder/BidderHistoryList";
-import LoseAuctionList from "@/components/features/bidder/LoseAuctionList";
-import WonAuctionList from "@/components/features/bidder/WonAuctionList";
+import { MyBidsTable } from "@/components/features/bidding";
 import {
   Card,
   CardContent,
@@ -23,8 +21,11 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "My Bids - Online Auction" },
-    { name: "description", content: "My Bids page for Online Auction App" },
+    { title: "Đấu Giá Của Tôi - Online Auction" },
+    {
+      name: "description",
+      content: "Trang đấu giá của tôi cho ứng dụng Đấu Giá Trực Tuyến",
+    },
   ];
 }
 
@@ -120,13 +121,13 @@ export default function MyBidsPage() {
               </TabsList>
 
               {/* Tab 1: Active Bids */}
-              <BidderHistoryList activeBids={activeBids} />
+              <MyBidsTable variant="active" bids={activeBids} />
 
               {/* Tab 2: Won Auctions */}
-              <WonAuctionList wonBids={wonBids} orders={orders} />
+              <MyBidsTable variant="won" bids={wonBids} orders={orders} />
 
               {/* Tab 3: Lost Auctions */}
-              <LoseAuctionList lostBids={lostBids} />
+              <MyBidsTable variant="lost" bids={lostBids} />
             </Tabs>
           )}
         </CardContent>

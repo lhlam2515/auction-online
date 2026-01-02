@@ -1,6 +1,6 @@
 import { Store, CheckCircle, AlertCircle, AlertTriangle } from "lucide-react";
 
-import UpgradeRequestForm from "@/components/features/bidder/UpgradeRequestForm";
+import { UpgradeRequestForm } from "@/components/features/user/forms";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,

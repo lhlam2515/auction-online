@@ -1,11 +1,13 @@
 import type { SellerStats, User } from "@repo/shared-types";
-import { LayoutDashboard, BarChart3 } from "lucide-react"; // Icons mới
+import { LayoutDashboard, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import SellerProfileSection from "@/components/features/seller/SellerProfileSection";
-import SellerStatsCards from "@/components/features/seller/SellerStatsCards";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Dùng cho placeholder
+import {
+  SellerProfileHeader,
+  SellerStatsCards,
+} from "@/components/features/seller";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
 
@@ -14,10 +16,11 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Seller Dashboard - Online Auction" },
+    { title: "Bảng Điều Khiển Người Bán - Online Auction" },
     {
       name: "description",
-      content: "Seller Dashboard page for Online Auction App",
+      content:
+        "Trang bảng điều khiển người bán cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }
@@ -60,7 +63,7 @@ export default function SellerDashboardPage() {
   return (
     <div className="space-y-8 pb-10">
       {/* 1. Profile / Header Section */}
-      <section>{user && <SellerProfileSection user={user} />}</section>
+      <section>{user && <SellerProfileHeader user={user} />}</section>
 
       {/* 2. Stats Section */}
       <section className="space-y-4">

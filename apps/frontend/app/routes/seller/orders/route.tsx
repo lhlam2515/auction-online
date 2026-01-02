@@ -8,8 +8,8 @@ import { ShoppingCart } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-import PaginationBar from "@/components/features/product/PaginationBar";
-import SellerOrderTable from "@/components/features/seller/SellerOrderTable";
+import { PaginationBar } from "@/components/common";
+import { SellerOrderTable } from "@/components/features/seller/tables";
 import {
   Card,
   CardContent,

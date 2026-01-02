@@ -5,15 +5,17 @@ import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import {
+  BuyerPaymentStep,
+  BuyerAwaitingStep,
+  BuyerShippingStep,
+} from "@/components/features/order/buyer";
+import {
+  type Step,
   OrderStepper,
   OrderSummaryCard,
-  PaymentStep,
-  AwaitingConfirmationStep,
-  ShippingStep,
-  RatingStep,
-  CancelledOrder,
-  type Step,
-} from "@/components/features/order";
+  OrderCancelledCard,
+  OrderRatingStep,
+} from "@/components/features/order/shared";
 import {
   Card,
   CardContent,
@@ -193,20 +195,26 @@ export default function OrderDetailPage() {
 
             {/* Right Column - Step Content */}
             <div className="lg:col-span-2">
-              {currentStep === 0 && <CancelledOrder order={order} />}
+              {currentStep === 0 && <OrderCancelledCard order={order} />}
 
               {currentStep === 1 && (
-                <PaymentStep order={order} onSuccess={handlePaymentSuccess} />
+                <BuyerPaymentStep
+                  order={order}
+                  onSuccess={handlePaymentSuccess}
+                />
               )}
 
-              {currentStep === 2 && <AwaitingConfirmationStep order={order} />}
+              {currentStep === 2 && <BuyerAwaitingStep order={order} />}
 
               {currentStep === 3 && (
-                <ShippingStep order={order} onSuccess={handleShippingSuccess} />
+                <BuyerShippingStep
+                  order={order}
+                  onSuccess={handleShippingSuccess}
+                />
               )}
 
               {currentStep === 4 && (
-                <RatingStep
+                <OrderRatingStep
                   order={order}
                   onSkip={handleSkipRating}
                   onSuccess={handleRatingSuccess}

@@ -3,14 +3,16 @@ import { Lock, User as UserIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { z } from "zod";
 
-import ChangePasswordForm from "@/components/features/user/ChangePasswordForm";
-import ChangeUserAvatar from "@/components/features/user/ChangeUserAvatar";
-import UserProfileForm from "@/components/features/user/UserProfileForm";
+import { UserAvatarUploader } from "@/components/features/user";
+import {
+  UserProfileForm,
+  ChangePasswordForm,
+} from "@/components/features/user/forms";
 import {
   Card,
+  CardHeader,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
@@ -28,10 +30,10 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "User Profile - Online Auction" },
+    { title: "Hồ Sơ Người Dùng - Online Auction" },
     {
       name: "description",
-      content: "User Profile page for Online Auction App",
+      content: "Trang hồ sơ người dùng cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }
@@ -120,7 +122,7 @@ export default function UserProfilePage() {
             onSubmit={handleProfileSubmit}
             isLoading={isLoadingProfile}
           />
-          <ChangeUserAvatar
+          <UserAvatarUploader
             userData={userData}
             onAvatarUpdate={(newAvatarUrl: string) =>
               setUserData((prev: User | undefined) =>

@@ -7,13 +7,14 @@ import type {
 import React from "react";
 import { useSearchParams } from "react-router";
 
-import CategoryPanel, {
-  CategoryPanelSkeleton,
-} from "@/components/features/product/CategoryPanel";
-import FilterPanel from "@/components/features/product/FilterPanel";
-import PaginationBar from "@/components/features/product/PaginationBar";
-import ProductGrid from "@/components/features/product/ProductGrid";
-import SortDropdown from "@/components/features/product/SortDropdown";
+import { PaginationBar } from "@/components/common";
+import { ProductGrid } from "@/components/features/product/display";
+import {
+  ProductCategoryFilter,
+  ProductCategoryFilterSkeleton,
+  ProductPriceFilter,
+  ProductSortControl,
+} from "@/components/features/product/filters";
 import { DELAYS } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 import { debounce } from "@/lib/utils";
@@ -25,6 +26,7 @@ const DEFAULT_MIN_PRICE = 0;
 const DEFAULT_MAX_PRICE = 50_000_000;
 const DEFAULT_STEP_PRICE = 1_000_000;
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Search & Browse - Online Auction" },
@@ -153,25 +155,28 @@ export default function SearchBrowsePage() {
     setSearchParams(next);
   };
 
-  const onPriceRangeChange = (newRange: number[]) => {
-    const next = new URLSearchParams(searchParams);
-    next.delete("page");
+  const onPriceRangeChange = React.useCallback(
+    (newRange: number[]) => {
+      const next = new URLSearchParams(searchParams);
+      next.delete("page");
 
-    // Handle min price
-    if (newRange[0] === DEFAULT_MIN_PRICE) {
-      next.delete("minPrice");
-    } else {
-      next.set("minPrice", newRange[0].toString());
-    }
+      // Handle min price
+      if (newRange[0] === DEFAULT_MIN_PRICE) {
+        next.delete("minPrice");
+      } else {
+        next.set("minPrice", newRange[0].toString());
+      }
 
-    if (newRange[1] > DEFAULT_MAX_PRICE) {
-      next.delete("maxPrice");
-    } else {
-      next.set("maxPrice", newRange[1].toString());
-    }
+      if (newRange[1] > DEFAULT_MAX_PRICE) {
+        next.delete("maxPrice");
+      } else {
+        next.set("maxPrice", newRange[1].toString());
+      }
 
-    setSearchParams(next);
-  };
+      setSearchParams(next);
+    },
+    [searchParams, setSearchParams]
+  );
 
   const debouncedPriceRangeChange = React.useMemo(
     () => debounce(onPriceRangeChange, DELAYS.SEARCH),
@@ -199,12 +204,12 @@ export default function SearchBrowsePage() {
         {/* Side bar */}
         <aside className="space-y-6">
           {/* Category Tree */}
-          {loadingCategories && <CategoryPanelSkeleton />}
+          {loadingCategories && <ProductCategoryFilterSkeleton />}
           {errorCategories && (
             <p className="my-8 text-center text-red-600">{errorCategories}</p>
           )}
           {!loadingCategories && !errorCategories && (
-            <CategoryPanel
+            <ProductCategoryFilter
               categoryTrees={category}
               handleCategoryChange={onCategoryChange}
               value={categoryId}
@@ -212,7 +217,7 @@ export default function SearchBrowsePage() {
           )}
 
           {/* Filter panel */}
-          <FilterPanel
+          <ProductPriceFilter
             handlePriceRangeChange={debouncedPriceRangeChange}
             minPrice={DEFAULT_MIN_PRICE}
             maxPrice={DEFAULT_MAX_PRICE}
@@ -237,7 +242,10 @@ export default function SearchBrowsePage() {
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-sm">Sắp xếp:</span>
-              <SortDropdown handleSortChange={onSortChange} value={sort} />
+              <ProductSortControl
+                handleSortChange={onSortChange}
+                value={sort}
+              />
             </div>
           </div>
 

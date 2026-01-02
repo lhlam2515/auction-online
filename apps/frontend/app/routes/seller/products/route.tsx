@@ -7,8 +7,8 @@ import { Package, XCircle } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-import PaginationBar from "@/components/features/product/PaginationBar";
-import SellerProductTable from "@/components/features/seller/SellerProductTable";
+import { PaginationBar } from "@/components/common";
+import { SellerProductTable } from "@/components/features/seller/tables";
 import {
   Card,
   CardContent,

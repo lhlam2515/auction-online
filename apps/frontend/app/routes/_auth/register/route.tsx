@@ -1,4 +1,4 @@
-import AuthForm from "@/components/features/auth/AuthForm";
+import { AuthForm } from "@/components/features/auth/forms";
 import { api } from "@/lib/api-layer";
 import { registerSchema } from "@/lib/validations/auth.validation";
 

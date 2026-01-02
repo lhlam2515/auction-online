@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 
-import ForgotPasswordForm from "@/components/features/auth/ForgotPasswordForm";
+import { ForgotPasswordForm } from "@/components/features/auth/forms";
 import { STORAGE_KEYS } from "@/constants/api";
 import { APP_ROUTES, AUTH_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";

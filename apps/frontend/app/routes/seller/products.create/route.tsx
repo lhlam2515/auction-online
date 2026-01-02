@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { ActiveSellerRoute } from "@/components/ActiveSellerRoute";
-import ProductForm from "@/components/features/product/ProductForm";
+import { CreateProductForm } from "@/components/features/product/forms";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import {
@@ -13,12 +13,13 @@ import {
 
 import type { Route } from "./+types/route";
 
-export function meta(_args: Route.MetaArgs) {
+// eslint-disable-next-line no-empty-pattern
+export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Create Auction - Online Auction" },
+    { title: "Tạo Đấu Giá - Online Auction" },
     {
       name: "description",
-      content: "Create Auction page for Online Auction App",
+      content: "Trang tạo đấu giá cho ứng dụng Đấu Giá Trực Tuyến",
     },
   ];
 }
@@ -139,7 +140,7 @@ export default function CreateProductPage() {
 
   return (
     <ActiveSellerRoute>
-      <ProductForm
+      <CreateProductForm
         schema={productSchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
