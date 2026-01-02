@@ -57,10 +57,17 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
         await fetchCategories(); // Reload data
         setIsAddDialogOpen(false);
       } else {
-        toast.error("Không thể thêm danh mục");
+        toast.error("Không thể thêm danh mục", {
+          description: res.error.message,
+        });
+        logger.error("Không thể thêm danh mục:", res.error.message);
       }
-    } catch {
-      toast.error("Lỗi khi thêm danh mục");
+    } catch (error) {
+      const details = getErrorDetails(error);
+      toast.error("Lỗi khi thêm danh mục", {
+        description: details.message,
+      });
+      logger.error("Lỗi khi thêm danh mục:", error, { details });
     }
   };
 
@@ -74,10 +81,17 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
         toast.success("Cập nhật danh mục thành công");
         await fetchCategories(); // Reload data
       } else {
-        toast.error("Không thể cập nhật danh mục");
+        toast.error("Không thể cập nhật danh mục", {
+          description: res.error.message,
+        });
+        logger.error("Không thể cập nhật danh mục:", res.error.message);
       }
-    } catch {
-      toast.error("Lỗi khi cập nhật danh mục");
+    } catch (error) {
+      const details = getErrorDetails(error);
+      toast.error("Lỗi khi cập nhật danh mục", {
+        description: details.message,
+      });
+      logger.error("Lỗi khi cập nhật danh mục:", error, { details });
     }
   };
 

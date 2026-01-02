@@ -88,7 +88,7 @@ export class CategoryService {
     }
     const level = parentCategories ? parentCategories.level + 1 : 0;
     if (level >= 2) {
-      throw new BadRequestError("Cannot create category deeper than level 2");
+      throw new BadRequestError("Không thể tạo danh mục con quá cấp 2");
     }
 
     const slugifiedName = await this.slugifiedCategoryName(name);
