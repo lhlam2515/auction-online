@@ -89,7 +89,6 @@ const AddCategoryDialog = ({
     onOpenChange(newOpen);
   };
 
-  // Flatten categories for parent selection
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
