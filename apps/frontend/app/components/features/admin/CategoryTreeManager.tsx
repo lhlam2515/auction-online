@@ -139,7 +139,6 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
           categories={categories}
           onUpdate={handleUpdateCategory}
           onDelete={handleDeleteCategory}
-          onRefresh={fetchCategories}
         />
       )}
 

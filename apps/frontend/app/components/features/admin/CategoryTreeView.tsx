@@ -5,7 +5,6 @@ import {
   Edit,
   FolderTree,
   MoreHorizontal,
-  Plus,
   Trash,
 } from "lucide-react";
 import { useState } from "react";
@@ -18,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import AddCategoryDialog from "./AddCategoryDialog";
 import DeleteCategoryDialog from "./DeleteCategoryDialog";
 import EditCategoryDialog from "./EditCategoryDialog";
 
@@ -26,7 +24,6 @@ type CategoryTreeViewProps = {
   categories: CategoryTree[];
   onUpdate: (categoryId: string, data: { name: string }) => Promise<void>;
   onDelete: (categoryId: string) => Promise<void>;
-  onRefresh: () => Promise<void>;
 };
 
 type CategoryNodeProps = {
@@ -34,7 +31,6 @@ type CategoryNodeProps = {
   level: number;
   onUpdate: (categoryId: string, data: { name: string }) => Promise<void>;
   onDelete: (categoryId: string) => Promise<void>;
-  onRefresh: () => Promise<void>;
   allCategories: CategoryTree[];
 };
 
@@ -43,7 +39,6 @@ const CategoryNode = ({
   level,
   onUpdate,
   onDelete,
-  onRefresh,
   allCategories,
 }: CategoryNodeProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -125,7 +120,6 @@ const CategoryNode = ({
               level={level + 1}
               onUpdate={onUpdate}
               onDelete={onDelete}
-              onRefresh={onRefresh}
               allCategories={allCategories}
             />
           ))}
@@ -153,7 +147,6 @@ const CategoryTreeView = ({
   categories,
   onUpdate,
   onDelete,
-  onRefresh,
 }: CategoryTreeViewProps) => {
   return (
     <div className="space-y-1">
@@ -164,7 +157,6 @@ const CategoryTreeView = ({
           level={0}
           onUpdate={onUpdate}
           onDelete={onDelete}
-          onRefresh={onRefresh}
           allCategories={categories}
         />
       ))}
