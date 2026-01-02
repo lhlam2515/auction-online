@@ -131,8 +131,7 @@ export const updateCategory = asyncHandler(
     // Update category
     const updatedCategory = await categoryService.updateCategory(
       req.params.id,
-      body.name,
-      body.parentId
+      body.name
     );
     return ResponseHandler.sendSuccess<Category>(res, updatedCategory);
   }
@@ -142,6 +141,6 @@ export const deleteCategory = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const categoryId = req.params.id;
     await categoryService.deleteCategory(categoryId);
-    return ResponseHandler.sendSuccess(res, null, 204);
+    return ResponseHandler.sendSuccess(res, null, 200);
   }
 );

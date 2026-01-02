@@ -88,7 +88,7 @@ export class CategoryService {
     }
     const level = parentCategories ? parentCategories.level + 1 : 0;
     if (level >= 2) {
-      throw new BadRequestError("Cannot create category deeper than level 2");
+      throw new BadRequestError("Không thể tạo danh mục con quá cấp 2");
     }
 
     const slugifiedName = await this.slugifiedCategoryName(name);
@@ -106,54 +106,16 @@ export class CategoryService {
     return newCategory;
   }
 
-  async updateCategory(
-    categoryId: string,
-    name?: string,
-    parentId?: string | null
-  ): Promise<Category> {
+  async updateCategory(categoryId: string, name: string): Promise<Category> {
     const category = await this.getById(categoryId);
 
-    let isUpdated = false;
-
-    // ----- Parent handling -----
-    let newParentId = category.parentId;
-    let newLevel = category.level;
-
-    if (parentId !== undefined && parentId !== category.parentId) {
-      if (parentId === null) {
-        newParentId = null;
-        newLevel = 0;
-        isUpdated = true;
-      } else {
-        const parent = await this.getById(parentId);
-
-        if (parent.id === categoryId) {
-          throw new BadRequestError("Category cannot be its own parent");
-        }
-
-        const level = parent.level + 1;
-        if (level >= 2) {
-          throw new BadRequestError("Cannot set category deeper than level 2");
-        }
-
-        newParentId = parentId;
-        newLevel = level;
-        isUpdated = true;
-      }
-    }
-
     // ----- Name + slug handling -----
-    const nameChanged =
-      name !== undefined && name.trim() !== category.name.trim();
+    const nameChanged = name.trim() !== category.name.trim();
 
-    const newName = nameChanged ? name! : category.name;
+    const newName = nameChanged ? name : category.name;
     const newSlug = nameChanged
-      ? await this.slugifiedCategoryName(name!)
+      ? await this.slugifiedCategoryName(name)
       : category.slug;
-
-    if (nameChanged) {
-      isUpdated = true;
-    }
 
     // ----- Update DB -----
     const [updatedCategory] = await db
@@ -161,9 +123,7 @@ export class CategoryService {
       .set({
         name: newName,
         slug: newSlug,
-        parentId: newParentId,
-        level: newLevel,
-        updatedAt: isUpdated ? new Date() : category.updatedAt,
+        updatedAt: nameChanged ? new Date() : category.updatedAt,
       })
       .where(eq(categories.id, categoryId))
       .returning();
@@ -180,9 +140,7 @@ export class CategoryService {
       .from(categories)
       .where(eq(categories.parentId, categoryId));
     if (childCount[0].value > 0) {
-      throw new BadRequestError(
-        "Cannot delete category with existing sub-categories"
-      );
+      throw new BadRequestError("Không thể xóa danh mục có danh mục con");
     }
 
     // Check for associated products
@@ -191,9 +149,7 @@ export class CategoryService {
       .from(products)
       .where(eq(products.categoryId, categoryId));
     if (productCount[0].value > 0) {
-      throw new BadRequestError(
-        "Cannot delete category with associated products"
-      );
+      throw new BadRequestError("Không thể xóa danh mục đang có sản phẩm");
     }
 
     // Proceed to delete

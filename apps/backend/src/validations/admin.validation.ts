@@ -68,6 +68,5 @@ export const createCategorySchema = z.object({
 });
 
 export const updateCategorySchema = z.object({
-  name: z.string().min(2).optional(),
-  parentId: z.uuid().optional().nullable(),
+  name: z.string().min(2),
 });
