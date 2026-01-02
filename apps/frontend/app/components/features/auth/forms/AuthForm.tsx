@@ -18,7 +18,7 @@ import { api } from "@/lib/api-layer";
 import { ApiError } from "@/types/api";
 
 import AuthFormFields from "./AuthFormFields";
-import SocialAuthButtons from "./SocialAuthButtons";
+import SocialAuthButtons from "../oauth/SocialAuthButtons";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;

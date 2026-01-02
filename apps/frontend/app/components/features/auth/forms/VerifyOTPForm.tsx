@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ZodType } from "zod";
 
+import { OTPInput } from "@/components/common/inputs";
 import { Button } from "@/components/ui/button";
 import {
   FieldGroup,
@@ -16,8 +17,6 @@ import { STORAGE_KEYS } from "@/constants/api";
 import { AUTH_ROUTES } from "@/constants/routes";
 import { useOTPForm } from "@/hooks/useOTPForm";
 import { api } from "@/lib/api-layer";
-
-import OTPInput from "./OTPInput";
 
 interface VerifyOTPFormProps<T extends FieldValues> {
   schema: ZodType<T>;

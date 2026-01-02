@@ -1,5 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
-import ReCAPTCHA from "react-google-recaptcha";
 import {
   Controller,
   type FieldValues,
@@ -8,6 +6,7 @@ import {
 } from "react-hook-form";
 import { Link } from "react-router";
 
+import { ReCAPTCHAInput } from "@/components/common/inputs";
 import { Button } from "@/components/ui/button";
 import {
   FieldGroup,
@@ -119,18 +118,10 @@ const AuthFormFields = <T extends FieldValues>({
             data-invalid={fieldState.invalid}
             className="flex w-full flex-col gap-2"
           >
-            {typeof import.meta.env.VITE_CAPTCHA_SITE_KEY !== "string" ||
-            !import.meta.env.VITE_CAPTCHA_SITE_KEY ? (
-              <div className="error-message">
-                Error: VITE_CAPTCHA_SITE_KEY environment variable is not set.
-              </div>
-            ) : (
-              <ReCAPTCHA
-                sitekey={import.meta.env.VITE_CAPTCHA_SITE_KEY}
-                onChange={(token) => field.onChange(token)}
-                onExpired={() => field.onChange("")}
-              />
-            )}
+            <ReCAPTCHAInput
+              onChange={(token) => field.onChange(token)}
+              onExpired={() => field.onChange("")}
+            />
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}
