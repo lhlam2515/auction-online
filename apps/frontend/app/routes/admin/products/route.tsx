@@ -1,11 +1,10 @@
 import type {
   ProductDetails,
-  PaginatedResponse,
   AdminGetProductsParams,
   CategoryTree,
 } from "@repo/shared-types";
-import { Package, Search } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { Package } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
@@ -97,35 +96,30 @@ export default function ManageAllProductsPage() {
     };
   }, []);
 
-  // Fetch products
-  useEffect(() => {
-    let isMounted = true;
-    const fetchProducts = async () => {
-      try {
-        setIsLoadingProducts(true);
-        setErrorProducts("");
-        const response = await api.admin.products.getAll(query);
-        if (response.success && isMounted) {
-          setProducts(response.data?.items || []);
-          setTotalProducts(response.data?.pagination.total || 0);
-          setTotalPages(response.data?.pagination.totalPages || 1);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setErrorProducts(
-            error instanceof Error ? error.message : "Lỗi khi tải sản phẩm"
-          );
-        }
-      } finally {
-        if (isMounted) setIsLoadingProducts(false);
+  // Fetch products function
+  const fetchProducts = useCallback(async () => {
+    try {
+      setIsLoadingProducts(true);
+      setErrorProducts("");
+      const response = await api.admin.products.getAll(query);
+      if (response.success) {
+        setProducts(response.data?.items || []);
+        setTotalProducts(response.data?.pagination.total || 0);
+        setTotalPages(response.data?.pagination.totalPages || 1);
       }
-    };
-
-    fetchProducts();
-    return () => {
-      isMounted = false;
-    };
+    } catch (error) {
+      setErrorProducts(
+        error instanceof Error ? error.message : "Lỗi khi tải sản phẩm"
+      );
+    } finally {
+      setIsLoadingProducts(false);
+    }
   }, [query]);
+
+  // Fetch products on query change
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Handler functions
   const onSearchChange = (newSearch: string) => {
@@ -161,13 +155,6 @@ export default function ManageAllProductsPage() {
     setSearchParams(next);
   };
 
-  const onSearch = () => {
-    // Force refresh by resetting page to 1
-    const next = new URLSearchParams(searchParams);
-    next.set("page", "1");
-    setSearchParams(next);
-  };
-
   const onPageChange = (newPage: number) => {
     const next = new URLSearchParams(searchParams);
     next.set("page", newPage.toString());
@@ -179,17 +166,7 @@ export default function ManageAllProductsPage() {
       const response = await api.admin.products.suspend(productId);
       if (response.success) {
         toast.success("Đã gỡ bỏ sản phẩm thành công");
-        // Refresh the current page
-        const currentQuery = {
-          ...query,
-          page: parseInt(page, 10) || 1,
-        };
-        const refreshResponse = await api.admin.products.getAll(currentQuery);
-        if (refreshResponse.success) {
-          setProducts(refreshResponse.data?.items || []);
-          setTotalProducts(refreshResponse.data?.pagination.total || 0);
-          setTotalPages(refreshResponse.data?.pagination.totalPages || 1);
-        }
+        await fetchProducts();
       }
     } catch (error) {
       toast.error(
@@ -233,7 +210,6 @@ export default function ManageAllProductsPage() {
               onSearchChange={onSearchChange}
               onStatusChange={onStatusChange}
               onCategoryChange={onCategoryChange}
-              onSearch={onSearch}
             />
           )}
 

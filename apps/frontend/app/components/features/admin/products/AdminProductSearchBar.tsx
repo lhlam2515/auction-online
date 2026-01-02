@@ -27,7 +27,6 @@ type AdminProductSearchBarProps = {
   onSearchChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
-  onSearch: () => void;
   className?: string;
 };
 
@@ -59,7 +58,6 @@ const AdminProductSearchBar = ({
   onSearchChange,
   onStatusChange,
   onCategoryChange,
-  onSearch,
   className,
 }: AdminProductSearchBarProps) => {
   const [localSearchQuery, setLocalSearchQuery] = React.useState(searchQuery);
@@ -79,13 +77,11 @@ const AdminProductSearchBar = ({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       onSearchChange(localSearchQuery);
-      onSearch();
     }
   };
 
   const handleSearchClick = () => {
     onSearchChange(localSearchQuery);
-    onSearch();
   };
 
   return (
