@@ -142,6 +142,22 @@ export class ProductService {
     return toPaginated(productsList, page, limit, total);
   }
 
+  async suspendProduct(productId: string): Promise<Product> {
+    const product = await this.getById(productId);
+    if (product.status !== "ACTIVE") {
+      throw new BadRequestError("Chỉ có thể gỡ sản phẩm đang đấu giá");
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(products)
+        .set({ status: "SUSPENDED" })
+        .where(eq(products.id, productId));
+    });
+
+    return this.getById(productId);
+  }
+
   async searchProducts(
     params: SearchProductsParams
   ): Promise<PaginatedResponse<ProductListing>> {

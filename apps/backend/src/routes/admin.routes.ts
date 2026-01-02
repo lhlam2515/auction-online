@@ -148,7 +148,6 @@ router.post(
   "/products/:id/suspend",
   validate({
     params: adminValidation.productIdSchema,
-    body: adminValidation.suspendProductSchema,
   }),
   adminController.suspendProduct
 );

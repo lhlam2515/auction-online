@@ -13,6 +13,7 @@ import type {
   Category,
   PaginatedResponse,
   ProductDetails,
+  Product,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -112,9 +113,8 @@ export const rejectProduct = asyncHandler(
 
 export const suspendProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as SuspendProductRequest;
-    // TODO: Suspend active product
-    throw new NotImplementedError("Suspend product not implemented yet");
+    const product = await productService.suspendProduct(req.params.id);
+    return ResponseHandler.sendSuccess<Product>(res, product, 200);
   }
 );
 
