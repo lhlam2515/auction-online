@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import AlertSection from "@/components/common/AlertSection";
-import { Button } from "@/components/ui/button";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 import {
   Card,
   CardContent,
@@ -12,16 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 
@@ -112,55 +102,18 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
-          <Dialog
+          <ConfirmationDialog
             open={isConfirmDialogOpen}
             onOpenChange={setIsConfirmDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button
-                className="bg-emerald-500 text-white hover:bg-emerald-700"
-                disabled={isConfirming}
-              >
-                {isConfirming ? (
-                  <>
-                    <Spinner className="mr-2 h-4 w-4" />
-                    Đang xử lý...
-                  </>
-                ) : (
-                  <>
-                    <Package className="mr-2 h-4 w-4" />
-                    Xác nhận đã nhận hàng
-                  </>
-                )}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Xác nhận đã nhận hàng</DialogTitle>
-                <DialogDescription>
-                  Bạn có chắc chắn đã nhận được hàng và hài lòng với tình trạng
-                  sản phẩm không? Sau khi xác nhận, bạn sẽ được yêu cầu đánh giá
-                  người bán.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsConfirmDialogOpen(false)}
-                  disabled={isConfirming}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  className="bg-emerald-500 text-white hover:bg-emerald-700"
-                  onClick={handleConfirmReceived}
-                  disabled={isConfirming}
-                >
-                  Xác nhận đã nhận hàng
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            triggerLabel="Xác nhận đã nhận hàng"
+            triggerIcon={Package}
+            variant="success"
+            title="Xác nhận đã nhận hàng"
+            description="Bạn có chắc chắn đã nhận được hàng và hài lòng với tình trạng sản phẩm không? Sau khi xác nhận, bạn sẽ được yêu cầu đánh giá người bán."
+            confirmLabel="Xác nhận đã nhận hàng"
+            onConfirm={handleConfirmReceived}
+            isConfirming={isConfirming}
+          />
         </div>
       </CardContent>
     </Card>

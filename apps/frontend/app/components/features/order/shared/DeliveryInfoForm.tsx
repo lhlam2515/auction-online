@@ -12,16 +12,7 @@ import {
 import { toast } from "sonner";
 import type { ZodType } from "zod";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 import {
   Field,
   FieldDescription,
@@ -37,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
 
 interface ShippingFormProps<T extends FieldValues> {
@@ -199,56 +189,27 @@ const DeliveryInfoForm = <T extends FieldValues>({
       </FieldGroup>
 
       <div className="flex justify-end gap-3 pt-4">
-        <Dialog open={isDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className="cursor-pointer bg-emerald-500 text-white hover:bg-emerald-700"
-              disabled={isSubmitting}
-              onClick={handleOpenDialog}
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner className="mr-2 h-4 w-4" />
-                  Đang xử lý...
-                </>
-              ) : (
-                <>
-                  <Truck className="mr-2 h-4 w-4" />
-                  Xác nhận bàn giao hàng
-                </>
-              )}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Xác nhận bàn giao hàng</DialogTitle>
-              <DialogDescription>
-                Bạn có chắc chắn đã gửi hàng với mã vận đơn{" "}
-                <span className="font-mono font-bold">
-                  {form.getValues().trackingNumber}
-                </span>{" "}
-                không? Sau khi xác nhận, bạn sẽ không thể thay đổi thông tin vận
-                chuyển.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                disabled={isSubmitting}
-              >
-                Hủy
-              </Button>
-              <Button
-                className="bg-emerald-500 text-white hover:bg-emerald-700"
-                onClick={handleConfirmSubmit}
-                disabled={isSubmitting}
-              >
-                Xác nhận bàn giao
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmationDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          triggerLabel="Xác nhận bàn giao hàng"
+          triggerIcon={Truck}
+          onTriggerClick={handleOpenDialog}
+          title="Xác nhận bàn giao hàng"
+          description={
+            <>
+              Bạn có chắc chắn đã gửi hàng với mã vận đơn{" "}
+              <span className="font-mono font-bold">
+                {form.getValues().trackingNumber}
+              </span>{" "}
+              không? Sau khi xác nhận, bạn sẽ không thể thay đổi thông tin vận
+              chuyển.
+            </>
+          }
+          confirmLabel="Xác nhận bàn giao"
+          onConfirm={handleConfirmSubmit}
+          isConfirming={isSubmitting}
+        />
       </div>
     </form>
   );

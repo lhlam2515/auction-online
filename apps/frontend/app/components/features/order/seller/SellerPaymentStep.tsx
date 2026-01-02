@@ -1,9 +1,10 @@
 import type { OrderWithDetails } from "@repo/shared-types";
-import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { CheckCircle2, AlertCircle, Clock, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import AlertSection from "@/components/common/AlertSection";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 import {
   Card,
   CardContent,
@@ -14,8 +15,6 @@ import {
 import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 
-import { SellerCancelOrderDialog } from "./SellerCancelOrderDialog";
-import { SellerConfirmPaymentDialog } from "./SellerConfirmPaymentDialog";
 import PaymentInfoDisplay from "../shared/PaymentInfoDisplay";
 import ShippingInfo from "../shared/shipping-info";
 
@@ -158,22 +157,44 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
             {/* Cancel Order Button - Only show if overdue */}
             {isOverdue && (
               <div className="flex justify-end gap-3 pt-4">
-                <SellerCancelOrderDialog
-                  isOpen={isCancelDialogOpen}
+                <ConfirmationDialog
+                  open={isCancelDialogOpen}
                   onOpenChange={setIsCancelDialogOpen}
-                  isCancelling={isCancelling}
-                  onCancelOrder={handleCancelOrder}
+                  triggerLabel="Hủy giao dịch"
+                  triggerIcon={XCircle}
+                  triggerVariant="destructive"
+                  variant="destructive"
+                  title="Hủy giao dịch"
+                  description={
+                    <>
+                      Bạn có chắc chắn muốn hủy đơn hàng này không?
+                      <span className="block font-semibold">
+                        Lý do: Người mua chậm thanh toán quá 24 giờ.
+                      </span>
+                      Hành động này không thể hoàn tác.
+                    </>
+                  }
+                  confirmLabel="Xác nhận hủy"
+                  cancelLabel="Giữ lại đơn hàng"
+                  onConfirm={handleCancelOrder}
+                  isConfirming={isCancelling}
                 />
               </div>
             )}
           </div>
         ) : (
           <div className="flex justify-end gap-3 pt-4">
-            <SellerConfirmPaymentDialog
-              isOpen={isConfirmDialogOpen}
+            <ConfirmationDialog
+              open={isConfirmDialogOpen}
               onOpenChange={setIsConfirmDialogOpen}
+              triggerLabel="Xác nhận đã nhận thanh toán"
+              triggerIcon={CheckCircle2}
+              variant="success"
+              title="Xác nhận thanh toán"
+              description="Bạn có chắc chắn đã nhận được thanh toán từ người mua không? Sau khi xác nhận, bạn sẽ cần chuẩn bị hàng và bàn giao trong vòng 24-48 giờ."
+              confirmLabel="Xác nhận"
+              onConfirm={handleConfirmPayment}
               isConfirming={isConfirming}
-              onConfirmPayment={handleConfirmPayment}
             />
           </div>
         )}

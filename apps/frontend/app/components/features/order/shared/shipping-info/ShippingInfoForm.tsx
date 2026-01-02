@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ApiResponse } from "@repo/shared-types";
+import { CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Controller,
@@ -11,16 +12,8 @@ import {
 import { toast } from "sonner";
 import type { ZodType } from "zod";
 
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   FieldGroup,
   Field,
@@ -28,7 +21,6 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
 
 interface ShippingInfoFormProps<T extends FieldValues> {
@@ -169,44 +161,19 @@ const ShippingInfoForm = <T extends FieldValues>({
           </Button>
         )}
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              type="button"
-              className="cursor-pointer"
-              onClick={handleOpenDialog}
-              disabled={isSubmitting}
-            >
-              {isSubmitting && <Spinner />}
-              {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Xác nhận cập nhật thông tin giao hàng</DialogTitle>
-              <DialogDescription>
-                Bạn có chắc chắn muốn cập nhật thông tin giao hàng không? Thông
-                tin mới sẽ được sử dụng để giao hàng cho đơn hàng này.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                disabled={isSubmitting}
-              >
-                Hủy
-              </Button>
-              <Button
-                className="bg-emerald-500 text-white hover:bg-emerald-700"
-                onClick={handleConfirmSubmit}
-                disabled={isSubmitting}
-              >
-                Xác nhận cập nhật
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmationDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          triggerLabel="Lưu thay đổi"
+          triggerIcon={CheckCircle2}
+          onTriggerClick={handleOpenDialog}
+          variant="success"
+          title="Xác nhận cập nhật thông tin giao hàng"
+          description="Bạn có chắc chắn muốn cập nhật thông tin giao hàng không? Thông tin mới sẽ được sử dụng để giao hàng cho đơn hàng này."
+          confirmLabel="Xác nhận cập nhật"
+          onConfirm={handleConfirmSubmit}
+          isConfirming={isSubmitting}
+        />
       </div>
     </form>
   );

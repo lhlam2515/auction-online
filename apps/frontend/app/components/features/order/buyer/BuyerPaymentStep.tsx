@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import AlertSection from "@/components/common/AlertSection";
-import { Button } from "@/components/ui/button";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 import {
   Card,
   CardContent,
@@ -12,17 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
 
 import PaymentMethodOption from "../shared/PaymentMethodOption";
@@ -127,51 +117,18 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
-          <Dialog
+          <ConfirmationDialog
             open={isPaymentDialogOpen}
             onOpenChange={setIsPaymentDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button
-                className="bg-emerald-500 text-white hover:bg-emerald-700"
-                disabled={isProcessing}
-              >
-                {isProcessing ? "Đang xử lý..." : "Xác nhận thanh toán"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Xác nhận thanh toán</DialogTitle>
-                <DialogDescription>
-                  Bạn có chắc muốn xác nhận thanh toán cho đơn hàng này không?
-                  Sau khi xác nhận, bạn không thể thay đổi phương thức thanh
-                  toán.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPaymentDialogOpen(false)}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  className="bg-emerald-500 text-white hover:bg-emerald-700"
-                  onClick={handleConfirmPayment}
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Spinner className="mr-2 h-4 w-4" />
-                      <span>Đang xử lý...</span>
-                    </>
-                  ) : (
-                    "Xác nhận thanh toán"
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            triggerLabel="Xác nhận thanh toán"
+            triggerIcon={CreditCard}
+            variant="success"
+            title="Xác nhận thanh toán"
+            description="Bạn có chắc muốn xác nhận thanh toán cho đơn hàng này không? Sau khi xác nhận, bạn không thể thay đổi phương thức thanh toán."
+            confirmLabel="Xác nhận thanh toán"
+            onConfirm={handleConfirmPayment}
+            isConfirming={isProcessing}
+          />
         </div>
       </CardContent>
     </Card>
