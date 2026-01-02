@@ -1,25 +1,19 @@
 import type { ProductListing } from "@repo/shared-types";
 import { useMemo, useState } from "react";
 
+import ProductCard from "@/components/features/product/display/ProductCard";
 import PaginationBar from "@/components/features/product/PaginationBar";
-import ProductCard from "@/components/features/product/ProductCard";
 import { CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 
-// TODO: Define props based on SRS requirements
-interface WatchListProps {
+interface ProductWatchlistProps {
   watchlist: ProductListing[];
   loading: boolean;
 }
 
 const ITEMS_PER_PAGE = 6;
 
-/**
- * Component: WatchList
- * Generated automatically based on Project Auction SRS.
- */
-
-const WatchList = ({ watchlist, loading }: WatchListProps) => {
+const ProductWatchlist = ({ watchlist, loading }: ProductWatchlistProps) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(watchlist.length / ITEMS_PER_PAGE);
@@ -30,12 +24,10 @@ const WatchList = ({ watchlist, loading }: WatchListProps) => {
 
   return (
     <CardContent>
-      {/* Tab 3: Watchlist */}
-
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <Spinner />
-          <span className="ml-2">Đang tải dữ liệu theo dõi</span>
+          <span className="ml-2">Đang tải danh sách theo dõi</span>
         </div>
       ) : (
         <>
@@ -70,4 +62,4 @@ const WatchList = ({ watchlist, loading }: WatchListProps) => {
   );
 };
 
-export default WatchList;
+export default ProductWatchlist;

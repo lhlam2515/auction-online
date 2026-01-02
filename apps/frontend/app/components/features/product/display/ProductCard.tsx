@@ -7,7 +7,7 @@ import {
   ShoppingCart,
   User,
 } from "lucide-react";
-import React from "react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
@@ -26,23 +26,17 @@ type ProductCardProps = {
 
 const NEW_PRODUCT_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
 
-/**
- * Component: ProductCard
- * Generated automatically based on Project Auction SRS.
- */
 const ProductCard = ({
   product: {
     id,
     name,
     mainImageUrl,
-    slug,
     currentPrice,
     currentWinnerName,
     buyNowPrice,
     startTime,
     endTime,
     bidCount,
-    isWatching,
     createdAt,
   },
   className,
@@ -54,7 +48,7 @@ const ProductCard = ({
   } = useWatchlist();
 
   // Memoize để tránh re-compute liên tục
-  const isProductInWatchlist = React.useMemo(
+  const isProductInWatchlist = useMemo(
     () => isInWatchlist(id),
     [isInWatchlist, id]
   );

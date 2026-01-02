@@ -1,6 +1,6 @@
 import type { ProductListing } from "@repo/shared-types";
 import Autoplay from "embla-carousel-autoplay";
-import React from "react";
+import { useRef } from "react";
 
 import {
   Carousel,
@@ -14,23 +14,17 @@ import { cn } from "@/lib/utils";
 import ProductCard, { ProductCardSkeleton } from "./ProductCard";
 
 type ProductGalleryProps = {
-  className?: string;
   products: ProductListing[];
   loading?: boolean;
+  className?: string;
 };
 
-/**
- * Component: ProductGallery
- * Generated automatically based on Project Auction SRS.
- */
 const ProductGallery = ({
-  className,
   products,
   loading = false,
+  className,
 }: ProductGalleryProps) => {
-  const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: true })
-  );
+  const plugin = useRef(Autoplay({ delay: 2000, stopOnInteraction: true }));
 
   // Hiển thị 5 skeleton cards khi đang loading
   const renderContent = () => {

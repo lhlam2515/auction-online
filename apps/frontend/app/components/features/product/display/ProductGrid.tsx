@@ -9,13 +9,8 @@ type ProductGridProps = {
   products: ProductListing[];
   loading?: boolean;
   className?: string;
-  [key: string]: any;
 };
 
-/**
- * Component: ProductGrid
- * Generated automatically based on Project Auction SRS.
- */
 const ProductGrid = ({ products, loading, className }: ProductGridProps) => {
   return (
     <div

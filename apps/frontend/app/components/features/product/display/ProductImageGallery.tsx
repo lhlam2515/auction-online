@@ -1,49 +1,52 @@
 import type { ProductImage } from "@repo/shared-types";
-import React from "react";
-import { toast } from "sonner";
+import { useState, useRef, useEffect } from "react";
 
 import { api } from "@/lib/api-layer";
-import logger from "@/lib/logger";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 import { cn } from "@/lib/utils";
 
 interface ProductImageGalleryProps {
   productId: string;
   className?: string;
-  [key: string]: any;
 }
 
-export function ProductImageGallery({
+const ProductImageGallery = ({
   productId,
   className,
-}: ProductImageGalleryProps) {
-  const [images, setImages] = React.useState<ProductImage[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [selectedImage, setSelectedImage] = React.useState(0);
-  const [isDragging, setIsDragging] = React.useState(false);
-  const [startX, setStartX] = React.useState(0);
-  const [scrollLeft, setScrollLeft] = React.useState(0);
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+}: ProductImageGalleryProps) => {
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
 
     const fetchImages = async () => {
+      if (!isMounted) return;
+
       try {
         setLoading(true);
-        const response = await api.products.getImages(productId);
 
-        if (isMounted) {
-          if (response.success && response.data) {
-            setImages(response.data);
-          } else {
-            logger.error("Failed to load product images");
-            toast.error("Không thể tải hình ảnh");
-          }
+        const result = await api.products.getImages(productId);
+
+        if (!result.success) {
+          throw new Error(result.error?.message || "Không thể tải hình ảnh");
         }
-      } catch (err) {
+
+        if (isMounted && result.data) {
+          setImages(result.data);
+        }
+      } catch (error) {
         if (isMounted) {
-          logger.error("Error fetching product images:", err);
-          toast.error("Có lỗi khi tải hình ảnh");
+          const errorMessage = getErrorMessage(
+            error,
+            "Có lỗi khi tải hình ảnh"
+          );
+          showError(error, errorMessage);
         }
       } finally {
         if (isMounted) {
@@ -142,4 +145,6 @@ export function ProductImageGallery({
       </div>
     </div>
   );
-}
+};
+
+export default ProductImageGallery;

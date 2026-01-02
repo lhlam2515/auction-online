@@ -8,13 +8,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
-import WatchList from "@/components/features/bidder/WatchList";
+import { ProductWatchlist } from "@/components/features/product";
 import SortDropdown from "@/components/features/product/SortDropdown";
 import {
+  Card,
   CardHeader,
   CardTitle,
   CardDescription,
-  Card,
   CardContent,
 } from "@/components/ui/card";
 import { ERROR_MESSAGES } from "@/constants/api";
@@ -113,7 +113,7 @@ export default function WatchListPage() {
         </div>
       </CardContent>
 
-      <WatchList watchlist={watchlist} loading={loading} />
+      <ProductWatchlist watchlist={watchlist} loading={loading} />
     </Card>
   );
 }

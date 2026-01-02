@@ -8,7 +8,7 @@ import {
   Calendar,
   Pencil,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
@@ -19,7 +19,7 @@ import { ACCOUNT_ROUTES, SELLER_ROUTES } from "@/constants/routes";
 import { useWatchlist } from "@/contexts/watchlist-provider";
 import useCountdown from "@/hooks/useCountdown";
 import { api } from "@/lib/api-layer";
-import logger from "@/lib/logger";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 import { BiddingDialog } from "@/routes/_root/products.$id/BidForm";
 import { BuyNowDialog } from "@/routes/_root/products.$id/BuyNowDialog";
@@ -30,34 +30,29 @@ interface ProductInfoProps {
   isSeller: boolean;
   userId?: string;
   className?: string;
-  [key: string]: any;
 }
 
 const RELATIVE_TIME_THRESHOLD_MS = 3 * TIME.DAY;
 
-export function ProductMainInfo({
+const ProductInfo = ({
   product,
   isLoggedIn,
   isSeller,
   userId,
   className,
-}: ProductInfoProps) {
+}: ProductInfoProps) => {
   const {
     toggleWatchlist,
     isInWatchlist,
     isLoading: watchlistLoading,
   } = useWatchlist();
 
-  const [userData, setUserData] = React.useState<User>();
-
-  // State cho BuyNow dialog
-  const [showBuyNowDialog, setShowBuyNowDialog] = React.useState(false);
-
-  // State cho BiddingDialog
-  const [showBiddingDialog, setShowBiddingDialog] = React.useState(false);
+  const [userData, setUserData] = useState<User>();
+  const [showBuyNowDialog, setShowBuyNowDialog] = useState(false);
+  const [showBiddingDialog, setShowBiddingDialog] = useState(false);
 
   // Memoize để tránh re-compute liên tục
-  const isProductInWatchlist = React.useMemo(
+  const isProductInWatchlist = useMemo(
     () => isInWatchlist(product.id),
     [isInWatchlist, product.id]
   );
@@ -76,21 +71,32 @@ export function ProductMainInfo({
     };
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
+
     const fetchUserData = async () => {
+      if (!isMounted || !isLoggedIn) return;
+
       try {
-        if (isLoggedIn) {
-          const user_res = await api.users.getProfile();
-          if (isMounted) {
-            if (user_res.success && user_res.data) {
-              setUserData(user_res.data);
-            }
-          }
+        const result = await api.users.getProfile();
+
+        if (!result.success) {
+          throw new Error(
+            result.error?.message || "Không thể tải dữ liệu người dùng"
+          );
+        }
+
+        if (isMounted && result.data) {
+          setUserData(result.data);
         }
       } catch (error) {
-        logger.error("Failed to fetch user data:", error);
-        toast.error("Không thể tải dữ liệu người dùng.");
+        if (isMounted) {
+          const errorMessage = getErrorMessage(
+            error,
+            "Có lỗi khi tải dữ liệu người dùng"
+          );
+          showError(error, errorMessage);
+        }
       }
     };
 
@@ -297,4 +303,6 @@ export function ProductMainInfo({
       />
     </div>
   );
-}
+};
+
+export default ProductInfo;

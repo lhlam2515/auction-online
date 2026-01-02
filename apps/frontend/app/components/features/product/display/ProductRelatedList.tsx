@@ -1,44 +1,52 @@
+import type { ProductListing } from "@repo/shared-types";
 import { ShoppingCart } from "lucide-react";
 import React from "react";
-import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 
 import ProductGallery from "./ProductGallery";
 
-type RelatedProductsProps = {
+type ProductRelatedListProps = {
   productId: string;
   className?: string;
-  [key: string]: any;
 };
 
-/**
- * Component: RelatedProducts
- * Generated automatically based on Project Auction SRS.
- */
-const RelatedProducts = ({ productId, className }: RelatedProductsProps) => {
-  const [products, setProducts] = React.useState<any[]>([]);
+const ProductRelatedList = ({
+  productId,
+  className,
+}: ProductRelatedListProps) => {
+  const [products, setProducts] = React.useState<ProductListing[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     let isMounted = true;
+
     const fetchRelatedProducts = async () => {
       if (!isMounted) return;
+
       try {
         setLoading(true);
-        const response = await api.products.getRelated(productId);
 
-        if (isMounted) {
-          if (response.success && response.data) {
-            setProducts(response.data);
-          } else {
-            toast.error("Không thể tải sản phẩm liên quan");
-          }
+        const result = await api.products.getRelated(productId);
+
+        if (!result.success) {
+          throw new Error(
+            result.error?.message || "Không thể tải sản phẩm liên quan"
+          );
+        }
+
+        if (isMounted && result.data) {
+          setProducts(result.data);
         }
       } catch (error) {
         if (isMounted) {
-          toast.error("Có lỗi khi tải sản phẩm liên quan");
+          const errorMessage = getErrorMessage(
+            error,
+            "Có lỗi khi tải sản phẩm liên quan"
+          );
+          showError(error, errorMessage);
         }
       } finally {
         if (isMounted) {
@@ -46,6 +54,7 @@ const RelatedProducts = ({ productId, className }: RelatedProductsProps) => {
         }
       }
     };
+
     fetchRelatedProducts();
     return () => {
       isMounted = false;
@@ -77,4 +86,4 @@ const RelatedProducts = ({ productId, className }: RelatedProductsProps) => {
   );
 };
 
-export default RelatedProducts;
+export default ProductRelatedList;

@@ -1,6 +1,9 @@
-export { default as ProductForm } from "./ProductForm";
-export { default as ProductFormFields } from "./ProductFormFields";
-export { default as BasicInfoFields } from "./fields/BasicInfoFields";
-export { default as PricingFields } from "./fields/PricingFields";
-export { default as TimeSettingsFields } from "./fields/TimeSettingsFields";
-export { default as ImageUploadFields } from "./fields/ImageUploadFields";
+// Exporting all display components for the Product feature
+export { default as ProductCard } from "./display/ProductCard";
+export { default as ProductGrid } from "./display/ProductGrid";
+export { default as ProductGallery } from "./display/ProductGallery";
+export { default as ProductInfo } from "./display/ProductInfo";
+export { default as ProductDescription } from "./display/ProductDescription";
+export { default as ProductImageGallery } from "./display/ProductImageGallery";
+export { default as ProductRelatedList } from "./display/ProductRelatedList";
+export { default as ProductWatchlist } from "./display/ProductWatchlist";

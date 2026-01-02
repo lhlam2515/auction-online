@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
-import { ProductDescription } from "@/components/features/product/ProductDescription";
+import { ProductDescription } from "@/components/features/product";
 import {
   Card,
   CardContent,

@@ -5,50 +5,50 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 import { formatDate } from "@/lib/utils";
 
 interface ProductDescriptionProps {
   productId: string;
   initialDescription: string;
   className?: string;
-  [key: string]: any;
 }
 
-export function ProductDescription({
+const ProductDescription = ({
   productId,
   initialDescription,
   className,
-}: ProductDescriptionProps) {
+}: ProductDescriptionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [updatedDesc, setUpdatedDesc] = useState<UpdateDescriptionResponse[]>(
     []
   );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchDescriptionUpdates = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const response = await api.products.getDescriptionUpdates(productId);
+      if (!isMounted) return;
 
-        if (isMounted) {
-          if (response.success && response.data) {
-            setUpdatedDesc(response.data);
-          } else {
-            setError("Không thể tải cập nhật mô tả");
-          }
+      try {
+        const result = await api.products.getDescriptionUpdates(productId);
+
+        if (!result.success) {
+          throw new Error(
+            result.error?.message || "Không thể tải cập nhật mô tả"
+          );
         }
-      } catch (err) {
-        if (isMounted) {
-          setError("Có lỗi khi tải cập nhật mô tả");
+
+        if (isMounted && result.data) {
+          setUpdatedDesc(result.data);
         }
-      } finally {
+      } catch (error) {
         if (isMounted) {
-          setLoading(false);
+          const errorMessage = getErrorMessage(
+            error,
+            "Có lỗi khi tải cập nhật mô tả"
+          );
+          showError(error, errorMessage);
         }
       }
     };
@@ -115,4 +115,6 @@ export function ProductDescription({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default ProductDescription;

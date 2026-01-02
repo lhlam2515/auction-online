@@ -1,13 +1,15 @@
-import type { User, ProductDetails } from "@repo/shared-types";
+import type { ProductDetails } from "@repo/shared-types";
 import React from "react";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { ProductQA } from "@/components/features/interaction/ProductQnA";
-import { ProductDescription } from "@/components/features/product/ProductDescription";
-import { ProductImageGallery } from "@/components/features/product/ProductImageGallery";
-import { ProductMainInfo } from "@/components/features/product/ProductInfo";
-import RelatedProducts from "@/components/features/product/RelatedProducts";
+import {
+  ProductImageGallery,
+  ProductInfo,
+  ProductDescription,
+  ProductRelatedList,
+} from "@/components/features/product";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
@@ -15,6 +17,7 @@ import { HistoryTable } from "@/routes/_root/products.$id/HistoryTable";
 
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Product Detail - Online Auction" },
@@ -108,7 +111,7 @@ export default function ProductDetailPage() {
               className="lg:col-span-2"
             />
 
-            <ProductMainInfo
+            <ProductInfo
               className="lg:col-span-3"
               product={product}
               isLoggedIn={isLoggedIn}
@@ -142,7 +145,7 @@ export default function ProductDetailPage() {
           </section>
 
           <section className="mb-8">
-            <RelatedProducts productId={product.id} />
+            <ProductRelatedList productId={product.id} />
           </section>
         </div>
       )}
