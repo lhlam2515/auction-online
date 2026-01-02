@@ -151,7 +151,7 @@ export class ProductService {
     await db.transaction(async (tx) => {
       await tx
         .update(products)
-        .set({ status: "SUSPENDED" })
+        .set({ status: "SUSPENDED", updatedAt: new Date() })
         .where(eq(products.id, productId));
     });
 
