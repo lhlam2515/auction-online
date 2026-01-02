@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
-import { ProductDescription } from "@/components/features/product";
+import {
+  ProductDescription,
+  UpdateDescForm,
+} from "@/components/features/product";
 import {
   Card,
   CardContent,
@@ -17,7 +20,6 @@ import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 
 import type { Route } from "./+types/route";
-import { AppendDescForm } from "./AppendDescForm";
 
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
@@ -129,7 +131,7 @@ export default function ManageAuctionPage({ params }: Route.ComponentProps) {
         />
 
         {/* Add Description Form */}
-        <AppendDescForm
+        <UpdateDescForm
           productId={productId}
           onSuccess={handleDescriptionSuccess}
         />

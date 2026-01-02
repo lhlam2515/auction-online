@@ -7,3 +7,7 @@ export { default as ProductDescription } from "./display/ProductDescription";
 export { default as ProductImageGallery } from "./display/ProductImageGallery";
 export { default as ProductRelatedList } from "./display/ProductRelatedList";
 export { default as ProductWatchlist } from "./display/ProductWatchlist";
+
+// Exporting all form components for the Product feature
+export { default as CreateProductForm } from "./forms/CreateProductForm";
+export { default as UpdateDescForm } from "./forms/UpdateDescForm";

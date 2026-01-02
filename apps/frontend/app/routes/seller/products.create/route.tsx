@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { ActiveSellerRoute } from "@/components/ActiveSellerRoute";
-import ProductForm from "@/components/features/product/ProductForm";
+import { CreateProductForm } from "@/components/features/product";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import {
@@ -140,7 +140,7 @@ export default function CreateProductPage() {
 
   return (
     <ActiveSellerRoute>
-      <ProductForm
+      <CreateProductForm
         schema={productSchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}

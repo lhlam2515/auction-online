@@ -23,12 +23,12 @@ import {
   type DescriptionUpdateSchemaType,
 } from "@/lib/validations/product.validation";
 
-interface AppendDescFormProps {
+interface UpdateDescFormProps {
   productId: string;
   onSuccess: () => void;
 }
 
-export function AppendDescForm({ productId, onSuccess }: AppendDescFormProps) {
+const UpdateDescForm = ({ productId, onSuccess }: UpdateDescFormProps) => {
   const editorRef = useRef<RichTextEditorRef>(null);
   const {
     control,
@@ -120,4 +120,6 @@ export function AppendDescForm({ productId, onSuccess }: AppendDescFormProps) {
       </div>
     </form>
   );
-}
+};
+
+export default UpdateDescForm;

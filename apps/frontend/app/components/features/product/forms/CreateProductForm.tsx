@@ -8,9 +8,9 @@ import { APP_ROUTES } from "@/constants/routes";
 import { useProductForm } from "@/hooks/useProductForm";
 import logger from "@/lib/logger";
 
-import ProductFormFields from "./ProductFormFields";
+import ProductFormFields from "./fields";
 
-interface ProductFormProps<T extends FieldValues> {
+interface CreateProductFormProps<T extends FieldValues> {
   schema: ZodType<T>;
   defaultValues: T;
   onSubmit: (data: T) => Promise<ApiResponse>;
@@ -26,7 +26,9 @@ interface ProductFormProps<T extends FieldValues> {
   onCancel: () => void;
 }
 
-const ProductForm = <T extends FieldValues>(props: ProductFormProps<T>) => {
+const CreateProductForm = <T extends FieldValues>(
+  props: CreateProductFormProps<T>
+) => {
   const {
     defaultValues,
     categories,
@@ -40,7 +42,7 @@ const ProductForm = <T extends FieldValues>(props: ProductFormProps<T>) => {
 
   const { form, handleSubmit, isSubmitting, errors } = useProductForm({
     ...props,
-    onSuccess: (data: T, result: ApiResponse, message: string) => {
+    onSuccess: (_data: T, result: ApiResponse, message: string) => {
       toast.success(message);
 
       if (
@@ -93,4 +95,4 @@ const ProductForm = <T extends FieldValues>(props: ProductFormProps<T>) => {
   );
 };
 
-export default ProductForm;
+export default CreateProductForm;

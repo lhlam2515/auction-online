@@ -18,10 +18,10 @@ import {
 } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 
-import BasicInfoFields from "./fields/BasicInfoFields";
-import ImageUploadFields from "./fields/ImageUploadFields";
-import PricingFields from "./fields/PricingFields";
-import TimeSettingsFields from "./fields/TimeSettingsFields";
+import BasicInfoFields from "./BasicInfoFields";
+import ImageUploadFields from "./ImageUploadFields";
+import PricingFields from "./PricingFields";
+import TimeSettingsFields from "./TimeSettingsFields";
 
 interface ProductFormFieldsProps<T extends FieldValues> {
   defaultValues: T;
