@@ -1,20 +1,17 @@
 import type { ProductDetails } from "@repo/shared-types";
 import { Package } from "lucide-react";
 import React from "react";
-import { Link } from "react-router";
 
 import { ProductStatusBadge } from "@/components/common/badges";
-import SuspendProductDialog from "@/components/features/admin/products/SuspendProductDialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { APP_ROUTES } from "@/constants/routes";
-import { cn, formatPrice } from "@/lib/utils";
+  ProductCell,
+  ProductTable,
+  type ProductTableAction,
+  type ProductTableColumn,
+} from "@/components/features/product/display";
+import { formatPrice } from "@/lib/utils";
+
+import SuspendProductDialog from "./SuspendProductDialog";
 
 type AdminProductTableProps = {
   products: ProductDetails[];
@@ -29,96 +26,79 @@ const AdminProductTable = ({
   onSuspendProduct,
   className,
 }: AdminProductTableProps) => {
-  if (!products || products.length === 0) {
-    const emptyMessage = loading
-      ? "Đang tải dữ liệu..."
-      : "Không có sản phẩm nào";
+  const columns: ProductTableColumn<ProductDetails>[] = [
+    {
+      key: "product",
+      header: "Sản phẩm",
+      render: (product) => (
+        <ProductCell
+          productId={product.id}
+          name={product.name}
+          imageUrl={product.mainImageUrl}
+        />
+      ),
+      className: "wrap-break-word whitespace-normal",
+    },
+    {
+      key: "category",
+      header: "Danh mục",
+      render: (product) => (
+        <span className="text-sm">{product.categoryName}</span>
+      ),
+      className: "wrap-break-word whitespace-normal",
+    },
+    {
+      key: "seller",
+      header: "Người bán",
+      render: (product) => (
+        <span className="text-sm">{product.sellerName}</span>
+      ),
+      className: "wrap-break-word whitespace-normal",
+    },
+    {
+      key: "price",
+      header: "Giá hiện tại",
+      render: (product) => (
+        <span className="text-sm font-medium">
+          {formatPrice(Number(product.currentPrice || product.startPrice))}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      render: (product) => <ProductStatusBadge status={product.status} />,
+    },
+  ];
 
-    return (
-      <div
-        className={cn(
-          "bg-muted/60 flex min-h-[200px] items-center justify-center rounded-lg border border-dashed",
-          className
-        )}
-      >
-        <div className="text-center">
-          <Package className="text-muted-foreground mx-auto h-10 w-10 opacity-50" />
-          <p className="text-muted-foreground mt-2">{emptyMessage}</p>
-        </div>
-      </div>
-    );
-  }
+  const actions: ProductTableAction<ProductDetails>[] = [
+    {
+      key: "suspend",
+      render: (product) => (
+        <SuspendProductDialog
+          product={product}
+          onSuspend={() => onSuspendProduct(product.id)}
+        />
+      ),
+      hidden: (product) => product.status !== "ACTIVE",
+    },
+  ];
+
+  const emptyMessage = loading
+    ? "Đang tải dữ liệu..."
+    : "Không có sản phẩm nào";
 
   return (
-    <div className={cn("rounded-md border", className)}>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Sản phẩm</TableHead>
-            <TableHead>Danh mục</TableHead>
-            <TableHead>Người bán</TableHead>
-            <TableHead>Giá hiện tại</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead>Hành động</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {products.map((product) => {
-            return (
-              <TableRow key={product.id}>
-                <TableCell className="wrap-break-word whitespace-normal">
-                  <div className="flex items-center gap-3">
-                    {product.mainImageUrl ? (
-                      <img
-                        src={product.mainImageUrl}
-                        alt={product.name}
-                        className="h-12 w-12 rounded object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded bg-gray-200">
-                        <Package className="h-6 w-6 text-gray-400" />
-                      </div>
-                    )}
-                    <div>
-                      <Link
-                        to={APP_ROUTES.PRODUCT(product.id)}
-                        className="font-medium wrap-break-word hover:underline"
-                      >
-                        {product.name}
-                      </Link>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="wrap-break-word whitespace-normal">
-                  <span className="text-sm">{product.categoryName}</span>
-                </TableCell>
-                <TableCell className="wrap-break-word whitespace-normal">
-                  <span className="text-sm">{product.sellerName}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm font-medium">
-                    {formatPrice(
-                      Number(product.currentPrice || product.startPrice)
-                    )}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <ProductStatusBadge status={product.status} />
-                </TableCell>
-                <TableCell>
-                  {product.status === "ACTIVE" && (
-                    <SuspendProductDialog
-                      product={product}
-                      onSuspend={() => onSuspendProduct(product.id)}
-                    />
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    <ProductTable<ProductDetails>
+      products={products}
+      columns={columns}
+      actions={actions}
+      emptyMessage={emptyMessage}
+      emptyIcon={
+        <Package className="text-muted-foreground mx-auto h-10 w-10 opacity-50" />
+      }
+      className={className}
+    />
   );
 };
 

@@ -1,4 +1,4 @@
-import type { ProductListing } from "@repo/shared-types";
+import type { ProductListing, ProductDetails } from "@repo/shared-types";
 import { Package, Gavel, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -15,34 +15,40 @@ import { cn, formatDate, formatPrice, formatTimeRemaining } from "@/lib/utils";
 
 import ProductCell from "./ProductCell";
 
-export type ProductTableColumn = {
-  key: string;
-  header: string | ReactNode;
-  render?: (product: ProductListing) => ReactNode;
-  className?: string;
-};
+// Union type for products that can be displayed in the table
+export type ProductTableData = ProductListing | ProductDetails;
 
-export type ProductTableAction = {
-  key: string;
-  label?: string;
-  icon?: ReactNode;
-  onClick?: (product: ProductListing) => void;
-  render?: (product: ProductListing) => ReactNode;
-  hidden?: (product: ProductListing) => boolean;
-};
+export type ProductTableColumn<T extends ProductTableData = ProductTableData> =
+  {
+    key: string;
+    header: string | ReactNode;
+    render?: (product: T) => ReactNode;
+    className?: string;
+    hidden?: (product: T) => boolean;
+  };
 
-type ProductTableProps = {
-  products: ProductListing[];
-  columns?: ProductTableColumn[];
-  actions?: ProductTableAction[];
+export type ProductTableAction<T extends ProductTableData = ProductTableData> =
+  {
+    key: string;
+    label?: string;
+    icon?: ReactNode;
+    onClick?: (product: T) => void;
+    render?: (product: T) => ReactNode;
+    hidden?: (product: T) => boolean;
+  };
+
+type ProductTableProps<T extends ProductTableData = ProductTableData> = {
+  products: T[];
+  columns?: ProductTableColumn<T>[];
+  actions?: ProductTableAction<T>[];
   emptyMessage?: string;
   emptyIcon?: ReactNode;
   displayMode?: "active" | "ended" | "all";
   className?: string;
-  onRowClick?: (product: ProductListing) => void;
+  onRowClick?: (product: T) => void;
 };
 
-const DEFAULT_COLUMNS: ProductTableColumn[] = [
+const DEFAULT_COLUMNS: ProductTableColumn<ProductTableData>[] = [
   {
     key: "product",
     header: "Sản phẩm",
@@ -53,7 +59,7 @@ const DEFAULT_COLUMNS: ProductTableColumn[] = [
         imageUrl={product.mainImageUrl}
       />
     ),
-    className: "whitespace-normal",
+    className: "wrap-break-word whitespace-normal",
   },
   {
     key: "price",
@@ -74,9 +80,10 @@ const DEFAULT_COLUMNS: ProductTableColumn[] = [
     render: (product) => (
       <div className="flex items-center gap-2">
         <Gavel className="text-muted-foreground h-4 w-4" />
-        {product.bidCount}
+        {"bidCount" in product ? product.bidCount : 0}
       </div>
     ),
+    hidden: (product) => !("bidCount" in product),
   },
   {
     key: "timeRemaining",
@@ -100,7 +107,7 @@ const DEFAULT_COLUMNS: ProductTableColumn[] = [
   },
 ];
 
-const ProductTable = ({
+const ProductTable = <T extends ProductTableData = ProductTableData>({
   products,
   columns,
   actions,
@@ -109,8 +116,8 @@ const ProductTable = ({
   displayMode = "all",
   className,
   onRowClick,
-}: ProductTableProps) => {
-  let finalColumns = columns || DEFAULT_COLUMNS;
+}: ProductTableProps<T>) => {
+  let finalColumns = columns || (DEFAULT_COLUMNS as ProductTableColumn<T>[]);
 
   if (displayMode === "ended") {
     finalColumns = finalColumns.map((col) => {
@@ -141,12 +148,25 @@ const ProductTable = ({
               Người thắng cuộc
             </div>
           ),
-          render: (product) => product.currentWinnerName || "Không có",
+          render: (product) => {
+            const winnerName =
+              "currentWinnerName" in product ? product.currentWinnerName : null;
+            return winnerName || "Không có";
+          },
+          hidden: (product) => !("currentWinnerName" in product),
         };
       }
 
       return col;
     });
+  }
+
+  // Filter out hidden columns based on first product
+  if (products && products.length > 0) {
+    const sampleProduct = products[0];
+    finalColumns = finalColumns.filter(
+      (col) => !col.hidden || !col.hidden(sampleProduct as T)
+    );
   }
 
   if (!products || products.length === 0) {
@@ -181,34 +201,41 @@ const ProductTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.map((product) => (
-            <TableRow
-              key={product.id}
-              onClick={onRowClick ? () => onRowClick(product) : undefined}
-              className={onRowClick ? "cursor-pointer" : undefined}
-            >
-              {finalColumns.map((column) => (
-                <TableCell key={column.key} className={column.className}>
-                  {column.render ? column.render(product) : null}
-                </TableCell>
-              ))}
-              {actions && actions.length > 0 && (
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {actions
-                      .filter(
-                        (action) => !action.hidden || !action.hidden(product)
-                      )
-                      .map((action) =>
-                        action.render ? (
-                          <div key={action.key}>{action.render(product)}</div>
-                        ) : null
-                      )}
-                  </div>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
+          {products.map((product) => {
+            // Filter columns for each row if needed
+            const visibleColumns = finalColumns.filter(
+              (col) => !col.hidden || !col.hidden(product as T)
+            );
+
+            return (
+              <TableRow
+                key={product.id}
+                onClick={onRowClick ? () => onRowClick(product) : undefined}
+                className={onRowClick ? "cursor-pointer" : undefined}
+              >
+                {visibleColumns.map((column) => (
+                  <TableCell key={column.key} className={column.className}>
+                    {column.render ? column.render(product) : null}
+                  </TableCell>
+                ))}
+                {actions && actions.length > 0 && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {actions
+                        .filter(
+                          (action) => !action.hidden || !action.hidden(product)
+                        )
+                        .map((action) =>
+                          action.render ? (
+                            <div key={action.key}>{action.render(product)}</div>
+                          ) : null
+                        )}
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
