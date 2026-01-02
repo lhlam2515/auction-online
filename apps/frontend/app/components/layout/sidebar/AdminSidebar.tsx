@@ -1,4 +1,4 @@
-import { Users, Package, Grid, ChartColumn } from "lucide-react";
+import { Users, Package, Grid, ChartColumn, FolderTree } from "lucide-react";
 
 import { ADMIN_SIDEBAR_ITEMS } from "@/constants/sidebars";
 
@@ -8,7 +8,7 @@ const iconMap = {
   "Thống kê": ChartColumn,
   "Người dùng": Users,
   "Sản phẩm": Package,
-  "Danh mục": Grid,
+  "Danh mục": FolderTree,
   "Yêu cầu nâng cấp": Grid,
 } as const;
 
