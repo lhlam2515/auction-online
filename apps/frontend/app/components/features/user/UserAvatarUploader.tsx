@@ -9,9 +9,9 @@ import { getErrorMessage, showError } from "@/lib/handlers/error";
 import logger from "@/lib/logger";
 
 /**
- * Props for the ChangeUserAvatar component
+ * Props for the UserAvatarUploader component
  */
-interface ChangeUserAvatarProps {
+interface UserAvatarUploaderProps {
   /** User data object containing profile information including avatar URL */
   userData?: User;
   /** Callback function called when avatar is successfully updated with new URL */
@@ -31,10 +31,10 @@ interface ChangeUserAvatarProps {
  * @param props - Component props
  * @returns JSX element
  */
-export default function ChangeUserAvatar({
+export default function UserAvatarUploader({
   userData,
   onAvatarUpdate,
-}: ChangeUserAvatarProps) {
+}: UserAvatarUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

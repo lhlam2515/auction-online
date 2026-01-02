@@ -3,14 +3,16 @@ import { Lock, User as UserIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { z } from "zod";
 
-import { ChangePasswordForm } from "@/components/features/auth";
-import ChangeUserAvatar from "@/components/features/user/ChangeUserAvatar";
-import UserProfileForm from "@/components/features/user/UserProfileForm";
+import {
+  ChangePasswordForm,
+  UserAvatarUploader,
+  UserProfileForm,
+} from "@/components/features/user";
 import {
   Card,
+  CardHeader,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
@@ -120,7 +122,7 @@ export default function UserProfilePage() {
             onSubmit={handleProfileSubmit}
             isLoading={isLoadingProfile}
           />
-          <ChangeUserAvatar
+          <UserAvatarUploader
             userData={userData}
             onAvatarUpdate={(newAvatarUrl: string) =>
               setUserData((prev: User | undefined) =>
