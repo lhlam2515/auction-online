@@ -31,7 +31,6 @@ type CategoryNodeProps = {
   level: number;
   onUpdate: (categoryId: string, data: { name: string }) => Promise<void>;
   onDelete: (categoryId: string) => Promise<void>;
-  allCategories: CategoryTree[];
 };
 
 const CategoryNode = ({
@@ -39,7 +38,6 @@ const CategoryNode = ({
   level,
   onUpdate,
   onDelete,
-  allCategories,
 }: CategoryNodeProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -120,7 +118,6 @@ const CategoryNode = ({
               level={level + 1}
               onUpdate={onUpdate}
               onDelete={onDelete}
-              allCategories={allCategories}
             />
           ))}
         </div>
@@ -157,7 +154,6 @@ const CategoryTreeView = ({
           level={0}
           onUpdate={onUpdate}
           onDelete={onDelete}
-          allCategories={categories}
         />
       ))}
     </div>
