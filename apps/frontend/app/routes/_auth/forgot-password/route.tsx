@@ -1,6 +1,9 @@
 import React from "react";
 
-import { ForgotPasswordForm, VerifyOTPForm } from "@/components/features/auth";
+import {
+  ForgotPasswordForm,
+  VerifyOTPForm,
+} from "@/components/features/auth/forms";
 import { api } from "@/lib/api-layer";
 import {
   forgotPasswordSchema,

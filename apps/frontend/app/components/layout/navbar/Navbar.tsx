@@ -1,6 +1,6 @@
 import type { CategoryTree } from "@repo/shared-types";
 import { Heart, ShoppingCart } from "lucide-react";
-import React from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,11 @@ import SearchBar from "./SearchBar";
 import UserDropdownMenu from "./UserDropdownMenu";
 
 const Navbar = () => {
-  const [categories, setCategories] = React.useState<CategoryTree[]>([]);
+  const [categories, setCategories] = useState<CategoryTree[]>([]);
   const { user, isLoading, logout } = useAuth();
 
   // Fetch categories on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await api.categories.getAll();

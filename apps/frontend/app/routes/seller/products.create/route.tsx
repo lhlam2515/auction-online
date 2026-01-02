@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { ActiveSellerRoute } from "@/components/ActiveSellerRoute";
-import { CreateProductForm } from "@/components/features/product";
+import { CreateProductForm } from "@/components/features/product/forms";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import {

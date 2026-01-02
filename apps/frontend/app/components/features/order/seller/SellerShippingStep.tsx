@@ -13,8 +13,7 @@ import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 import { submitOrderShippingSchema } from "@/lib/validations/order.validation";
 
-import DeliveryInfoForm from "../shared/DeliveryInfoForm";
-import ShippingInfo from "../shared/shipping-info";
+import { ShippingInfo, DeliveryInfoForm } from "../shared";
 
 interface SellerShippingStepProps {
   order: OrderWithDetails;

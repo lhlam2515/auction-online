@@ -23,11 +23,7 @@ interface OrderChatPopupProps {
   onClose: () => void;
 }
 
-export function OrderChatPopup({
-  order,
-  isOpen,
-  onClose,
-}: OrderChatPopupProps) {
+const OrderChatPopup = ({ order, isOpen, onClose }: OrderChatPopupProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -303,4 +299,6 @@ export function OrderChatPopup({
       </CardFooter>
     </Card>
   );
-}
+};
+
+export default OrderChatPopup;

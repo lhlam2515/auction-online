@@ -2,7 +2,10 @@ import type { OrderWithDetails } from "@repo/shared-types";
 import { Eye } from "lucide-react";
 import { Link } from "react-router";
 
-import { OrderTable, type OrderTableAction } from "@/components/features/order";
+import {
+  type OrderTableAction,
+  OrderTable,
+} from "@/components/features/order/shared";
 import { Button } from "@/components/ui/button";
 import { SELLER_ROUTES } from "@/constants/routes";
 

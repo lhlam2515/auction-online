@@ -1,5 +1,5 @@
 import type { SellerStats, User } from "@repo/shared-types";
-import { LayoutDashboard, BarChart3 } from "lucide-react"; // Icons mới
+import { LayoutDashboard, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,7 +7,7 @@ import {
   SellerProfileHeader,
   SellerStatsCards,
 } from "@/components/features/seller";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Dùng cho placeholder
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
 

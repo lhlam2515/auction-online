@@ -8,10 +8,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
-import {
-  ProductSortControl,
-  ProductWatchlist,
-} from "@/components/features/product";
+import { ProductWatchlist } from "@/components/features/product/display";
+import { ProductSortControl } from "@/components/features/product/filters";
 import {
   Card,
   CardHeader,

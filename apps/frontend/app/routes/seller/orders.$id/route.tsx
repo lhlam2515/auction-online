@@ -5,14 +5,16 @@ import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import {
-  OrderStepper,
-  OrderSummaryCard,
-  OrderRatingStep,
-  OrderCancelledCard,
   SellerPaymentStep,
   SellerShippingStep,
+} from "@/components/features/order/seller";
+import {
   type Step,
-} from "@/components/features/order";
+  OrderStepper,
+  OrderSummaryCard,
+  OrderCancelledCard,
+  OrderRatingStep,
+} from "@/components/features/order/shared";
 import {
   Card,
   CardContent,

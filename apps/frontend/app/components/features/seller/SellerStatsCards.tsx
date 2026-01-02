@@ -1,7 +1,7 @@
 import type { SellerStats } from "@repo/shared-types";
 import { Package, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
 
-import StatsCard from "@/components/common/cards/StatsCard";
+import { StatsCard } from "@/components/common/cards";
 import { cn, formatPrice } from "@/lib/utils";
 
 interface SellerStatsCardsProps {

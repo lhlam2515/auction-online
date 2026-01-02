@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
-import {
-  ProductDescription,
-  UpdateDescForm,
-} from "@/components/features/product";
+import { ProductDescription } from "@/components/features/product/display";
+import { UpdateDescForm } from "@/components/features/product/forms";
 import {
   Card,
   CardContent,

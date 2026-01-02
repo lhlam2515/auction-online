@@ -14,8 +14,7 @@ import {
 import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 
-import PaymentInfoDisplay from "../shared/PaymentInfoDisplay";
-import ShippingInfo from "../shared/shipping-info";
+import { PaymentInfoDisplay, ShippingInfo } from "../shared";
 
 interface SellerPaymentStepProps {
   order: OrderWithDetails;

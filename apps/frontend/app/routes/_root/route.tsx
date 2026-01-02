@@ -2,7 +2,7 @@ import type { TopListingResponse } from "@repo/shared-types";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
-import { ProductGallery } from "@/components/features/product";
+import { ProductGallery } from "@/components/features/product/display";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";

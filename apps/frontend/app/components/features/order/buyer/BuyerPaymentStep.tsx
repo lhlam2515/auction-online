@@ -14,8 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api-layer";
 
-import PaymentMethodOption from "../shared/PaymentMethodOption";
-import ShippingInfo from "../shared/shipping-info";
+import { PaymentMethodOption, ShippingInfo } from "../shared";
 
 interface BuyerPaymentStepProps {
   order: OrderWithDetails;

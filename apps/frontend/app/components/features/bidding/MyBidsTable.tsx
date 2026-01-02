@@ -3,9 +3,9 @@ import { Eye } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import { PaginationBar } from "@/components/common";
 import { OrderStatusBadge } from "@/components/common/badges";
-import PaginationBar from "@/components/common/PaginationBar";
-import { ProductCell } from "@/components/features/product";
+import { ProductCell } from "@/components/features/product/display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

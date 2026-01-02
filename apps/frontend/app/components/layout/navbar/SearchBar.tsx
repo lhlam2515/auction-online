@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import React from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import { ProductSearchFilter } from "@/components/features/product";
+import { ProductSearchFilter } from "@/components/features/product/filters";
 import {
   InputGroup,
   InputGroupAddon,

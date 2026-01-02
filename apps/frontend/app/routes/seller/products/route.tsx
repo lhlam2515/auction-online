@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
 import { PaginationBar } from "@/components/common";
-import { SellerProductTable } from "@/components/features/seller";
+import { SellerProductTable } from "@/components/features/seller/tables";
 import {
   Card,
   CardContent,

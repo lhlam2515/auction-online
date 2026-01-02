@@ -4,13 +4,13 @@ import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { BidHistoryTable } from "@/components/features/bidding";
-import { ProductQA } from "@/components/features/interaction/ProductQnA";
+import ProductQA from "@/components/features/interaction/ProductQnA";
 import {
   ProductImageGallery,
   ProductInfo,
   ProductDescription,
   ProductRelatedList,
-} from "@/components/features/product";
+} from "@/components/features/product/display";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";

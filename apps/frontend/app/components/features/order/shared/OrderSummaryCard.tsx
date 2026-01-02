@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatPrice } from "@/lib/utils";
 
-import { OrderChatPopup } from "./OrderChatPopup";
+import OrderChatPopup from "./OrderChatPopup";
+
 interface OrderSummaryCardProps {
   order: OrderWithDetails;
   isSeller?: boolean;

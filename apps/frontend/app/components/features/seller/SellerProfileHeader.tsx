@@ -2,11 +2,12 @@ import { Clock } from "lucide-react";
 
 import { ProfileHeader } from "@/components/common";
 import { RoleBadge } from "@/components/common/badges";
-import { CreateProductButton } from "@/components/features/seller/CreateProductButton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useSellerStatus } from "@/hooks/useSellerStatus";
 import { cn, formatDate } from "@/lib/utils";
+
+import CreateProductButton from "./CreateProductButton";
 
 interface SellerProfileHeaderProps {
   user: {

@@ -16,11 +16,11 @@ interface CreateProductButtonProps {
  * - Disabled if user is not authenticated, not a seller, or seller account is expired
  * - Navigates to create product page only if seller is active
  */
-export function CreateProductButton({
+const CreateProductButton = ({
   variant = "default",
   size = "default",
   className,
-}: CreateProductButtonProps) {
+}: CreateProductButtonProps) => {
   const sellerStatus = useSellerStatus();
   const navigate = useNavigate();
 
@@ -45,4 +45,6 @@ export function CreateProductButton({
       Tạo Sản Phẩm
     </Button>
   );
-}
+};
+
+export default CreateProductButton;

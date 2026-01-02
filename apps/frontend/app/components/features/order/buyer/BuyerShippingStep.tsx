@@ -14,7 +14,7 @@ import {
 import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 
-import ShippingInfo from "../shared/shipping-info";
+import { ShippingInfo } from "../shared";
 
 interface BuyerShippingStepProps {
   order: OrderWithDetails;

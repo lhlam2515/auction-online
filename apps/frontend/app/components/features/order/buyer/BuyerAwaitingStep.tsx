@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 
-import OrderTimelineItem from "../shared/OrderTimelineItem";
-import ShippingInfo from "../shared/shipping-info";
+import { OrderTimelineItem, ShippingInfo } from "../shared";
 
 interface BuyerAwaitingStepProps {
   order: OrderWithDetails;

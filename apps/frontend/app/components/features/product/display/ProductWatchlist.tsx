@@ -2,9 +2,10 @@ import type { ProductListing } from "@repo/shared-types";
 import { useMemo, useState } from "react";
 
 import { PaginationBar } from "@/components/common";
-import ProductCard from "@/components/features/product/display/ProductCard";
 import { CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+
+import ProductCard from "./ProductCard";
 
 interface ProductWatchlistProps {
   watchlist: ProductListing[];

@@ -10,7 +10,7 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 
-import { BuyNowDialog, AutoBidDialog } from "@/components/features/bidding";
+import { AutoBidDialog, BuyNowDialog } from "@/components/features/bidding";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";

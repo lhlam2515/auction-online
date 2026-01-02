@@ -8,13 +8,13 @@ import React from "react";
 import { useSearchParams } from "react-router";
 
 import { PaginationBar } from "@/components/common";
+import { ProductGrid } from "@/components/features/product/display";
 import {
   ProductCategoryFilter,
   ProductCategoryFilterSkeleton,
-  ProductGrid,
   ProductPriceFilter,
   ProductSortControl,
-} from "@/components/features/product";
+} from "@/components/features/product/filters";
 import { DELAYS } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 import { debounce } from "@/lib/utils";

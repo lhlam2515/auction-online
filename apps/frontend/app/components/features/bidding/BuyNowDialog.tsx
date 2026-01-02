@@ -4,7 +4,7 @@ import React from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
-import AlertSection from "@/components/common/feedback/AlertSection";
+import { AlertSection } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

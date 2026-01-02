@@ -1,8 +1,6 @@
-"use client";
-
 import type { ProductQuestionWithUsers } from "@repo/shared-types";
 import { Loader2, MessageCircle, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -19,16 +17,15 @@ interface ProductQAProps {
   isSeller: boolean;
   isEnded: boolean;
   className?: string;
-  [key: string]: any;
 }
 
-export function ProductQA({
+const ProductQA = ({
   productId,
   isLoggedIn,
   isSeller,
   isEnded,
   className,
-}: ProductQAProps) {
+}: ProductQAProps) => {
   const [questions, setQuestions] = useState<ProductQuestionWithUsers[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -40,30 +37,33 @@ export function ProductQA({
     Record<string, boolean>
   >({});
 
-  const fetchQuestions = async (isMounted: boolean) => {
-    if (!productId) return;
-    try {
-      setLoading(true);
-      const response = await api.questions.getPublic(productId);
+  const fetchQuestions = useCallback(
+    async (isMounted: boolean) => {
+      if (!productId) return;
+      try {
+        setLoading(true);
+        const response = await api.questions.getPublic(productId);
 
-      if (isMounted) {
-        if (response.success && response.data) {
-          setQuestions(response.data);
-        } else {
-          toast.error("Không thể tải câu hỏi");
+        if (isMounted) {
+          if (response.success && response.data) {
+            setQuestions(response.data);
+          } else {
+            toast.error("Không thể tải câu hỏi");
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          toast.error("Có lỗi khi tải câu hỏi");
+          logger.error("Failed to fetch questions:", err);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
-    } catch (err) {
-      if (isMounted) {
-        toast.error("Có lỗi khi tải câu hỏi");
-        logger.error("Failed to fetch questions:", err);
-      }
-    } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
-    }
-  };
+    },
+    [productId]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -72,7 +72,7 @@ export function ProductQA({
     return () => {
       isMounted = false;
     };
-  }, [productId]);
+  }, [fetchQuestions, productId]);
 
   const handleQuestionSubmit = async () => {
     if (!questionInput.trim()) return;
@@ -280,4 +280,6 @@ export function ProductQA({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default ProductQA;

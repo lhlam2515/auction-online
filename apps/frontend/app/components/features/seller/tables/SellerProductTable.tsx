@@ -5,7 +5,7 @@ import { Link } from "react-router";
 import {
   ProductTable,
   type ProductTableAction,
-} from "@/components/features/product";
+} from "@/components/features/product/display";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES, SELLER_ROUTES } from "@/constants/routes";
 
