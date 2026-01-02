@@ -148,14 +148,13 @@ export class ProductService {
       throw new BadRequestError("Chỉ có thể gỡ sản phẩm đang đấu giá");
     }
 
-    await db.transaction(async (tx) => {
-      await tx
-        .update(products)
-        .set({ status: "SUSPENDED", updatedAt: new Date() })
-        .where(eq(products.id, productId));
-    });
+    const [result] = await db
+      .update(products)
+      .set({ status: "SUSPENDED", updatedAt: new Date() })
+      .where(eq(products.id, productId))
+      .returning();
 
-    return this.getById(productId);
+    return result;
   }
 
   async searchProducts(
