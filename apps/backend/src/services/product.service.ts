@@ -216,9 +216,16 @@ export class ProductService {
 
   async getProductDetailsById(productId: string): Promise<ProductDetails> {
     const [product_info] = await db
-      .select({ products, categories, users, orders })
+      .select({ products, categories, users, orders, productImages })
       .from(products)
       .where(eq(products.id, productId))
+      .leftJoin(
+        productImages,
+        and(
+          eq(productImages.productId, products.id),
+          eq(productImages.isMain, true)
+        )
+      )
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .leftJoin(users, eq(products.sellerId, users.id))
       .leftJoin(orders, eq(products.id, orders.productId));
@@ -229,6 +236,7 @@ export class ProductService {
 
     return {
       ...product_info.products,
+      mainImageUrl: product_info.productImages?.imageUrl ?? "",
       categoryName: product_info.categories?.name ?? "",
       sellerName: product_info.users?.fullName ?? "",
       sellerAvatarUrl: product_info.users?.avatarUrl ?? "",
