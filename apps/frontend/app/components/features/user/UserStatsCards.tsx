@@ -1,47 +1,8 @@
 import type { MyAutoBid, OrderWithDetails } from "@repo/shared-types";
 import { ShoppingCart, DollarSign } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import StatsCard from "@/components/common/cards/StatsCard";
 import { cn, formatPrice } from "@/lib/utils";
-
-interface StatsCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  iconColor: string;
-  bgColor: string;
-  description?: string; // Optional description like "+20% from last month"
-}
-
-const StatsCard = ({
-  title,
-  value,
-  icon,
-  iconColor,
-  bgColor,
-  description,
-}: StatsCardProps) => {
-  return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-muted-foreground text-sm font-medium">
-          {title}
-        </CardTitle>
-        <div
-          className={cn("bg-opacity-10 rounded-full p-2.5", bgColor, iconColor)}
-        >
-          {icon}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-card-foreground text-2xl font-bold">{value}</div>
-        {description && (
-          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
 
 interface UserStatsCardsProps {
   stats: OrderWithDetails[];
@@ -57,7 +18,7 @@ const UserStatsCards = ({
   const orders = stats?.filter((item) => item.status === "COMPLETED");
   const totalAutoBis = autoBids.length;
   return (
-    <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-3", className)}>
+    <div className={cn("grid gap-4 lg:grid-cols-2 xl:grid-cols-3", className)}>
       <StatsCard
         title="Tổng thanh toán"
         value={formatPrice(

@@ -3,8 +3,8 @@ import { LayoutDashboard, BarChart3 } from "lucide-react"; // Icons mới
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { SellerStatsCards } from "@/components/features/seller";
 import SellerProfileSection from "@/components/features/seller/SellerProfileSection";
-import SellerStatsCards from "@/components/features/seller/SellerStatsCards";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Dùng cho placeholder
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
