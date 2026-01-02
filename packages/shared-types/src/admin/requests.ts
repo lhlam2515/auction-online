@@ -53,9 +53,8 @@ export interface ProcessUpgradeRequest {
  */
 export interface AdminGetProductsParams extends PaginationParams {
   status?: ProductStatus;
-  search?: string;
-  category?: string;
-  flagged?: boolean;
+  q?: string;
+  categoryId?: string;
 }
 
 /**

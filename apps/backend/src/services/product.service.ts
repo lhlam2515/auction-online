@@ -10,6 +10,7 @@ import type {
   GetSellerProductsParams,
   ProductDetails,
   ProductSortOption,
+  AdminGetProductsParams,
 } from "@repo/shared-types";
 import {
   eq,
@@ -48,18 +49,98 @@ import { toPaginated } from "@/utils/pagination";
 import { maskName } from "@/utils/ultils";
 
 export class ProductService {
-  // async search(params: ProductSearchParams): Promise<PaginatedResponse<any>> {
-  //   // TODO: build query dynamically based on filters and paginate
-  //   return {
-  //     items: [],
-  //     pagination: {
-  //       page: params.page || 1,
-  //       limit: params.limit || 10,
-  //       total: 0,
-  //       totalPages: 0,
-  //     },
-  //   };
-  // }
+  async getProductsAdmin(
+    params: AdminGetProductsParams
+  ): Promise<PaginatedResponse<ProductDetails>> {
+    const { page = 1, limit = 20, status, q, categoryId } = params;
+    const offset = (page - 1) * limit;
+
+    // Build base query conditions
+    const conditions = [];
+
+    if (status) {
+      conditions.push(eq(products.status, status));
+    }
+
+    if (q?.trim()) {
+      const searchTerm = q.trim();
+      conditions.push(
+        sql`to_tsvector('simple', ${products.name} || ' ' || COALESCE(${products.description}, '')) @@ websearch_to_tsquery('simple', ${searchTerm})`
+      );
+    }
+
+    if (categoryId) {
+      conditions.push(
+        or(
+          eq(products.categoryId, categoryId),
+          eq(categories.parentId, categoryId)
+        )
+      );
+    }
+
+    // Build the base query
+    const baseQuery = db
+      .select({
+        product: products,
+        category: categories,
+        seller: users,
+        order: orders,
+        productImage: productImages,
+      })
+      .from(products)
+      .leftJoin(
+        productImages,
+        and(
+          eq(productImages.productId, products.id),
+          eq(productImages.isMain, true)
+        )
+      )
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .leftJoin(users, eq(products.sellerId, users.id))
+      .leftJoin(orders, eq(products.id, orders.productId))
+      .$dynamic();
+
+    // Apply WHERE conditions
+    const queryWithWhere =
+      conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
+
+    // Apply sorting
+    const finalQuery = queryWithWhere
+      .orderBy(asc(products.name))
+      .limit(limit)
+      .offset(offset);
+
+    // Build count query with same conditions
+    const baseCountQuery = db
+      .select({ count: sql`count(*)` })
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .$dynamic();
+
+    const countQuery =
+      conditions.length > 0
+        ? baseCountQuery.where(and(...conditions))
+        : baseCountQuery;
+
+    // Execute queries
+    const [results, countResult] = await Promise.all([finalQuery, countQuery]);
+
+    const total = Number(countResult[0]?.count) || 0;
+
+    const productsList: ProductDetails[] = results.map((r) => {
+      return {
+        ...r.product,
+        mainImageUrl: r.productImage?.imageUrl ?? "",
+        categoryName: r.category?.name ?? "",
+        sellerName: r.seller?.fullName ?? "",
+        sellerAvatarUrl: r.seller?.avatarUrl ?? "",
+        sellerRatingScore: r.seller?.ratingScore ?? 0,
+        sellerRatingCount: r.seller?.ratingCount ?? 0,
+        orderId: r.order?.id ?? null,
+      };
+    });
+    return toPaginated(productsList, page, limit, total);
+  }
 
   async searchProducts(
     params: SearchProductsParams
