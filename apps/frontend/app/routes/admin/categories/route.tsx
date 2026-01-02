@@ -1,6 +1,6 @@
 import { FolderTree } from "lucide-react";
 
-import CategoryTreeManager from "@/components/features/admin/CategoryTreeManager";
+import { CategoryTreeManager } from "@/components/features/admin";
 import {
   Card,
   CardContent,

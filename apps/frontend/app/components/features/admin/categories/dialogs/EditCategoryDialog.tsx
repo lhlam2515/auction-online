@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { CategoryTree } from "@repo/shared-types";
 import { Edit } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -28,18 +29,17 @@ import {
 } from "@/lib/validations/category.validation";
 
 type EditCategoryDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  trigger: ReactNode;
   category: CategoryTree;
   onUpdate: (categoryId: string, data: { name: string }) => Promise<void>;
 };
 
 const EditCategoryDialog = ({
-  open,
-  onOpenChange,
+  trigger,
   category,
   onUpdate,
 }: EditCategoryDialogProps) => {
+  const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<UpdateCategoryFormData>({
@@ -61,7 +61,7 @@ const EditCategoryDialog = ({
     setIsSubmitting(true);
     try {
       await onUpdate(category.id, { name: data.name });
-      onOpenChange(false);
+      setOpen(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -69,13 +69,14 @@ const EditCategoryDialog = ({
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
-      form.reset({ name: category.name }); // Reset to original name
+      form.reset({ name: category.name });
     }
-    onOpenChange(newOpen);
+    setOpen(newOpen);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

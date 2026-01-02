@@ -2,9 +2,9 @@ import type { CategoryTree } from "@repo/shared-types";
 import {
   ChevronDown,
   ChevronRight,
-  Edit,
   FolderTree,
   MoreHorizontal,
+  Edit,
   Trash,
 } from "lucide-react";
 import { useState } from "react";
@@ -17,8 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import DeleteCategoryDialog from "./DeleteCategoryDialog";
-import EditCategoryDialog from "./EditCategoryDialog";
+import { DeleteCategoryDialog, EditCategoryDialog } from "./dialogs";
 
 type CategoryTreeViewProps = {
   categories: CategoryTree[];
@@ -40,8 +39,6 @@ const CategoryNode = ({
   onDelete,
 }: CategoryNodeProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const hasChildren = category.children && category.children.length > 0;
   const paddingLeft = `${level * 1.5}rem`;
@@ -89,21 +86,35 @@ const CategoryNode = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => setIsEditDialogOpen(true)}
-              className="cursor-pointer"
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Chỉnh sửa
-            </DropdownMenuItem>
+            <EditCategoryDialog
+              trigger={
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  className="cursor-pointer"
+                >
+                  <Edit className="h-4 w-4" />
+                  Chỉnh sửa
+                </DropdownMenuItem>
+              }
+              category={category}
+              onUpdate={onUpdate}
+            />
+
             {!hasChildren && (
-              <DropdownMenuItem
-                className="text-destructive cursor-pointer"
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <Trash className="text-destructive mr-2 h-4 w-4" />
-                Xóa
-              </DropdownMenuItem>
+              <DeleteCategoryDialog
+                trigger={
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="cursor-pointer"
+                    variant="destructive"
+                  >
+                    <Trash className="h-4 w-4" />
+                    Xóa
+                  </DropdownMenuItem>
+                }
+                category={category}
+                onDelete={onDelete}
+              />
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -122,20 +133,6 @@ const CategoryNode = ({
           ))}
         </div>
       )}
-
-      <EditCategoryDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        category={category}
-        onUpdate={onUpdate}
-      />
-
-      <DeleteCategoryDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        category={category}
-        onDelete={onDelete}
-      />
     </div>
   );
 };

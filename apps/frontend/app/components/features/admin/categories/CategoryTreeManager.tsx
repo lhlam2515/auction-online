@@ -9,8 +9,8 @@ import { api } from "@/lib/api-layer";
 import { getErrorDetails } from "@/lib/handlers/error";
 import logger from "@/lib/logger";
 
-import AddCategoryDialog from "./AddCategoryDialog";
 import CategoryTreeView from "./CategoryTreeView";
+import { AddCategoryDialog } from "./dialogs";
 
 type CategoryTreeManagerProps = {
   className?: string;
@@ -23,7 +23,6 @@ type CategoryTreeManagerProps = {
 const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const fetchCategories = async () => {
     try {
@@ -53,8 +52,7 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
       const res = await api.admin.categories.create(data);
       if (res?.success) {
         toast.success("Thêm danh mục thành công");
-        await fetchCategories(); // Reload data
-        setIsAddDialogOpen(false);
+        await fetchCategories();
       } else {
         toast.error("Không thể thêm danh mục", {
           description: res.error.message,
@@ -133,13 +131,16 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
             Tổng cộng {categories.length} danh mục gốc
           </p>
         </div>
-        <Button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="cursor-pointer gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Thêm danh mục
-        </Button>
+        <AddCategoryDialog
+          trigger={
+            <Button className="cursor-pointer">
+              <Plus className="h-4 w-4" />
+              Thêm danh mục
+            </Button>
+          }
+          onAdd={handleAddCategory}
+          categories={categories}
+        />
       </div>
 
       {categories.length === 0 ? (
@@ -154,13 +155,6 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
           onDelete={handleDeleteCategory}
         />
       )}
-
-      <AddCategoryDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onAdd={handleAddCategory}
-        categories={categories}
-      />
     </div>
   );
 };

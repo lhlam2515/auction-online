@@ -1,7 +1,8 @@
 import type { CategoryTree } from "@repo/shared-types";
 import { AlertTriangle, Trash } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
+import { AlertSection } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,28 +10,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 type DeleteCategoryDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  trigger: ReactNode;
   category: CategoryTree;
   onDelete: (categoryId: string) => Promise<void>;
 };
 
 const DeleteCategoryDialog = ({
-  open,
-  onOpenChange,
+  trigger,
   category,
   onDelete,
 }: DeleteCategoryDialogProps) => {
+  const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
       await onDelete(category.id);
-      onOpenChange(false);
+      setOpen(false);
     } finally {
       setIsDeleting(false);
     }
@@ -39,7 +40,8 @@ const DeleteCategoryDialog = ({
   const hasChildren = category.children && category.children.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-destructive flex items-center gap-2">
@@ -53,34 +55,21 @@ const DeleteCategoryDialog = ({
 
         <div className="space-y-3">
           {hasChildren && (
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" />
-                <div className="text-sm text-yellow-800">
-                  <p className="font-medium">Cảnh báo!</p>
-                  <p>
-                    Không thể xóa danh mục cha do danh mục này đang có{" "}
-                    {category.children!.length} danh mục con.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <AlertSection
+              variant="warning"
+              icon={AlertTriangle}
+              title="Cảnh báo!"
+              description={`Không thể xóa danh mục cha do danh mục này đang có ${category.children!.length} danh mục con.`}
+            />
           )}
 
           {!hasChildren && (
-            <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
-                <div className="text-sm text-orange-800">
-                  <p className="font-medium">Lưu ý!</p>
-                  <p>
-                    Không thể xóa danh mục nếu nó đã có sản phẩm.
-                    <br />
-                    Hệ thống sẽ ngăn không cho bạn xóa trong trường hợp này.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <AlertSection
+              variant="warning"
+              icon={AlertTriangle}
+              title="Lưu ý!"
+              description="Không thể xóa danh mục nếu nó đã có sản phẩm. Hệ thống sẽ ngăn không cho bạn xóa trong trường hợp này."
+            />
           )}
 
           <p className="text-sm">
@@ -93,7 +82,7 @@ const DeleteCategoryDialog = ({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => setOpen(false)}
             disabled={isDeleting}
             className="cursor-pointer"
           >
