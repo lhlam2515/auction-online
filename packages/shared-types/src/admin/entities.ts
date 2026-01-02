@@ -12,14 +12,9 @@ import type {
  */
 export interface AdminStats {
   totalUsers: number;
-  totalProducts: number;
-  totalOrders: number;
-  totalRevenue: string; // Decimal as string
-  pendingProducts: number;
-  pendingUpgrades: number;
-  activeAuctions: number;
-  bannedUsers: number;
-  recentActivity: AdminActivity[];
+  totalActiveAuctions: number;
+  totalPendingUpgrades: number;
+  totalTransactionValue: number; // Total value of completed transactions (GMV)
 }
 
 /**

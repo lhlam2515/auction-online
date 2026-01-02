@@ -19,14 +19,14 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { categoryService, productService } from "@/services";
+import { categoryService, productService, adminService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getDashboardStats = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get dashboard statistics
-    throw new NotImplementedError("Get dashboard stats not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const stats = await adminService.getDashboardStats();
+    return ResponseHandler.sendSuccess<AdminStats>(res, stats);
   }
 );
 
