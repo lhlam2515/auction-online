@@ -1,6 +1,10 @@
 // Shared components (used by both buyer and seller)
-export type { Step } from "./shared/OrderStepper";
-export { default as OrderStepper } from "./shared/OrderStepper";
+export { default as OrderStepper, type Step } from "./shared/OrderStepper";
+export {
+  default as OrderTable,
+  type OrderTableColumn,
+  type OrderTableAction,
+} from "./shared/OrderTable";
 export { default as OrderSummaryCard } from "./shared/OrderSummaryCard";
 export { default as OrderCancelledCard } from "./shared/OrderCancelledCard";
 export { default as OrderRatingStep } from "./shared/OrderRatingStep";

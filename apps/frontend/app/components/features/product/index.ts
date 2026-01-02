@@ -2,6 +2,11 @@
 export { default as ProductCard } from "./display/ProductCard";
 export { default as ProductCell } from "./display/ProductCell";
 export { default as ProductGrid } from "./display/ProductGrid";
+export {
+  default as ProductTable,
+  type ProductTableColumn,
+  type ProductTableAction,
+} from "./display/ProductTable";
 export { default as ProductGallery } from "./display/ProductGallery";
 export { default as ProductInfo } from "./display/ProductInfo";
 export { default as ProductDescription } from "./display/ProductDescription";
