@@ -4,13 +4,16 @@ import React from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import AlertSection from "@/components/common/feedback/AlertSection";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { ACCOUNT_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
@@ -19,18 +22,13 @@ import logger from "@/lib/logger";
 import { formatPrice } from "@/lib/utils";
 
 interface BuyNowDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   product: ProductDetails;
 }
 
-export function BuyNowDialog({
-  open,
-  onOpenChange,
-  product,
-}: BuyNowDialogProps) {
+const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isOpen, setIsOpen] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
 
   const handleBuyNow = async () => {
@@ -60,9 +58,7 @@ export function BuyNowDialog({
 
       if (response.success && response.data) {
         toast.success("Đơn hàng đã được tạo thành công!");
-        onOpenChange(false);
 
-        // Chuyển hướng sau 2 giây
         setTimeout(() => {
           navigate(ACCOUNT_ROUTES.ORDER(response.data.id));
         }, 2000);
@@ -78,7 +74,17 @@ export function BuyNowDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="lg"
+          variant="outline"
+          className="border-accent text-accent hover:bg-accent flex h-14 flex-1 cursor-pointer gap-2 bg-transparent text-lg font-semibold hover:text-white"
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Mua ngay
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
@@ -109,20 +115,23 @@ export function BuyNowDialog({
           </div>
 
           {/* Warning */}
-          <div className="flex items-center gap-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-            <TriangleAlert className="h-5 w-5 shrink-0" />
-            <p>
-              Sau khi xác nhận mua ngay, bạn sẽ không thể hủy đơn hàng. Vui lòng
-              kiểm tra kỹ thông tin trước khi tiếp tục.
-            </p>
-          </div>
+          <AlertSection
+            variant="warning"
+            icon={TriangleAlert}
+            description={
+              <>
+                Sau khi xác nhận mua ngay, bạn sẽ không thể hủy đơn hàng. Vui
+                lòng kiểm tra kỹ thông tin trước khi tiếp tục.
+              </>
+            }
+          />
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <DialogFooter className="flex gap-3">
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setIsOpen(false)}
               disabled={isProcessing}
             >
               <X className="mr-2 h-4 w-4" />
@@ -136,9 +145,11 @@ export function BuyNowDialog({
               <ShoppingCart className="mr-2 h-4 w-4" />
               {isProcessing ? "Đang xử lý..." : "Xác nhận mua ngay"}
             </Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default BuyNowDialog;

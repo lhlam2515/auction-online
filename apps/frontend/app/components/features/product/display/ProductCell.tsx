@@ -3,20 +3,16 @@ import { Link } from "react-router";
 
 import { APP_ROUTES } from "@/constants/routes";
 
-type BidProductCellProps = {
+type ProductCellProps = {
   productId: string;
   name: string;
   imageUrl?: string | null;
 };
 
 /**
- * Reusable product cell component for bid tables
+ * Reusable product cell component for product display
  */
-export const BidProductCell = ({
-  productId,
-  name,
-  imageUrl,
-}: BidProductCellProps) => {
+const ProductCell = ({ productId, name, imageUrl }: ProductCellProps) => {
   return (
     <div className="flex items-center gap-3">
       {imageUrl ? (
@@ -41,3 +37,5 @@ export const BidProductCell = ({
     </div>
   );
 };
+
+export default ProductCell;

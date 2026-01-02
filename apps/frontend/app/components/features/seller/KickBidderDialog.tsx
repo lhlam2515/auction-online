@@ -1,4 +1,4 @@
-import type { BidWithUser } from "@repo/shared-types";
+import { UserMinus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -10,33 +10,33 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 
-interface KickDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  bidder?: BidWithUser;
+interface KickBidderProps {
+  bidderId: string;
   productId: string;
+  bidderName?: string;
   onSuccess?: () => void;
 }
 
-export function KickDialog({
-  open,
-  onOpenChange,
-  bidder,
+const KickBidderDialog = ({
+  bidderId,
   productId,
+  bidderName,
   onSuccess,
-}: KickDialogProps) {
+}: KickBidderProps) => {
+  const [open, setOpen] = useState(false);
   const [isKicking, setIsKicking] = useState(false);
   const [kickReason, setKickReason] = useState("");
   const [reasonError, setReasonError] = useState("");
 
   const handleKickBidder = async () => {
-    if (!bidder) return;
+    if (!bidderId) return;
 
     // Validate reason
     if (kickReason.trim().length < 10) {
@@ -47,14 +47,20 @@ export function KickDialog({
     setIsKicking(true);
     try {
       logger.info("Kicking bidder:", {
-        bidderId: bidder.userId,
+        bidderId,
         reason: kickReason,
       });
+
       const response = await api.bids.kickBidder(productId, {
-        bidderId: bidder.userId,
+        bidderId,
         reason: kickReason.trim(),
       });
-      toast.success("Đã kick người đặt giá thành công");
+
+      if (!response.success) {
+        throw new Error(
+          response.error.message || "Không thể kick người đặt giá"
+        );
+      }
 
       // Reset form and close dialog
       handleClose();
@@ -70,29 +76,29 @@ export function KickDialog({
   };
 
   const handleClose = () => {
+    setOpen(false);
     setKickReason("");
     setReasonError("");
-    onOpenChange(false);
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(open) => {
-        if (!open) {
-          handleClose();
-        } else {
-          onOpenChange(open);
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="sm"
+          variant="outline"
+          className="cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
+        >
+          <UserMinus className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Xác nhận kick người đặt giá</DialogTitle>
           <DialogDescription>
             Bạn có chắc chắn muốn kick{" "}
             <span className="font-semibold">
-              {bidder?.userName || "người dùng này"}
+              {bidderName || "người dùng này"}
             </span>{" "}
             khỏi phiên đấu giá? Hành động này không thể hoàn tác.
           </DialogDescription>
@@ -138,4 +144,6 @@ export function KickDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default KickBidderDialog;

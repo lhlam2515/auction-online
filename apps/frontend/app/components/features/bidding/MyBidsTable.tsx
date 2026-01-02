@@ -5,6 +5,7 @@ import { Link } from "react-router";
 
 import { OrderStatusBadge } from "@/components/common/badges";
 import PaginationBar from "@/components/common/PaginationBar";
+import { ProductCell } from "@/components/features/product";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,8 +19,6 @@ import {
 import { TabsContent } from "@/components/ui/tabs";
 import { ACCOUNT_ROUTES } from "@/constants/routes";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
-
-import { BidProductCell } from "./BidProductCell";
 
 type BidsTableVariant = "active" | "won" | "lost";
 
@@ -70,7 +69,7 @@ const ITEMS_PER_PAGE = 5;
 /**
  * Unified bids table component with support for active, won, and lost auctions
  */
-const BidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
+const MyBidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
   const config = VARIANT_CONFIG[variant];
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(bids.length / ITEMS_PER_PAGE);
@@ -141,7 +140,7 @@ const BidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
   );
 };
 
-export default BidsTable;
+export default MyBidsTable;
 
 /**
  * Active bid row component
@@ -152,7 +151,7 @@ const ActiveBidRow = ({ bid }: { bid: MyAutoBid }) => {
   return (
     <TableRow>
       <TableCell className="font-medium">
-        <BidProductCell
+        <ProductCell
           productId={bid.productId}
           name={bid.product.name}
           imageUrl={bid.product.imageUrl}
@@ -192,7 +191,7 @@ const WonBidRow = ({
   return (
     <TableRow>
       <TableCell className="font-medium">
-        <BidProductCell
+        <ProductCell
           productId={bid.productId}
           name={bid.product.name}
           imageUrl={bid.product.imageUrl}
@@ -241,7 +240,7 @@ const LostBidRow = ({ bid }: { bid: MyAutoBid }) => {
   return (
     <TableRow>
       <TableCell className="font-medium">
-        <BidProductCell
+        <ProductCell
           productId={bid.productId}
           name={bid.product.name}
           imageUrl={bid.product.imageUrl}

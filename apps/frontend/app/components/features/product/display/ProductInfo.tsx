@@ -3,15 +3,14 @@ import {
   Heart,
   Star,
   ShoppingCart,
-  Gavel,
   Clock,
   Calendar,
   Pencil,
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { toast } from "sonner";
 
+import { BuyNowDialog, AutoBidDialog } from "@/components/features/bidding";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
@@ -21,8 +20,6 @@ import useCountdown from "@/hooks/useCountdown";
 import { api } from "@/lib/api-layer";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
-import { BiddingDialog } from "@/routes/_root/products.$id/BidForm";
-import { BuyNowDialog } from "@/routes/_root/products.$id/BuyNowDialog";
 
 interface ProductInfoProps {
   product: ProductDetails;
@@ -48,8 +45,6 @@ const ProductInfo = ({
   } = useWatchlist();
 
   const [userData, setUserData] = useState<User>();
-  const [showBuyNowDialog, setShowBuyNowDialog] = useState(false);
-  const [showBiddingDialog, setShowBiddingDialog] = useState(false);
 
   // Memoize để tránh re-compute liên tục
   const isProductInWatchlist = useMemo(
@@ -113,22 +108,6 @@ const ProductInfo = ({
     e.stopPropagation();
 
     await toggleWatchlist(product.id);
-  };
-
-  const handleBuyNowClick = () => {
-    if (product.buyNowPrice) {
-      setShowBuyNowDialog(true);
-    } else {
-      toast.error("Sản phẩm này không hỗ trợ mua ngay");
-    }
-  };
-
-  const handleBidClick = () => {
-    if (isLoggedIn) {
-      setShowBiddingDialog(true);
-    } else {
-      toast.error("Vui lòng đăng nhập để đặt giá.");
-    }
   };
 
   return (
@@ -244,28 +223,14 @@ const ProductInfo = ({
         </div>
       ) : isLoggedIn && !isAuctionEnded ? (
         <div className="flex gap-3">
-          {/* Bid Buttons */}
-          <Button
-            size="lg"
-            variant="default"
-            className="flex h-14 flex-1 cursor-pointer items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
-            onClick={handleBidClick}
-          >
-            <Gavel className="h-5 w-5" />
-            Đặt giá
-          </Button>
+          {/* Bid Button with Dialog */}
+          <AutoBidDialog
+            product={product}
+            userRating={userData?.ratingScore ? userData?.ratingScore * 100 : 0}
+          />
 
-          {product.buyNowPrice && (
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-accent text-accent hover:bg-accent flex h-14 flex-1 cursor-pointer gap-2 bg-transparent text-lg font-semibold hover:text-white"
-              onClick={handleBuyNowClick}
-            >
-              <ShoppingCart className="h-5 w-5" />
-              Mua ngay
-            </Button>
-          )}
+          {/* Buy Now Button with Dialog */}
+          {product.buyNowPrice && <BuyNowDialog product={product} />}
 
           <Button
             size="lg"
@@ -286,21 +251,6 @@ const ProductInfo = ({
           </div>
         )
       )}
-
-      {/* Buy Now Dialog */}
-      <BuyNowDialog
-        open={showBuyNowDialog}
-        onOpenChange={setShowBuyNowDialog}
-        product={product}
-      />
-
-      {/* Bidding Dialog */}
-      <BiddingDialog
-        open={showBiddingDialog}
-        onOpenChange={setShowBiddingDialog}
-        product={product}
-        userRating={userData?.ratingScore ? userData?.ratingScore * 100 : 0}
-      />
     </div>
   );
 };

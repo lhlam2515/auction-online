@@ -3,6 +3,7 @@ import React from "react";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import { BidHistoryTable } from "@/components/features/bidding";
 import { ProductQA } from "@/components/features/interaction/ProductQnA";
 import {
   ProductImageGallery,
@@ -13,7 +14,6 @@ import {
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
-import { HistoryTable } from "@/routes/_root/products.$id/HistoryTable";
 
 import type { Route } from "./+types/route";
 
@@ -128,7 +128,7 @@ export default function ProductDetailPage() {
           </section>
 
           <section className="mb-8">
-            <HistoryTable
+            <BidHistoryTable
               productId={product.id}
               isSeller={isSeller}
               isEnded={isEnded}

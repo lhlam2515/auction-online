@@ -1,5 +1,6 @@
 // Exporting all display components for the Product feature
 export { default as ProductCard } from "./display/ProductCard";
+export { default as ProductCell } from "./display/ProductCell";
 export { default as ProductGrid } from "./display/ProductGrid";
 export { default as ProductGallery } from "./display/ProductGallery";
 export { default as ProductInfo } from "./display/ProductInfo";

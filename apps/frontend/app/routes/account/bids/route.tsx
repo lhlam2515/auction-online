@@ -3,7 +3,7 @@ import { History } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-import { BidsTable } from "@/components/features/bidding";
+import { MyBidsTable } from "@/components/features/bidding";
 import {
   Card,
   CardContent,
@@ -121,13 +121,13 @@ export default function MyBidsPage() {
               </TabsList>
 
               {/* Tab 1: Active Bids */}
-              <BidsTable variant="active" bids={activeBids} />
+              <MyBidsTable variant="active" bids={activeBids} />
 
               {/* Tab 2: Won Auctions */}
-              <BidsTable variant="won" bids={wonBids} orders={orders} />
+              <MyBidsTable variant="won" bids={wonBids} orders={orders} />
 
               {/* Tab 3: Lost Auctions */}
-              <BidsTable variant="lost" bids={lostBids} />
+              <MyBidsTable variant="lost" bids={lostBids} />
             </Tabs>
           )}
         </CardContent>

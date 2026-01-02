@@ -1,15 +1,9 @@
 import type { BidWithUser } from "@repo/shared-types";
-import {
-  Star,
-  ChevronDown,
-  ChevronUp,
-  Gavel,
-  UserMinus,
-  Loader2,
-} from "lucide-react";
-import { useState, useEffect } from "react";
+import { Star, ChevronDown, ChevronUp, Gavel, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
+import { KickBidderDialog } from "@/components/features/seller";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,53 +19,49 @@ import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import { formatDate, formatPrice } from "@/lib/utils";
 
-import { KickDialog } from "./KickDialog";
-
-interface HistoryTableProps {
+interface BidHistoryTableProps {
   productId: string;
   isSeller: boolean;
   isEnded: boolean;
   className?: string;
-  [key: string]: any;
 }
 
-export function HistoryTable({
+const BidHistoryTable = ({
   productId,
   isSeller,
   isEnded,
   className,
-}: HistoryTableProps) {
+}: BidHistoryTableProps) => {
   const [bids, setBids] = useState<BidWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  const [kickDialog, setKickDialog] = useState<{
-    open: boolean;
-    bidder?: BidWithUser;
-  }>({ open: false });
 
-  const fetchBidHistory = async (isMounted: boolean) => {
-    try {
-      setLoading(true);
-      const response = await api.bids.getHistory(productId);
+  const fetchBidHistory = useCallback(
+    async (isMounted: boolean) => {
+      try {
+        setLoading(true);
+        const response = await api.bids.getHistory(productId);
 
-      if (isMounted) {
-        if (response.success && response.data) {
-          setBids(response.data);
-        } else {
-          toast.error("Không thể tải lịch sử đấu giá");
+        if (isMounted) {
+          if (response.success && response.data) {
+            setBids(response.data);
+          } else {
+            toast.error("Không thể tải lịch sử đấu giá");
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          toast.error("Có lỗi khi tải lịch sử đấu giá");
+          logger.error("Error fetching bid history:", err);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
-    } catch (err) {
-      if (isMounted) {
-        toast.error("Có lỗi khi tải lịch sử đấu giá");
-        logger.error("Error fetching bid history:", err);
-      }
-    } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
-    }
-  };
+    },
+    [productId]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -80,7 +70,7 @@ export function HistoryTable({
     return () => {
       isMounted = false;
     };
-  }, [productId]);
+  }, [fetchBidHistory, productId]);
 
   const handleKickSuccess = () => {
     setTimeout(() => {
@@ -165,16 +155,11 @@ export function HistoryTable({
                       </TableCell>
                       {isSeller && !isEnded && (
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
-                            onClick={() =>
-                              setKickDialog({ open: true, bidder: bid })
-                            }
-                          >
-                            <UserMinus className="h-4 w-4" />
-                          </Button>
+                          <KickBidderDialog
+                            bidderId={bid.userId}
+                            productId={productId}
+                            onSuccess={handleKickSuccess}
+                          />
                         </TableCell>
                       )}
                     </TableRow>
@@ -204,16 +189,9 @@ export function HistoryTable({
             )}
           </>
         )}
-
-        {/* Kick Bidder Dialog */}
-        <KickDialog
-          open={kickDialog.open}
-          onOpenChange={(open) => setKickDialog({ open })}
-          bidder={kickDialog.bidder}
-          productId={productId}
-          onSuccess={handleKickSuccess}
-        />
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BidHistoryTable;
