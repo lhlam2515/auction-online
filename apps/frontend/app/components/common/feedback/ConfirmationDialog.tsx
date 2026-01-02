@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,16 +18,8 @@ import { cn } from "@/lib/utils";
 type ConfirmationVariant = "default" | "success" | "destructive" | "warning";
 
 interface ConfirmationDialogProps {
-  // Dialog state
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-
-  // Trigger button
-  triggerLabel: string;
-  triggerIcon?: LucideIcon;
-  triggerVariant?: "default" | "destructive" | "outline" | "secondary";
-  triggerClassName?: string;
-  onTriggerClick?: () => void;
+  // Trigger element
+  trigger: ReactNode;
 
   // Dialog content
   title: string;
@@ -44,7 +37,6 @@ interface ConfirmationDialogProps {
   onCancel?: () => void;
 
   // Additional props
-  disabled?: boolean;
   children?: ReactNode;
 }
 
@@ -74,13 +66,7 @@ const variantConfig: Record<
 };
 
 const ConfirmationDialog = ({
-  open,
-  onOpenChange,
-  triggerLabel,
-  triggerIcon: TriggerIcon,
-  triggerVariant,
-  triggerClassName,
-  onTriggerClick,
+  trigger,
   title,
   description,
   variant = "default",
@@ -90,58 +76,26 @@ const ConfirmationDialog = ({
   isConfirming = false,
   cancelLabel = "Hủy",
   onCancel,
-  disabled = false,
   children,
 }: ConfirmationDialogProps) => {
+  const [open, setOpen] = useState(false);
   const config = variantConfig[variant];
-
-  const handleTriggerClick = () => {
-    if (onTriggerClick) {
-      onTriggerClick();
-    }
-  };
 
   const handleConfirm = async () => {
     await onConfirm();
+    setOpen(false);
   };
 
   const handleCancel = () => {
     if (onCancel) {
       onCancel();
-    } else if (onOpenChange) {
-      onOpenChange(false);
     }
+    setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          variant={
-            triggerVariant ||
-            (variant === "destructive" ? "destructive" : "default")
-          }
-          className={cn(
-            variant === "success" &&
-              "bg-emerald-500 text-white hover:bg-emerald-700",
-            triggerClassName
-          )}
-          onClick={handleTriggerClick}
-          disabled={disabled || isConfirming}
-        >
-          {isConfirming ? (
-            <>
-              <Spinner className="h-4 w-4" />
-              {config.loadingText}
-            </>
-          ) : (
-            <>
-              {TriggerIcon && <TriggerIcon className="h-4 w-4" />}
-              {triggerLabel}
-            </>
-          )}
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

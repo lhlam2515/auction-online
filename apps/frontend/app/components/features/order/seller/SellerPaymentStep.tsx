@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,9 +24,7 @@ interface SellerPaymentStepProps {
 
 const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
   const [isConfirming, setIsConfirming] = useState(false);
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   // Check if order is overdue (more than 24 hours old)
   const orderDate = new Date(order.createdAt);
@@ -38,8 +37,6 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
     setIsConfirming(true);
 
     try {
-      setIsConfirmDialogOpen(false);
-
       const response = await api.orders.confirmPayment(order.id);
 
       if (!response.success) {
@@ -69,8 +66,6 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
     setIsCancelling(true);
 
     try {
-      setIsCancelDialogOpen(false);
-
       const response = await api.orders.cancel(order.id, {
         reason: "Người mua chậm thanh toán quá 24 giờ",
       });
@@ -156,11 +151,12 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
             {isOverdue && (
               <div className="flex justify-end gap-3 pt-4">
                 <ConfirmationDialog
-                  open={isCancelDialogOpen}
-                  onOpenChange={setIsCancelDialogOpen}
-                  triggerLabel="Hủy giao dịch"
-                  triggerIcon={XCircle}
-                  triggerVariant="destructive"
+                  trigger={
+                    <Button variant="destructive" className="cursor-pointer">
+                      <XCircle className="h-4 w-4" />
+                      Hủy giao dịch
+                    </Button>
+                  }
                   variant="destructive"
                   title="Hủy giao dịch"
                   description={
@@ -183,10 +179,12 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
         ) : (
           <div className="flex justify-end gap-3 pt-4">
             <ConfirmationDialog
-              open={isConfirmDialogOpen}
-              onOpenChange={setIsConfirmDialogOpen}
-              triggerLabel="Xác nhận đã nhận thanh toán"
-              triggerIcon={CheckCircle2}
+              trigger={
+                <Button variant="default" className="cursor-pointer">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Xác nhận đã nhận thanh toán
+                </Button>
+              }
               variant="success"
               title="Xác nhận thanh toán"
               description="Bạn có chắc chắn đã nhận được thanh toán từ người mua không? Sau khi xác nhận, bạn sẽ cần chuẩn bị hàng và bàn giao trong vòng 24-48 giờ."

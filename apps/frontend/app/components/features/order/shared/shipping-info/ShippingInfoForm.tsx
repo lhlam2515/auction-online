@@ -38,7 +38,6 @@ const ShippingInfoForm = <T extends FieldValues>({
   onSuccess,
   onCancel,
 }: ShippingInfoFormProps<T>) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<T>({
@@ -57,7 +56,6 @@ const ShippingInfoForm = <T extends FieldValues>({
     const data = form.getValues();
 
     try {
-      setIsDialogOpen(false);
       setIsSubmitting(true);
       form.clearErrors();
 
@@ -67,7 +65,6 @@ const ShippingInfoForm = <T extends FieldValues>({
         toast.error(
           result.error?.message || "Lỗi khi cập nhật thông tin giao hàng"
         );
-        setIsDialogOpen(false);
         return;
       }
 
@@ -81,13 +78,6 @@ const ShippingInfoForm = <T extends FieldValues>({
       showError(error, errorMessage);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleOpenDialog = async () => {
-    const isValid = await form.trigger();
-    if (isValid) {
-      setIsDialogOpen(true);
     }
   };
 
@@ -162,11 +152,18 @@ const ShippingInfoForm = <T extends FieldValues>({
         )}
 
         <ConfirmationDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          triggerLabel="Lưu thay đổi"
-          triggerIcon={CheckCircle2}
-          onTriggerClick={handleOpenDialog}
+          trigger={
+            <Button
+              variant="default"
+              className="cursor-pointer"
+              onClick={async () => {
+                await form.trigger();
+              }}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Lưu thay đổi
+            </Button>
+          }
           variant="success"
           title="Xác nhận cập nhật thông tin giao hàng"
           description="Bạn có chắc chắn muốn cập nhật thông tin giao hàng không? Thông tin mới sẽ được sử dụng để giao hàng cho đơn hàng này."

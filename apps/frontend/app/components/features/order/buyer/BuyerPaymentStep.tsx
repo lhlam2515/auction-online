@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -25,7 +26,6 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("BANK_TRANSFER");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
   const handleProcessPayment = async () => {
     setIsProcessing(true);
@@ -58,7 +58,6 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
   };
 
   const handleConfirmPayment = () => {
-    setIsPaymentDialogOpen(false);
     handleProcessPayment();
   };
 
@@ -116,10 +115,12 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
           <ConfirmationDialog
-            open={isPaymentDialogOpen}
-            onOpenChange={setIsPaymentDialogOpen}
-            triggerLabel="Xác nhận thanh toán"
-            triggerIcon={CreditCard}
+            trigger={
+              <Button variant="default" className="cursor-pointer">
+                <CreditCard className="h-4 w-4" />
+                Xác nhận thanh toán
+              </Button>
+            }
             variant="success"
             title="Xác nhận thanh toán"
             description="Bạn có chắc muốn xác nhận thanh toán cho đơn hàng này không? Sau khi xác nhận, bạn không thể thay đổi phương thức thanh toán."

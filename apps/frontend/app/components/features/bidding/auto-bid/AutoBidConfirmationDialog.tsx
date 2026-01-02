@@ -2,11 +2,10 @@ import type { AutoBid } from "@repo/shared-types";
 import { Gavel, AlertTriangleIcon } from "lucide-react";
 
 import { ConfirmationDialog, AlertSection } from "@/components/common/feedback";
+import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 
 interface AutoBidConfirmationDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   productName: string;
   bidAmount: number;
   buyNowPrice: number | null;
@@ -20,8 +19,6 @@ interface AutoBidConfirmationDialogProps {
 }
 
 const AutoBidConfirmationDialog = ({
-  open,
-  onOpenChange,
   productName,
   bidAmount,
   buyNowPrice,
@@ -31,23 +28,23 @@ const AutoBidConfirmationDialog = ({
   isEligible,
   isLoadingAutoBid,
   onConfirm,
-  onTriggerClick,
 }: AutoBidConfirmationDialogProps) => {
   return (
     <ConfirmationDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      triggerLabel={
-        isUpdating
-          ? "Cập Nhật Giá"
-          : isEligible
-            ? "Đặt Giá"
-            : "Không Đủ Điều Kiện"
+      trigger={
+        <Button
+          variant="default"
+          className="cursor-pointer bg-slate-900 hover:bg-slate-800"
+          disabled={(!isUpdating && !isEligible) || isLoadingAutoBid}
+        >
+          <Gavel className="h-4 w-4" />
+          {isUpdating
+            ? "Cập Nhật Giá"
+            : isEligible
+              ? "Đặt Giá"
+              : "Không Đủ Điều Kiện"}
+        </Button>
       }
-      triggerIcon={Gavel}
-      triggerClassName="cursor-pointer bg-slate-900 hover:bg-slate-800"
-      onTriggerClick={onTriggerClick}
-      disabled={(!isUpdating && !isEligible) || isLoadingAutoBid}
       title={isUpdating ? "Xác nhận cập nhật giá" : "Xác nhận đặt giá"}
       description={
         isUpdating

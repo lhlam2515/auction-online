@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { ZodType } from "zod";
 
 import { ConfirmationDialog } from "@/components/common/feedback";
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
@@ -50,7 +51,6 @@ const DeliveryInfoForm = <T extends FieldValues>({
   onSubmit,
   onSuccess,
 }: ShippingFormProps<T>) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<T>({
@@ -64,7 +64,6 @@ const DeliveryInfoForm = <T extends FieldValues>({
     const data = form.getValues();
 
     try {
-      setIsDialogOpen(false);
       setIsSubmitting(true);
       form.clearErrors();
 
@@ -74,7 +73,6 @@ const DeliveryInfoForm = <T extends FieldValues>({
         toast.error(
           result.error?.message || "Lỗi khi cập nhật thông tin giao hàng"
         );
-        setIsDialogOpen(false);
         return;
       }
 
@@ -88,13 +86,6 @@ const DeliveryInfoForm = <T extends FieldValues>({
       showError(error, errorMessage);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleOpenDialog = async () => {
-    const isValid = await form.trigger();
-    if (isValid) {
-      setIsDialogOpen(true);
     }
   };
 
@@ -190,11 +181,18 @@ const DeliveryInfoForm = <T extends FieldValues>({
 
       <div className="flex justify-end gap-3 pt-4">
         <ConfirmationDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          triggerLabel="Xác nhận bàn giao hàng"
-          triggerIcon={Truck}
-          onTriggerClick={handleOpenDialog}
+          trigger={
+            <Button
+              variant="default"
+              className="cursor-pointer"
+              onClick={async () => {
+                await form.trigger();
+              }}
+            >
+              <Truck className="h-4 w-4" />
+              Xác nhận bàn giao hàng
+            </Button>
+          }
           title="Xác nhận bàn giao hàng"
           description={
             <>

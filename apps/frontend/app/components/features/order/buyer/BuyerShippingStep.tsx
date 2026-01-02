@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,14 +24,11 @@ interface BuyerShippingStepProps {
 
 const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
   const [isConfirming, setIsConfirming] = useState(false);
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   const handleConfirmReceived = async () => {
     setIsConfirming(true);
 
     try {
-      setIsConfirmDialogOpen(false);
-
       const response = await api.orders.confirmReceived(order.id);
 
       if (!response.success) {
@@ -102,10 +100,12 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
           <ConfirmationDialog
-            open={isConfirmDialogOpen}
-            onOpenChange={setIsConfirmDialogOpen}
-            triggerLabel="Xác nhận đã nhận hàng"
-            triggerIcon={Package}
+            trigger={
+              <Button variant="default" className="cursor-pointer">
+                <Package className="h-4 w-4" />
+                Xác nhận đã nhận hàng
+              </Button>
+            }
             variant="success"
             title="Xác nhận đã nhận hàng"
             description="Bạn có chắc chắn đã nhận được hàng và hài lòng với tình trạng sản phẩm không? Sau khi xác nhận, bạn sẽ được yêu cầu đánh giá người bán."
