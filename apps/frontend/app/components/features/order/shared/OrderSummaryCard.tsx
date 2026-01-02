@@ -9,16 +9,15 @@ import { Separator } from "@/components/ui/separator";
 import { cn, formatPrice } from "@/lib/utils";
 
 import { OrderChatPopup } from "./OrderChatPopup";
-
 interface OrderSummaryCardProps {
   order: OrderWithDetails;
   isSeller?: boolean;
 }
 
-export function OrderSummaryCard({
+const OrderSummaryCard = ({
   order,
   isSeller = false,
-}: OrderSummaryCardProps) {
+}: OrderSummaryCardProps) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const finalPrice = parseFloat(order.finalPrice);
   const orderDate = new Date(order.createdAt).toLocaleDateString("vi-VN");
@@ -116,4 +115,6 @@ export function OrderSummaryCard({
       />
     </>
   );
-}
+};
+
+export default OrderSummaryCard;

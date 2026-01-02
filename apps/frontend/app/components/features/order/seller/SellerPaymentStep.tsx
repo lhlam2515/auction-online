@@ -3,7 +3,6 @@ import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import ShippingInfo from "@/components/features/order/shipping-info";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -15,19 +14,17 @@ import {
 import { api } from "@/lib/api-layer";
 import { cn, formatDate } from "@/lib/utils";
 
-import { CancelOrderDialog } from "./CancelOrderDialog";
-import { ConfirmPaymentDialog } from "./ConfirmPaymentDialog";
-import { PaymentInfo } from "./PaymentInfo";
+import { SellerCancelOrderDialog } from "./SellerCancelOrderDialog";
+import { SellerConfirmPaymentDialog } from "./SellerConfirmPaymentDialog";
+import PaymentInfoDisplay from "../shared/PaymentInfoDisplay";
+import ShippingInfo from "../shared/shipping-info";
 
-interface PaymentConfirmationStepProps {
+interface SellerPaymentStepProps {
   order: OrderWithDetails;
   onSuccess?: (updatedOrder: OrderWithDetails) => void;
 }
 
-const PaymentConfirmationStep = ({
-  order,
-  onSuccess,
-}: PaymentConfirmationStepProps) => {
+const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -138,7 +135,9 @@ const PaymentConfirmationStep = ({
         </Alert>
 
         {/* Payment Details */}
-        {isPaid && order.payment && <PaymentInfo payment={order.payment} />}
+        {isPaid && order.payment && (
+          <PaymentInfoDisplay payment={order.payment} />
+        )}
 
         {/* Shipping Address */}
         <ShippingInfo
@@ -169,7 +168,7 @@ const PaymentConfirmationStep = ({
             {/* Cancel Order Button - Only show if overdue */}
             {isOverdue && (
               <div className="flex justify-end gap-3 pt-4">
-                <CancelOrderDialog
+                <SellerCancelOrderDialog
                   isOpen={isCancelDialogOpen}
                   onOpenChange={setIsCancelDialogOpen}
                   isCancelling={isCancelling}
@@ -180,7 +179,7 @@ const PaymentConfirmationStep = ({
           </div>
         ) : (
           <div className="flex justify-end gap-3 pt-4">
-            <ConfirmPaymentDialog
+            <SellerConfirmPaymentDialog
               isOpen={isConfirmDialogOpen}
               onOpenChange={setIsConfirmDialogOpen}
               isConfirming={isConfirming}
@@ -193,4 +192,4 @@ const PaymentConfirmationStep = ({
   );
 };
 
-export default PaymentConfirmationStep;
+export default SellerPaymentStep;

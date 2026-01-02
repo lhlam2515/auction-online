@@ -2,19 +2,19 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
-interface TimelineItemProps {
+interface OrderTimelineItemProps {
   icon: React.ElementType;
   title: string;
   description: string;
   status: "completed" | "active" | "pending";
 }
 
-const TimelineItem = ({
+const OrderTimelineItem = ({
   icon: Icon,
   title,
   description,
   status,
-}: TimelineItemProps) => {
+}: OrderTimelineItemProps) => {
   const iconClasses = {
     completed: "bg-emerald-600",
     active: "bg-slate-900 animate-pulse",
@@ -61,4 +61,4 @@ const TimelineItem = ({
   );
 };
 
-export default TimelineItem;
+export default OrderTimelineItem;

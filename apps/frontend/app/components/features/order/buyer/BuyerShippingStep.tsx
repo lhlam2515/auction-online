@@ -25,14 +25,14 @@ import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 
-import ShippingInfo from "./shipping-info";
+import ShippingInfo from "../shared/shipping-info";
 
-interface ShippingStepProps {
+interface BuyerShippingStepProps {
   order: OrderWithDetails;
   onSuccess?: (updatedOrder: OrderWithDetails) => void;
 }
 
-export function ShippingStep({ order, onSuccess }: ShippingStepProps) {
+const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
@@ -167,4 +167,6 @@ export function ShippingStep({ order, onSuccess }: ShippingStepProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BuyerShippingStep;

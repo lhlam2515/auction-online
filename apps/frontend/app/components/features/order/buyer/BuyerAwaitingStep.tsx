@@ -11,16 +11,14 @@ import {
 } from "@/components/ui/card";
 import { cn, formatDate } from "@/lib/utils";
 
-import ShippingInfo from "./shipping-info";
-import TimelineItem from "./TimelineItem";
+import OrderTimelineItem from "../shared/OrderTimelineItem";
+import ShippingInfo from "../shared/shipping-info";
 
-interface AwaitingConfirmationStepProps {
+interface BuyerAwaitingStepProps {
   order: OrderWithDetails;
 }
 
-export function AwaitingConfirmationStep({
-  order,
-}: AwaitingConfirmationStepProps) {
+const BuyerAwaitingStep = ({ order }: BuyerAwaitingStepProps) => {
   const paidAt = order.payment?.paidAt
     ? new Date(order.payment.paidAt)
     : new Date();
@@ -53,14 +51,14 @@ export function AwaitingConfirmationStep({
         <div className="space-y-4">
           <h4 className="font-semibold text-slate-900">Trạng thái đơn hàng</h4>
           <div>
-            <TimelineItem
+            <OrderTimelineItem
               icon={CheckCircle2}
               title="Thanh toán thành công"
               description={formatDate(paidAt) || "Đã xác nhận"}
               status="completed"
             />
 
-            <TimelineItem
+            <OrderTimelineItem
               icon={AlertCircle}
               title={
                 order.sellerConfirmedAt
@@ -75,7 +73,7 @@ export function AwaitingConfirmationStep({
               status={order.sellerConfirmedAt ? "completed" : "active"}
             />
 
-            <TimelineItem
+            <OrderTimelineItem
               icon={Package}
               title={
                 order.sellerConfirmedAt
@@ -118,4 +116,6 @@ export function AwaitingConfirmationStep({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BuyerAwaitingStep;

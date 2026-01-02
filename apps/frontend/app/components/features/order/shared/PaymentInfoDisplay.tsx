@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { cn, formatPrice } from "@/lib/utils";
 
-export function PaymentInfo({ payment }: { payment: OrderPayment }) {
+const PaymentInfoDisplay = ({ payment }: { payment: OrderPayment }) => {
   return (
     <div className="space-y-3">
       <Label className="text-base font-semibold">Thông tin thanh toán</Label>
@@ -62,4 +62,6 @@ export function PaymentInfo({ payment }: { payment: OrderPayment }) {
       </div>
     </div>
   );
-}
+};
+
+export default PaymentInfoDisplay;

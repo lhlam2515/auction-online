@@ -25,15 +25,15 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
 
-import PaymentMethodOption from "./PaymentMethodOption";
-import ShippingInfo from "./shipping-info";
+import PaymentMethodOption from "../shared/PaymentMethodOption";
+import ShippingInfo from "../shared/shipping-info";
 
-interface PaymentStepProps {
+interface BuyerPaymentStepProps {
   order: OrderWithDetails;
   onSuccess?: (updatedOrder: OrderWithDetails) => void;
 }
 
-export function PaymentStep({ order, onSuccess }: PaymentStepProps) {
+const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("BANK_TRANSFER");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -178,4 +178,6 @@ export function PaymentStep({ order, onSuccess }: PaymentStepProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BuyerPaymentStep;

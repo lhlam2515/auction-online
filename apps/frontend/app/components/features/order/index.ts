@@ -1,15 +1,16 @@
-export { OrderStepper } from "./OrderStepper";
-export type { Step } from "./OrderStepper";
+// Shared components (used by both buyer and seller)
+export type { Step } from "./shared/OrderStepper";
+export { default as OrderStepper } from "./shared/OrderStepper";
+export { default as OrderSummaryCard } from "./shared/OrderSummaryCard";
+export { default as OrderCancelledCard } from "./shared/OrderCancelledCard";
+export { default as OrderRatingStep } from "./shared/OrderRatingStep";
+export { default as OrderTimelineItem } from "./shared/OrderTimelineItem";
 
-export { OrderSummaryCard } from "./OrderSummaryCard";
+// Buyer-specific components
+export { default as BuyerPaymentStep } from "./buyer/BuyerPaymentStep";
+export { default as BuyerAwaitingStep } from "./buyer/BuyerAwaitingStep";
+export { default as BuyerShippingStep } from "./buyer/BuyerShippingStep";
 
-export { PaymentStep } from "./PaymentStep";
-
-export { AwaitingConfirmationStep } from "./AwaitingConfirmationStep";
-
-export { ShippingStep } from "./ShippingStep";
-
-export { RatingStep } from "./RatingStep";
-
-export { default as CancelledOrder } from "./CancelledOrder";
-export { OrderChatPopup } from "./OrderChatPopup";
+// Seller-specific components
+export { default as SellerPaymentStep } from "./seller/SellerPaymentStep";
+export { default as SellerShippingStep } from "./seller/SellerShippingStep";

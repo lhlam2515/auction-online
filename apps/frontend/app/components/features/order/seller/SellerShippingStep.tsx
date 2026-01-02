@@ -1,7 +1,7 @@
 import type { OrderWithDetails, ShippingProvider } from "@repo/shared-types";
 import { Truck, AlertCircle } from "lucide-react";
 
-import ShippingInfo from "@/components/features/order/shipping-info";
+import ShippingInfo from "@/components/features/order/shared/shipping-info";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -14,17 +14,14 @@ import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 import { submitOrderShippingSchema } from "@/lib/validations/order.validation";
 
-import ShippingForm from "./ShippingForm";
+import DeliveryInfoForm from "../shared/DeliveryInfoForm";
 
-interface ShippingConfirmationStepProps {
+interface SellerShippingStepProps {
   order: OrderWithDetails;
   onSuccess?: (updatedOrder: OrderWithDetails) => void;
 }
 
-const ShippingConfirmationStep = ({
-  order,
-  onSuccess,
-}: ShippingConfirmationStepProps) => {
+const SellerShippingStep = ({ order, onSuccess }: SellerShippingStepProps) => {
   const isShipped = order.status === "SHIPPED";
   const trackingNumberExists = !!order.trackingNumber;
 
@@ -74,7 +71,7 @@ const ShippingConfirmationStep = ({
 
         {/* Shipping Information Form */}
         {!isShipped && (
-          <ShippingForm
+          <DeliveryInfoForm
             schema={submitOrderShippingSchema}
             defaultValues={{
               shippingProvider: "VNPOST" as ShippingProvider,
@@ -94,4 +91,4 @@ const ShippingConfirmationStep = ({
   );
 };
 
-export default ShippingConfirmationStep;
+export default SellerShippingStep;

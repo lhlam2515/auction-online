@@ -14,7 +14,7 @@ interface OrderStepperProps {
   steps: Step[];
 }
 
-export function OrderStepper({ currentStep, steps }: OrderStepperProps) {
+const OrderStepper = ({ currentStep, steps }: OrderStepperProps) => {
   // Tính toán progress dựa trên số steps đã completed
   const completedSteps = steps.filter((step) => step.completed).length;
   const progressPercentage =
@@ -73,4 +73,6 @@ export function OrderStepper({ currentStep, steps }: OrderStepperProps) {
       })}
     </div>
   );
-}
+};
+
+export default OrderStepper;

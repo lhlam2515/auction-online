@@ -12,19 +12,19 @@ import {
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 
-interface ConfirmPaymentDialogProps {
+interface SellerConfirmPaymentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   isConfirming: boolean;
   onConfirmPayment: () => void;
 }
 
-export const ConfirmPaymentDialog = ({
+export const SellerConfirmPaymentDialog = ({
   isOpen,
   onOpenChange,
   isConfirming,
   onConfirmPayment,
-}: ConfirmPaymentDialogProps) => {
+}: SellerConfirmPaymentDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>

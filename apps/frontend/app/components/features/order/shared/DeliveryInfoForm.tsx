@@ -54,7 +54,7 @@ const SHIPPING_PROVIDERS = [
   { value: "JNT", label: "JNT Express" },
 ];
 
-const ShippingForm = <T extends FieldValues>({
+const DeliveryInfoForm = <T extends FieldValues>({
   schema,
   defaultValues,
   onSubmit,
@@ -254,4 +254,4 @@ const ShippingForm = <T extends FieldValues>({
   );
 };
 
-export default ShippingForm;
+export default DeliveryInfoForm;

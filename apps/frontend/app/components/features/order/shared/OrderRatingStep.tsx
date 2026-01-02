@@ -13,19 +13,19 @@ import {
 import { api } from "@/lib/api-layer";
 import { submitFeedbackSchema } from "@/lib/validations/order.validation";
 
-interface RatingStepProps {
+interface OrderRatingStepProps {
   order: OrderWithDetails;
   onSkip?: () => void;
   onSuccess?: () => void;
   isSeller?: boolean;
 }
 
-export function RatingStep({
+const OrderRatingStep = ({
   order,
   onSkip,
   onSuccess,
   isSeller = false,
-}: RatingStepProps) {
+}: OrderRatingStepProps) => {
   return (
     <Card>
       <CardHeader>
@@ -65,4 +65,6 @@ export function RatingStep({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default OrderRatingStep;

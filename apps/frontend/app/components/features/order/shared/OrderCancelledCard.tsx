@@ -12,12 +12,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { formatDate } from "@/lib/utils";
 
-interface CancelledOrderProps {
+interface OrderCancelledCardProps {
   order: OrderWithDetails;
   isSeller?: boolean;
 }
 
-const CancelledOrder = ({ order, isSeller = false }: CancelledOrderProps) => {
+const OrderCancelledCard = ({
+  order,
+  isSeller = false,
+}: OrderCancelledCardProps) => {
   const cancelledDate = order.cancelledAt
     ? new Date(order.cancelledAt).toLocaleDateString("vi-VN")
     : "Không xác định";
@@ -84,4 +87,4 @@ const CancelledOrder = ({ order, isSeller = false }: CancelledOrderProps) => {
   );
 };
 
-export default CancelledOrder;
+export default OrderCancelledCard;

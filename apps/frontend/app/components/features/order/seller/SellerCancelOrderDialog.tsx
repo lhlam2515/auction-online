@@ -12,19 +12,19 @@ import {
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 
-interface CancelOrderDialogProps {
+interface SellerCancelOrderDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   isCancelling: boolean;
   onCancelOrder: () => void;
 }
 
-export const CancelOrderDialog = ({
+export const SellerCancelOrderDialog = ({
   isOpen,
   onOpenChange,
   isCancelling,
   onCancelOrder,
-}: CancelOrderDialogProps) => {
+}: SellerCancelOrderDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
