@@ -1,25 +1,29 @@
-import { Star, ShieldCheck } from "lucide-react";
+import { Star } from "lucide-react";
+import React from "react";
 
 import UserAvatar from "@/components/common/UserAvatar";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-interface UserProfileSectionProps {
+export interface ProfileHeaderProps {
   user: {
     fullName: string;
     username: string;
-    email: string;
     avatarUrl: string | null;
     ratingScore: number;
     ratingCount: number;
-    sellerExpireDate: Date | string | null;
-    role: string | null;
   };
+  badges?: React.ReactNode;
+  rightContent?: React.ReactNode;
   className?: string;
 }
 
-const UserProfileSection = ({ user, className }: UserProfileSectionProps) => {
+const ProfileHeader = ({
+  user,
+  badges,
+  rightContent,
+  className,
+}: ProfileHeaderProps) => {
   return (
     <Card
       className={cn(
@@ -28,7 +32,7 @@ const UserProfileSection = ({ user, className }: UserProfileSectionProps) => {
       )}
     >
       <CardContent className="p-6">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           {/* Left: User Info */}
           <div className="flex items-start gap-4">
             <UserAvatar
@@ -43,12 +47,7 @@ const UserProfileSection = ({ user, className }: UserProfileSectionProps) => {
                 <h3 className="text-2xl font-bold tracking-tight text-slate-900">
                   {user.fullName}
                 </h3>
-                <Badge
-                  variant="outline"
-                  className="gap-1 border-blue-200 bg-blue-50 px-2 py-0.5 text-blue-700"
-                >
-                  <ShieldCheck className="h-3 w-3" /> {user.role}
-                </Badge>
+                {badges}
               </div>
 
               <p className="font-medium text-slate-500">@{user.username}</p>
@@ -66,10 +65,17 @@ const UserProfileSection = ({ user, className }: UserProfileSectionProps) => {
               </div>
             </div>
           </div>
+
+          {/* Right: Optional Content */}
+          {rightContent && (
+            <div className="flex flex-col items-end gap-4 lg:min-w-[250px] lg:border-l lg:pl-6">
+              {rightContent}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
   );
 };
 
-export default UserProfileSection;
+export default ProfileHeader;

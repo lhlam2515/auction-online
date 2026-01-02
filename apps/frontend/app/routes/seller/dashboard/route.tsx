@@ -3,8 +3,10 @@ import { LayoutDashboard, BarChart3 } from "lucide-react"; // Icons mới
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { SellerStatsCards } from "@/components/features/seller";
-import SellerProfileSection from "@/components/features/seller/SellerProfileSection";
+import {
+  SellerProfileHeader,
+  SellerStatsCards,
+} from "@/components/features/seller";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Dùng cho placeholder
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
@@ -61,7 +63,7 @@ export default function SellerDashboardPage() {
   return (
     <div className="space-y-8 pb-10">
       {/* 1. Profile / Header Section */}
-      <section>{user && <SellerProfileSection user={user} />}</section>
+      <section>{user && <SellerProfileHeader user={user} />}</section>
 
       {/* 2. Stats Section */}
       <section className="space-y-4">

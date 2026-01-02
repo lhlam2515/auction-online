@@ -8,8 +8,7 @@ import { BarChart3, LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { UserStatsCards } from "@/components/features/user";
-import UserProfileSection from "@/components/features/user/UserProfileSection";
+import { UserProfileHeader, UserStatsCards } from "@/components/features/user";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { ERROR_MESSAGES } from "@/constants/api";
@@ -86,9 +85,7 @@ export default function AccountDashboardPage() {
       {/* 1. Profile / Header Section */}
       <section>
         {userData && (
-          <UserProfileSection
-            user={{ ...userData, role: user?.role ?? null }}
-          />
+          <UserProfileHeader user={{ ...userData, role: user?.role ?? null }} />
         )}
       </section>
 
