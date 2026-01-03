@@ -84,6 +84,8 @@ import type {
   GetUsersParams,
   BanUserRequest,
   ResetUserPasswordRequest,
+  UpdateUserInfoRequest,
+  UpdateAccountStatusRequest,
   UpgradeRequest,
   AdminProduct,
   AdminAnalytics,
@@ -681,6 +683,22 @@ export const api = {
        */
       getById: (userId: string) =>
         apiCall<AdminUser>("GET", `/admin/users/${userId}`),
+
+      /**
+       * Update user information (fullName, address, birthDate)
+       */
+      update: (userId: string, data: UpdateUserInfoRequest) =>
+        apiCall<AdminUser>("PATCH", `/admin/users/${userId}`, data),
+
+      /**
+       * Update account status (PENDING_VERIFICATION, ACTIVE, BANNED)
+       */
+      updateStatus: (userId: string, data: UpdateAccountStatusRequest) =>
+        apiCall<AdminUser>(
+          "PATCH",
+          `/admin/users/${userId}/account-status`,
+          data
+        ),
 
       /**
        * Ban/unban user
