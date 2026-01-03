@@ -100,7 +100,9 @@ export const productQuestions = pgTable(
     questionContent: t.text("question_content").notNull(),
 
     answerContent: t.text("answer_content"),
-    answeredBy: t.uuid("answered_by").references(() => users.id), // Who answered
+    answeredBy: t
+      .uuid("answered_by")
+      .references(() => users.id, { onDelete: "set null" }), // Who answered
     isPublic: t.boolean("is_public").notNull().default(true),
 
     createdAt: t

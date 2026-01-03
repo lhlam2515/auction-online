@@ -16,16 +16,13 @@ export const orders = pgTable(
     orderNumber: t.text("order_number").notNull(), // Human-readable order number
     productId: t
       .uuid("product_id")
-      .notNull()
-      .references(() => products.id, { onDelete: "restrict" }),
+      .references(() => products.id, { onDelete: "set null" }), // Keep order history even if product deleted
     winnerId: t
       .uuid("winner_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "restrict" }),
+      .references(() => users.id, { onDelete: "set null" }), // Keep order history for statistics
     sellerId: t
       .uuid("seller_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "restrict" }),
+      .references(() => users.id, { onDelete: "set null" }), // Keep order history for statistics
 
     finalPrice: t.numeric("final_price", { precision: 15, scale: 2 }).notNull(),
     shippingCost: t
