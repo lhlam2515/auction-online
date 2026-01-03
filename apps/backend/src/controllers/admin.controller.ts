@@ -6,6 +6,7 @@ import type {
   Operations,
   Engagement,
   GetUsersParams,
+  GetUpgradeRequestsParams,
   BanUserRequest,
   ResetUserPasswordRequest,
   UpgradeRequest,
@@ -61,24 +62,32 @@ export const resetUserPassword = asyncHandler(
 
 export const getUpgradeRequests = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get upgrade requests
-    throw new NotImplementedError("Get upgrade requests not implemented yet");
+    const params = req.query as unknown as GetUpgradeRequestsParams;
+    const result = await adminService.getUpgradeRequests(params);
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
 export const approveUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as ProcessUpgradeRequest;
-    // TODO: Approve upgrade request
-    throw new NotImplementedError("Approve upgrade not implemented yet");
+    const { id } = req.params;
+    const adminId = req.user!.id;
+    await adminService.approveUpgradeRequest(id, adminId);
+    return ResponseHandler.sendSuccess(res, {
+      message: "Upgrade request approved successfully",
+    });
   }
 );
 
 export const rejectUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as ProcessUpgradeRequest;
-    // TODO: Reject upgrade request
-    throw new NotImplementedError("Reject upgrade not implemented yet");
+    const { id } = req.params;
+    const adminId = req.user!.id;
+    const { reason } = req.body as ProcessUpgradeRequest;
+    await adminService.rejectUpgradeRequest(id, adminId, reason);
+    return ResponseHandler.sendSuccess(res, {
+      message: "Upgrade request rejected successfully",
+    });
   }
 );
 
