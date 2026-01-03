@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 
+import AdminUserManager from "./AdminUserManager";
+
 type AdminUserTableProps = {
   users: AdminUserListItem[];
   loading?: boolean;
@@ -61,7 +63,7 @@ const AdminUserTable = ({
               <TableHead>Trạng thái</TableHead>
               <TableHead>Đánh giá</TableHead>
               <TableHead>Ngày tạo</TableHead>
-              <TableHead>Hành động</TableHead>
+              <TableHead className="text-center">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -70,9 +72,6 @@ const AdminUserTable = ({
                 {/* User Info */}
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    {/* <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-                      <User className="text-primary h-5 w-5" />
-                    </div> */}
                     <UserAvatar
                       name={user.fullName}
                       imageUrl={user.avatarUrl}
@@ -130,15 +129,8 @@ const AdminUserTable = ({
                 </TableCell>
 
                 {/* Actions */}
-                <TableCell className="text-right">
-                  {/* <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                    className="cursor-pointer"
-                  >
-                    <Link to={`/admin/users/${user.id}`}>Chi tiết</Link>
-                  </Button> */}
+                <TableCell className="text-center">
+                  <AdminUserManager user={user} />
                 </TableCell>
               </TableRow>
             ))}

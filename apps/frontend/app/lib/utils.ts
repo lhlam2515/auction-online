@@ -22,12 +22,16 @@ export function formatPrice(amount: number, currency = "VND"): string {
 /**
  * Format date for display
  */
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date, onlyDate = false): string {
   const d = new Date(date);
   return d.toLocaleDateString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+    ...(onlyDate
+      ? {}
+      : {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
