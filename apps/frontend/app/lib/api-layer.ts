@@ -723,10 +723,11 @@ export const api = {
       /**
        * Approve upgrade request
        */
-      approve: (upgradeId: string) =>
+      approve: (upgradeId: string, data?: { adminNote?: string }) =>
         apiCall<{ message: string }>(
           "POST",
-          `/admin/upgrades/${upgradeId}/approve`
+          `/admin/upgrades/${upgradeId}/approve`,
+          data
         ),
 
       /**

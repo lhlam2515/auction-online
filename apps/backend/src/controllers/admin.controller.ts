@@ -72,7 +72,8 @@ export const approveUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { id } = req.params;
     const adminId = req.user!.id;
-    await adminService.approveUpgradeRequest(id, adminId);
+    const { adminNote } = req.body as { adminNote?: string };
+    await adminService.approveUpgradeRequest(id, adminId, adminNote);
     return ResponseHandler.sendSuccess(res, {
       message: "Upgrade request approved successfully",
     });

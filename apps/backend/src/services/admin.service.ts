@@ -484,7 +484,11 @@ export class AdminService {
   /**
    * Approve upgrade request
    */
-  async approveUpgradeRequest(id: string, adminId: string): Promise<void> {
+  async approveUpgradeRequest(
+    id: string,
+    adminId: string,
+    adminNote?: string
+  ): Promise<void> {
     await db.transaction(async (tx) => {
       // Get request
       const [request] = await tx
@@ -507,6 +511,7 @@ export class AdminService {
           status: "APPROVED",
           processedBy: adminId,
           processedAt: new Date(),
+          adminNote: adminNote,
         })
         .where(eq(upgradeRequests.id, id));
 
