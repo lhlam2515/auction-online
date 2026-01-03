@@ -13,6 +13,7 @@ import { PaginationBar } from "@/components/common";
 import {
   AdminUserSearchBar,
   AdminUserTable,
+  CreateUserDialog,
 } from "@/components/features/admin/users";
 import {
   Card,
@@ -167,6 +168,11 @@ export default function ManageUsersPage() {
               <CardDescription className="text-lg">
                 Xem và quản lý tất cả người dùng trên hệ thống
               </CardDescription>
+            </div>
+
+            {/* Create User Button */}
+            <div className="ml-auto flex justify-end">
+              <CreateUserDialog onSuccess={fetchUsers} />
             </div>
           </div>
         </CardHeader>
