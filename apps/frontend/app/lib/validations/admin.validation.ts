@@ -60,6 +60,6 @@ export const resetUserPasswordSchema = z
  */
 export const banUserSchema = z.object({
   isBanned: z.boolean(),
-  reason: z.string().min(10, "Lý do phải có ít nhất 10 ký tự").optional(),
+  reason: z.string().min(10, "Lý do phải có ít nhất 10 ký tự"),
   duration: z.number().min(0, "Thời gian ban không hợp lệ").optional(),
 });
