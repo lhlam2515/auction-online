@@ -1,8 +1,16 @@
 import type { AdminUpgradeRequest } from "@repo/shared-types";
-import { Check, Eye, Loader2, X } from "lucide-react";
+import { Check, Eye, Loader2, MoreHorizontal, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -12,12 +20,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { ApproveRequestDialog } from "./ApproveRequestDialog";
+import { RejectRequestDialog } from "./RejectRequestDialog";
+import { UpgradeRequestDetailDialog } from "./UpgradeRequestDetailDialog";
+
 interface UpgradeRequestTableProps {
   requests: AdminUpgradeRequest[];
   isLoading: boolean;
-  onApprove: (request: AdminUpgradeRequest) => void;
-  onReject: (request: AdminUpgradeRequest) => void;
-  onViewDetail: (request: AdminUpgradeRequest) => void;
+  onApprove: (request: AdminUpgradeRequest, reason: string) => Promise<void>;
+  onReject: (request: AdminUpgradeRequest, reason: string) => Promise<void>;
 }
 
 export function UpgradeRequestTable({
@@ -25,7 +36,6 @@ export function UpgradeRequestTable({
   isLoading,
   onApprove,
   onReject,
-  onViewDetail,
 }: UpgradeRequestTableProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -84,42 +94,59 @@ export function UpgradeRequestTable({
                 </TableCell>
                 <TableCell>{getStatusBadge(request.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 w-8 p-0"
-                      onClick={() => onViewDetail(request)}
-                      title="Xem chi tiết"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span className="sr-only">Xem chi tiết</span>
-                    </Button>
-                    {request.status === "PENDING" && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
-                          onClick={() => onApprove(request)}
-                          title="Chấp nhận"
-                        >
-                          <Check className="h-4 w-4" />
-                          <span className="sr-only">Chấp nhận</span>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => onReject(request)}
-                          title="Từ chối"
-                        >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Từ chối</span>
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Mở menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+                      <UpgradeRequestDetailDialog
+                        trigger={
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            Xem chi tiết
+                          </DropdownMenuItem>
+                        }
+                        request={request}
+                      />
+                      {request.status === "PENDING" && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <ApproveRequestDialog
+                            trigger={
+                              <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                                className="text-green-600 focus:bg-green-50 focus:text-green-700"
+                              >
+                                <Check className="mr-2 h-4 w-4" />
+                                Chấp nhận
+                              </DropdownMenuItem>
+                            }
+                            request={request}
+                            onConfirm={(reason) => onApprove(request, reason)}
+                          />
+                          <RejectRequestDialog
+                            trigger={
+                              <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                                className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                              >
+                                <X className="mr-2 h-4 w-4" />
+                                Từ chối
+                              </DropdownMenuItem>
+                            }
+                            request={request}
+                            onConfirm={(reason) => onReject(request, reason)}
+                          />
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   {request.status !== "PENDING" && (
                     <div className="text-muted-foreground mt-1 text-xs">
                       {request.status === "APPROVED"

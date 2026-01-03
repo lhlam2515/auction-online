@@ -1,5 +1,6 @@
+import type { AdminUpgradeRequest } from "@repo/shared-types";
 import { ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,34 +10,47 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 interface ApproveRequestDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: (reason: string) => void;
-  isProcessing: boolean;
-  userName?: string;
+  trigger: ReactNode;
+  request: AdminUpgradeRequest;
+  onConfirm: (reason: string) => Promise<void>;
 }
 
 export function ApproveRequestDialog({
-  isOpen,
-  onOpenChange,
+  trigger,
+  request,
   onConfirm,
-  isProcessing,
-  userName,
 }: ApproveRequestDialogProps) {
+  const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleConfirm = () => {
-    onConfirm(reason);
-    setReason("");
+  const handleConfirm = async () => {
+    setIsProcessing(true);
+    try {
+      await onConfirm(reason);
+      setOpen(false);
+      setReason("");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setReason("");
+    }
+    setOpen(newOpen);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -46,7 +60,9 @@ export function ApproveRequestDialog({
           <DialogDescription>
             Bạn có chắc chắn muốn chấp nhận yêu cầu nâng cấp tài khoản của người
             dùng{" "}
-            <span className="text-foreground font-semibold">{userName}</span>{" "}
+            <span className="text-foreground font-semibold">
+              {request.userName}
+            </span>{" "}
             lên Seller không? Hành động này sẽ cấp quyền đăng bán sản phẩm cho
             người dùng.
           </DialogDescription>
@@ -65,7 +81,7 @@ export function ApproveRequestDialog({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => setOpen(false)}
             disabled={isProcessing}
           >
             Hủy bỏ

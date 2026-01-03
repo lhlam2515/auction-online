@@ -12,6 +12,7 @@ import {
   User,
   XCircle,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,22 +21,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface UpgradeRequestDetailDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  request: AdminUpgradeRequest | null;
+  trigger: ReactNode;
+  request: AdminUpgradeRequest;
 }
 
 export function UpgradeRequestDetailDialog({
-  isOpen,
-  onOpenChange,
+  trigger,
   request,
 }: UpgradeRequestDetailDialogProps) {
-  if (!request) return null;
-
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "APPROVED":
@@ -71,7 +69,8 @@ export function UpgradeRequestDetailDialog({
   const statusConfig = getStatusConfig(request.status);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <div className="flex items-center gap-2">

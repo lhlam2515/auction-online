@@ -5,9 +5,6 @@ import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import {
-  ApproveRequestDialog,
-  RejectRequestDialog,
-  UpgradeRequestDetailDialog,
   UpgradeRequestFilters,
   UpgradeRequestTable,
 } from "@/components/features/admin/upgrades";
@@ -46,12 +43,6 @@ export default function ApproveUpgradesPage() {
   const [requests, setRequests] = useState<AdminUpgradeRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedRequest, setSelectedRequest] =
-    useState<AdminUpgradeRequest | null>(null);
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // Filter states
   const page = Number(searchParams.get("page")) || 1;
@@ -126,64 +117,41 @@ export default function ApproveUpgradesPage() {
     });
   };
 
-  const handleApprove = (request: AdminUpgradeRequest) => {
-    setSelectedRequest(request);
-    setIsApproveDialogOpen(true);
-  };
-
-  const handleApproveConfirm = async (reason: string) => {
-    if (!selectedRequest) return;
-
-    setIsProcessing(true);
+  const handleApproveConfirm = async (
+    request: AdminUpgradeRequest,
+    reason: string
+  ) => {
     try {
-      await api.admin.upgrades.approve(selectedRequest.id, {
+      await api.admin.upgrades.approve(request.id, {
         adminNote: reason,
       });
       toast.success("Đã chấp nhận yêu cầu nâng cấp");
-      setIsApproveDialogOpen(false);
-      setSelectedRequest(null);
       fetchRequests();
     } catch (error) {
       console.error("Failed to approve request:", error);
       toast.error("Có lỗi xảy ra khi chấp nhận yêu cầu");
-    } finally {
-      setIsProcessing(false);
     }
   };
 
-  const handleRejectConfirm = async (reason: string) => {
-    if (!selectedRequest) return;
-
+  const handleRejectConfirm = async (
+    request: AdminUpgradeRequest,
+    reason: string
+  ) => {
     if (!reason.trim()) {
       toast.error("Vui lòng nhập lý do từ chối");
       return;
     }
 
-    setIsProcessing(true);
     try {
-      await api.admin.upgrades.reject(selectedRequest.id, {
+      await api.admin.upgrades.reject(request.id, {
         adminNote: reason,
       });
       toast.success("Đã từ chối yêu cầu nâng cấp");
-      setIsRejectDialogOpen(false);
-      setSelectedRequest(null);
       fetchRequests();
     } catch (error) {
       console.error("Failed to reject request:", error);
       toast.error("Có lỗi xảy ra khi từ chối yêu cầu");
-    } finally {
-      setIsProcessing(false);
     }
-  };
-
-  const openRejectDialog = (request: AdminUpgradeRequest) => {
-    setSelectedRequest(request);
-    setIsRejectDialogOpen(true);
-  };
-
-  const openDetailDialog = (request: AdminUpgradeRequest) => {
-    setSelectedRequest(request);
-    setIsDetailDialogOpen(true);
   };
 
   return (
@@ -222,9 +190,8 @@ export default function ApproveUpgradesPage() {
           <UpgradeRequestTable
             requests={requests}
             isLoading={isLoading}
-            onApprove={handleApprove}
-            onReject={openRejectDialog}
-            onViewDetail={openDetailDialog}
+            onApprove={handleApproveConfirm}
+            onReject={handleRejectConfirm}
           />
 
           <div className="mt-4">
@@ -273,27 +240,6 @@ export default function ApproveUpgradesPage() {
           </div>
         </CardContent>
       </Card>
-
-      <ApproveRequestDialog
-        isOpen={isApproveDialogOpen}
-        onOpenChange={setIsApproveDialogOpen}
-        onConfirm={handleApproveConfirm}
-        isProcessing={isProcessing}
-        userName={selectedRequest?.userName}
-      />
-
-      <RejectRequestDialog
-        isOpen={isRejectDialogOpen}
-        onOpenChange={setIsRejectDialogOpen}
-        onConfirm={handleRejectConfirm}
-        isProcessing={isProcessing}
-      />
-
-      <UpgradeRequestDetailDialog
-        isOpen={isDetailDialogOpen}
-        onOpenChange={setIsDetailDialogOpen}
-        request={selectedRequest}
-      />
     </>
   );
 }

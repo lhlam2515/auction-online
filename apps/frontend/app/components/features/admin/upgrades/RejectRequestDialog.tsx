@@ -1,5 +1,6 @@
+import type { AdminUpgradeRequest } from "@repo/shared-types";
 import { ShieldAlert } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -9,32 +10,47 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 interface RejectRequestDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: (reason: string) => void;
-  isProcessing: boolean;
+  trigger: ReactNode;
+  request: AdminUpgradeRequest;
+  onConfirm: (reason: string) => Promise<void>;
 }
 
 export function RejectRequestDialog({
-  isOpen,
-  onOpenChange,
+  trigger,
+  request,
   onConfirm,
-  isProcessing,
 }: RejectRequestDialogProps) {
+  const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleConfirm = () => {
-    onConfirm(reason);
-    setReason(""); // Reset reason after confirm
+  const handleConfirm = async () => {
+    setIsProcessing(true);
+    try {
+      await onConfirm(reason);
+      setOpen(false);
+      setReason("");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setReason("");
+    }
+    setOpen(newOpen);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -42,8 +58,9 @@ export function RejectRequestDialog({
             <DialogTitle>Từ chối yêu cầu nâng cấp</DialogTitle>
           </div>
           <DialogDescription>
-            Vui lòng nhập lý do từ chối yêu cầu này. Người dùng sẽ nhận được
-            thông báo về lý do từ chối.
+            Vui lòng nhập lý do từ chối yêu cầu của{" "}
+            <span className="font-semibold">{request.userName}</span>. Người
+            dùng sẽ nhận được thông báo về lý do từ chối.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -60,7 +77,7 @@ export function RejectRequestDialog({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => setOpen(false)}
             disabled={isProcessing}
           >
             Hủy
