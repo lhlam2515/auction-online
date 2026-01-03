@@ -29,7 +29,9 @@ import {
 import slug from "slug";
 
 import { db } from "@/config/database";
+import { searchProducts } from "@/controllers/product.controller";
 import {
+  autoBids,
   bids,
   categories,
   orders,
@@ -148,11 +150,32 @@ export class ProductService {
       throw new BadRequestError("Chỉ có thể gỡ sản phẩm đang đấu giá");
     }
 
-    const [result] = await db
-      .update(products)
-      .set({ status: "SUSPENDED", updatedAt: new Date() })
-      .where(eq(products.id, productId))
-      .returning();
+    const [result] = await db.transaction(async (tx) => {
+      const product_update = await tx
+        .update(products)
+        .set({
+          status: "SUSPENDED",
+          currentPrice: null,
+          winnerId: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId))
+        .returning();
+
+      await tx.delete(watchLists).where(eq(watchLists.productId, productId));
+
+      await tx
+        .update(autoBids)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(autoBids.productId, productId));
+
+      await tx
+        .update(bids)
+        .set({ status: "INVALID" })
+        .where(eq(bids.productId, productId));
+
+      return product_update;
+    });
 
     return result;
   }
