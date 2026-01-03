@@ -81,5 +81,10 @@ export const createUserSchema = z.object({
   password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
   role: z.enum(["BIDDER", "SELLER", "ADMIN"]),
   address: z.string().optional(),
-  birthDate: z.string().optional(),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Birth date must be in YYYY-MM-DD format",
+    })
+    .optional(),
 });

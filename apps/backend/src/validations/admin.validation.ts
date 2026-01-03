@@ -123,7 +123,12 @@ export const createUserSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters" }),
   role: z.enum(["BIDDER", "SELLER", "ADMIN"]).default("BIDDER"),
   address: z.string().optional(),
-  birthDate: z.coerce.date().optional(),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Birth date must be in YYYY-MM-DD format",
+    })
+    .optional(),
 });
 
 export const deleteUserSchema = z.object({
