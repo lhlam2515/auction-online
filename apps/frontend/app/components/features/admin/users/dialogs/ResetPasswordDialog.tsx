@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/lib/api-layer";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
+import { cn } from "@/lib/utils";
 import { resetUserPasswordSchema } from "@/lib/validations/admin.validation";
 
 type ResetPasswordForm = z.infer<typeof resetUserPasswordSchema>;
@@ -307,9 +308,9 @@ const ResetPasswordDialog = ({
                         <X className="h-4 w-4 shrink-0 text-red-500" />
                       )}
                       <span
-                        className={
+                        className={cn(
                           requirement.met ? "text-green-700" : "text-gray-600"
-                        }
+                        )}
                       >
                         {requirement.label}
                       </span>

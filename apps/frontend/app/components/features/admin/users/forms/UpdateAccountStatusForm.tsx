@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { AccountStatusBadge } from "@/components/common/badges";
 import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -81,15 +82,6 @@ const UpdateAccountStatusForm = ({
     e.preventDefault();
   };
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      PENDING_VERIFICATION: "Chờ xác thực",
-      ACTIVE: "Hoạt động",
-      BANNED: "Bị cấm",
-    };
-    return labels[status] || status;
-  };
-
   return (
     <form onSubmit={handleFormSubmit} className="space-y-4" noValidate>
       {form.formState.errors.root && (
@@ -99,11 +91,12 @@ const UpdateAccountStatusForm = ({
         />
       )}
 
-      <AlertSection
-        variant="info"
-        title="Trạng thái hiện tại"
-        description={getStatusLabel(user.accountStatus)}
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Trạng thái hiện tại</label>
+        <div>
+          <AccountStatusBadge status={user.accountStatus} />
+        </div>
+      </div>
 
       <Controller
         control={form.control}
@@ -180,14 +173,15 @@ const UpdateAccountStatusForm = ({
                   ? "Bạn có chắc chắn muốn CẤM tài khoản này?"
                   : "Bạn có chắc chắn muốn cập nhật trạng thái tài khoản?"}
               </p>
-              <div className="rounded-md bg-gray-50 p-3 text-sm">
-                <p>
-                  <strong>Từ:</strong> {getStatusLabel(user.accountStatus)}
-                </p>
-                <p>
+              <div className="space-y-2 rounded-md bg-gray-50 p-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <strong>Từ:</strong>{" "}
+                  <AccountStatusBadge status={user.accountStatus} />
+                </div>
+                <div className="flex items-center gap-2 text-sm">
                   <strong>Sang:</strong>{" "}
-                  {getStatusLabel(form.watch("accountStatus"))}
-                </p>
+                  <AccountStatusBadge status={form.watch("accountStatus")} />
+                </div>
               </div>
               {form.watch("accountStatus") === "BANNED" && (
                 <AlertSection

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { UserAvatar } from "@/components/common";
+import { AccountStatusBadge } from "@/components/common/badges";
 import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api-layer";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
+import { cn } from "@/lib/utils";
 import { banUserSchema } from "@/lib/validations/admin.validation";
 
 type BanUserForm = z.infer<typeof banUserSchema>;
@@ -163,21 +165,7 @@ const BanUserDialog = ({
                   <p className="text-muted-foreground text-xs">{userEmail}</p>
                 )}
                 {currentStatus && (
-                  <span
-                    className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      currentStatus === "BANNED"
-                        ? "bg-red-100 text-red-800"
-                        : currentStatus === "ACTIVE"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {currentStatus === "BANNED"
-                      ? "Đã bị cấm"
-                      : currentStatus === "ACTIVE"
-                        ? "Đang hoạt động"
-                        : "Chờ xác thực"}
-                  </span>
+                  <AccountStatusBadge status={currentStatus} className="mt-1" />
                 )}
               </div>
             </div>
@@ -210,11 +198,11 @@ const BanUserDialog = ({
                     disabled
                   >
                     <div
-                      className={`flex items-center space-x-3 ${
-                        currentStatus === "BANNED"
-                          ? "cursor-not-allowed opacity-50"
-                          : ""
-                      }`}
+                      className={cn(
+                        "flex items-center space-x-3",
+                        currentStatus === "BANNED" &&
+                          "cursor-not-allowed opacity-50"
+                      )}
                     >
                       <RadioGroupItem
                         value="ban"
@@ -223,11 +211,12 @@ const BanUserDialog = ({
                       />
                       <label
                         htmlFor="ban"
-                        className={`flex items-center gap-2 text-sm font-medium ${
+                        className={cn(
+                          "flex items-center gap-2 text-sm font-medium",
                           currentStatus === "BANNED"
                             ? "cursor-not-allowed"
                             : "cursor-pointer"
-                        }`}
+                        )}
                       >
                         <Ban className="h-4 w-4 text-red-600" />
                         <span>Cấm người dùng (Ban)</span>
@@ -239,11 +228,11 @@ const BanUserDialog = ({
                       </label>
                     </div>
                     <div
-                      className={`flex items-center space-x-3 ${
-                        currentStatus !== "BANNED"
-                          ? "cursor-not-allowed opacity-50"
-                          : ""
-                      }`}
+                      className={cn(
+                        "flex items-center space-x-3",
+                        currentStatus !== "BANNED" &&
+                          "cursor-not-allowed opacity-50"
+                      )}
                     >
                       <RadioGroupItem
                         value="unban"
@@ -252,11 +241,12 @@ const BanUserDialog = ({
                       />
                       <label
                         htmlFor="unban"
-                        className={`flex items-center gap-2 text-sm font-medium ${
+                        className={cn(
+                          "flex items-center gap-2 text-sm font-medium",
                           currentStatus !== "BANNED"
                             ? "cursor-not-allowed"
                             : "cursor-pointer"
-                        }`}
+                        )}
                       >
                         <ShieldAlert className="h-4 w-4 text-green-600" />
                         <span>Gỡ cấm người dùng (Unban)</span>
@@ -321,11 +311,12 @@ const BanUserDialog = ({
                         Lý do sẽ được ghi lại trong hệ thống
                       </span>
                       <span
-                        className={`font-medium ${
+                        className={cn(
+                          "font-medium",
                           (field.value?.length || 0) < 10
                             ? "text-red-500"
                             : "text-green-600"
-                        }`}
+                        )}
                       >
                         {field.value?.length || 0}/10
                       </span>

@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 import AdminUserManager from "./AdminUserManager";
 
@@ -52,7 +52,7 @@ const AdminUserTable = ({
   }
 
   return (
-    <div className={className}>
+    <div className={cn(className)}>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

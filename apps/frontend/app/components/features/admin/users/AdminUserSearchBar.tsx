@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 type AdminUserSearchBarProps = {
   searchQuery: string;
@@ -79,7 +80,7 @@ const AdminUserSearchBar = ({
   };
 
   return (
-    <div className={className}>
+    <div className={cn(className)}>
       <div className="flex flex-col gap-4">
         {/* First Row: Search and Role */}
         <div className="flex flex-col gap-4 md:flex-row md:items-end">
