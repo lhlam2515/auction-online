@@ -20,9 +20,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { ApproveRequestDialog } from "./ApproveRequestDialog";
-import { RejectRequestDialog } from "./RejectRequestDialog";
-import { UpgradeRequestDetailDialog } from "./UpgradeRequestDetailDialog";
+import {
+  ApproveRequestDialog,
+  RejectRequestDialog,
+  UpgradeRequestDetailDialog,
+} from "./dialogs";
 
 interface UpgradeRequestTableProps {
   requests: AdminUpgradeRequest[];
