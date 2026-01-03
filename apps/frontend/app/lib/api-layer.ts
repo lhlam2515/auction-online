@@ -751,7 +751,8 @@ export const api = {
        */
       getAll: (
         params?: PaginationParams & {
-          status?: "pending" | "approved" | "rejected";
+          status?: "PENDING" | "APPROVED" | "REJECTED";
+          search?: string;
         }
       ) =>
         apiCall<PaginatedResponse<UpgradeRequest>>(
@@ -762,16 +763,17 @@ export const api = {
       /**
        * Approve upgrade request
        */
-      approve: (upgradeId: string) =>
+      approve: (upgradeId: string, data?: { adminNote?: string }) =>
         apiCall<{ message: string }>(
           "POST",
-          `/admin/upgrades/${upgradeId}/approve`
+          `/admin/upgrades/${upgradeId}/approve`,
+          data
         ),
 
       /**
        * Reject upgrade request
        */
-      reject: (upgradeId: string, data?: { reason?: string }) =>
+      reject: (upgradeId: string, data?: { adminNote?: string }) =>
         apiCall<{ message: string }>(
           "POST",
           `/admin/upgrades/${upgradeId}/reject`,

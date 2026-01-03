@@ -16,6 +16,9 @@ import type {
   UserReputationDistribution,
   BiddingActivity,
   AdminAnalytics,
+  GetUpgradeRequestsParams,
+  PaginatedResponse,
+  AdminUpgradeRequest,
 } from "@repo/shared-types";
 import {
   count,
@@ -29,6 +32,8 @@ import {
   isNotNull,
   avg,
   countDistinct,
+  ilike,
+  or,
 } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -375,6 +380,185 @@ export class AdminService {
       operations,
       engagement,
     };
+  }
+
+  /**
+   * Get upgrade requests with pagination and filtering
+   */
+  async getUpgradeRequests(
+    params: GetUpgradeRequestsParams
+  ): Promise<PaginatedResponse<AdminUpgradeRequest>> {
+    const page = Number(params.page) || 1;
+    const limit = Number(params.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const conditions = [];
+
+    if (params.status) {
+      conditions.push(eq(upgradeRequests.status, params.status));
+    }
+
+    if (params.search) {
+      const searchTerm = `%${params.search}%`;
+      conditions.push(
+        or(
+          ilike(users.username, searchTerm),
+          ilike(users.email, searchTerm),
+          ilike(users.fullName, searchTerm)
+        )
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total count
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(upgradeRequests)
+      .leftJoin(users, eq(upgradeRequests.userId, users.id))
+      .where(whereClause);
+
+    const total = totalResult?.count ?? 0;
+    const totalPages = Math.ceil(total / limit);
+
+    // Get items
+    const items = await db
+      .select({
+        id: upgradeRequests.id,
+        userId: upgradeRequests.userId,
+        userName: users.fullName,
+        userEmail: users.email,
+        reason: upgradeRequests.reason,
+        status: upgradeRequests.status,
+        processedBy: upgradeRequests.processedBy,
+        createdAt: upgradeRequests.createdAt,
+        processedAt: upgradeRequests.processedAt,
+        adminNote: upgradeRequests.adminNote,
+      })
+      .from(upgradeRequests)
+      .leftJoin(users, eq(upgradeRequests.userId, users.id))
+      .where(whereClause)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(upgradeRequests.createdAt));
+
+    // Fetch processor names if needed
+    const processedByIds = items
+      .map((item) => item.processedBy)
+      .filter((id): id is string => !!id);
+
+    let processorMap = new Map<string, string>();
+    if (processedByIds.length > 0) {
+      const processors = await db
+        .select({ id: users.id, name: users.fullName })
+        .from(users)
+        .where(inArray(users.id, processedByIds));
+      processorMap = new Map(processors.map((p) => [p.id, p.name]));
+    }
+
+    const formattedItems: AdminUpgradeRequest[] = items.map((item) => ({
+      ...item,
+      userName: item.userName || "Unknown",
+      userEmail: item.userEmail || "Unknown",
+      reason: item.reason || undefined,
+      adminNote: item.adminNote || undefined,
+      processedBy: item.processedBy || undefined,
+      createdAt: item.createdAt.toISOString(),
+      processedAt: item.processedAt?.toISOString(),
+      processedByName: item.processedBy
+        ? processorMap.get(item.processedBy)
+        : undefined,
+    }));
+
+    return {
+      items: formattedItems,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
+  /**
+   * Approve upgrade request
+   */
+  async approveUpgradeRequest(
+    id: string,
+    adminId: string,
+    adminNote?: string
+  ): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Get request
+      const [request] = await tx
+        .select()
+        .from(upgradeRequests)
+        .where(eq(upgradeRequests.id, id));
+
+      if (!request) {
+        throw new Error("Upgrade request not found");
+      }
+
+      if (request.status !== "PENDING") {
+        throw new Error("Request is already processed");
+      }
+
+      // Update request status
+      await tx
+        .update(upgradeRequests)
+        .set({
+          status: "APPROVED",
+          processedBy: adminId,
+          processedAt: new Date(),
+          adminNote: adminNote,
+        })
+        .where(eq(upgradeRequests.id, id));
+
+      // Update user role and seller expiry
+      const sellerExpireDate = new Date();
+      sellerExpireDate.setDate(sellerExpireDate.getDate() + 7); // Default 7 days trial or subscription
+
+      await tx
+        .update(users)
+        .set({
+          role: "SELLER",
+          sellerExpireDate,
+        })
+        .where(eq(users.id, request.userId));
+    });
+  }
+
+  /**
+   * Reject upgrade request
+   */
+  async rejectUpgradeRequest(
+    id: string,
+    adminId: string,
+    reason?: string
+  ): Promise<void> {
+    const [request] = await db
+      .select()
+      .from(upgradeRequests)
+      .where(eq(upgradeRequests.id, id));
+
+    if (!request) {
+      throw new Error("Upgrade request not found");
+    }
+
+    if (request.status !== "PENDING") {
+      throw new Error("Request is already processed");
+    }
+
+    await db
+      .update(upgradeRequests)
+      .set({
+        status: "REJECTED",
+        processedBy: adminId,
+        processedAt: new Date(),
+        adminNote: reason,
+      })
+      .where(eq(upgradeRequests.id, id));
   }
 }
 

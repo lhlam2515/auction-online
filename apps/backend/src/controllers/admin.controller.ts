@@ -6,6 +6,7 @@ import type {
   Operations,
   Engagement,
   GetUsersParams,
+  GetUpgradeRequestsParams,
   BanUserRequest,
   ResetUserPasswordRequest,
   UpdateUserInfoRequest,
@@ -142,24 +143,33 @@ export const deleteUser = asyncHandler(
 
 export const getUpgradeRequests = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get upgrade requests
-    throw new NotImplementedError("Get upgrade requests not implemented yet");
+    const params = req.query as unknown as GetUpgradeRequestsParams;
+    const result = await adminService.getUpgradeRequests(params);
+    return ResponseHandler.sendSuccess(res, result);
   }
 );
 
 export const approveUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as ProcessUpgradeRequest;
-    // TODO: Approve upgrade request
-    throw new NotImplementedError("Approve upgrade not implemented yet");
+    const { id } = req.params;
+    const adminId = req.user!.id;
+    const { adminNote } = req.body as { adminNote?: string };
+    await adminService.approveUpgradeRequest(id, adminId, adminNote);
+    return ResponseHandler.sendSuccess(res, {
+      message: "Upgrade request approved successfully",
+    });
   }
 );
 
 export const rejectUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as ProcessUpgradeRequest;
-    // TODO: Reject upgrade request
-    throw new NotImplementedError("Reject upgrade not implemented yet");
+    const { id } = req.params;
+    const adminId = req.user!.id;
+    const { adminNote } = req.body as { adminNote?: string };
+    await adminService.rejectUpgradeRequest(id, adminId, adminNote);
+    return ResponseHandler.sendSuccess(res, {
+      message: "Upgrade request rejected successfully",
+    });
   }
 );
 
