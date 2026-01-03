@@ -100,20 +100,27 @@ const UpdateUserRoleForm = ({
         </div>
       </div>
 
-      <Field>
-        <FieldLabel htmlFor="role">
-          Thay đổi vai trò <span className="text-red-500">*</span>
-        </FieldLabel>
-        <Controller
-          name="role"
-          control={form.control}
-          render={({ field }) => (
+      <Controller
+        control={form.control}
+        name="role"
+        render={({ field, fieldState }) => (
+          <Field
+            data-invalid={fieldState.invalid}
+            className="flex w-full flex-col gap-2"
+          >
+            <FieldLabel htmlFor={field.name} className="text-sm font-semibold">
+              Thay đổi vai trò <span className="text-red-500">*</span>
+            </FieldLabel>
             <Select
               value={field.value}
               onValueChange={field.onChange}
               disabled={form.formState.isSubmitting}
             >
-              <SelectTrigger id="role">
+              <SelectTrigger
+                id={field.name}
+                className="border"
+                aria-invalid={fieldState.invalid}
+              >
                 <SelectValue placeholder="Chọn vai trò" />
               </SelectTrigger>
               <SelectContent>
@@ -143,12 +150,10 @@ const UpdateUserRoleForm = ({
                 </SelectItem>
               </SelectContent>
             </Select>
-          )}
-        />
-        {form.formState.errors.role && (
-          <FieldError>{form.formState.errors.role.message}</FieldError>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
-      </Field>
+      />
 
       {hasChanges && (
         <AlertSection
@@ -159,7 +164,7 @@ const UpdateUserRoleForm = ({
         />
       )}
 
-      <div className="flex gap-2 pt-2">
+      <div className="flex justify-end gap-2">
         {onCancel && (
           <Button
             type="button"
