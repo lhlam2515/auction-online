@@ -712,6 +712,7 @@ export const api = {
       getAll: (
         params?: PaginationParams & {
           status?: "pending" | "approved" | "rejected";
+          search?: string;
         }
       ) =>
         apiCall<PaginatedResponse<UpgradeRequest>>(
