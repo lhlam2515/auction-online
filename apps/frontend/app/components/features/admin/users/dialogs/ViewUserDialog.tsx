@@ -1,6 +1,5 @@
-import type { AdminUser } from "@repo/shared-types";
 import { User, Mail, Calendar, MapPin, Shield, Star } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 
 import { UserAvatar } from "@/components/common";
 import { RoleBadge, AccountStatusBadge } from "@/components/common/badges";
@@ -15,8 +14,9 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
-import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
+
+import { useUserDetails } from "../hooks";
 
 type ViewUserDialogProps = {
   userId: string;
@@ -25,30 +25,11 @@ type ViewUserDialogProps = {
 
 const ViewUserDialog = ({ userId, trigger }: ViewUserDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const fetchUserDetails = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await api.admin.users.getById(userId);
-      if (response.success) {
-        setUser(response.data);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Lỗi khi tải thông tin");
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    if (open && userId) {
-      fetchUserDetails();
-    }
-  }, [fetchUserDetails, open, userId]);
+  const { user, loading, error } = useUserDetails({
+    userId,
+    enabled: open,
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -81,7 +62,6 @@ const ViewUserDialog = ({ userId, trigger }: ViewUserDialogProps) => {
           </div>
         ) : user ? (
           <div className="space-y-6">
-            {/* User Profile Section */}
             <div className="flex items-start gap-4">
               <UserAvatar
                 name={user.fullName}
@@ -196,20 +176,6 @@ const ViewUserDialog = ({ userId, trigger }: ViewUserDialogProps) => {
                 </div>
               </>
             )}
-
-            {/* Actions */}
-            <div className="flex justify-end gap-2">
-              {/* <Button variant="outline" asChild>
-                <Link
-                  to={`/profile/${user.username}`}
-                  target="_blank"
-                  className="cursor-pointer"
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Xem profile công khai
-                </Link>
-              </Button> */}
-            </div>
           </div>
         ) : null}
       </DialogContent>
