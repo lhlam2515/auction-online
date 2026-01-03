@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import {
+  ApproveRequestDialog,
   RejectRequestDialog,
   UpgradeRequestDetailDialog,
   UpgradeRequestFilters,
@@ -47,6 +48,7 @@ export default function ApproveUpgradesPage() {
   const [selectedRequest, setSelectedRequest] =
     useState<AdminUpgradeRequest | null>(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -123,13 +125,20 @@ export default function ApproveUpgradesPage() {
     });
   };
 
-  const handleApprove = async (id: string) => {
-    if (!confirm("Bạn có chắc chắn muốn chấp nhận yêu cầu này?")) return;
+  const handleApprove = (request: AdminUpgradeRequest) => {
+    setSelectedRequest(request);
+    setIsApproveDialogOpen(true);
+  };
+
+  const handleApproveConfirm = async () => {
+    if (!selectedRequest) return;
 
     setIsProcessing(true);
     try {
-      await api.admin.upgrades.approve(id);
+      await api.admin.upgrades.approve(selectedRequest.id);
       toast.success("Đã chấp nhận yêu cầu nâng cấp");
+      setIsApproveDialogOpen(false);
+      setSelectedRequest(null);
       fetchRequests();
     } catch (error) {
       console.error("Failed to approve request:", error);
@@ -256,6 +265,14 @@ export default function ApproveUpgradesPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ApproveRequestDialog
+        isOpen={isApproveDialogOpen}
+        onOpenChange={setIsApproveDialogOpen}
+        onConfirm={handleApproveConfirm}
+        isProcessing={isProcessing}
+        userName={selectedRequest?.userName}
+      />
 
       <RejectRequestDialog
         isOpen={isRejectDialogOpen}

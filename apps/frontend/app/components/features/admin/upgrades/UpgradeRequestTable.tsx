@@ -15,7 +15,7 @@ import {
 interface UpgradeRequestTableProps {
   requests: AdminUpgradeRequest[];
   isLoading: boolean;
-  onApprove: (id: string) => void;
+  onApprove: (request: AdminUpgradeRequest) => void;
   onReject: (request: AdminUpgradeRequest) => void;
   onViewDetail: (request: AdminUpgradeRequest) => void;
 }
@@ -101,7 +101,7 @@ export function UpgradeRequestTable({
                           size="sm"
                           variant="outline"
                           className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
-                          onClick={() => onApprove(request.id)}
+                          onClick={() => onApprove(request)}
                           title="Chấp nhận"
                         >
                           <Check className="h-4 w-4" />
