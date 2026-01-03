@@ -1,4 +1,5 @@
 import type { AdminUpgradeRequest } from "@repo/shared-types";
+import { UserCheck } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -188,13 +189,18 @@ export default function ApproveUpgradesPage() {
   return (
     <>
       <div className="flex items-center justify-between pb-5">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Phê Duyệt Nâng Cấp
-          </h1>
-          <p className="text-muted-foreground">
-            Quản lý các yêu cầu nâng cấp tài khoản lên Seller
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 rounded-lg p-2">
+            <UserCheck className="text-primary h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Phê Duyệt Nâng Cấp
+            </h1>
+            <p className="text-muted-foreground">
+              Quản lý các yêu cầu nâng cấp tài khoản lên Seller
+            </p>
+          </div>
         </div>
       </div>
 

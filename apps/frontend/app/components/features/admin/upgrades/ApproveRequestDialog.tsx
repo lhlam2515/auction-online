@@ -1,3 +1,4 @@
+import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,10 @@ export function ApproveRequestDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Xác nhận phê duyệt</DialogTitle>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-6 w-6 text-green-600" />
+            <DialogTitle>Xác nhận phê duyệt</DialogTitle>
+          </div>
           <DialogDescription>
             Bạn có chắc chắn muốn chấp nhận yêu cầu nâng cấp tài khoản của người
             dùng{" "}

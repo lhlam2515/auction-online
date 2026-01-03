@@ -1,3 +1,4 @@
+import { ShieldAlert } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,10 @@ export function RejectRequestDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Từ chối yêu cầu nâng cấp</DialogTitle>
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="text-destructive h-6 w-6" />
+            <DialogTitle>Từ chối yêu cầu nâng cấp</DialogTitle>
+          </div>
           <DialogDescription>
             Vui lòng nhập lý do từ chối yêu cầu này. Người dùng sẽ nhận được
             thông báo về lý do từ chối.
