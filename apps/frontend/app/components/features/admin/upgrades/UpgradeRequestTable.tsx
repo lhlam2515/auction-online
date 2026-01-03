@@ -1,5 +1,5 @@
 import type { AdminUpgradeRequest } from "@repo/shared-types";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Eye, Loader2, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ interface UpgradeRequestTableProps {
   isLoading: boolean;
   onApprove: (id: string) => void;
   onReject: (request: AdminUpgradeRequest) => void;
+  onViewDetail: (request: AdminUpgradeRequest) => void;
 }
 
 export function UpgradeRequestTable({
@@ -24,6 +25,7 @@ export function UpgradeRequestTable({
   isLoading,
   onApprove,
   onReject,
+  onViewDetail,
 }: UpgradeRequestTableProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -82,28 +84,47 @@ export function UpgradeRequestTable({
                 </TableCell>
                 <TableCell>{getStatusBadge(request.status)}</TableCell>
                 <TableCell className="text-right">
-                  {request.status === "PENDING" && (
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
-                        onClick={() => onApprove(request.id)}
-                        title="Chấp nhận"
-                      >
-                        <Check className="h-4 w-4" />
-                        <span className="sr-only">Chấp nhận</span>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-                        onClick={() => onReject(request)}
-                        title="Từ chối"
-                      >
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Từ chối</span>
-                      </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onViewDetail(request)}
+                      title="Xem chi tiết"
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">Xem chi tiết</span>
+                    </Button>
+                    {request.status === "PENDING" && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+                          onClick={() => onApprove(request.id)}
+                          title="Chấp nhận"
+                        >
+                          <Check className="h-4 w-4" />
+                          <span className="sr-only">Chấp nhận</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => onReject(request)}
+                          title="Từ chối"
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Từ chối</span>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  {request.status !== "PENDING" && (
+                    <div className="text-muted-foreground mt-1 text-xs">
+                      {request.status === "APPROVED"
+                        ? `Duyệt bởi ${request.processedByName || "Admin"}`
+                        : `Từ chối bởi ${request.processedByName || "Admin"}`}
                     </div>
                   )}
                 </TableCell>
