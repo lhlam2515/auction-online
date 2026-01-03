@@ -160,13 +160,37 @@ export function UpgradeRequestDetailDialog({
           {request.adminNote && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <AlertCircle className="text-destructive h-4 w-4" />
-                <h4 className="text-destructive text-sm font-semibold">
-                  Ghi chú của Admin
+                {request.status === "APPROVED" ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="text-destructive h-4 w-4" />
+                )}
+                <h4
+                  className={`text-sm font-semibold ${
+                    request.status === "APPROVED"
+                      ? "text-green-700"
+                      : "text-destructive"
+                  }`}
+                >
+                  {request.status === "APPROVED"
+                    ? "Ghi chú phê duyệt"
+                    : "Lý do từ chối"}
                 </h4>
               </div>
-              <div className="border-destructive/20 bg-destructive/5 rounded-md border p-4">
-                <p className="text-destructive-foreground text-sm">
+              <div
+                className={`rounded-md border p-4 ${
+                  request.status === "APPROVED"
+                    ? "border-green-200 bg-green-50"
+                    : "bg-destructive/5 border-destructive/20"
+                }`}
+              >
+                <p
+                  className={`text-sm ${
+                    request.status === "APPROVED"
+                      ? "text-green-800"
+                      : "text-destructive-foreground"
+                  }`}
+                >
                   {request.adminNote}
                 </p>
               </div>
