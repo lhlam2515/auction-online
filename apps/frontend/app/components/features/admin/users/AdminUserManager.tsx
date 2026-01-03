@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { ViewUserDialog } from "./dialogs";
+import { ViewUserDialog, ManageUserDialog } from "./dialogs";
 
 type AdminUserManagerProps = {
   user: AdminUserListItem;
@@ -50,10 +50,19 @@ const AdminUserManager = ({
         />
 
         {/* Manage User */}
-        <DropdownMenuItem className="cursor-pointer">
-          <UserCog className="h-4 w-4" />
-          Quản lý vai trò
-        </DropdownMenuItem>
+        <ManageUserDialog
+          userId={user.id}
+          onSuccess={onRefresh}
+          trigger={
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer"
+            >
+              <UserCog className="h-4 w-4" />
+              Cập nhật thông tin
+            </DropdownMenuItem>
+          }
+        />
 
         {/* Reset Password */}
         {onResetPassword && (
