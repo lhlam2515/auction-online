@@ -20,6 +20,7 @@ export default [
     index("routes/_root/route.tsx"), // Homepage
     route("search", "routes/_root/search/route.tsx"),
     route("products/:id", "routes/_root/products.$id/route.tsx"),
+    route("unauthorized", "routes/_root/unauthorized/route.tsx"),
 
     // 3. Account Group (Layout Sidebar)
     route("account", "routes/account/layout.tsx", [
