@@ -20,12 +20,14 @@ type AdminUserTableProps = {
   users: AdminUserListItem[];
   loading?: boolean;
   className?: string;
+  onRefresh?: () => void;
 };
 
 const AdminUserTable = ({
   users,
   loading = false,
   className,
+  onRefresh,
 }: AdminUserTableProps) => {
   if (loading) {
     return (
@@ -130,7 +132,7 @@ const AdminUserTable = ({
 
                 {/* Actions */}
                 <TableCell className="text-center">
-                  <AdminUserManager user={user} />
+                  <AdminUserManager user={user} onRefresh={onRefresh} />
                 </TableCell>
               </TableRow>
             ))}

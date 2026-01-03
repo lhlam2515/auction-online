@@ -1,11 +1,12 @@
 import type { AdminUserListItem } from "@repo/shared-types";
-import { MoreHorizontal, Eye, Ban, Key, UserCog } from "lucide-react";
+import { MoreHorizontal, Eye, Ban, Key, UserCog, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -14,6 +15,7 @@ import {
   ManageUserDialog,
   ResetPasswordDialog,
   BanUserDialog,
+  DeleteUserDialog,
 } from "./dialogs";
 
 type AdminUserManagerProps = {
@@ -98,6 +100,27 @@ const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
             >
               <Ban className="h-4 w-4" />
               {user.accountStatus === "BANNED" ? "Gỡ cấm" : "Cấm người dùng"}
+            </DropdownMenuItem>
+          }
+        />
+
+        <DropdownMenuSeparator />
+
+        {/* Delete User */}
+        <DeleteUserDialog
+          userId={user.id}
+          userName={user.fullName}
+          userEmail={user.email}
+          userRole={user.role}
+          onSuccess={onRefresh}
+          trigger={
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer"
+              variant="destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              Xóa người dùng
             </DropdownMenuItem>
           }
         />

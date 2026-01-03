@@ -196,7 +196,11 @@ export default function ManageUsersPage() {
           {errorUsers ? (
             <p className="text-center text-red-600">{errorUsers}</p>
           ) : (
-            <AdminUserTable users={users} loading={isLoadingUsers} />
+            <AdminUserTable
+              users={users}
+              loading={isLoadingUsers}
+              onRefresh={fetchUsers}
+            />
           )}
 
           {/* Pagination */}
