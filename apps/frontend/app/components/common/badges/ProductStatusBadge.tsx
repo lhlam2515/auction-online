@@ -32,7 +32,7 @@ const ProductStatusBadge = ({ status, className }: ProductStatusBadgeProps) => {
     },
     SUSPENDED: {
       variant: "secondary" as const,
-      label: "Tạm ngừng",
+      label: "Đã gỡ bỏ",
       className: "bg-orange-100 text-orange-800",
     },
     PENDING: {

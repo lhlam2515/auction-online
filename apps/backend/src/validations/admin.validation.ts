@@ -48,8 +48,9 @@ export const processUpgradeSchema = z.object({
 export const getProductsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(["PENDING", "ACTIVE", "ENDED", "CANCELLED"]).optional(),
-  search: z.string().optional(),
+  status: z.enum(["ACTIVE", "SOLD", "NO_SALE", "SUSPENDED"]).optional(),
+  q: z.string().optional(),
+  categoryId: z.uuid().optional(),
 });
 
 export const rejectProductSchema = z.object({

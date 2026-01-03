@@ -90,6 +90,7 @@ import type {
   PaginatedResponse,
   PaginationParams,
   SearchProductsParams,
+  AdminGetProductsParams,
 } from "@repo/shared-types";
 import { data } from "react-router";
 
@@ -711,14 +712,8 @@ export const api = {
       /**
        * Get all products
        */
-      getAll: (
-        params?: PaginationParams & {
-          status?: string;
-          category?: string;
-          search?: string;
-        }
-      ) =>
-        apiCall<PaginatedResponse<AdminProduct>>(
+      getAll: (params?: AdminGetProductsParams) =>
+        apiCall<PaginatedResponse<ProductDetails>>(
           "GET",
           appendQueryParams("/admin/products", paramsToRecord(params))
         ),
@@ -754,12 +749,8 @@ export const api = {
       /**
        * Suspend active product
        */
-      suspend: (productId: string, data?: { reason?: string }) =>
-        apiCall<{ message: string }>(
-          "POST",
-          `/admin/products/${productId}/suspend`,
-          data
-        ),
+      suspend: (productId: string) =>
+        apiCall<Product>("POST", `/admin/products/${productId}/suspend`),
     },
 
     /**

@@ -78,6 +78,7 @@ export interface ProductWatchList {
 }
 
 export interface ProductDetails extends Product {
+  mainImageUrl: string;
   categoryName: string;
   sellerName: string;
   sellerAvatarUrl: string | null;

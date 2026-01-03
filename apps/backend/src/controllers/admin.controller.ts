@@ -11,12 +11,15 @@ import type {
   CreateCategoryRequest,
   UpdateCategoryRequest,
   Category,
+  PaginatedResponse,
+  ProductDetails,
+  Product,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { categoryService } from "@/services";
+import { categoryService, productService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -76,9 +79,12 @@ export const rejectUpgrade = asyncHandler(
 
 export const getAllProducts = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as AdminGetProductsParams;
-    // TODO: Get all products
-    throw new NotImplementedError("Get all products not implemented yet");
+    const query = res.locals.query as AdminGetProductsParams;
+    const products = await productService.getProductsAdmin(query);
+    return ResponseHandler.sendSuccess<PaginatedResponse<ProductDetails>>(
+      res,
+      products
+    );
   }
 );
 
@@ -107,9 +113,8 @@ export const rejectProduct = asyncHandler(
 
 export const suspendProduct = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as SuspendProductRequest;
-    // TODO: Suspend active product
-    throw new NotImplementedError("Suspend product not implemented yet");
+    const product = await productService.suspendProduct(req.params.id);
+    return ResponseHandler.sendSuccess<Product>(res, product, 200);
   }
 );
 
