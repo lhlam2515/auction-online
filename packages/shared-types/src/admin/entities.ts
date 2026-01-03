@@ -69,3 +69,112 @@ export interface AdminProduct extends Product {
   approvedBy?: string;
   approvedAt?: string;
 }
+
+/**
+ * Category Insights - Analytics
+ */
+export interface CategoryGMV {
+  categoryId: string;
+  categoryName: string;
+  gmv: number;
+  percentage: number;
+  productCount: number;
+  orderCount: number;
+}
+
+export interface TopCategory {
+  categoryId: string;
+  categoryName: string;
+  productCount: number;
+  activeCount: number;
+  completedCount: number;
+}
+
+export interface CategoryInsights {
+  gmvByCategory: CategoryGMV[];
+  topCategories: TopCategory[];
+}
+
+/**
+ * Auction Health Metrics
+ */
+export interface AuctionHealthStats {
+  totalCompleted: number;
+  successfulAuctions: number;
+  failedAuctions: number;
+  successRate: number;
+  averageBidsPerProduct: number;
+  totalBids: number;
+}
+
+export interface BidDensity {
+  productId: string;
+  productName: string;
+  bidCount: number;
+  startPrice: number;
+  finalPrice?: number;
+}
+
+export interface AuctionHealth {
+  stats: AuctionHealthStats;
+  bidDensityTop10: BidDensity[];
+}
+
+/**
+ * Operations & Conversion Metrics
+ */
+export interface SellerUpgradeFunnel {
+  totalBidders: number;
+  requestsSent: number;
+  requestsPending: number;
+  requestsApproved: number;
+  requestsRejected: number;
+  conversionRate: number;
+}
+
+export interface TransactionPipeline {
+  pending: number;
+  confirmed: number;
+  shipped: number;
+  completed: number;
+  cancelled: number;
+}
+
+export interface Operations {
+  sellerFunnel: SellerUpgradeFunnel;
+  transactionPipeline: TransactionPipeline;
+}
+
+/**
+ * Engagement & Trust Metrics
+ */
+export interface UserReputationDistribution {
+  excellent: number;
+  good: number;
+  average: number;
+  poor: number;
+  noRating: number;
+}
+
+export interface BiddingActivity {
+  date: string;
+  hour?: number;
+  bidCount: number;
+  uniqueBidders: number;
+  averageBidValue: number;
+}
+
+export interface Engagement {
+  reputationDistribution: UserReputationDistribution;
+  biddingActivity: BiddingActivity[];
+}
+
+/**
+ * Combined Admin Analytics Response
+ */
+export interface AdminAnalytics {
+  categoryInsights: CategoryInsights;
+  auctionHealth: AuctionHealth;
+  operations: Operations;
+  engagement: Engagement;
+}
