@@ -41,6 +41,25 @@ export const banUserSchema = z.object({
   lockoutEnd: z.iso.datetime().optional(),
 });
 
+export const updateUserInfoSchema = z.object({
+  fullName: z
+    .string()
+    .min(2, { error: "Full name must be at least 2 characters" })
+    .optional(),
+  address: z.string().optional(),
+  birthDate: z.coerce.date().optional(),
+});
+
+export const updateAccountStatusSchema = z.object({
+  accountStatus: z.enum(["PENDING_VERIFICATION", "ACTIVE", "BANNED"]),
+});
+
+export const resetUserPasswordSchema = z.object({
+  newPassword: z
+    .string()
+    .min(8, { error: "Password must be at least 8 characters" }),
+});
+
 export const getUpgradesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),

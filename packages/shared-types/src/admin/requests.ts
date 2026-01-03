@@ -34,6 +34,24 @@ export interface ResetUserPasswordRequest {
 }
 
 /**
+ * Update user info request (Admin)
+ * Backend validation: admin.validation.ts → updateUserInfoSchema
+ */
+export interface UpdateUserInfoRequest {
+  fullName?: string;
+  address?: string;
+  birthDate?: string;
+}
+
+/**
+ * Update account status request (Admin)
+ * Backend validation: admin.validation.ts → updateAccountStatusSchema
+ */
+export interface UpdateAccountStatusRequest {
+  accountStatus: "PENDING_VERIFICATION" | "ACTIVE" | "BANNED";
+}
+
+/**
  * Get upgrade requests params
  */
 export interface GetUpgradeRequestsParams extends PaginationParams {

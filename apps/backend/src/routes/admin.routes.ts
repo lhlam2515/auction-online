@@ -83,6 +83,34 @@ router.get(
 );
 
 /**
+ * @route   PATCH /api/admin/users/:id
+ * @desc    Update user information (fullName, address, birthDate)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateUserInfoSchema,
+  }),
+  adminController.updateUserInfo
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id/account-status
+ * @desc    Update account status (PENDING_VERIFICATION, ACTIVE, BANNED)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/account-status",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateAccountStatusSchema,
+  }),
+  adminController.updateAccountStatus
+);
+
+/**
  * @route   PATCH /api/admin/users/:id/ban
  * @desc    Ban/unban user
  * @access  Private (Admin)
@@ -103,7 +131,10 @@ router.patch(
  */
 router.post(
   "/users/:id/reset-password",
-  validate({ params: adminValidation.userIdSchema }),
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.resetUserPasswordSchema,
+  }),
   adminController.resetUserPassword
 );
 
