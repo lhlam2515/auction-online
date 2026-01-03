@@ -141,7 +141,7 @@ export class AdminService {
         categoryName: categories.name,
         productCount: count(products.id),
         activeCount: sql<number>`count(case when ${products.status} = 'ACTIVE' then 1 end)`,
-        completedCount: sql<number>`count(case when ${products.status} in ('SOLD', 'COMPLETED') then 1 end)`,
+        completedCount: sql<number>`count(case when ${products.status} not in ('PENDING', 'ACTIVE') then 1 end)`,
       })
       .from(categories)
       .leftJoin(products, eq(products.categoryId, categories.id))
@@ -174,10 +174,10 @@ export class AdminService {
       .select({
         totalCompleted: count(),
         successful: sql<number>`count(case when ${products.status} = 'SOLD' and ${products.winnerId} is not null then 1 end)`,
-        failed: sql<number>`count(case when ${products.status} = 'EXPIRED' and ${products.winnerId} is null then 1 end)`,
+        failed: sql<number>`count(case when ${products.status} in ('NO_SALE', 'CANCELLED', 'SUSPENDED') and ${products.winnerId} is null then 1 end)`,
       })
       .from(products)
-      .where(sql`${products.status} in ('SOLD', 'EXPIRED', 'COMPLETED')`);
+      .where(sql`${products.status} not in ('PENDING', 'ACTIVE')`);
 
     const totalCompleted = auctionStats.totalCompleted;
     const successfulAuctions = Number(auctionStats.successful);
