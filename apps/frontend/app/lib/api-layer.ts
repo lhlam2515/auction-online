@@ -711,7 +711,7 @@ export const api = {
        */
       getAll: (
         params?: PaginationParams & {
-          status?: "pending" | "approved" | "rejected";
+          status?: "PENDING" | "APPROVED" | "REJECTED";
           search?: string;
         }
       ) =>
