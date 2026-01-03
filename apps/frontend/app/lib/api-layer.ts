@@ -84,6 +84,11 @@ import type {
   ResetUserPasswordRequest,
   UpgradeRequest,
   AdminProduct,
+  AdminAnalytics,
+  CategoryInsights,
+  AuctionHealth,
+  Operations,
+  Engagement,
 
   // Common types
   ApiResponse,
@@ -627,6 +632,35 @@ export const api = {
      * Get admin dashboard statistics
      */
     getStats: () => apiCall<AdminStats>("GET", "/admin/stats"),
+
+    /**
+     * Get comprehensive analytics data for charts and insights
+     */
+    getAnalytics: () => apiCall<AdminAnalytics>("GET", "/admin/analytics"),
+
+    /**
+     * Get category insights (GMV and top categories)
+     */
+    getCategoryInsights: () =>
+      apiCall<CategoryInsights>("GET", "/admin/analytics/categories"),
+
+    /**
+     * Get auction health metrics (success rate, bid density)
+     */
+    getAuctionHealth: () =>
+      apiCall<AuctionHealth>("GET", "/admin/analytics/auction-health"),
+
+    /**
+     * Get operations metrics (seller funnel, transaction pipeline)
+     */
+    getOperationsMetrics: () =>
+      apiCall<Operations>("GET", "/admin/analytics/operations"),
+
+    /**
+     * Get engagement metrics (reputation distribution, bidding activity)
+     */
+    getEngagementMetrics: () =>
+      apiCall<Engagement>("GET", "/admin/analytics/engagement"),
 
     /**
      * User Management

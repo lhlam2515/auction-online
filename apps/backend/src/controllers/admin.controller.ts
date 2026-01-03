@@ -1,5 +1,10 @@
 import type {
   AdminStats,
+  AdminAnalytics,
+  CategoryInsights,
+  AuctionHealth,
+  Operations,
+  Engagement,
   GetUsersParams,
   BanUserRequest,
   ResetUserPasswordRequest,
@@ -19,14 +24,14 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { categoryService, productService } from "@/services";
+import { categoryService, productService, adminService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getDashboardStats = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get dashboard statistics
-    throw new NotImplementedError("Get dashboard stats not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const stats = await adminService.getDashboardStats();
+    return ResponseHandler.sendSuccess<AdminStats>(res, stats);
   }
 );
 
@@ -147,5 +152,44 @@ export const deleteCategory = asyncHandler(
     const categoryId = req.params.id;
     await categoryService.deleteCategory(categoryId);
     return ResponseHandler.sendSuccess(res, null, 200);
+  }
+);
+
+/**
+ * Analytics Endpoints
+ */
+
+export const getFullAnalytics = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const analytics = await adminService.getFullAnalytics();
+    return ResponseHandler.sendSuccess<AdminAnalytics>(res, analytics);
+  }
+);
+
+export const getCategoryInsights = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const insights = await adminService.getCategoryInsights();
+    return ResponseHandler.sendSuccess<CategoryInsights>(res, insights);
+  }
+);
+
+export const getAuctionHealth = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const health = await adminService.getAuctionHealth();
+    return ResponseHandler.sendSuccess<AuctionHealth>(res, health);
+  }
+);
+
+export const getOperationsMetrics = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const operations = await adminService.getOperationsMetrics();
+    return ResponseHandler.sendSuccess<Operations>(res, operations);
+  }
+);
+
+export const getEngagementMetrics = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const engagement = await adminService.getEngagementMetrics();
+    return ResponseHandler.sendSuccess<Engagement>(res, engagement);
   }
 );
