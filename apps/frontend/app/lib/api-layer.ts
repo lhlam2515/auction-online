@@ -80,6 +80,8 @@ import type {
   // Admin types
   AdminStats,
   AdminUser,
+  AdminUserListItem,
+  GetUsersParams,
   BanUserRequest,
   ResetUserPasswordRequest,
   UpgradeRequest,
@@ -97,7 +99,6 @@ import type {
   SearchProductsParams,
   AdminGetProductsParams,
 } from "@repo/shared-types";
-import { data } from "react-router";
 
 import { apiClient } from "@/lib/handlers/api";
 import { appendQueryParams } from "@/lib/url";
@@ -669,17 +670,17 @@ export const api = {
       /**
        * Get all users with filters
        */
-      getAll: (
-        params?: PaginationParams & {
-          status?: string;
-          role?: string;
-          search?: string;
-        }
-      ) =>
-        apiCall<PaginatedResponse<AdminUser>>(
+      getAll: (params?: GetUsersParams) =>
+        apiCall<PaginatedResponse<AdminUserListItem>>(
           "GET",
           appendQueryParams("/admin/users", paramsToRecord(params))
         ),
+
+      /**
+       * Get user by ID
+       */
+      getById: (userId: string) =>
+        apiCall<AdminUser>("GET", `/admin/users/${userId}`),
 
       /**
        * Ban/unban user
