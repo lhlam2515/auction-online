@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import {
   RejectRequestDialog,
+  UpgradeRequestDetailDialog,
   UpgradeRequestFilters,
   UpgradeRequestTable,
 } from "@/components/features/admin/upgrades";
@@ -46,6 +47,7 @@ export default function ApproveUpgradesPage() {
   const [selectedRequest, setSelectedRequest] =
     useState<AdminUpgradeRequest | null>(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Filter states
@@ -167,6 +169,11 @@ export default function ApproveUpgradesPage() {
     setIsRejectDialogOpen(true);
   };
 
+  const openDetailDialog = (request: AdminUpgradeRequest) => {
+    setSelectedRequest(request);
+    setIsDetailDialogOpen(true);
+  };
+
   return (
     <>
       <div className="flex items-center justify-between pb-5">
@@ -200,6 +207,7 @@ export default function ApproveUpgradesPage() {
             isLoading={isLoading}
             onApprove={handleApprove}
             onReject={openRejectDialog}
+            onViewDetail={openDetailDialog}
           />
 
           <div className="mt-4">
@@ -254,6 +262,12 @@ export default function ApproveUpgradesPage() {
         onOpenChange={setIsRejectDialogOpen}
         onConfirm={handleRejectConfirm}
         isProcessing={isProcessing}
+      />
+
+      <UpgradeRequestDetailDialog
+        isOpen={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+        request={selectedRequest}
       />
     </>
   );
