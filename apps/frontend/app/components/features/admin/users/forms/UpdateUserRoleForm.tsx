@@ -206,6 +206,7 @@ const UpdateUserRoleForm = ({
           confirmLabel="Xác nhận thay đổi"
           cancelLabel="Hủy"
           onConfirm={handleConfirmSubmit}
+          isConfirming={isConfirming}
         />
       </div>
     </form>

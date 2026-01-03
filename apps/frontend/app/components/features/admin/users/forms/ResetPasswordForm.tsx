@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
-import { AlertSection } from "@/components/common/feedback";
+import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -47,6 +47,7 @@ const ResetPasswordForm = ({
 }: ResetPasswordFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +57,15 @@ const ResetPasswordForm = ({
     setShowPassword(false);
     setShowConfirmPassword(false);
     onCancel();
+  };
+
+  const handleConfirmSubmit = async () => {
+    try {
+      setIsConfirming(true);
+      await onSubmit();
+    } finally {
+      setIsConfirming(false);
+    }
   };
 
   return (
@@ -189,18 +199,49 @@ const ResetPasswordForm = ({
       </FieldGroup>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={handleCancel}>
-          Hủy
-        </Button>
         <Button
           type="button"
-          onClick={onSubmit}
-          disabled={!allRequirementsMet || isSubmitting}
-          variant="destructive"
+          variant="outline"
+          onClick={handleCancel}
+          disabled={isConfirming}
         >
-          <Key className="h-4 w-4" />
-          {isSubmitting ? "Đang xử lý..." : "Đặt lại mật khẩu"}
+          Hủy
         </Button>
+        <ConfirmationDialog
+          trigger={
+            <Button
+              type="button"
+              disabled={!allRequirementsMet || isSubmitting || isConfirming}
+              variant="destructive"
+              className="cursor-pointer"
+            >
+              <Key className="h-4 w-4" />
+              {isConfirming ? "Đang xử lý..." : "Đặt lại mật khẩu"}
+            </Button>
+          }
+          title="Xác nhận đặt lại mật khẩu"
+          description={
+            <div className="space-y-3">
+              <p>
+                Bạn có chắc chắn muốn đặt lại mật khẩu? Người dùng sẽ cần đăng
+                nhập bằng mật khẩu mới.
+              </p>
+              <div className="space-y-2 rounded-md border border-yellow-200 bg-yellow-50 p-3">
+                <p className="text-sm font-medium text-yellow-900">
+                  ⚠️ Mật khẩu mới sẽ được gửi cho người dùng qua email
+                </p>
+                <p className="text-xs text-yellow-800">
+                  Đảm bảo rằng email của họ vẫn hoạt động bình thường.
+                </p>
+              </div>
+            </div>
+          }
+          variant="destructive"
+          confirmLabel="Xác nhận đặt lại"
+          confirmIcon={Key}
+          onConfirm={handleConfirmSubmit}
+          isConfirming={isConfirming}
+        />
       </div>
     </form>
   );

@@ -1,8 +1,9 @@
 import { Ban, AlertTriangle, Info, ShieldAlert } from "lucide-react";
+import { useState } from "react";
 import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
-import { AlertSection } from "@/components/common/feedback";
+import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -44,8 +45,19 @@ const BanUserForm = ({
   isSubmitting,
   isFormValid,
 }: BanUserFormProps) => {
+  const [isConfirming, setIsConfirming] = useState(false);
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+  };
+
+  const handleConfirmSubmit = async () => {
+    try {
+      setIsConfirming(true);
+      await onSubmit();
+    } finally {
+      setIsConfirming(false);
+    }
   };
 
   return (
@@ -245,27 +257,64 @@ const BanUserForm = ({
       </FieldGroup>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Hủy
-        </Button>
         <Button
           type="button"
-          onClick={onSubmit}
-          disabled={!isFormValid || isSubmitting}
-          variant={isBanned ? "destructive" : "default"}
+          variant="outline"
+          onClick={onCancel}
+          disabled={isConfirming}
         >
-          {isBanned ? (
-            <>
-              <Ban className="h-4 w-4" />
-              {isSubmitting ? "Đang xử lý..." : "Xác nhận cấm"}
-            </>
-          ) : (
-            <>
-              <ShieldAlert className="h-4 w-4" />
-              {isSubmitting ? "Đang xử lý..." : "Xác nhận gỡ cấm"}
-            </>
-          )}
+          Hủy
         </Button>
+        <ConfirmationDialog
+          trigger={
+            <Button
+              type="button"
+              disabled={!isFormValid || isSubmitting || isConfirming}
+              variant={isBanned ? "destructive" : "default"}
+              className="cursor-pointer"
+            >
+              {isBanned ? (
+                <>
+                  <Ban className="h-4 w-4" />
+                  {isConfirming ? "Đang xử lý..." : "Xác nhận cấm"}
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="h-4 w-4" />
+                  {isConfirming ? "Đang xử lý..." : "Xác nhận gỡ cấm"}
+                </>
+              )}
+            </Button>
+          }
+          title={
+            isBanned ? "Xác nhận cấm người dùng" : "Xác nhận gỡ cấm người dùng"
+          }
+          description={
+            <div className="space-y-3">
+              <p>
+                {isBanned
+                  ? "Bạn có chắc chắn muốn CẤM người dùng này? Họ sẽ không thể đăng nhập và tất cả hoạt động sẽ bị vô hiệu hóa."
+                  : "Bạn có chắc chắn muốn GỠ CẤM người dùng này? Họ sẽ có thể đăng nhập trở lại."}
+              </p>
+              {isBanned && form.watch("reason") && (
+                <div className="rounded-md bg-gray-50 p-3">
+                  <p className="text-sm">
+                    <strong>Lý do:</strong> {form.watch("reason")}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Thời gian:</strong>{" "}
+                    {duration ? `${duration} ngày` : "Vĩnh viễn"}
+                  </p>
+                </div>
+              )}
+            </div>
+          }
+          variant={isBanned ? "destructive" : "default"}
+          confirmLabel={isBanned ? "Xác nhận cấm" : "Xác nhận gỡ cấm"}
+          confirmIcon={isBanned ? Ban : ShieldAlert}
+          onConfirm={handleConfirmSubmit}
+          isConfirming={isConfirming}
+        />
       </div>
     </form>
   );
