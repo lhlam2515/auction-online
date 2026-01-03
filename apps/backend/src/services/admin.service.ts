@@ -32,6 +32,8 @@ import {
   isNotNull,
   avg,
   countDistinct,
+  ilike,
+  or,
 } from "drizzle-orm";
 
 import { db } from "@/config/database";
@@ -394,6 +396,17 @@ export class AdminService {
 
     if (params.status) {
       conditions.push(eq(upgradeRequests.status, params.status));
+    }
+
+    if (params.search) {
+      const searchTerm = `%${params.search}%`;
+      conditions.push(
+        or(
+          ilike(users.username, searchTerm),
+          ilike(users.email, searchTerm),
+          ilike(users.fullName, searchTerm)
+        )
+      );
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
