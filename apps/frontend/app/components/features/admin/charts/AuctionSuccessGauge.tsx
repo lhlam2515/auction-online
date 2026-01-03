@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuctionHealthStats } from "@repo/shared-types";
-import { Pie, PieChart, Cell } from "recharts";
+import { Pie, PieChart } from "recharts";
 
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
@@ -12,15 +12,10 @@ interface Props {
 export function AuctionSuccessGauge({ stats }: Props) {
   const successRate = stats.successRate;
 
-  const data = [
-    { name: "Success", value: successRate },
-    { name: "Remaining", value: 100 - successRate },
-  ];
-
   const getColors = (rate: number): [string, string] => {
-    if (rate >= 80) return ["hsl(var(--chart-2))", "hsl(var(--muted))"];
-    if (rate >= 60) return ["hsl(var(--chart-4))", "hsl(var(--muted))"];
-    return ["hsl(var(--destructive))", "hsl(var(--muted))"];
+    if (rate >= 80) return ["var(--color-emerald-500)", "var(--color-muted)"];
+    if (rate >= 60) return ["var(--color-amber-500)", "var(--color-muted)"];
+    return ["var(--color-red-500)", "var(--color-muted)"];
   };
 
   const colors = getColors(successRate);
@@ -35,6 +30,15 @@ export function AuctionSuccessGauge({ stats }: Props) {
       color: colors[1],
     },
   } satisfies ChartConfig;
+
+  const data = [
+    { name: "Thành công", value: successRate, fill: colors[0] },
+    {
+      name: "Còn lại",
+      value: 100 - successRate,
+      fill: colors[1],
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -53,11 +57,7 @@ export function AuctionSuccessGauge({ stats }: Props) {
               innerRadius={60}
               outerRadius={80}
               dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={colors[index]} />
-              ))}
-            </Pie>
+            />
           </PieChart>
         </ChartContainer>
         <div className="absolute inset-0 flex items-center justify-center">

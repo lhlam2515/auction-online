@@ -19,23 +19,23 @@ interface Props {
 const chartConfig = {
   pending: {
     label: "Chờ xác nhận",
-    color: "hsl(var(--chart-3))",
+    color: "var(--color-amber-500)",
   },
   confirmed: {
     label: "Đã xác nhận",
-    color: "hsl(var(--chart-1))",
+    color: "var(--color-purple-500)",
   },
   shipped: {
     label: "Đang giao",
-    color: "hsl(var(--chart-5))",
+    color: "var(--color-blue-500)",
   },
   completed: {
     label: "Hoàn thành",
-    color: "hsl(var(--chart-2))",
+    color: "var(--color-emerald-500)",
   },
   cancelled: {
     label: "Đã hủy",
-    color: "hsl(var(--destructive))",
+    color: "var(--color-red-500)",
   },
 } satisfies ChartConfig;
 

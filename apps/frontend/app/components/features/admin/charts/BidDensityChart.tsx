@@ -17,7 +17,7 @@ interface Props {
 const chartConfig = {
   bidCount: {
     label: "Số lượt bid",
-    color: "hsl(var(--chart-1))",
+    color: "var(--color-blue-500)",
   },
 } satisfies ChartConfig;
 

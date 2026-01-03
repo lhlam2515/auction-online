@@ -1,7 +1,7 @@
 "use client";
 
 import type { UserReputationDistribution } from "@repo/shared-types";
-import { Pie, PieChart, Cell } from "recharts";
+import { Pie, PieChart } from "recharts";
 
 import {
   ChartContainer,
@@ -17,23 +17,23 @@ interface Props {
 const chartConfig = {
   excellent: {
     label: "Xuất sắc (≥90%)",
-    color: "hsl(var(--chart-2))",
+    color: "var(--color-emerald-500)",
   },
   good: {
     label: "Tốt (80-90%)",
-    color: "hsl(var(--chart-1))",
+    color: "var(--color-blue-500)",
   },
   average: {
     label: "Trung bình (70-80%)",
-    color: "hsl(var(--chart-3))",
+    color: "var(--color-amber-500)",
   },
   poor: {
     label: "Kém (<70%)",
-    color: "hsl(var(--destructive))",
+    color: "var(--color-red-500)",
   },
   noRating: {
     label: "Chưa có đánh giá",
-    color: "hsl(var(--muted))",
+    color: "var(--muted)",
   },
 } satisfies ChartConfig;
 
@@ -43,31 +43,31 @@ export function ReputationDistChart({ data }: Props) {
       name: "excellent",
       value: data.excellent,
       label: "Xuất sắc",
-      fill: "hsl(var(--chart-2))",
+      fill: chartConfig.excellent.color,
     },
     {
       name: "good",
       value: data.good,
       label: "Tốt",
-      fill: "hsl(var(--chart-1))",
+      fill: chartConfig.good.color,
     },
     {
       name: "average",
       value: data.average,
       label: "Trung bình",
-      fill: "hsl(var(--chart-3))",
+      fill: chartConfig.average.color,
     },
     {
       name: "poor",
       value: data.poor,
       label: "Kém",
-      fill: "hsl(var(--destructive))",
+      fill: chartConfig.poor.color,
     },
     {
       name: "noRating",
       value: data.noRating,
       label: "Chưa đánh giá",
-      fill: "hsl(var(--muted))",
+      fill: chartConfig.noRating.color,
     },
   ].filter((item) => item.value > 0);
 
@@ -103,11 +103,7 @@ export function ReputationDistChart({ data }: Props) {
             outerRadius={90}
             paddingAngle={2}
             dataKey="value"
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.fill} />
-            ))}
-          </Pie>
+          />
         </PieChart>
       </ChartContainer>
 

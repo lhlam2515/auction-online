@@ -1,7 +1,7 @@
 "use client";
 
 import type { SellerUpgradeFunnel } from "@repo/shared-types";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
   ChartContainer,
@@ -15,9 +15,25 @@ interface Props {
 }
 
 const chartConfig = {
-  count: {
-    label: "Số lượng",
-    color: "hsl(var(--chart-1))",
+  totalBidders: {
+    label: "Tổng bidder",
+    color: "var(--color-slate-500)",
+  },
+  requestsSent: {
+    label: "Đã gửi yêu cầu",
+    color: "var(--color-blue-500)",
+  },
+  requestsPending: {
+    label: "Đang chờ",
+    color: "var(--color-amber-500)",
+  },
+  requestsApproved: {
+    label: "Đã duyệt",
+    color: "var(--color-emerald-500)",
+  },
+  requestsRejected: {
+    label: "Bị từ chối",
+    color: "var(--color-red-500)",
   },
 } satisfies ChartConfig;
 
@@ -26,27 +42,27 @@ export function SellerFunnelChart({ data }: Props) {
     {
       stage: "Tổng bidder",
       count: data.totalBidders,
-      color: "hsl(var(--chart-1))",
+      fill: "var(--color-totalBidders)",
     },
     {
       stage: "Đã gửi yêu cầu",
       count: data.requestsSent,
-      color: "hsl(var(--chart-2))",
+      fill: "var(--color-requestsSent)",
     },
     {
       stage: "Đang chờ",
       count: data.requestsPending,
-      color: "hsl(var(--chart-3))",
+      fill: "var(--color-requestsPending)",
     },
     {
       stage: "Đã duyệt",
       count: data.requestsApproved,
-      color: "hsl(var(--chart-4))",
+      fill: "var(--color-requestsApproved)",
     },
     {
       stage: "Bị từ chối",
       count: data.requestsRejected,
-      color: "hsl(var(--destructive))",
+      fill: "var(--color-requestsRejected)",
     },
   ];
 
@@ -64,11 +80,7 @@ export function SellerFunnelChart({ data }: Props) {
           />
           <XAxis type="number" tickLine={false} axisLine={false} />
           <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Bar>
+          <Bar dataKey="count" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ChartContainer>
 

@@ -22,15 +22,15 @@ interface Props {
 const chartConfig = {
   bidCount: {
     label: "Số lượt bid",
-    color: "hsl(var(--chart-1))",
+    color: "var(--color-blue-500)",
   },
   uniqueBidders: {
     label: "Người bid",
-    color: "hsl(var(--chart-2))",
+    color: "var(--color-amber-500)",
   },
   averageBidValue: {
     label: "Giá trị TB",
-    color: "hsl(var(--chart-3))",
+    color: "var(--color-purple-500)",
   },
 } satisfies ChartConfig;
 

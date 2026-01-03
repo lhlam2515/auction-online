@@ -19,15 +19,11 @@ interface Props {
 const chartConfig = {
   activeCount: {
     label: "Đang hoạt động",
-    color: "hsl(var(--chart-1))",
+    color: "var(--color-emerald-500)",
   },
   completedCount: {
     label: "Đã hoàn thành",
-    color: "hsl(var(--chart-2))",
-  },
-  productCount: {
-    label: "Tổng số",
-    color: "hsl(var(--chart-3))",
+    color: "var(--color-red-500)",
   },
 } satisfies ChartConfig;
 
