@@ -59,10 +59,27 @@ router.get("/analytics/engagement", adminController.getEngagementMetrics);
 /**
  * User Management
  */
+
+/**
+ * @route   GET /api/admin/users
+ * @desc    Get all users with filters and pagination
+ * @access  Private (Admin)
+ */
 router.get(
   "/users",
   validate({ query: adminValidation.getUsersSchema }),
   adminController.getUsers
+);
+
+/**
+ * @route   GET /api/admin/users/:id
+ * @desc    Get user details by ID
+ * @access  Private (Admin)
+ */
+router.get(
+  "/users/:id",
+  validate({ params: adminValidation.userIdSchema }),
+  adminController.getUserById
 );
 
 /**

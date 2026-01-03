@@ -25,8 +25,14 @@ export const getUsersSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   role: z.enum(["BIDDER", "SELLER", "ADMIN"]).optional(),
-  isActive: z.coerce.boolean().optional(),
-  search: z.string().optional(),
+  accountStatus: z
+    .enum(["PENDING_VERIFICATION", "ACTIVE", "BANNED"])
+    .optional(),
+  q: z.string().trim().optional(),
+  sortBy: z
+    .enum(["createdAt", "fullName", "email", "ratingScore"])
+    .default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
 export const banUserSchema = z.object({

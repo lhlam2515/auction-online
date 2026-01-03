@@ -9,9 +9,10 @@ import type { UpgradeRequestStatus } from "./enums";
  */
 export interface GetUsersParams extends PaginationParams {
   role?: UserRole;
-  isActive?: boolean;
-  search?: string;
-  status?: string;
+  accountStatus?: "PENDING_VERIFICATION" | "ACTIVE" | "BANNED";
+  q?: string;
+  sortBy?: "createdAt" | "fullName" | "email" | "ratingScore";
+  sortOrder?: "asc" | "desc";
 }
 
 /**
