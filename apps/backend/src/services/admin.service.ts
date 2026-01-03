@@ -460,6 +460,9 @@ export class AdminService {
       ...item,
       userName: item.userName || "Unknown",
       userEmail: item.userEmail || "Unknown",
+      reason: item.reason || undefined,
+      adminNote: item.adminNote || undefined,
+      processedBy: item.processedBy || undefined,
       createdAt: item.createdAt.toISOString(),
       processedAt: item.processedAt?.toISOString(),
       processedByName: item.processedBy
