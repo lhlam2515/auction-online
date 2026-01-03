@@ -157,6 +157,7 @@
 | PATCH  | /api/v1/admin/users/:id/role           | ADM  | Cập nhật role user                                 |
 | PATCH  | /api/v1/admin/users/:id/ban            | ADM  | Ban/Unban user                                     |
 | POST   | /api/v1/admin/users/:id/reset-password | ADM  | Reset mật khẩu                                     |
+| DELETE | /api/v1/admin/users/:id                | ADM  | Xóa user (có ràng buộc nghiệp vụ)                  |
 | GET    | /api/v1/admin/upgrades                 | ADM  | Yêu cầu nâng cấp seller                            |
 | POST   | /api/v1/admin/upgrades/:id/approve     | ADM  | Duyệt nâng cấp                                     |
 | POST   | /api/v1/admin/upgrades/:id/reject      | ADM  | Từ chối                                            |

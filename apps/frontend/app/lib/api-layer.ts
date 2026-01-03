@@ -88,6 +88,7 @@ import type {
   UpdateAccountStatusRequest,
   UpdateUserRoleRequest,
   CreateUserRequest,
+  DeleteUserRequest,
   UpgradeRequest,
   AdminProduct,
   AdminAnalytics,
@@ -733,6 +734,12 @@ export const api = {
           `/admin/users/${userId}/reset-password`,
           data
         ),
+
+      /**
+       * Delete user with business constraints validation
+       */
+      delete: (userId: string, data?: DeleteUserRequest) =>
+        apiCall<{ message: string }>("DELETE", `/admin/users/${userId}`, data),
     },
 
     /**
