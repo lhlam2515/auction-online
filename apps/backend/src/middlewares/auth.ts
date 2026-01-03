@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { Request, Response, NextFunction } from "express";
 
 import { db } from "@/config/database";
-import { users } from "@/models";
+import { users, products } from "@/models";
 import { UserRole } from "@/types/model";
 import {
   UnauthorizedError,
@@ -42,11 +42,45 @@ export const authenticate = async (
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, authUser.id),
-      columns: { id: true, email: true, role: true, accountStatus: true },
+      columns: {
+        id: true,
+        email: true,
+        role: true,
+        accountStatus: true,
+        sellerExpireDate: true,
+      },
     });
 
     if (!user) {
       throw new UnauthorizedError("User not found");
+    }
+
+    // Check for seller expiration
+    if (
+      user.role === "SELLER" &&
+      user.sellerExpireDate &&
+      new Date() > new Date(user.sellerExpireDate)
+    ) {
+      // Check if seller has any active products
+      const activeProducts = await db.query.products.findFirst({
+        where: and(
+          eq(products.sellerId, user.id),
+          eq(products.status, "ACTIVE")
+        ),
+        columns: { id: true },
+      });
+
+      // Only downgrade if NO active products
+      if (!activeProducts) {
+        // Downgrade to BIDDER
+        await db
+          .update(users)
+          .set({ role: "BIDDER", sellerExpireDate: null })
+          .where(eq(users.id, user.id));
+
+        // Update local user object for this request
+        user.role = "BIDDER";
+      }
     }
 
     if (user.accountStatus === "BANNED") {
