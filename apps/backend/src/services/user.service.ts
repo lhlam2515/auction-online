@@ -7,11 +7,18 @@ import type {
   PaginatedResponse,
   UpdateUserInfoRequest,
 } from "@repo/shared-types";
-import { eq, and, or, ilike, count } from "drizzle-orm";
+import { eq, and, or, ilike, count, gte } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase, supabaseAdmin } from "@/config/supabase";
-import { users, watchLists, upgradeRequests, bids, products } from "@/models";
+import {
+  users,
+  watchLists,
+  upgradeRequests,
+  bids,
+  products,
+  orders,
+} from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 
@@ -495,6 +502,109 @@ export class UserService {
       createdAt: newUser.createdAt.toISOString(),
       updatedAt: newUser.updatedAt.toISOString(),
     };
+  }
+
+  async deleteUserAdmin(userId: string, _reason?: string): Promise<void> {
+    const user = await this.getById(userId);
+
+    const now = new Date();
+
+    // Kiểm tra ràng buộc cho Người bán (SELLER)
+    if (user.role === "SELLER") {
+      // Kiểm tra sản phẩm đang còn hạn đấu giá (status = ACTIVE và endTime > now)
+      const activeProducts = await db.query.products.findFirst({
+        where: and(
+          eq(products.sellerId, userId),
+          eq(products.status, "ACTIVE"),
+          gte(products.endTime, now)
+        ),
+      });
+
+      if (activeProducts) {
+        throw new BadRequestError(
+          "Không thể xóa người bán đang có sản phẩm trong thời gian đấu giá. Vui lòng đợi đến khi các phiên đấu giá kết thúc."
+        );
+      }
+
+      // Kiểm tra đơn hàng chưa hoàn tất (chưa COMPLETED hoặc CANCELLED)
+      const pendingOrders = await db.query.orders.findFirst({
+        where: and(
+          eq(orders.sellerId, userId),
+          or(
+            eq(orders.status, "PENDING"),
+            eq(orders.status, "PAID"),
+            eq(orders.status, "SHIPPED")
+          )
+        ),
+      });
+
+      if (pendingOrders) {
+        throw new BadRequestError(
+          "Không thể xóa người bán đang có đơn hàng chưa hoàn tất. Vui lòng hoàn tất tất cả đơn hàng trước."
+        );
+      }
+    }
+
+    // Kiểm tra ràng buộc cho Người mua (BIDDER)
+    if (user.role === "BIDDER") {
+      // Kiểm tra có đang giữ giá cao nhất ở sản phẩm nào không
+      // Phải kiểm tra TẤT CẢ các sản phẩm đang active
+      const activeProducts = await db.query.products.findMany({
+        where: and(eq(products.status, "ACTIVE"), gte(products.endTime, now)),
+        with: {
+          bids: {
+            where: eq(bids.userId, userId),
+            orderBy: (bids, { desc }) => [desc(bids.amount)],
+            limit: 1,
+          },
+        },
+      });
+
+      // Kiểm tra từng sản phẩm xem user có đang giữ giá cao nhất không
+      for (const product of activeProducts) {
+        if (product.bids.length > 0) {
+          const userBidAmount = product.bids[0].amount;
+          const currentPrice = product.currentPrice;
+
+          if (currentPrice && userBidAmount === currentPrice) {
+            throw new BadRequestError(
+              `Không thể xóa người mua đang giữ giá cao nhất trong phiên đấu giá "${product.name}". Vui lòng đợi đến khi phiên đấu giá kết thúc hoặc có người đấu giá cao hơn.`
+            );
+          }
+        }
+      }
+
+      // Kiểm tra đơn hàng đang chờ xác nhận nhận hàng (status = SHIPPED)
+      const shippedOrders = await db.query.orders.findFirst({
+        where: and(
+          eq(orders.winnerId, userId),
+          or(
+            eq(orders.status, "PENDING"),
+            eq(orders.status, "PAID"),
+            eq(orders.status, "SHIPPED")
+          )
+        ),
+      });
+
+      if (shippedOrders) {
+        throw new BadRequestError(
+          "Không thể xóa người mua đang có đơn hàng chờ xác nhận. Vui lòng hoàn tất tất cả đơn hàng trước."
+        );
+      }
+    }
+
+    // Nếu pass hết các ràng buộc, xóa user khỏi auth và database
+    const { error: authError } =
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (authError) {
+      throw new BadRequestError(
+        `Failed to delete user from auth: ${authError.message}`
+      );
+    }
+
+    // Xóa user khỏi database (cascade sẽ tự động xóa các bảng liên quan)
+    await db.delete(users).where(eq(users.id, userId));
   }
 }
 

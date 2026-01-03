@@ -126,6 +126,20 @@ export const createUser = asyncHandler(
   }
 );
 
+export const deleteUser = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { reason } = req.body as DeleteUserRequest;
+    await userService.deleteUserAdmin(id, reason);
+    return ResponseHandler.sendSuccess(
+      res,
+      null,
+      200,
+      "User deleted successfully"
+    );
+  }
+);
+
 export const getUpgradeRequests = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     // TODO: Get upgrade requests

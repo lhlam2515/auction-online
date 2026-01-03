@@ -166,6 +166,20 @@ router.post(
 );
 
 /**
+ * @route   DELETE /api/admin/users/:id
+ * @desc    Delete user with business constraints validation
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/users/:id",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.deleteUserSchema,
+  }),
+  adminController.deleteUser
+);
+
+/**
  * @route   GET /api/admin/upgrades
  * @desc    Get upgrade requests
  * @access  Private (Admin)
