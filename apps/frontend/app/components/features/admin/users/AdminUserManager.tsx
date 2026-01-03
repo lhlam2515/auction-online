@@ -13,19 +13,15 @@ import {
   ViewUserDialog,
   ManageUserDialog,
   ResetPasswordDialog,
+  BanUserDialog,
 } from "./dialogs";
 
 type AdminUserManagerProps = {
   user: AdminUserListItem;
-  onBanUser?: (userId: string) => void;
   onRefresh?: () => void;
 };
 
-const AdminUserManager = ({
-  user,
-  onBanUser,
-  onRefresh,
-}: AdminUserManagerProps) => {
+const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -86,16 +82,25 @@ const AdminUserManager = ({
         />
 
         {/* Ban User */}
-        {onBanUser && user.accountStatus !== "BANNED" && (
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => onBanUser(user.id)}
-            className="cursor-pointer"
-          >
-            <Ban className="h-4 w-4" />
-            Cấm người dùng
-          </DropdownMenuItem>
-        )}
+        <BanUserDialog
+          userId={user.id}
+          userName={user.fullName}
+          userEmail={user.email}
+          currentStatus={user.accountStatus}
+          onSuccess={onRefresh}
+          trigger={
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer"
+              variant={
+                user.accountStatus === "BANNED" ? "default" : "destructive"
+              }
+            >
+              <Ban className="h-4 w-4" />
+              {user.accountStatus === "BANNED" ? "Gỡ cấm" : "Cấm người dùng"}
+            </DropdownMenuItem>
+          }
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
