@@ -138,6 +138,7 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 | GET /api/v1/admin/users/:id                  | admin.routes.ts | admin.controller.ts → getUserById         | admin.validation.ts → userIdSchema              |
 | PATCH /api/v1/admin/users/:id                | admin.routes.ts | admin.controller.ts → updateUserInfo      | admin.validation.ts → updateUserInfoSchema      |
 | PATCH /api/v1/admin/users/:id/account-status | admin.routes.ts | admin.controller.ts → updateAccountStatus | admin.validation.ts → updateAccountStatusSchema |
+| PATCH /api/v1/admin/users/:id/role           | admin.routes.ts | admin.controller.ts → updateUserRole      | admin.validation.ts → updateUserRoleSchema      |
 | PATCH /api/v1/admin/users/:id/ban            | admin.routes.ts | admin.controller.ts → toggleBanUser       | admin.validation.ts → banUserSchema             |
 | POST /api/v1/admin/users/:id/reset-password  | admin.routes.ts | admin.controller.ts → resetUserPassword   | admin.validation.ts → resetUserPasswordSchema   |
 | GET /api/v1/admin/upgrades                   | admin.routes.ts | admin.controller.ts → getUpgradeRequests  | admin.validation.ts → getUpgradesSchema         |

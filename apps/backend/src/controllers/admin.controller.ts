@@ -10,6 +10,7 @@ import type {
   ResetUserPasswordRequest,
   UpdateUserInfoRequest,
   UpdateAccountStatusRequest,
+  UpdateUserRoleRequest,
   UpgradeRequest,
   ProcessUpgradeRequest,
   AdminGetProductsParams,
@@ -77,6 +78,15 @@ export const updateAccountStatus = asyncHandler(
     const { id } = req.params;
     const { accountStatus } = req.body as UpdateAccountStatusRequest;
     const user = await userService.updateAccountStatusAdmin(id, accountStatus);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
+  }
+);
+
+export const updateUserRole = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { role } = req.body as UpdateUserRoleRequest;
+    const user = await userService.updateUserRoleAdmin(id, role);
     return ResponseHandler.sendSuccess<AdminUser>(res, user);
   }
 );

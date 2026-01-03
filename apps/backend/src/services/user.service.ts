@@ -367,6 +367,28 @@ export class UserService {
     };
   }
 
+  async updateUserRoleAdmin(
+    userId: string,
+    role: "BIDDER" | "SELLER" | "ADMIN"
+  ): Promise<AdminUser> {
+    await this.getById(userId); // Ensure user exists
+
+    const [updated] = await db
+      .update(users)
+      .set({
+        role,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return {
+      ...updated,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
   async resetUserPasswordAdmin(
     userId: string,
     newPassword: string

@@ -52,6 +52,14 @@ export interface UpdateAccountStatusRequest {
 }
 
 /**
+ * Update user role request (Admin)
+ * Backend validation: admin.validation.ts → updateUserRoleSchema
+ */
+export interface UpdateUserRoleRequest {
+  role: UserRole;
+}
+
+/**
  * Get upgrade requests params
  */
 export interface GetUpgradeRequestsParams extends PaginationParams {

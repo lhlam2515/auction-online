@@ -57,6 +57,12 @@ export const updateAccountStatusSchema = z.object({
   accountStatus: z.enum(["PENDING_VERIFICATION", "ACTIVE", "BANNED"]),
 });
 
+export const updateUserRoleSchema = z.object({
+  role: z.enum(["BIDDER", "SELLER", "ADMIN"], {
+    error: "Role must be BIDDER, SELLER, or ADMIN",
+  }),
+});
+
 export const resetUserPasswordSchema = z.object({
   newPassword: z
     .string()

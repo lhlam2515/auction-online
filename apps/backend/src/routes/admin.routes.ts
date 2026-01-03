@@ -111,6 +111,20 @@ router.patch(
 );
 
 /**
+ * @route   PATCH /api/admin/users/:id/role
+ * @desc    Update user role (BIDDER, SELLER, ADMIN)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/role",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateUserRoleSchema,
+  }),
+  adminController.updateUserRole
+);
+
+/**
  * @route   PATCH /api/admin/users/:id/ban
  * @desc    Ban/unban user
  * @access  Private (Admin)
