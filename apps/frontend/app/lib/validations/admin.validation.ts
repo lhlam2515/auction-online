@@ -7,7 +7,12 @@ import { z } from "zod";
 export const updateUserInfoSchema = z.object({
   fullName: z.string().min(1, "Họ tên không được để trống"),
   address: z.string().optional(),
-  birthDate: z.string().optional(),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Ngày sinh phải có định dạng YYYY-MM-DD",
+    })
+    .optional(),
 });
 
 /**

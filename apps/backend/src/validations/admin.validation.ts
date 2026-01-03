@@ -50,7 +50,12 @@ export const updateUserInfoSchema = z.object({
     .min(2, { error: "Full name must be at least 2 characters" })
     .optional(),
   address: z.string().optional(),
-  birthDate: z.coerce.date().optional(),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Birth date must be in YYYY-MM-DD format",
+    })
+    .optional(),
 });
 
 export const updateAccountStatusSchema = z.object({
