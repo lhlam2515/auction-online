@@ -30,6 +30,7 @@ import slug from "slug";
 
 import { db } from "@/config/database";
 import {
+  autoBids,
   bids,
   categories,
   orders,
@@ -148,11 +149,32 @@ export class ProductService {
       throw new BadRequestError("Chỉ có thể gỡ sản phẩm đang đấu giá");
     }
 
-    const [result] = await db
-      .update(products)
-      .set({ status: "SUSPENDED", updatedAt: new Date() })
-      .where(eq(products.id, productId))
-      .returning();
+    const [result] = await db.transaction(async (tx) => {
+      const productUpdate = await tx
+        .update(products)
+        .set({
+          status: "SUSPENDED",
+          currentPrice: null,
+          winnerId: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId))
+        .returning();
+
+      await tx.delete(watchLists).where(eq(watchLists.productId, productId));
+
+      await tx
+        .update(autoBids)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(autoBids.productId, productId));
+
+      await tx
+        .update(bids)
+        .set({ status: "INVALID" })
+        .where(eq(bids.productId, productId));
+
+      return productUpdate;
+    });
 
     return result;
   }
@@ -311,7 +333,7 @@ export class ProductService {
   }
 
   async getProductDetailsById(productId: string): Promise<ProductDetails> {
-    const [product_info] = await db
+    const [productInfo] = await db
       .select({ products, categories, users, orders, productImages })
       .from(products)
       .where(eq(products.id, productId))
@@ -326,19 +348,19 @@ export class ProductService {
       .leftJoin(users, eq(products.sellerId, users.id))
       .leftJoin(orders, eq(products.id, orders.productId));
 
-    if (!product_info || product_info.products.status === "SUSPENDED") {
+    if (!productInfo || productInfo.products.status === "SUSPENDED") {
       throw new NotFoundError("Product");
     }
 
     return {
-      ...product_info.products,
-      mainImageUrl: product_info.productImages?.imageUrl ?? "",
-      categoryName: product_info.categories?.name ?? "",
-      sellerName: product_info.users?.fullName ?? "",
-      sellerAvatarUrl: product_info.users?.avatarUrl ?? "",
-      sellerRatingScore: product_info.users?.ratingScore ?? 0,
-      sellerRatingCount: product_info.users?.ratingCount ?? 0,
-      orderId: product_info.orders?.id ?? null,
+      ...productInfo.products,
+      mainImageUrl: productInfo.productImages?.imageUrl ?? "",
+      categoryName: productInfo.categories?.name ?? "",
+      sellerName: productInfo.users?.fullName ?? "",
+      sellerAvatarUrl: productInfo.users?.avatarUrl ?? "",
+      sellerRatingScore: productInfo.users?.ratingScore ?? 0,
+      sellerRatingCount: productInfo.users?.ratingCount ?? 0,
+      orderId: productInfo.orders?.id ?? null,
     };
   }
 
