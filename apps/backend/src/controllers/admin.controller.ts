@@ -75,20 +75,23 @@ export const updateUserInfo = asyncHandler(
 export const updateAccountStatus = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id } = req.params;
-    const body = req.body as UpdateAccountStatusRequest;
-    const user = await userService.updateAccountStatusAdmin(
-      id,
-      body.accountStatus
-    );
+    const { accountStatus } = req.body as UpdateAccountStatusRequest;
+    const user = await userService.updateAccountStatusAdmin(id, accountStatus);
     return ResponseHandler.sendSuccess<AdminUser>(res, user);
   }
 );
 
 export const toggleBanUser = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as BanUserRequest;
-    // TODO: Ban/unban user
-    throw new NotImplementedError("Toggle ban user not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { isBanned, reason, duration } = req.body as BanUserRequest;
+    const user = await userService.toggleBanUserAdmin(
+      id,
+      isBanned,
+      reason,
+      duration
+    );
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
   }
 );
 

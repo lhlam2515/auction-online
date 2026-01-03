@@ -37,8 +37,11 @@ export const getUsersSchema = z.object({
 
 export const banUserSchema = z.object({
   isBanned: z.boolean(),
-  reason: z.string().optional(),
-  lockoutEnd: z.iso.datetime().optional(),
+  reason: z
+    .string()
+    .min(10, { error: "Reason must be at least 10 characters" })
+    .optional(),
+  duration: z.number().int().min(0).optional(), // days, 0 = permanent
 });
 
 export const updateUserInfoSchema = z.object({

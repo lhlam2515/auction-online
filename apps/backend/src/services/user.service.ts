@@ -381,6 +381,36 @@ export class UserService {
       throw new BadRequestError(`Failed to reset password: ${error.message}`);
     }
   }
+
+  async toggleBanUserAdmin(
+    userId: string,
+    isBanned: boolean,
+    reason?: string,
+    duration?: number
+  ): Promise<AdminUser> {
+    await this.getById(userId); // Ensure user exists
+
+    if (isBanned && !reason) {
+      throw new BadRequestError("Reason is required when banning a user");
+    }
+
+    const newStatus = isBanned ? "BANNED" : "ACTIVE";
+
+    const [updated] = await db
+      .update(users)
+      .set({
+        accountStatus: newStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return {
+      ...updated,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
 }
 
 export const userService = new UserService();

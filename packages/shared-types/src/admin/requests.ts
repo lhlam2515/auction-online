@@ -20,9 +20,9 @@ export interface GetUsersParams extends PaginationParams {
  * Backend validation: admin.validation.ts → banUserSchema
  */
 export interface BanUserRequest {
-  reason: string;
-  duration?: number; // days, 0 = permanent
   isBanned: boolean;
+  reason?: string; // Required when banning, min 10 characters
+  duration?: number; // days, 0 = permanent ban
 }
 
 /**
