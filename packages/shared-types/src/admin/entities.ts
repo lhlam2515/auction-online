@@ -46,6 +46,7 @@ export interface AdminUserListItem {
   username: string;
   email: string;
   fullName: string;
+  avatarUrl: string | null;
   role: "BIDDER" | "SELLER" | "ADMIN";
   accountStatus: AccountStatus;
   ratingScore: number;

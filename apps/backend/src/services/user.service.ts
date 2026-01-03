@@ -285,6 +285,7 @@ export class UserService {
         username: user.username,
         email: user.email,
         fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
         role: user.role,
         accountStatus: user.accountStatus,
         ratingScore: user.ratingScore,
