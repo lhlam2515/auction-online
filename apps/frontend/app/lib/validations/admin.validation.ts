@@ -63,3 +63,23 @@ export const banUserSchema = z.object({
   reason: z.string().min(10, "Lý do phải có ít nhất 10 ký tự"),
   duration: z.number().min(0, "Thời gian ban không hợp lệ").optional(),
 });
+
+/**
+ * Admin - Create user validation schema
+ * @description Validates admin creating new user
+ */
+export const createUserSchema = z.object({
+  email: z.email("Email không hợp lệ"),
+  username: z
+    .string()
+    .min(3, "Username phải có ít nhất 3 ký tự")
+    .max(30, "Username không được vượt quá 30 ký tự")
+    .regex(/^[a-zA-Z0-9_]+$/, {
+      message: "Username chỉ chứa chữ cái, số và dấu gạch dưới",
+    }),
+  fullName: z.string().min(2, "Họ và tên phải có ít nhất 2 ký tự"),
+  password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+  role: z.enum(["BIDDER", "SELLER", "ADMIN"]),
+  address: z.string().optional(),
+  birthDate: z.string().optional(),
+});

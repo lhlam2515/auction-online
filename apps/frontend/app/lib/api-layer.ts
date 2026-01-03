@@ -87,6 +87,7 @@ import type {
   UpdateUserInfoRequest,
   UpdateAccountStatusRequest,
   UpdateUserRoleRequest,
+  CreateUserRequest,
   UpgradeRequest,
   AdminProduct,
   AdminAnalytics,
@@ -678,6 +679,12 @@ export const api = {
           "GET",
           appendQueryParams("/admin/users", paramsToRecord(params))
         ),
+
+      /**
+       * Create a new user
+       */
+      create: (data: CreateUserRequest) =>
+        apiCall<AdminUser>("POST", "/admin/users", data),
 
       /**
        * Get user by ID
