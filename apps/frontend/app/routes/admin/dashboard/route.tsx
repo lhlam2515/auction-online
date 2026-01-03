@@ -1,8 +1,18 @@
-import type { AdminStats } from "@repo/shared-types";
+import type { AdminAnalytics, AdminStats } from "@repo/shared-types";
 import { LayoutDashboard, BarChart3, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  CategoryGMVChart,
+  TopCategoriesChart,
+  AuctionSuccessGauge,
+  BidDensityChart,
+  SellerFunnelChart,
+  TransactionPipelineChart,
+  ReputationDistChart,
+  BiddingActivityChart,
+} from "@/components/features/admin/charts";
 import { AdminStatsCards } from "@/components/features/admin/dashboard";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
@@ -23,15 +33,23 @@ export function meta({}: Route.MetaArgs) {
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const statsResult = await api.admin.getStats();
+        const [statsResult, analyticsResult] = await Promise.all([
+          api.admin.getStats(),
+          api.admin.getAnalytics(),
+        ]);
 
         if (statsResult?.success) {
           setStats(statsResult.data);
+        }
+
+        if (analyticsResult?.success) {
+          setAnalytics(analyticsResult.data);
         }
       } catch (error) {
         toast.error("Không thể tải dữ liệu dashboard");
@@ -76,31 +94,132 @@ export default function AdminDashboardPage() {
         {stats && <AdminStatsCards stats={stats} />}
       </section>
 
-      {/* Placeholder for Charts/Activity */}
-      <section className="grid gap-6 md:grid-cols-7">
-        {/* Chart area (4 columns) */}
-        <Card className="bg-muted/60 col-span-4 flex min-h-[300px] flex-col items-center justify-center border-dashed">
-          <div className="text-muted-foreground flex flex-col items-center gap-2">
-            <BarChart3 className="h-10 w-10 opacity-20" />
-            <p>Biểu đồ thống kê (Coming soon)</p>
-          </div>
-        </Card>
-
-        {/* Recent activity area (3 columns) */}
-        <Card className="col-span-3 min-h-[300px]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Activity className="h-4 w-4" />
-              Hoạt động gần đây
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-muted-foreground py-10 text-center text-sm">
-              Chưa có hoạt động mới
+      {/* Charts Section */}
+      {analytics && (
+        <>
+          {/* Category Insights */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="text-muted-foreground h-5 w-5" />
+              <h2 className="text-lg font-semibold tracking-tight">
+                Phân tích danh mục
+              </h2>
             </div>
-          </CardContent>
-        </Card>
-      </section>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>GMV theo danh mục</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CategoryGMVChart
+                    data={analytics.categoryInsights.gmvByCategory}
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top 5 danh mục</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TopCategoriesChart
+                    data={analytics.categoryInsights.topCategories}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          {/* Auction Health */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Activity className="text-muted-foreground h-5 w-5" />
+              <h2 className="text-lg font-semibold tracking-tight">
+                Sức khỏe đấu giá
+              </h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tỷ lệ thành công</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AuctionSuccessGauge stats={analytics.auctionHealth.stats} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top 10 sản phẩm nhiều lượt bid</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BidDensityChart
+                    data={analytics.auctionHealth.bidDensityTop10}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          {/* Operations */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="text-muted-foreground h-5 w-5" />
+              <h2 className="text-lg font-semibold tracking-tight">Vận hành</h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Phễu chuyển đổi Seller</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SellerFunnelChart data={analytics.operations.sellerFunnel} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quy trình đơn hàng</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TransactionPipelineChart
+                    data={analytics.operations.transactionPipeline}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          {/* Engagement */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Activity className="text-muted-foreground h-5 w-5" />
+              <h2 className="text-lg font-semibold tracking-tight">
+                Tương tác & Uy tín
+              </h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Phân phối uy tín người dùng</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ReputationDistChart
+                    data={analytics.engagement.reputationDistribution}
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hoạt động đấu thầu (30 ngày)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BiddingActivityChart
+                    data={analytics.engagement.biddingActivity}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
