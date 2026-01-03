@@ -19,6 +19,7 @@ import {
   bids,
   products,
   orders,
+  autoBids,
 } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
@@ -424,16 +425,59 @@ export class UserService {
       throw new BadRequestError("Reason is required when banning a user");
     }
 
+    // Validate business rules before banning (same as deletion)
+    if (isBanned) {
+      await this.validateUserBusinessRules(userId);
+    }
+
     const newStatus = isBanned ? "BANNED" : "ACTIVE";
 
+    await db.transaction(async (tx) => {
+      // Update user status
+      const [updated] = await tx
+        .update(users)
+        .set({
+          accountStatus: newStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      // Handle auto-bids based on ban status
+      if (isBanned) {
+        // Disable all active auto-bids when banning user
+        await tx
+          .update(autoBids)
+          .set({
+            isActive: false,
+            updatedAt: new Date(),
+          })
+          .where(and(eq(autoBids.userId, userId), eq(autoBids.isActive, true)));
+
+        // Invalidate all VALID bids when banning user
+        await tx
+          .update(bids)
+          .set({
+            status: "INVALID",
+          })
+          .where(and(eq(bids.userId, userId), eq(bids.status, "VALID")));
+      } else {
+        // Re-enable auto-bids when unbanning user (optional - depends on business logic)
+        // For now, we keep them disabled to prevent immediate reactivation
+        // Admin can manually re-enable specific auto-bids if needed
+        // Note: We don't automatically re-validate bids when unbanning
+        // Admin should manually review and re-validate bids if appropriate
+      }
+
+      return updated;
+    });
+
+    // Get the updated user data
     const [updated] = await db
-      .update(users)
-      .set({
-        accountStatus: newStatus,
-        updatedAt: new Date(),
-      })
+      .select()
+      .from(users)
       .where(eq(users.id, userId))
-      .returning();
+      .limit(1);
 
     return {
       ...updated,
@@ -506,99 +550,8 @@ export class UserService {
   }
 
   async deleteUserAdmin(userId: string, _reason?: string): Promise<void> {
-    const user = await this.getById(userId);
-
-    const now = new Date();
-
-    // ========================================
-    // BUSINESS LOGIC CHECKS (Pre-deletion validation)
-    // ========================================
-
-    // Kiểm tra ràng buộc cho Người bán (SELLER hoặc ADMIN có thể có products)
-    if (user.role === "SELLER" || user.role === "ADMIN") {
-      // Check 1: Sản phẩm đang còn hạn đấu giá (status = ACTIVE và endTime > now)
-      const activeProducts = await db.query.products.findFirst({
-        where: and(
-          eq(products.sellerId, userId),
-          eq(products.status, "ACTIVE"),
-          gte(products.endTime, now)
-        ),
-      });
-
-      if (activeProducts) {
-        throw new BadRequestError(
-          "Không thể xóa người bán đang có sản phẩm trong thời gian đấu giá. Vui lòng đợi đến khi các phiên đấu giá kết thúc."
-        );
-      }
-
-      // Check 2: Đơn hàng chưa hoàn tất (chưa COMPLETED hoặc CANCELLED)
-      // Note: Chỉ check orders mà user vẫn còn là seller (chưa bị set null)
-      const pendingOrdersAsSeller = await db.query.orders.findFirst({
-        where: and(
-          eq(orders.sellerId, userId),
-          or(
-            eq(orders.status, "PENDING"),
-            eq(orders.status, "PAID"),
-            eq(orders.status, "SHIPPED")
-          )
-        ),
-      });
-
-      if (pendingOrdersAsSeller) {
-        throw new BadRequestError(
-          "Không thể xóa người bán đang có đơn hàng chưa hoàn tất. Vui lòng hoàn tất tất cả đơn hàng trước."
-        );
-      }
-    }
-
-    // Kiểm tra ràng buộc cho Người mua (BIDDER hoặc ADMIN có thể đấu giá)
-    if (user.role === "BIDDER" || user.role === "ADMIN") {
-      // Check 1: Có đang giữ giá cao nhất ở sản phẩm nào không
-      // Phải kiểm tra TẤT CẢ các sản phẩm đang active
-      const activeProducts = await db.query.products.findMany({
-        where: and(eq(products.status, "ACTIVE"), gte(products.endTime, now)),
-        with: {
-          bids: {
-            where: eq(bids.userId, userId),
-            orderBy: (bids, { desc }) => [desc(bids.amount)],
-            limit: 1,
-          },
-        },
-      });
-
-      // Kiểm tra từng sản phẩm xem user có đang giữ giá cao nhất không
-      for (const product of activeProducts) {
-        if (product.bids.length > 0) {
-          const userBidAmount = product.bids[0].amount;
-          const currentPrice = product.currentPrice;
-
-          if (currentPrice && userBidAmount === currentPrice) {
-            throw new BadRequestError(
-              `Không thể xóa người mua đang giữ giá cao nhất trong phiên đấu giá "${product.name}". Vui lòng đợi đến khi phiên đấu giá kết thúc hoặc có người đấu giá cao hơn.`
-            );
-          }
-        }
-      }
-
-      // Check 2: Đơn hàng đang chờ xác nhận (as winner)
-      // Note: Chỉ check orders mà user vẫn còn là winner (chưa bị set null)
-      const pendingOrdersAsWinner = await db.query.orders.findFirst({
-        where: and(
-          eq(orders.winnerId, userId),
-          or(
-            eq(orders.status, "PENDING"),
-            eq(orders.status, "PAID"),
-            eq(orders.status, "SHIPPED")
-          )
-        ),
-      });
-
-      if (pendingOrdersAsWinner) {
-        throw new BadRequestError(
-          "Không thể xóa người mua đang có đơn hàng chờ xác nhận. Vui lòng hoàn tất tất cả đơn hàng trước."
-        );
-      }
-    }
+    // Validate business rules before deletion
+    await this.validateUserBusinessRules(userId);
 
     // ========================================
     // SET NULL DELETION (Keep orders for statistics)
@@ -647,6 +600,105 @@ export class UserService {
       logger.warn(
         `User ${userId} deleted from database but failed to delete from auth: ${authError.message}`
       );
+    }
+  }
+
+  /**
+   * Validates business rules before performing restrictive actions on a user (delete/ban).
+   * This ensures that users cannot be deleted or banned if they have active business obligations.
+   */
+  private async validateUserBusinessRules(userId: string): Promise<void> {
+    const user = await this.getById(userId);
+    const now = new Date();
+
+    // ========================================
+    // BUSINESS LOGIC CHECKS (Pre-action validation)
+    // ========================================
+
+    // Kiểm tra ràng buộc cho Người bán (SELLER hoặc ADMIN có thể có products)
+    if (user.role === "SELLER" || user.role === "ADMIN") {
+      // Check 1: Sản phẩm đang còn hạn đấu giá (status = ACTIVE và endTime > now)
+      const activeProducts = await db.query.products.findFirst({
+        where: and(
+          eq(products.sellerId, userId),
+          eq(products.status, "ACTIVE"),
+          gte(products.endTime, now)
+        ),
+      });
+
+      if (activeProducts) {
+        throw new BadRequestError(
+          "Không thể thực hiện hành động này với người bán đang có sản phẩm trong thời gian đấu giá. Vui lòng đợi đến khi các phiên đấu giá kết thúc."
+        );
+      }
+
+      // Check 2: Đơn hàng chưa hoàn tất (chưa COMPLETED hoặc CANCELLED)
+      // Note: Chỉ check orders mà user vẫn còn là seller (chưa bị set null)
+      const pendingOrdersAsSeller = await db.query.orders.findFirst({
+        where: and(
+          eq(orders.sellerId, userId),
+          or(
+            eq(orders.status, "PENDING"),
+            eq(orders.status, "PAID"),
+            eq(orders.status, "SHIPPED")
+          )
+        ),
+      });
+
+      if (pendingOrdersAsSeller) {
+        throw new BadRequestError(
+          "Không thể thực hiện hành động này với người bán đang có đơn hàng chưa hoàn tất. Vui lòng hoàn tất tất cả đơn hàng trước."
+        );
+      }
+    }
+
+    // Kiểm tra ràng buộc cho Người mua (BIDDER hoặc ADMIN có thể đấu giá)
+    if (user.role === "BIDDER" || user.role === "ADMIN") {
+      // Check 1: Có đang giữ giá cao nhất ở sản phẩm nào không
+      // Phải kiểm tra TẤT CẢ các sản phẩm đang active
+      const activeProducts = await db.query.products.findMany({
+        where: and(eq(products.status, "ACTIVE"), gte(products.endTime, now)),
+        with: {
+          bids: {
+            where: eq(bids.userId, userId),
+            orderBy: (bids, { desc }) => [desc(bids.amount)],
+            limit: 1,
+          },
+        },
+      });
+
+      // Kiểm tra từng sản phẩm xem user có đang giữ giá cao nhất không
+      for (const product of activeProducts) {
+        if (product.bids.length > 0) {
+          const userBidAmount = product.bids[0].amount;
+          const currentPrice = product.currentPrice;
+
+          if (currentPrice && userBidAmount === currentPrice) {
+            throw new BadRequestError(
+              `Không thể thực hiện hành động này với người mua đang giữ giá cao nhất trong phiên đấu giá "${product.name}". Vui lòng đợi đến khi phiên đấu giá kết thúc hoặc có người đấu giá cao hơn.`
+            );
+          }
+        }
+      }
+
+      // Check 2: Đơn hàng đang chờ xác nhận (as winner)
+      // Note: Chỉ check orders mà user vẫn còn là winner (chưa bị set null)
+      const pendingOrdersAsWinner = await db.query.orders.findFirst({
+        where: and(
+          eq(orders.winnerId, userId),
+          or(
+            eq(orders.status, "PENDING"),
+            eq(orders.status, "PAID"),
+            eq(orders.status, "SHIPPED")
+          )
+        ),
+      });
+
+      if (pendingOrdersAsWinner) {
+        throw new BadRequestError(
+          "Không thể thực hiện hành động này với người mua đang có đơn hàng chờ xác nhận. Vui lòng hoàn tất tất cả đơn hàng trước."
+        );
+      }
     }
   }
 }
