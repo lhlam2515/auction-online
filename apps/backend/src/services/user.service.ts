@@ -21,6 +21,7 @@ import {
   orders,
   autoBids,
 } from "@/models";
+import { emailService } from "@/services";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 
@@ -380,7 +381,8 @@ export class UserService {
     userId: string,
     role: "BIDDER" | "SELLER" | "ADMIN"
   ): Promise<AdminUser> {
-    await this.getById(userId); // Ensure user exists
+    const existingUser = await this.getById(userId); // Ensure user exists
+    const oldRole = existingUser.role;
 
     const [updated] = await db
       .update(users)
@@ -390,6 +392,24 @@ export class UserService {
       })
       .where(eq(users.id, userId))
       .returning();
+
+    // Send email notification to user if role changed
+    if (oldRole !== role) {
+      try {
+        emailService.notifyUserRoleChanged(
+          updated.email,
+          updated.fullName || updated.username,
+          oldRole,
+          role
+        );
+      } catch (emailError) {
+        // Log email error but don't fail the operation
+        logger.warn(
+          `Failed to send role change notification email to user ${userId}:`,
+          emailError
+        );
+      }
+    }
 
     return {
       ...updated,
@@ -402,7 +422,7 @@ export class UserService {
     userId: string,
     newPassword: string
   ): Promise<void> {
-    await this.getById(userId); // Ensure user exists
+    const user = await this.getById(userId); // Ensure user exists
 
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       password: newPassword,
@@ -410,6 +430,21 @@ export class UserService {
 
     if (error) {
       throw new BadRequestError(`Failed to reset password: ${error.message}`);
+    }
+
+    // Send email notification to user
+    try {
+      emailService.notifyUserPasswordReset(
+        user.email,
+        user.fullName || user.username,
+        newPassword
+      );
+    } catch (emailError) {
+      // Log email error but don't fail the operation
+      logger.warn(
+        `Failed to send password reset notification email to user ${userId}:`,
+        emailError
+      );
     }
   }
 
@@ -479,6 +514,28 @@ export class UserService {
       .where(eq(users.id, userId))
       .limit(1);
 
+    // Send email notification to user
+    try {
+      if (isBanned) {
+        emailService.notifyUserBanned(
+          updated.email,
+          updated.fullName || updated.username,
+          reason || "Không có lý do cụ thể"
+        );
+      } else {
+        emailService.notifyUserUnbanned(
+          updated.email,
+          updated.fullName || updated.username
+        );
+      }
+    } catch (emailError) {
+      // Log email error but don't fail the operation
+      logger.warn(
+        `Failed to send ban/unban notification email to user ${userId}:`,
+        emailError
+      );
+    }
+
     return {
       ...updated,
       createdAt: updated.createdAt.toISOString(),
@@ -542,6 +599,22 @@ export class UserService {
       })
       .returning();
 
+    // Send email notification to new user
+    try {
+      emailService.notifyUserCreated(
+        newUser.email,
+        newUser.fullName || newUser.username,
+        data.password,
+        newUser.role
+      );
+    } catch (emailError) {
+      // Log email error but don't fail the operation
+      logger.warn(
+        `Failed to send account creation notification email to user ${newUser.id}:`,
+        emailError
+      );
+    }
+
     return {
       ...newUser,
       createdAt: newUser.createdAt.toISOString(),
@@ -549,7 +622,9 @@ export class UserService {
     };
   }
 
-  async deleteUserAdmin(userId: string, _reason?: string): Promise<void> {
+  async deleteUserAdmin(userId: string, reason?: string): Promise<void> {
+    const user = await this.getById(userId); // Get user info before deletion for email
+
     // Validate business rules before deletion
     await this.validateUserBusinessRules(userId);
 
@@ -587,6 +662,21 @@ export class UserService {
     if (!deletedUser) {
       throw new BadRequestError(
         "Failed to delete user from database. User may not exist or deletion was blocked."
+      );
+    }
+
+    // Send email notification to user before deleting from auth
+    try {
+      emailService.notifyUserDeleted(
+        user.email,
+        user.fullName || user.username,
+        reason || "Không có lý do cụ thể"
+      );
+    } catch (emailError) {
+      // Log email error but don't fail the operation
+      logger.warn(
+        `Failed to send deletion notification email to user ${userId}:`,
+        emailError
       );
     }
 

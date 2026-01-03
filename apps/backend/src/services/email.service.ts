@@ -431,6 +431,282 @@ class EmailService {
       </html>
     `;
   }
+  // ============================================================
+  // GROUP 5: ADMIN USER MANAGEMENT (Quản lý User bởi Admin)
+  // ============================================================
+
+  /**
+   * Thông báo cho user khi bị ban bởi admin
+   */
+  public notifyUserBanned(
+    userEmail: string,
+    userName: string,
+    reason: string,
+    duration?: number
+  ) {
+    const durationText = duration ? ` trong ${duration} ngày` : " vô thời hạn";
+
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: ${COLORS.muted}; border-left: 4px solid ${COLORS.destructive}; padding: 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; color: ${COLORS.destructive}; font-size: 18px;">
+          ⚠️ Tài khoản của bạn đã bị tạm ngừng
+        </h3>
+        <p style="margin: 0; color: ${COLORS.foreground};">
+          <strong>Lý do:</strong> ${reason}
+        </p>
+        <p style="margin: 10px 0 0 0; color: ${COLORS.foreground};">
+          <strong>Thời gian:</strong> ${durationText}
+        </p>
+      </div>
+
+      <p><strong>Các thay đổi đã được thực hiện:</strong></p>
+      <ul>
+        <li>Tất cả bids hiện tại của bạn đã được đánh dấu là không hợp lệ</li>
+        <li>Các cấu hình auto-bid đã bị vô hiệu hóa</li>
+        <li>Bạn không thể tham gia đấu giá mới</li>
+      </ul>
+
+      <p style="color: ${COLORS.mutedFg}; font-style: italic;">
+        Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ với bộ phận hỗ trợ để được xem xét lại.
+      </p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Thông báo tạm ngừng tài khoản",
+      htmlBody
+    );
+    this.queueEmail(userEmail, "Tài khoản đã bị tạm ngừng", fullHtml);
+  }
+
+  /**
+   * Thông báo cho user khi được unban bởi admin
+   */
+  public notifyUserUnbanned(userEmail: string, userName: string) {
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: #f0f9ff; border-left: 4px solid ${COLORS.primary}; padding: 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; color: ${COLORS.primary}; font-size: 18px;">
+          ✅ Tài khoản của bạn đã được kích hoạt lại
+        </h3>
+        <p style="margin: 0; color: ${COLORS.foreground};">
+          Tài khoản của bạn đã được khôi phục và có thể sử dụng bình thường.
+        </p>
+      </div>
+
+      <p><strong>Lưu ý:</strong></p>
+      <ul>
+        <li>Các cấu hình auto-bid vẫn bị vô hiệu hóa để đảm bảo an toàn</li>
+        <li>Bạn có thể kích hoạt lại auto-bid theo nhu cầu</li>
+        <li>Các bids đã bị invalidate sẽ không được tự động khôi phục</li>
+      </ul>
+
+      <p>Chúc bạn tiếp tục có những trải nghiệm tốt trên sàn đấu giá của chúng tôi!</p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Tài khoản đã được kích hoạt lại",
+      htmlBody
+    );
+    this.queueEmail(userEmail, "Tài khoản đã được kích hoạt lại", fullHtml);
+  }
+
+  /**
+   * Thông báo cho user khi password được reset bởi admin
+   */
+  public notifyUserPasswordReset(
+    userEmail: string,
+    userName: string,
+    newPassword: string
+  ) {
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: ${COLORS.secondary}; border: 1px dashed ${COLORS.primary}; padding: 25px; text-align: center; margin: 30px 0; border-radius: 8px;">
+        <h3 style="margin: 0 0 15px 0; color: ${COLORS.primary};">
+          🔐 Mật khẩu đã được đặt lại
+        </h3>
+        <p style="margin: 0 0 10px 0; font-size: 16px; color: ${COLORS.foreground};">
+          Mật khẩu mới của bạn là:
+        </p>
+        <span style="font-size: 24px; font-weight: 700; letter-spacing: 2px; color: ${COLORS.primary}; display: block; background: ${COLORS.muted}; padding: 15px; border-radius: 4px;">
+          ${newPassword}
+        </span>
+      </div>
+
+      <div style="background: ${COLORS.muted}; border-left: 4px solid ${COLORS.destructive}; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0; color: ${COLORS.foreground}; font-weight: 600;">
+          ⚠️ Quan trọng: Vui lòng đổi mật khẩu ngay sau khi đăng nhập
+        </p>
+      </div>
+
+      <p style="color: ${COLORS.mutedFg}; font-style: italic;">
+        Email này được gửi từ hệ thống quản trị. Nếu bạn không yêu cầu thay đổi này, vui lòng liên hệ hỗ trợ ngay lập tức.
+      </p>
+    `;
+
+    const fullHtml = this.getBaseTemplate("Mật khẩu đã được đặt lại", htmlBody);
+    this.queueEmail(userEmail, "Mật khẩu tài khoản đã được đặt lại", fullHtml);
+  }
+
+  /**
+   * Thông báo cho user khi tài khoản bị xóa bởi admin
+   */
+  public notifyUserDeleted(
+    userEmail: string,
+    userName: string,
+    reason: string
+  ) {
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: ${COLORS.muted}; border-left: 4px solid ${COLORS.destructive}; padding: 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; color: ${COLORS.destructive}; font-size: 18px;">
+          ❌ Tài khoản của bạn đã bị xóa
+        </h3>
+        <p style="margin: 0; color: ${COLORS.foreground};">
+          <strong>Lý do:</strong> ${reason}
+        </p>
+      </div>
+
+      <p><strong>Thông tin về việc xóa tài khoản:</strong></p>
+      <ul>
+        <li>Tất cả dữ liệu cá nhân đã được xóa khỏi hệ thống</li>
+        <li>Các đơn hàng và giao dịch đã hoàn tất sẽ được lưu trữ cho mục đích thống kê</li>
+        <li>Bạn không thể đăng nhập lại với tài khoản này</li>
+      </ul>
+
+      <p style="color: ${COLORS.mutedFg}; font-style: italic;">
+        Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ với bộ phận hỗ trợ trong vòng 30 ngày để được xem xét.
+      </p>
+
+      <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi trong thời gian qua.</p>
+    `;
+
+    const fullHtml = this.getBaseTemplate("Thông báo xóa tài khoản", htmlBody);
+    this.queueEmail(userEmail, "Tài khoản đã bị xóa", fullHtml);
+  }
+
+  /**
+   * Thông báo cho user khi role được thay đổi bởi admin
+   */
+  public notifyUserRoleChanged(
+    userEmail: string,
+    userName: string,
+    oldRole: string,
+    newRole: string
+  ) {
+    const roleNames: Record<string, string> = {
+      BIDDER: "Người mua",
+      SELLER: "Người bán",
+      ADMIN: "Quản trị viên",
+    };
+
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: #f0f9ff; border-left: 4px solid ${COLORS.primary}; padding: 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; color: ${COLORS.primary}; font-size: 18px;">
+          🔄 Quyền hạn tài khoản đã được thay đổi
+        </h3>
+        <p style="margin: 0; color: ${COLORS.foreground};">
+          <strong>Thay đổi:</strong> ${roleNames[oldRole] || oldRole} → ${roleNames[newRole] || newRole}
+        </p>
+      </div>
+
+      <p><strong>Quyền hạn mới của bạn:</strong></p>
+      <ul>
+        ${
+          newRole === "SELLER"
+            ? `
+          <li>Đăng sản phẩm đấu giá</li>
+          <li>Quản lý sản phẩm của mình</li>
+          <li>Trả lời câu hỏi từ người mua</li>
+          <li>Nhận thông báo về bids mới</li>
+        `
+            : newRole === "ADMIN"
+              ? `
+          <li>Quản lý toàn bộ hệ thống</li>
+          <li>Quản lý người dùng</li>
+          <li>Duyệt sản phẩm</li>
+          <li>Thống kê và báo cáo</li>
+        `
+              : `
+          <li>Đặt giá sản phẩm</li>
+          <li>Theo dõi sản phẩm yêu thích</li>
+          <li>Đặt câu hỏi cho người bán</li>
+          <li>Đánh giá sản phẩm sau khi mua</li>
+        `
+        }
+      </ul>
+
+      <p>Chúc bạn có những trải nghiệm tốt với quyền hạn mới!</p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Quyền hạn tài khoản đã được cập nhật",
+      htmlBody
+    );
+    this.queueEmail(
+      userEmail,
+      "Quyền hạn tài khoản đã được thay đổi",
+      fullHtml
+    );
+  }
+
+  /**
+   * Thông báo cho user khi tài khoản được tạo bởi admin
+   */
+  public notifyUserCreated(
+    userEmail: string,
+    userName: string,
+    password: string,
+    role: string
+  ) {
+    const roleNames: Record<string, string> = {
+      BIDDER: "Người mua",
+      SELLER: "Người bán",
+      ADMIN: "Quản trị viên",
+    };
+
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; color: #22c55e; font-size: 18px;">
+          🎉 Tài khoản của bạn đã được tạo thành công
+        </h3>
+        <p style="margin: 0; color: ${COLORS.foreground};">
+          Chào mừng bạn gia nhập cộng đồng đấu giá của chúng tôi!
+        </p>
+      </div>
+
+      <div style="background: ${COLORS.secondary}; border: 1px dashed ${COLORS.primary}; padding: 20px; margin: 20px 0; border-radius: 8px;">
+        <h4 style="margin: 0 0 10px 0; color: ${COLORS.primary};">
+          Thông tin đăng nhập:
+        </h4>
+        <p style="margin: 0 0 5px 0;"><strong>Email:</strong> ${userEmail}</p>
+        <p style="margin: 0 0 5px 0;"><strong>Mật khẩu:</strong> ${password}</p>
+        <p style="margin: 0 0 5px 0;"><strong>Vai trò:</strong> ${roleNames[role] || role}</p>
+      </div>
+
+      <div style="background: ${COLORS.muted}; border-left: 4px solid ${COLORS.destructive}; padding: 15px; margin: 20px 0; border-radius: 4px;">
+        <p style="margin: 0; color: ${COLORS.foreground}; font-weight: 600;">
+          ⚠️ Quan trọng: Vui lòng đổi mật khẩu ngay sau khi đăng nhập lần đầu
+        </p>
+      </div>
+
+      <p>Chúc bạn có những trải nghiệm thú vị trên sàn đấu giá!</p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Chào mừng bạn đến với sàn đấu giá",
+      htmlBody
+    );
+    this.queueEmail(userEmail, "Tài khoản đã được tạo thành công", fullHtml);
+  }
 }
 
 export const emailService = new EmailService();
