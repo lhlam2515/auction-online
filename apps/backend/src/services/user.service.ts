@@ -5,11 +5,12 @@ import type {
   AdminUserListItem,
   AdminUser,
   PaginatedResponse,
+  UpdateUserInfoRequest,
 } from "@repo/shared-types";
-import { eq, and, or, ilike, count, desc } from "drizzle-orm";
+import { eq, and, or, ilike, count } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { supabase } from "@/config/supabase";
+import { supabase, supabaseAdmin } from "@/config/supabase";
 import { users, watchLists, upgradeRequests, bids, products } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
@@ -218,11 +219,6 @@ export class UserService {
     })) as MyAutoBid[];
   }
 
-  async getWonAuctions(userId: string) {
-    // TODO: get auctions won by user
-    return [];
-  }
-
   async getAllUsersAdmin(
     params: GetUsersParams
   ): Promise<PaginatedResponse<AdminUserListItem>> {
@@ -312,6 +308,78 @@ export class UserService {
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };
+  }
+
+  async updateUserInfoAdmin(
+    userId: string,
+    data: UpdateUserInfoRequest
+  ): Promise<AdminUser> {
+    await this.getById(userId); // Ensure user exists
+
+    const updates: Record<string, string | Date> = {
+      updatedAt: new Date(),
+    };
+
+    if (data.fullName !== undefined) {
+      updates.fullName = data.fullName;
+    }
+
+    if (data.address !== undefined) {
+      updates.address = data.address;
+    }
+
+    if (data.birthDate !== undefined) {
+      updates.birthDate = data.birthDate;
+    }
+
+    const [updated] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, userId))
+      .returning();
+
+    return {
+      ...updated,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
+  async updateAccountStatusAdmin(
+    userId: string,
+    accountStatus: "PENDING_VERIFICATION" | "ACTIVE" | "BANNED"
+  ): Promise<AdminUser> {
+    await this.getById(userId); // Ensure user exists
+
+    const [updated] = await db
+      .update(users)
+      .set({
+        accountStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return {
+      ...updated,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
+  async resetUserPasswordAdmin(
+    userId: string,
+    newPassword: string
+  ): Promise<void> {
+    await this.getById(userId); // Ensure user exists
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      password: newPassword,
+    });
+
+    if (error) {
+      throw new BadRequestError(`Failed to reset password: ${error.message}`);
+    }
   }
 }
 

@@ -8,6 +8,8 @@ import type {
   GetUsersParams,
   BanUserRequest,
   ResetUserPasswordRequest,
+  UpdateUserInfoRequest,
+  UpdateAccountStatusRequest,
   UpgradeRequest,
   ProcessUpgradeRequest,
   AdminGetProductsParams,
@@ -61,6 +63,27 @@ export const getUserById = asyncHandler(
   }
 );
 
+export const updateUserInfo = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const body = req.body as UpdateUserInfoRequest;
+    const user = await userService.updateUserInfoAdmin(id, body);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
+  }
+);
+
+export const updateAccountStatus = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const body = req.body as UpdateAccountStatusRequest;
+    const user = await userService.updateAccountStatusAdmin(
+      id,
+      body.accountStatus
+    );
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
+  }
+);
+
 export const toggleBanUser = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const body = req.body as BanUserRequest;
@@ -70,10 +93,13 @@ export const toggleBanUser = asyncHandler(
 );
 
 export const resetUserPassword = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
     const body = req.body as ResetUserPasswordRequest;
-    // TODO: Reset user password
-    throw new NotImplementedError("Reset user password not implemented yet");
+    await userService.resetUserPasswordAdmin(id, body.newPassword);
+    return ResponseHandler.sendSuccess(res, {
+      message: "Password reset successfully",
+    });
   }
 );
 
