@@ -11,9 +11,9 @@ import {
   ProductDescription,
   ProductRelatedList,
 } from "@/components/features/product/display";
+import { APP_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
-import logger from "@/lib/logger";
 
 import type { Route } from "./+types/route";
 
@@ -50,16 +50,18 @@ export default function ProductDetailPage() {
         // Fetch product first
         if (!id) {
           if (isMounted) {
-            navigate("/not-found", { replace: true });
+            toast.error("Thiếu ID sản phẩm");
+            navigate(APP_ROUTES.NOT_FOUND, { replace: true });
           }
           return;
         }
+
         const product_res = await api.products.getById(id);
 
         // If product fetch fails, redirect to not found
         if (!product_res.success || !product_res.data) {
           if (isMounted) {
-            navigate("/not-found", { replace: true });
+            throw new Error();
           }
           return;
         }
@@ -67,13 +69,17 @@ export default function ProductDetailPage() {
         // Set product data
         if (isMounted) {
           setProduct(product_res.data);
-          setIsEnded(new Date() > new Date(product_res.data.endTime));
+          setIsEnded(
+            product_res.data.status !== "ACTIVE" ||
+              new Date() > new Date(product_res.data.endTime)
+          );
         }
-      } catch (error) {
-        toast.error("Không thể tải sản phẩm.");
-        logger.error("Failed to load product:", error);
+      } catch {
         if (isMounted) {
-          navigate("/not-found", { replace: true });
+          toast.error("Không tìm thấy sản phẩm", {
+            description: "Sản phẩm có thể đã bị gỡ hoặc không tồn tại.",
+          });
+          navigate(APP_ROUTES.NOT_FOUND, { replace: true });
         }
       } finally {
         if (isMounted) {
