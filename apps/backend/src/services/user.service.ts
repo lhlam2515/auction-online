@@ -1,10 +1,18 @@
-import type { MyAutoBid, Product } from "@repo/shared-types";
-import { eq, and } from "drizzle-orm";
+import type {
+  MyAutoBid,
+  Product,
+  GetUsersParams,
+  AdminUserListItem,
+  AdminUser,
+  PaginatedResponse,
+} from "@repo/shared-types";
+import { eq, and, or, ilike, count, desc } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase } from "@/config/supabase";
 import { users, watchLists, upgradeRequests, bids, products } from "@/models";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
+import { toPaginated } from "@/utils/pagination";
 
 export class UserService {
   async getById(userId: string) {
@@ -213,6 +221,96 @@ export class UserService {
   async getWonAuctions(userId: string) {
     // TODO: get auctions won by user
     return [];
+  }
+
+  async getAllUsersAdmin(
+    params: GetUsersParams
+  ): Promise<PaginatedResponse<AdminUserListItem>> {
+    const {
+      page = 1,
+      limit = 20,
+      role,
+      accountStatus,
+      q,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = params;
+    const offset = (page - 1) * limit;
+
+    const conditions = [];
+
+    if (role) {
+      conditions.push(eq(users.role, role));
+    }
+
+    if (accountStatus) {
+      conditions.push(eq(users.accountStatus, accountStatus));
+    }
+
+    if (q) {
+      conditions.push(
+        or(
+          ilike(users.fullName, `%${q}%`),
+          ilike(users.email, `%${q}%`),
+          ilike(users.username, `%${q}%`)
+        )
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [userList, totalCountResult] = await Promise.all([
+      db.query.users.findMany({
+        where: whereClause,
+        orderBy: (user, { desc, asc }) => {
+          const sortColumn = {
+            createdAt: user.createdAt,
+            fullName: user.fullName,
+            email: user.email,
+            ratingScore: user.ratingScore,
+          }[sortBy];
+          return [sortOrder === "asc" ? asc(sortColumn) : desc(sortColumn)];
+        },
+        limit,
+        offset,
+      }),
+      db.select({ count: count() }).from(users).where(whereClause),
+    ]);
+
+    const total = totalCountResult[0]?.count || 0;
+
+    return toPaginated<AdminUserListItem>(
+      userList.map((user) => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        accountStatus: user.accountStatus,
+        ratingScore: user.ratingScore,
+        ratingCount: user.ratingCount,
+        createdAt: user.createdAt.toISOString(),
+      })),
+      page,
+      limit,
+      total
+    );
+  }
+
+  async getUserByIdAdmin(userId: string): Promise<AdminUser> {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user) {
+      throw new NotFoundError("User");
+    }
+
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+    };
   }
 }
 

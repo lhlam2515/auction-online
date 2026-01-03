@@ -19,12 +19,19 @@ import type {
   PaginatedResponse,
   ProductDetails,
   Product,
+  AdminUserListItem,
+  AdminUser,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { categoryService, productService, adminService } from "@/services";
+import {
+  categoryService,
+  productService,
+  adminService,
+  userService,
+} from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -36,10 +43,21 @@ export const getDashboardStats = asyncHandler(
 );
 
 export const getUsers = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as GetUsersParams;
-    // TODO: Get all users with filters
-    throw new NotImplementedError("Get users not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const query = res.locals.query as GetUsersParams;
+    const users = await userService.getAllUsersAdmin(query);
+    return ResponseHandler.sendSuccess<PaginatedResponse<AdminUserListItem>>(
+      res,
+      users
+    );
+  }
+);
+
+export const getUserById = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const user = await userService.getUserByIdAdmin(id);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
   }
 );
 
