@@ -2,6 +2,7 @@ import type { ProductDetails } from "@repo/shared-types";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { AlertSection } from "@/components/common/feedback";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +43,7 @@ const SuspendProductDialog = ({
           size="sm"
           className="cursor-pointer text-red-600 hover:bg-red-600"
         >
-          <Trash2 className="mr-2 h-4 w-4" />
+          <Trash2 className="h-4 w-4" />
           Gỡ bỏ
         </Button>
       </AlertDialogTrigger>
@@ -58,20 +59,12 @@ const SuspendProductDialog = ({
         </AlertDialogHeader>
 
         <div className="space-y-3">
-          <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
-              <div className="text-sm text-orange-800">
-                <p className="font-medium">Lưu ý!</p>
-                <p>
-                  Hành động này sẽ gỡ bỏ sản phẩm khỏi hệ thống.
-                  <br />
-                  Sản phẩm sẽ không thể được tìm thấy và đấu giá sẽ bị dừng.
-                </p>
-              </div>
-            </div>
-          </div>
-
+          <AlertSection
+            variant="warning"
+            icon={AlertTriangle}
+            title="Lưu ý"
+            description="Hành động này sẽ gỡ bỏ sản phẩm khỏi hệ thống. Sản phẩm sẽ không thể được tìm thấy và đấu giá sẽ bị dừng."
+          />
           <p className="text-sm">Hành động này không thể hoàn tác.</p>
         </div>
 
