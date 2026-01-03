@@ -326,7 +326,7 @@ export class ProductService {
       .leftJoin(users, eq(products.sellerId, users.id))
       .leftJoin(orders, eq(products.id, orders.productId));
 
-    if (!product_info) {
+    if (!product_info || product_info.products.status === "SUSPENDED") {
       throw new NotFoundError("Product");
     }
 
