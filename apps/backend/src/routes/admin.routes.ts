@@ -139,6 +139,19 @@ router.patch(
 );
 
 /**
+ * @route   POST /api/admin/users
+ * @desc    Create a new user
+ * @access  Private (Admin)
+ */
+router.post(
+  "/users",
+  validate({
+    body: adminValidation.createUserSchema,
+  }),
+  adminController.createUser
+);
+
+/**
  * @route   POST /api/admin/users/:id/reset-password
  * @desc    Reset user password
  * @access  Private (Admin)

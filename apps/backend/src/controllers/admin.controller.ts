@@ -18,6 +18,8 @@ import type {
   SuspendProductRequest,
   CreateCategoryRequest,
   UpdateCategoryRequest,
+  CreateUserRequest,
+  DeleteUserRequest,
   Category,
   PaginatedResponse,
   ProductDetails,
@@ -113,6 +115,14 @@ export const resetUserPassword = asyncHandler(
     return ResponseHandler.sendSuccess(res, {
       message: "Password reset successfully",
     });
+  }
+);
+
+export const createUser = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const body = req.body as CreateUserRequest;
+    const user = await userService.createUserAdmin(body);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user, 201);
   }
 );
 

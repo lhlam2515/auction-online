@@ -408,7 +408,7 @@ export class UserService {
     userId: string,
     isBanned: boolean,
     reason?: string,
-    duration?: number
+    _duration?: number
   ): Promise<AdminUser> {
     await this.getById(userId); // Ensure user exists
 
@@ -431,6 +431,69 @@ export class UserService {
       ...updated,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
+  async createUserAdmin(data: {
+    email: string;
+    username: string;
+    fullName: string;
+    password: string;
+    role?: "BIDDER" | "SELLER" | "ADMIN";
+    address?: string;
+    birthDate?: string;
+  }): Promise<AdminUser> {
+    const existingEmailUser = await db.query.users.findFirst({
+      where: eq(users.email, data.email),
+    });
+
+    if (existingEmailUser) {
+      throw new ConflictError("Email already exists");
+    }
+
+    const existingUsernameUser = await db.query.users.findFirst({
+      where: eq(users.username, data.username),
+    });
+
+    if (existingUsernameUser) {
+      throw new ConflictError("Username already exists");
+    }
+
+    const { data: authData, error: authError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: true,
+        user_metadata: {
+          username: data.username,
+          full_name: data.fullName,
+        },
+      });
+
+    if (authError || !authData.user) {
+      throw new BadRequestError(
+        `Failed to create user in auth: ${authError?.message || "Unknown error"}`
+      );
+    }
+
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        id: authData.user.id,
+        email: data.email,
+        username: data.username,
+        fullName: data.fullName,
+        role: data.role || "BIDDER",
+        accountStatus: "ACTIVE",
+        address: data.address || null,
+        birthDate: data.birthDate || null,
+      })
+      .returning();
+
+    return {
+      ...newUser,
+      createdAt: newUser.createdAt.toISOString(),
+      updatedAt: newUser.updatedAt.toISOString(),
     };
   }
 }

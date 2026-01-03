@@ -105,3 +105,30 @@ export const createCategorySchema = z.object({
 export const updateCategorySchema = z.object({
   name: z.string().min(2),
 });
+
+export const createUserSchema = z.object({
+  email: z.email({ message: "Invalid email address" }),
+  username: z
+    .string()
+    .min(3, { message: "Username must be at least 3 characters" })
+    .max(30, { message: "Username must not exceed 30 characters" })
+    .regex(/^[a-zA-Z0-9_]+$/, {
+      message: "Username can only contain letters, numbers, and underscores",
+    }),
+  fullName: z
+    .string()
+    .min(2, { message: "Full name must be at least 2 characters" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
+  role: z.enum(["BIDDER", "SELLER", "ADMIN"]).default("BIDDER"),
+  address: z.string().optional(),
+  birthDate: z.coerce.date().optional(),
+});
+
+export const deleteUserSchema = z.object({
+  reason: z
+    .string()
+    .min(10, { message: "Reason must be at least 10 characters" })
+    .optional(),
+});

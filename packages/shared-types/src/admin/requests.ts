@@ -99,3 +99,25 @@ export interface RejectProductRequest {
 export interface SuspendProductRequest {
   reason: string;
 }
+
+/**
+ * Create user request (Admin)
+ * Backend validation: admin.validation.ts → createUserSchema
+ */
+export interface CreateUserRequest {
+  email: string;
+  username: string;
+  fullName: string;
+  password: string;
+  role?: UserRole;
+  address?: string;
+  birthDate?: string;
+}
+
+/**
+ * Delete user request (Admin)
+ * Backend validation: admin.validation.ts → deleteUserSchema
+ */
+export interface DeleteUserRequest {
+  reason?: string;
+}
