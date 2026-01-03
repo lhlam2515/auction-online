@@ -732,7 +732,7 @@ export const api = {
       /**
        * Reject upgrade request
        */
-      reject: (upgradeId: string, data?: { reason?: string }) =>
+      reject: (upgradeId: string, data?: { adminNote?: string }) =>
         apiCall<{ message: string }>(
           "POST",
           `/admin/upgrades/${upgradeId}/reject`,

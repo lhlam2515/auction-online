@@ -83,8 +83,8 @@ export const rejectUpgrade = asyncHandler(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { id } = req.params;
     const adminId = req.user!.id;
-    const { reason } = req.body as ProcessUpgradeRequest;
-    await adminService.rejectUpgradeRequest(id, adminId, reason);
+    const { adminNote } = req.body as { adminNote?: string };
+    await adminService.rejectUpgradeRequest(id, adminId, adminNote);
     return ResponseHandler.sendSuccess(res, {
       message: "Upgrade request rejected successfully",
     });

@@ -159,7 +159,7 @@ export default function ApproveUpgradesPage() {
     setIsProcessing(true);
     try {
       await api.admin.upgrades.reject(selectedRequest.id, {
-        reason,
+        adminNote: reason,
       });
       toast.success("Đã từ chối yêu cầu nâng cấp");
       setIsRejectDialogOpen(false);
