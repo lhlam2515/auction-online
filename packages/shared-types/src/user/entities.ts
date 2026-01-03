@@ -25,7 +25,7 @@ export interface User extends UserCore {
   ratingCount: number;
 
   // Seller-specific
-  sellerExpireDate: Date | null; // ISO timestamp
+  sellerExpireDate: Date | string | null; // ISO timestamp
   createdAt: Date | string;
   updatedAt: Date | string;
 }

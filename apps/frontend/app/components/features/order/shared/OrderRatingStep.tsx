@@ -26,16 +26,28 @@ const OrderRatingStep = ({
   onSuccess,
   isSeller = false,
 }: OrderRatingStepProps) => {
+  const otherParty = isSeller ? order.winner : order.seller;
+
+  if (!otherParty) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-muted-foreground">
+            Không thể đánh giá - thông tin{" "}
+            {isSeller ? "người mua" : "người bán"} không khả dụng
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Đánh giá {isSeller ? "người mua" : "người bán"}</CardTitle>
         <CardDescription>
           Trải nghiệm của bạn với {isSeller ? "người mua" : "người bán"}{" "}
-          <strong>
-            {isSeller ? order.winner.fullName : order.seller.fullName}
-          </strong>{" "}
-          như thế nào?
+          <strong>{otherParty.fullName}</strong> như thế nào?
         </CardDescription>
       </CardHeader>
       <CardContent>

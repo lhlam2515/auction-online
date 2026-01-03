@@ -41,7 +41,7 @@ export const products = pgTable(
     sellerId: t
       .uuid("seller_id")
       .notNull()
-      .references(() => users.id, { onDelete: "restrict" }), // Prevent seller deletion
+      .references(() => users.id, { onDelete: "cascade" }), // Cascade delete with business logic protection
     categoryId: t
       .uuid("category_id")
       .notNull()
@@ -142,7 +142,7 @@ export const productUpdates = pgTable(
     updatedBy: t
       .uuid("updated_by")
       .notNull()
-      .references(() => users.id, { onDelete: "restrict" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     content: t.text("content").notNull(),
     createdAt: t
       .timestamp("created_at", { withTimezone: true })

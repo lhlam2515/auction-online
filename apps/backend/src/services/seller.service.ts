@@ -1,5 +1,5 @@
 import type { SellerStats } from "@repo/shared-types";
-import { eq, and, count, sql } from "drizzle-orm";
+import { eq, and, count, sql, isNotNull } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, products } from "@/models";
@@ -17,6 +17,7 @@ export class SellerService {
     const totalActiveProducts = activeProductsResult[0]?.count || 0;
 
     // Get total sold products and revenue from completed orders
+    // Filter out orders where sellerId was set to null (deleted users)
     const soldStatsResult = await db
       .select({
         totalSold: count(),
@@ -24,7 +25,11 @@ export class SellerService {
       })
       .from(orders)
       .where(
-        and(eq(orders.sellerId, sellerId), eq(orders.status, "COMPLETED"))
+        and(
+          eq(orders.sellerId, sellerId),
+          eq(orders.status, "COMPLETED"),
+          isNotNull(orders.sellerId)
+        )
       );
 
     const totalSoldProducts = soldStatsResult[0]?.totalSold || 0;

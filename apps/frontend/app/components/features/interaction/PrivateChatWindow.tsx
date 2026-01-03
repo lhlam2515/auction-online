@@ -184,6 +184,11 @@ const PrivateChatWindow = ({
   const otherParty = isBuyer ? order.seller : order.winner;
   const otherPartyRole = isBuyer ? "Người bán" : "Người mua";
 
+  // Check if otherParty exists
+  if (!otherParty) {
+    return null; // Don't show chat if other party is deleted
+  }
+
   // Find the last message sent by me to show status
   const lastSentMessage = [...messages]
     .reverse()

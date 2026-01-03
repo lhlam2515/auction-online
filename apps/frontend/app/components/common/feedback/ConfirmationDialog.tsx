@@ -57,7 +57,7 @@ const variantConfig: Record<
   },
   destructive: {
     confirmButtonClass: "",
-    loadingText: "Đang hủy...",
+    loadingText: "Đang xử lý...",
   },
   warning: {
     confirmButtonClass: "bg-amber-500 text-amber-50 hover:bg-amber-700",

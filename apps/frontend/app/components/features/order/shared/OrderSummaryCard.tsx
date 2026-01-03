@@ -1,5 +1,5 @@
 import type { OrderWithDetails } from "@repo/shared-types";
-import { MessageCircle, MapPin } from "lucide-react";
+import { MessageCircle, MapPin, Package } from "lucide-react";
 import { useState } from "react";
 
 import { PrivateChatWindow } from "@/components/features/interaction";
@@ -30,15 +30,21 @@ const OrderSummaryCard = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="aspect-square overflow-hidden rounded-lg">
-            <img
-              src={order.product.thumbnail}
-              alt={order.product.name}
-              className="h-full w-full object-cover"
-            />
+            {order.product?.thumbnail ? (
+              <img
+                src={order.product.thumbnail}
+                alt={order.product.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gray-100">
+                <Package className="h-16 w-16 text-gray-400" />
+              </div>
+            )}
           </div>
           <div>
             <h3 className="text-card-foreground mb-2 text-lg font-semibold">
-              {order.product.name}
+              {order.product?.name || "Sản phẩm không khả dụng"}
             </h3>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
@@ -59,42 +65,54 @@ const OrderSummaryCard = ({
               {isSeller ? "Người mua" : "Người bán"}
             </h4>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-card-foreground">
-                  {isSeller ? order.winner.fullName : order.seller.fullName}
+              {(isSeller ? order.winner : order.seller) ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-card-foreground">
+                      {isSeller
+                        ? order.winner!.fullName
+                        : order.seller!.fullName}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "px-2 py-1 text-sm",
+                        (isSeller
+                          ? order.winner!.ratingScore
+                          : order.seller!.ratingScore) >= 0.8
+                          ? "border-green-300 bg-green-50 text-green-600"
+                          : (isSeller
+                                ? order.winner!.ratingScore
+                                : order.seller!.ratingScore) >= 0.5
+                            ? "border-amber-300 bg-amber-50 text-amber-600"
+                            : "border-red-500 bg-red-50 text-red-600"
+                      )}
+                    >
+                      {(isSeller
+                        ? order.winner!.ratingScore * 100
+                        : order.seller!.ratingScore * 100
+                      ).toFixed(1)}
+                      % Tích cực
+                    </Badge>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="text-muted-foreground flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>
+                        {isSeller
+                          ? order.shippingAddress ||
+                            "Địa chỉ chưa được cung cấp"
+                          : order.seller!.address || "Địa chỉ không khả dụng"}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <span className="text-muted-foreground italic">
+                  Thông tin {isSeller ? "người mua" : "người bán"} không khả
+                  dụng
                 </span>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "px-2 py-1 text-sm",
-                    (isSeller
-                      ? order.winner.ratingScore
-                      : order.seller.ratingScore) >= 0.8
-                      ? "border-green-300 bg-green-50 text-green-600"
-                      : (isSeller
-                            ? order.winner.ratingScore
-                            : order.seller.ratingScore) >= 0.5
-                        ? "border-amber-300 bg-amber-50 text-amber-600"
-                        : "border-red-500 bg-red-50 text-red-600"
-                  )}
-                >
-                  {(isSeller
-                    ? order.winner.ratingScore * 100
-                    : order.seller.ratingScore * 100
-                  ).toFixed(1)}
-                  % Tích cực
-                </Badge>
-              </div>
-              <div className="space-y-1 text-sm">
-                <div className="text-muted-foreground flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>
-                    {isSeller
-                      ? order.shippingAddress || "Địa chỉ chưa được cung cấp"
-                      : order.seller.address}
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
           <Button

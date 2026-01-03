@@ -52,7 +52,7 @@ const DEFAULT_COLUMNS: OrderTableColumn[] = [
     header: "Sản phẩm",
     render: (order) => (
       <div className="flex items-center gap-3">
-        {order.product.thumbnail ? (
+        {order.product?.thumbnail ? (
           <img
             src={order.product.thumbnail}
             alt={order.product.name}
@@ -64,12 +64,18 @@ const DEFAULT_COLUMNS: OrderTableColumn[] = [
           </div>
         )}
         <div>
-          <Link
-            to={APP_ROUTES.PRODUCT(order.productId)}
-            className="font-medium hover:underline"
-          >
-            {order.product.name}
-          </Link>
+          {order.product && order.productId ? (
+            <Link
+              to={APP_ROUTES.PRODUCT(order.productId)}
+              className="font-medium hover:underline"
+            >
+              {order.product.name}
+            </Link>
+          ) : (
+            <span className="text-muted-foreground italic">
+              Sản phẩm không khả dụng
+            </span>
+          )}
         </div>
       </div>
     ),
@@ -80,8 +86,18 @@ const DEFAULT_COLUMNS: OrderTableColumn[] = [
     header: "Người mua",
     render: (order) => (
       <div>
-        <p className="font-medium">{order.winner.fullName}</p>
-        <p className="text-muted-foreground text-sm">{order.winner.email}</p>
+        {order.winner ? (
+          <>
+            <p className="font-medium">{order.winner.fullName}</p>
+            <p className="text-muted-foreground text-sm">
+              {order.winner.email}
+            </p>
+          </>
+        ) : (
+          <span className="text-muted-foreground italic">
+            Người mua không khả dụng
+          </span>
+        )}
       </div>
     ),
   },

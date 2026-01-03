@@ -55,8 +55,11 @@ export class QuestionService {
         ...q.question,
         userName: q.userName || "Unknown",
         userAvatarUrl: q.userAvatarUrl,
-        answererName: q.answererName,
-        answererAvatarUrl: q.answererAvatarUrl,
+        // Handle nullable answeredBy - show as null if answerer deleted
+        answererName: q.answererName || null,
+        answererAvatarUrl: q.answererAvatarUrl || null,
+        // Only show answer content if answerer still exists
+        answerContent: q.answererName ? q.question.answerContent : null,
       };
     });
   }

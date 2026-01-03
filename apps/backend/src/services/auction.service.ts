@@ -1,7 +1,7 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { autoBids, bids, products } from "@/models";
+import { autoBids, bids, products, users } from "@/models";
 import { orderService } from "@/services/order.service";
 import { BadRequestError, NotFoundError } from "@/utils/errors";
 
@@ -92,15 +92,22 @@ class AuctionService {
         tx
       );
 
+      // Lấy thông tin winner để gửi email
+      const winner = await tx.query.users.findFirst({
+        where: eq(users.id, topBid.userId),
+      });
+
       // Gửi email thông báo chúc mừng người thắng
-      emailService.notifyAuctionEndSuccess(
-        product.seller.email,
-        product.winner!.email,
-        product.name,
-        finalPrice,
-        product.winner!.fullName,
-        productService.buildProductLink(productId)
-      );
+      if (winner) {
+        emailService.notifyAuctionEndSuccess(
+          product.seller.email,
+          winner.email,
+          product.name,
+          finalPrice,
+          winner.fullName,
+          productService.buildProductLink(productId)
+        );
+      }
 
       return { status: "completed", winnerId: topBid.userId, finalPrice };
     });

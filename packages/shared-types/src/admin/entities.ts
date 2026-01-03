@@ -36,9 +36,22 @@ export interface AdminActivity {
 export interface AdminUser extends User {
   loginCount?: number;
   lastLoginAt?: string;
-  banReason?: string;
-  bannedBy?: string;
-  bannedAt?: string;
+}
+
+/**
+ * Admin user list item (simplified for list view)
+ */
+export interface AdminUserListItem {
+  id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  avatarUrl: string | null;
+  role: "BIDDER" | "SELLER" | "ADMIN";
+  accountStatus: AccountStatus;
+  ratingScore: number;
+  ratingCount: number;
+  createdAt: string;
 }
 
 /**

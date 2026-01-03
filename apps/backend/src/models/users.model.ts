@@ -63,7 +63,9 @@ export const upgradeRequests = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     reason: t.text("reason"),
     status: requestStatusEnum("status").notNull().default("PENDING"),
-    processedBy: t.uuid("processed_by").references(() => users.id), // Admin who processed
+    processedBy: t
+      .uuid("processed_by")
+      .references(() => users.id, { onDelete: "set null" }), // Admin who processed
     createdAt: t
       .timestamp("created_at", { withTimezone: true })
       .notNull()

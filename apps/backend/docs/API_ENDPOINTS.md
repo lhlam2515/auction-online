@@ -141,22 +141,28 @@
 
 # ✅ **10. Admin Management**
 
-| Method | Endpoint                               | Role | Mô tả                     |
-| ------ | -------------------------------------- | ---- | ------------------------- |
-| GET    | /api/v1/admin/stats                    | ADM  | Dashboard thống kê cơ bản |
-| GET    | /api/v1/admin/analytics                | ADM  | Toàn bộ analytics data    |
-| GET    | /api/v1/admin/analytics/categories     | ADM  | Category insights         |
-| GET    | /api/v1/admin/analytics/auction-health | ADM  | Auction health metrics    |
-| GET    | /api/v1/admin/analytics/operations     | ADM  | Operations metrics        |
-| GET    | /api/v1/admin/analytics/engagement     | ADM  | Engagement metrics        |
-| GET    | /api/v1/admin/users                    | ADM  | Danh sách user            |
-| PATCH  | /api/v1/admin/users/:id/ban            | ADM  | Ban user                  |
-| POST   | /api/v1/admin/users/:id/reset-password | ADM  | Reset mật khẩu            |
-| GET    | /api/v1/admin/upgrades                 | ADM  | Yêu cầu nâng cấp seller   |
-| POST   | /api/v1/admin/upgrades/:id/approve     | ADM  | Duyệt nâng cấp            |
-| POST   | /api/v1/admin/upgrades/:id/reject      | ADM  | Từ chối                   |
-| GET    | /api/v1/admin/products                 | ADM  | Tất cả sản phẩm           |
-| GET    | /api/v1/admin/products/pending         | ADM  | SP chờ duyệt              |
-| PUT    | /api/v1/admin/products/:id/approve     | ADM  | Duyệt SP                  |
-| PUT    | /api/v1/admin/products/:id/reject      | ADM  | Từ chối SP                |
-| POST   | /api/v1/admin/products/:id/suspend     | ADM  | Gỡ SP đang active         |
+| Method | Endpoint                               | Role | Mô tả                                              |
+| ------ | -------------------------------------- | ---- | -------------------------------------------------- |
+| GET    | /api/v1/admin/stats                    | ADM  | Dashboard thống kê cơ bản                          |
+| GET    | /api/v1/admin/analytics                | ADM  | Toàn bộ analytics data                             |
+| GET    | /api/v1/admin/analytics/categories     | ADM  | Category insights                                  |
+| GET    | /api/v1/admin/analytics/auction-health | ADM  | Auction health metrics                             |
+| GET    | /api/v1/admin/analytics/operations     | ADM  | Operations metrics                                 |
+| GET    | /api/v1/admin/analytics/engagement     | ADM  | Engagement metrics                                 |
+| GET    | /api/v1/admin/users                    | ADM  | Danh sách user (hỗ trợ search, filter, pagination) |
+| GET    | /api/v1/admin/users/:id                | ADM  | Xem chi tiết thông tin user                        |
+| POST   | /api/v1/admin/users                    | ADM  | Tạo user mới (thủ công)                            |
+| PATCH  | /api/v1/admin/users/:id                | ADM  | Cập nhật thông tin user                            |
+| PATCH  | /api/v1/admin/users/:id/account-status | ADM  | Cập nhật trạng thái tài khoản                      |
+| PATCH  | /api/v1/admin/users/:id/role           | ADM  | Cập nhật role user                                 |
+| PATCH  | /api/v1/admin/users/:id/ban            | ADM  | Ban/Unban user                                     |
+| POST   | /api/v1/admin/users/:id/reset-password | ADM  | Reset mật khẩu                                     |
+| DELETE | /api/v1/admin/users/:id                | ADM  | Xóa user (có ràng buộc nghiệp vụ)                  |
+| GET    | /api/v1/admin/upgrades                 | ADM  | Yêu cầu nâng cấp seller                            |
+| POST   | /api/v1/admin/upgrades/:id/approve     | ADM  | Duyệt nâng cấp                                     |
+| POST   | /api/v1/admin/upgrades/:id/reject      | ADM  | Từ chối                                            |
+| GET    | /api/v1/admin/products                 | ADM  | Tất cả sản phẩm                                    |
+| GET    | /api/v1/admin/products/pending         | ADM  | SP chờ duyệt                                       |
+| PUT    | /api/v1/admin/products/:id/approve     | ADM  | Duyệt SP                                           |
+| PUT    | /api/v1/admin/products/:id/reject      | ADM  | Từ chối SP                                         |
+| POST   | /api/v1/admin/products/:id/suspend     | ADM  | Gỡ SP đang active                                  |

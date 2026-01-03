@@ -9,6 +9,9 @@ import type {
   GetUpgradeRequestsParams,
   BanUserRequest,
   ResetUserPasswordRequest,
+  UpdateUserInfoRequest,
+  UpdateAccountStatusRequest,
+  UpdateUserRoleRequest,
   UpgradeRequest,
   ProcessUpgradeRequest,
   AdminGetProductsParams,
@@ -16,16 +19,25 @@ import type {
   SuspendProductRequest,
   CreateCategoryRequest,
   UpdateCategoryRequest,
+  CreateUserRequest,
+  DeleteUserRequest,
   Category,
   PaginatedResponse,
   ProductDetails,
   Product,
+  AdminUserListItem,
+  AdminUser,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { categoryService, productService, adminService } from "@/services";
+import {
+  categoryService,
+  productService,
+  adminService,
+  userService,
+} from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -37,26 +49,95 @@ export const getDashboardStats = asyncHandler(
 );
 
 export const getUsers = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const query = req.query as unknown as GetUsersParams;
-    // TODO: Get all users with filters
-    throw new NotImplementedError("Get users not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const query = res.locals.query as GetUsersParams;
+    const users = await userService.getAllUsersAdmin(query);
+    return ResponseHandler.sendSuccess<PaginatedResponse<AdminUserListItem>>(
+      res,
+      users
+    );
+  }
+);
+
+export const getUserById = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const user = await userService.getUserByIdAdmin(id);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
+  }
+);
+
+export const updateUserInfo = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const body = req.body as UpdateUserInfoRequest;
+    const user = await userService.updateUserInfoAdmin(id, body);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
+  }
+);
+
+export const updateAccountStatus = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { accountStatus } = req.body as UpdateAccountStatusRequest;
+    const user = await userService.updateAccountStatusAdmin(id, accountStatus);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
+  }
+);
+
+export const updateUserRole = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { role } = req.body as UpdateUserRoleRequest;
+    const user = await userService.updateUserRoleAdmin(id, role);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
   }
 );
 
 export const toggleBanUser = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const body = req.body as BanUserRequest;
-    // TODO: Ban/unban user
-    throw new NotImplementedError("Toggle ban user not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { isBanned, reason, duration } = req.body as BanUserRequest;
+    const user = await userService.toggleBanUserAdmin(
+      id,
+      isBanned,
+      reason,
+      duration
+    );
+    return ResponseHandler.sendSuccess<AdminUser>(res, user);
   }
 );
 
 export const resetUserPassword = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
     const body = req.body as ResetUserPasswordRequest;
-    // TODO: Reset user password
-    throw new NotImplementedError("Reset user password not implemented yet");
+    await userService.resetUserPasswordAdmin(id, body.newPassword);
+    return ResponseHandler.sendSuccess(res, {
+      message: "Password reset successfully",
+    });
+  }
+);
+
+export const createUser = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const body = req.body as CreateUserRequest;
+    const user = await userService.createUserAdmin(body);
+    return ResponseHandler.sendSuccess<AdminUser>(res, user, 201);
+  }
+);
+
+export const deleteUser = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { reason } = req.body as DeleteUserRequest;
+    await userService.deleteUserAdmin(id, reason);
+    return ResponseHandler.sendSuccess(
+      res,
+      null,
+      200,
+      "User deleted successfully"
+    );
   }
 );
 

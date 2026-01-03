@@ -59,10 +59,69 @@ router.get("/analytics/engagement", adminController.getEngagementMetrics);
 /**
  * User Management
  */
+
+/**
+ * @route   GET /api/admin/users
+ * @desc    Get all users with filters and pagination
+ * @access  Private (Admin)
+ */
 router.get(
   "/users",
   validate({ query: adminValidation.getUsersSchema }),
   adminController.getUsers
+);
+
+/**
+ * @route   GET /api/admin/users/:id
+ * @desc    Get user details by ID
+ * @access  Private (Admin)
+ */
+router.get(
+  "/users/:id",
+  validate({ params: adminValidation.userIdSchema }),
+  adminController.getUserById
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id
+ * @desc    Update user information (fullName, address, birthDate)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateUserInfoSchema,
+  }),
+  adminController.updateUserInfo
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id/account-status
+ * @desc    Update account status (PENDING_VERIFICATION, ACTIVE, BANNED)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/account-status",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateAccountStatusSchema,
+  }),
+  adminController.updateAccountStatus
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id/role
+ * @desc    Update user role (BIDDER, SELLER, ADMIN)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/role",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateUserRoleSchema,
+  }),
+  adminController.updateUserRole
 );
 
 /**
@@ -80,14 +139,44 @@ router.patch(
 );
 
 /**
+ * @route   POST /api/admin/users
+ * @desc    Create a new user
+ * @access  Private (Admin)
+ */
+router.post(
+  "/users",
+  validate({
+    body: adminValidation.createUserSchema,
+  }),
+  adminController.createUser
+);
+
+/**
  * @route   POST /api/admin/users/:id/reset-password
  * @desc    Reset user password
  * @access  Private (Admin)
  */
 router.post(
   "/users/:id/reset-password",
-  validate({ params: adminValidation.userIdSchema }),
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.resetUserPasswordSchema,
+  }),
   adminController.resetUserPassword
+);
+
+/**
+ * @route   DELETE /api/admin/users/:id
+ * @desc    Delete user with business constraints validation
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/users/:id",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.deleteUserSchema,
+  }),
+  adminController.deleteUser
 );
 
 /**

@@ -80,8 +80,15 @@ import type {
   // Admin types
   AdminStats,
   AdminUser,
+  AdminUserListItem,
+  GetUsersParams,
   BanUserRequest,
   ResetUserPasswordRequest,
+  UpdateUserInfoRequest,
+  UpdateAccountStatusRequest,
+  UpdateUserRoleRequest,
+  CreateUserRequest,
+  DeleteUserRequest,
   UpgradeRequest,
   AdminProduct,
   AdminAnalytics,
@@ -97,7 +104,6 @@ import type {
   SearchProductsParams,
   AdminGetProductsParams,
 } from "@repo/shared-types";
-import { data } from "react-router";
 
 import { apiClient } from "@/lib/handlers/api";
 import { appendQueryParams } from "@/lib/url";
@@ -669,17 +675,45 @@ export const api = {
       /**
        * Get all users with filters
        */
-      getAll: (
-        params?: PaginationParams & {
-          status?: string;
-          role?: string;
-          search?: string;
-        }
-      ) =>
-        apiCall<PaginatedResponse<AdminUser>>(
+      getAll: (params?: GetUsersParams) =>
+        apiCall<PaginatedResponse<AdminUserListItem>>(
           "GET",
           appendQueryParams("/admin/users", paramsToRecord(params))
         ),
+
+      /**
+       * Create a new user
+       */
+      create: (data: CreateUserRequest) =>
+        apiCall<AdminUser>("POST", "/admin/users", data),
+
+      /**
+       * Get user by ID
+       */
+      getById: (userId: string) =>
+        apiCall<AdminUser>("GET", `/admin/users/${userId}`),
+
+      /**
+       * Update user information (fullName, address, birthDate)
+       */
+      update: (userId: string, data: UpdateUserInfoRequest) =>
+        apiCall<AdminUser>("PATCH", `/admin/users/${userId}`, data),
+
+      /**
+       * Update account status (PENDING_VERIFICATION, ACTIVE, BANNED)
+       */
+      updateStatus: (userId: string, data: UpdateAccountStatusRequest) =>
+        apiCall<AdminUser>(
+          "PATCH",
+          `/admin/users/${userId}/account-status`,
+          data
+        ),
+
+      /**
+       * Update user role (BIDDER, SELLER, ADMIN)
+       */
+      updateRole: (userId: string, data: UpdateUserRoleRequest) =>
+        apiCall<AdminUser>("PATCH", `/admin/users/${userId}/role`, data),
 
       /**
        * Ban/unban user
@@ -700,6 +734,12 @@ export const api = {
           `/admin/users/${userId}/reset-password`,
           data
         ),
+
+      /**
+       * Delete user with business constraints validation
+       */
+      delete: (userId: string, data?: DeleteUserRequest) =>
+        apiCall<{ message: string }>("DELETE", `/admin/users/${userId}`, data),
     },
 
     /**

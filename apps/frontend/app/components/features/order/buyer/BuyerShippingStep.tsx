@@ -92,7 +92,11 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
         {/* Shipping Address */}
         <ShippingInfo
           orderId={order.id}
-          shippingAddress={order.shippingAddress || order.winner.address}
+          shippingAddress={
+            order.shippingAddress ||
+            order.winner?.address ||
+            "Địa chỉ không khả dụng"
+          }
           phoneNumber={order.phoneNumber || ""}
           isEditable={false}
         />
