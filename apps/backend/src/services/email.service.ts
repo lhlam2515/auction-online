@@ -707,6 +707,111 @@ class EmailService {
     );
     this.queueEmail(userEmail, "Tài khoản đã được tạo thành công", fullHtml);
   }
+
+  /**
+   * Thông báo cho user khi admin thay đổi thông tin cá nhân
+   */
+  public notifyUserInfoUpdated(
+    userEmail: string,
+    userName: string,
+    changedFields: Array<{ field: string; oldValue: string; newValue: string }>
+  ) {
+    const fieldsHtml = changedFields
+      .map(
+        ({ field, oldValue, newValue }) => `
+        <div style="margin-bottom: 15px; padding: 10px; background: ${COLORS.muted}; border-radius: 4px;">
+          <strong>${field}:</strong><br>
+          <span style="color: ${COLORS.destructive}; text-decoration: line-through;">${oldValue}</span> →
+          <span style="color: ${COLORS.primary}; font-weight: bold;">${newValue}</span>
+        </div>`
+      )
+      .join("");
+
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: ${COLORS.secondary}; border-left: 4px solid ${COLORS.primary}; padding: 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; color: ${COLORS.primary}; font-size: 18px;">
+          ℹ️ Thông tin tài khoản đã được cập nhật
+        </h3>
+        <p style="margin: 0 0 15px 0; color: ${COLORS.foreground};">
+          Các thay đổi chi tiết:
+        </p>
+        ${fieldsHtml}
+      </div>
+
+      <p>Những thay đổi này được thực hiện bởi quản trị viên hệ thống để đảm bảo tính chính xác và tuân thủ các quy định.</p>
+
+      <p style="color: ${COLORS.mutedFg}; font-style: italic;">
+        Nếu bạn có thắc mắc về những thay đổi này, vui lòng liên hệ với bộ phận hỗ trợ.
+      </p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Thông báo cập nhật thông tin tài khoản",
+      htmlBody
+    );
+    this.queueEmail(
+      userEmail,
+      "Thông tin tài khoản đã được cập nhật",
+      fullHtml
+    );
+  }
+
+  /**
+   * Thông báo cho user khi admin thay đổi trạng thái tài khoản
+   */
+  public notifyAccountStatusChanged(
+    userEmail: string,
+    userName: string,
+    oldStatus: string,
+    newStatus: string,
+    reason?: string
+  ) {
+    const statusMap = {
+      PENDING_VERIFICATION: "Chờ xác thực",
+      ACTIVE: "Hoạt động",
+      BANNED: "Bị cấm",
+    };
+
+    const oldStatusText =
+      statusMap[oldStatus as keyof typeof statusMap] || oldStatus;
+    const newStatusText =
+      statusMap[newStatus as keyof typeof statusMap] || newStatus;
+
+    const htmlBody = `
+      <p>Xin chào <strong>${userName}</strong>,</p>
+
+      <div style="background: ${COLORS.secondary}; border-left: 4px solid ${COLORS.primary}; padding: 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; color: ${COLORS.primary}; font-size: 18px;">
+          ℹ️ Trạng thái tài khoản đã được thay đổi
+        </h3>
+        <p style="margin: 0; color: ${COLORS.foreground};">
+          <strong>Trạng thái cũ:</strong> ${oldStatusText}
+        </p>
+        <p style="margin: 10px 0 0 0; color: ${COLORS.foreground};">
+          <strong>Trạng thái mới:</strong> ${newStatusText}
+        </p>
+        ${reason ? `<p style="margin: 10px 0 0 0; color: ${COLORS.foreground};"><strong>Lý do:</strong> ${reason}</p>` : ""}
+      </div>
+
+      <p>Thay đổi này được thực hiện bởi quản trị viên hệ thống.</p>
+
+      <p style="color: ${COLORS.mutedFg}; font-style: italic;">
+        Nếu bạn có thắc mắc, vui lòng liên hệ với bộ phận hỗ trợ.
+      </p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Thông báo thay đổi trạng thái tài khoản",
+      htmlBody
+    );
+    this.queueEmail(
+      userEmail,
+      "Trạng thái tài khoản đã được thay đổi",
+      fullHtml
+    );
+  }
 }
 
 export const emailService = new EmailService();

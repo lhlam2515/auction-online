@@ -324,42 +324,101 @@ export class UserService {
     userId: string,
     data: UpdateUserInfoRequest
   ): Promise<AdminUser> {
-    await this.getById(userId); // Ensure user exists
+    const existingUser = await this.getById(userId); // Ensure user exists
 
     const updates: Record<string, string | Date> = {
       updatedAt: new Date(),
     };
 
-    if (data.fullName !== undefined) {
+    const changedFields: Array<{
+      field: string;
+      oldValue: string;
+      newValue: string;
+    }> = [];
+
+    if (
+      data.fullName !== undefined &&
+      data.fullName !== existingUser.fullName
+    ) {
       updates.fullName = data.fullName;
+      changedFields.push({
+        field: "Họ và tên",
+        oldValue: existingUser.fullName || "Chưa có",
+        newValue: data.fullName,
+      });
     }
 
-    if (data.address !== undefined) {
+    if (data.address !== undefined && data.address !== existingUser.address) {
       updates.address = data.address;
+      changedFields.push({
+        field: "Địa chỉ",
+        oldValue: existingUser.address || "Chưa có",
+        newValue: data.address,
+      });
     }
 
     if (data.birthDate !== undefined) {
-      updates.birthDate = data.birthDate;
+      // Convert to string for comparison
+      const existingBirthDate = existingUser.birthDate
+        ? new Date(existingUser.birthDate).toISOString().split("T")[0]
+        : null;
+      const newBirthDate = new Date(data.birthDate).toISOString().split("T")[0];
+      if (newBirthDate !== existingBirthDate) {
+        updates.birthDate = data.birthDate;
+        changedFields.push({
+          field: "Ngày sinh",
+          oldValue: existingBirthDate
+            ? new Date(existingBirthDate).toLocaleDateString("vi-VN")
+            : "Chưa có",
+          newValue: new Date(newBirthDate).toLocaleDateString("vi-VN"),
+        });
+      }
     }
 
-    const [updated] = await db
-      .update(users)
-      .set(updates)
-      .where(eq(users.id, userId))
-      .returning();
+    // Only update if there are changes
+    if (changedFields.length > 0) {
+      const [updated] = await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, userId))
+        .returning();
 
-    return {
-      ...updated,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    };
+      // Send email notification to user
+      try {
+        emailService.notifyUserInfoUpdated(
+          updated.email,
+          updated.fullName || updated.username,
+          changedFields
+        );
+      } catch (emailError) {
+        // Log email error but don't fail the operation
+        logger.warn(
+          `Failed to send info update notification email to user ${userId}:`,
+          emailError
+        );
+      }
+
+      return {
+        ...updated,
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt.toISOString(),
+      };
+    } else {
+      // No changes, return existing user
+      return {
+        ...existingUser,
+        createdAt: existingUser.createdAt.toISOString(),
+        updatedAt: existingUser.updatedAt.toISOString(),
+      };
+    }
   }
 
   async updateAccountStatusAdmin(
     userId: string,
     accountStatus: "PENDING_VERIFICATION" | "ACTIVE" | "BANNED"
   ): Promise<AdminUser> {
-    await this.getById(userId); // Ensure user exists
+    const existingUser = await this.getById(userId); // Ensure user exists
+    const oldStatus = existingUser.accountStatus;
 
     const [updated] = await db
       .update(users)
@@ -369,6 +428,24 @@ export class UserService {
       })
       .where(eq(users.id, userId))
       .returning();
+
+    // Send email notification to user if status changed
+    if (oldStatus !== accountStatus) {
+      try {
+        emailService.notifyAccountStatusChanged(
+          updated.email,
+          updated.fullName || updated.username,
+          oldStatus,
+          accountStatus
+        );
+      } catch (emailError) {
+        // Log email error but don't fail the operation
+        logger.warn(
+          `Failed to send account status change notification email to user ${userId}:`,
+          emailError
+        );
+      }
+    }
 
     return {
       ...updated,
