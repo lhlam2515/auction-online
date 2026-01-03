@@ -130,12 +130,14 @@ export default function ApproveUpgradesPage() {
     setIsApproveDialogOpen(true);
   };
 
-  const handleApproveConfirm = async () => {
+  const handleApproveConfirm = async (reason: string) => {
     if (!selectedRequest) return;
 
     setIsProcessing(true);
     try {
-      await api.admin.upgrades.approve(selectedRequest.id);
+      await api.admin.upgrades.approve(selectedRequest.id, {
+        adminNote: reason,
+      });
       toast.success("Đã chấp nhận yêu cầu nâng cấp");
       setIsApproveDialogOpen(false);
       setSelectedRequest(null);
