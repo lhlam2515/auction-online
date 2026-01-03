@@ -17,7 +17,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api-layer";
 
-import { UpdateUserInfoForm, UpdateAccountStatusForm } from "../forms";
+import {
+  UpdateUserInfoForm,
+  UpdateAccountStatusForm,
+  UpdateUserRoleForm,
+} from "../forms";
 
 type ManageUserDialogProps = {
   userId: string;
@@ -119,7 +123,7 @@ const ManageUserDialog = ({
 
             {/* Tabs for Info and Status */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="info">
                   <User className="h-4 w-4" />
                   Thông tin cơ bản
@@ -127,6 +131,10 @@ const ManageUserDialog = ({
                 <TabsTrigger value="status">
                   <Shield className="h-4 w-4" />
                   Trạng thái tài khoản
+                </TabsTrigger>
+                <TabsTrigger value="role">
+                  <UserCog className="h-4 w-4" />
+                  Vai trò
                 </TabsTrigger>
               </TabsList>
 
@@ -146,6 +154,18 @@ const ManageUserDialog = ({
               <TabsContent value="status" className="space-y-4">
                 {user && (
                   <UpdateAccountStatusForm
+                    userId={userId}
+                    user={user}
+                    onSuccess={handleSuccess}
+                    onCancel={() => setOpen(false)}
+                  />
+                )}
+              </TabsContent>
+
+              {/* Role Tab */}
+              <TabsContent value="role" className="space-y-4">
+                {user && (
+                  <UpdateUserRoleForm
                     userId={userId}
                     user={user}
                     onSuccess={handleSuccess}

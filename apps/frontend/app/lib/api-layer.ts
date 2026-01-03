@@ -86,6 +86,7 @@ import type {
   ResetUserPasswordRequest,
   UpdateUserInfoRequest,
   UpdateAccountStatusRequest,
+  UpdateUserRoleRequest,
   UpgradeRequest,
   AdminProduct,
   AdminAnalytics,
@@ -699,6 +700,12 @@ export const api = {
           `/admin/users/${userId}/account-status`,
           data
         ),
+
+      /**
+       * Update user role (BIDDER, SELLER, ADMIN)
+       */
+      updateRole: (userId: string, data: UpdateUserRoleRequest) =>
+        apiCall<AdminUser>("PATCH", `/admin/users/${userId}/role`, data),
 
       /**
        * Ban/unban user

@@ -21,6 +21,16 @@ export const updateAccountStatusSchema = z.object({
 });
 
 /**
+ * Admin - Update user role validation schema
+ * @description Validates admin updating user role
+ */
+export const updateUserRoleSchema = z.object({
+  role: z.enum(["BIDDER", "SELLER", "ADMIN"], {
+    error: "Vui lòng chọn vai trò hợp lệ",
+  }),
+});
+
+/**
  * Admin - Reset user password validation schema
  * @description Validates admin resetting user password
  */
