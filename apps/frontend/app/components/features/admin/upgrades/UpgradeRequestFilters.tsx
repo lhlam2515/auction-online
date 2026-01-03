@@ -50,7 +50,7 @@ export function UpgradeRequestFilters({
         </div>
         <Select value={status} onValueChange={onStatusChange}>
           <SelectTrigger className="w-[180px]">
-            <Filter className="mr-2 h-4 w-4" />
+            <Filter className="h-4 w-4" />
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>

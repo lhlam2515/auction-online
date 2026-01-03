@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
+import { PaginationBar } from "@/components/common";
 import {
   UpgradeRequestFilters,
   UpgradeRequestTable,
@@ -15,14 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { api } from "@/lib/api-layer";
 
 import type { Route } from "./+types/route";
@@ -155,31 +148,22 @@ export default function ApproveUpgradesPage() {
   };
 
   return (
-    <>
-      <div className="flex items-center justify-between pb-5">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary/10 rounded-lg p-2">
-            <UserCheck className="text-primary h-8 w-8" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Phê Duyệt Nâng Cấp
-            </h1>
-            <p className="text-muted-foreground">
-              Quản lý các yêu cầu nâng cấp tài khoản lên Seller
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách yêu cầu</CardTitle>
-          <CardDescription>
-            Xem và xử lý các yêu cầu nâng cấp từ người dùng.
-          </CardDescription>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+              <UserCheck className="text-primary h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl">Phê Duyệt Nâng Cấp</CardTitle>
+              <CardDescription className="text-lg">
+                Quản lý các yêu cầu nâng cấp tài khoản lên Seller
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <UpgradeRequestFilters
             search={search}
             status={status}
@@ -194,52 +178,17 @@ export default function ApproveUpgradesPage() {
             onReject={handleRejectConfirm}
           />
 
-          <div className="mt-4">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => handlePageChange(Math.max(1, page - 1))}
-                    className={
-                      page === 1
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
-                  />
-                </PaginationItem>
-                {Array.from(
-                  { length: Math.max(1, totalPages) },
-                  (_, i) => i + 1
-                ).map((p) => (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      isActive={page === p}
-                      onClick={() => handlePageChange(p)}
-                      className="cursor-pointer"
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() =>
-                      handlePageChange(
-                        Math.min(Math.max(1, totalPages), page + 1)
-                      )
-                    }
-                    className={
-                      page === Math.max(1, totalPages)
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center">
+              <PaginationBar
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }
