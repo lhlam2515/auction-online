@@ -64,8 +64,8 @@ export const getOrderDetails = asyncHandler(
     const order = await orderService.getById(orderId);
 
     if (
-      order.winner.email !== req.user!.email &&
-      order.seller.email !== req.user!.email
+      !order ||
+      (order.winnerId !== req.user!.id && order.sellerId !== req.user!.id)
     ) {
       throw new ForbiddenError("Access to this order is denied");
     }

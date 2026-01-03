@@ -37,6 +37,11 @@ export class OrderService {
       throw new BadRequestError("Auction has not ended or no winner");
     }
 
+    // Handle nullable winnerId - validate only for non-buyNow scenarios
+    if (!buyNow && !product.winnerId) {
+      throw new BadRequestError("Product has no winner assigned");
+    }
+
     if (!buyNow && product.winnerId !== winnerId) {
       throw new BadRequestError("Invalid winner for this auction");
     }
@@ -116,30 +121,35 @@ export class OrderService {
     }
 
     // Transform to match OrderWithDetails interface
-    const transformedOrder = {
+    // Handle nullable fields (user/product may be deleted)
+    const transformedOrder: OrderWithDetails = {
       ...order,
-      product: {
-        name: order.product.name,
-        slug: order.product.slug,
-        thumbnail: order.product.images.find((img) => img.isMain)?.imageUrl,
-      },
-      winner: {
-        fullName: order.winner.fullName,
-        email: order.winner.email,
-        address: order.winner.address,
-        ratingScore: order.winner.ratingScore,
-        ratingCount: order.winner.ratingCount,
-      },
-      seller: {
-        fullName: order.seller.fullName,
-        email: order.seller.email,
-        address: order.seller.address,
-        ratingScore: order.seller.ratingScore,
-        ratingCount: order.seller.ratingCount,
-      },
+      product: order.product
+        ? {
+            name: order.product.name,
+            slug: order.product.slug,
+            thumbnail: order.product.images.find((img) => img.isMain)?.imageUrl,
+          }
+        : null,
+      winner: order.winner
+        ? {
+            fullName: order.winner.fullName,
+            email: order.winner.email,
+            address: order.winner.address,
+            ratingScore: order.winner.ratingScore,
+          }
+        : null,
+      seller: order.seller
+        ? {
+            fullName: order.seller.fullName,
+            email: order.seller.email,
+            address: order.seller.address,
+            ratingScore: order.seller.ratingScore,
+          }
+        : null,
     };
 
-    return transformedOrder as OrderWithDetails;
+    return transformedOrder;
   }
 
   async getByUser(
@@ -169,30 +179,38 @@ export class OrderService {
     });
 
     // Transform to match OrderWithDetails interface
-    const transformedOrders = ordersList.map((order) => {
+    // Handle nullable fields (user/product may be deleted)
+    const transformedOrders: OrderWithDetails[] = ordersList.map((order) => {
       return {
         ...order,
-        product: {
-          name: order.product.name,
-          slug: order.product.slug,
-          thumbnail: order.product.images.find((img) => img.isMain)?.imageUrl,
-        },
-        winner: {
-          fullName: order.winner.fullName,
-          email: order.winner.email,
-          address: order.winner.address,
-          ratingScore: order.winner.ratingScore,
-        },
-        seller: {
-          fullName: order.seller.fullName,
-          email: order.seller.email,
-          address: order.seller.address,
-          ratingScore: order.seller.ratingScore,
-        },
+        product: order.product
+          ? {
+              name: order.product.name,
+              slug: order.product.slug,
+              thumbnail: order.product.images.find((img) => img.isMain)
+                ?.imageUrl,
+            }
+          : null,
+        winner: order.winner
+          ? {
+              fullName: order.winner.fullName,
+              email: order.winner.email,
+              address: order.winner.address,
+              ratingScore: order.winner.ratingScore,
+            }
+          : null,
+        seller: order.seller
+          ? {
+              fullName: order.seller.fullName,
+              email: order.seller.email,
+              address: order.seller.address,
+              ratingScore: order.seller.ratingScore,
+            }
+          : null,
       };
     });
 
-    return transformedOrders as OrderWithDetails[];
+    return transformedOrders;
   }
 
   async updateShippingInfo(
@@ -202,6 +220,13 @@ export class OrderService {
     phoneNumber: string
   ) {
     const order = await this.getById(orderId);
+
+    // Handle nullable winnerId
+    if (!order.winnerId) {
+      throw new BadRequestError(
+        "Cannot update shipping info - buyer information is missing"
+      );
+    }
 
     if (order.winnerId !== buyerId) {
       throw new ForbiddenError("Not your order");
@@ -241,6 +266,13 @@ export class OrderService {
 
       if (!order) {
         throw new NotFoundError("Order");
+      }
+
+      // Handle nullable winnerId
+      if (!order.winnerId) {
+        throw new BadRequestError(
+          "Cannot process payment - buyer information is missing"
+        );
       }
 
       if (order.winnerId !== buyerId) {
@@ -293,6 +325,13 @@ export class OrderService {
   async confirmPayment(orderId: string, sellerId: string) {
     const order = await this.getById(orderId);
 
+    // Handle nullable sellerId
+    if (!order.sellerId) {
+      throw new BadRequestError(
+        "Cannot confirm payment - seller information is missing"
+      );
+    }
+
     if (order.sellerId !== sellerId) {
       throw new ForbiddenError(
         "Only seller can confirm payment for this order"
@@ -327,6 +366,13 @@ export class OrderService {
   ) {
     const order = await this.getById(orderId);
 
+    // Handle nullable sellerId
+    if (!order.sellerId) {
+      throw new BadRequestError(
+        "Cannot ship order - seller information is missing"
+      );
+    }
+
     if (order.sellerId !== sellerId) {
       throw new ForbiddenError("Not your order");
     }
@@ -354,6 +400,13 @@ export class OrderService {
 
   async receiveOrder(orderId: string, buyerId: string) {
     const order = await this.getById(orderId);
+
+    // Handle nullable winnerId
+    if (!order.winnerId) {
+      throw new BadRequestError(
+        "Cannot receive order - buyer information is missing"
+      );
+    }
 
     if (order.winnerId !== buyerId) {
       throw new ForbiddenError("Not your order");
@@ -385,6 +438,13 @@ export class OrderService {
 
   async cancelOrder(orderId: string, userId: string, reason: string) {
     const order = await this.getById(orderId);
+
+    // Handle nullable sellerId
+    if (!order.sellerId) {
+      throw new BadRequestError(
+        "Cannot cancel order - seller information is missing"
+      );
+    }
 
     // Only seller can cancel order
     if (order.sellerId !== userId) {
@@ -422,6 +482,13 @@ export class OrderService {
   ) {
     const order = await this.getById(orderId);
 
+    // Handle nullable fields - cannot leave feedback if users deleted
+    if (!order.winnerId || !order.sellerId) {
+      throw new BadRequestError(
+        "Cannot leave feedback - buyer or seller information is missing"
+      );
+    }
+
     // Check if user is buyer or seller of this order
     if (order.winnerId !== userId && order.sellerId !== userId) {
       throw new ForbiddenError(
@@ -439,6 +506,13 @@ export class OrderService {
     // Determine receiver (the other party in the transaction)
     const receiverId =
       order.winnerId === userId ? order.sellerId : order.winnerId;
+
+    // Handle nullable productId
+    if (!order.productId) {
+      throw new BadRequestError(
+        "Cannot leave feedback - product information is missing"
+      );
+    }
 
     // Check if user already left feedback for this specific order
     // Query by checking productId + senderId + correct receiver to ensure it's from this order
@@ -468,7 +542,7 @@ export class OrderService {
 
     // Update receiver's rating score and count
     const receiver = await db.query.users.findFirst({
-      where: eq(ratings.receiverId, receiverId),
+      where: eq(users.id, receiverId),
     });
 
     if (receiver) {
