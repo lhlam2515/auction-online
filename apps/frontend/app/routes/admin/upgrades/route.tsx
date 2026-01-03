@@ -199,49 +199,50 @@ export default function ApproveUpgradesPage() {
             onReject={openRejectDialog}
           />
 
-          {totalPages > 1 && (
-            <div className="mt-4">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => handlePageChange(Math.max(1, page - 1))}
-                      className={
-                        page === 1
-                          ? "pointer-events-none opacity-50"
-                          : "cursor-pointer"
-                      }
-                    />
+          <div className="mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(Math.max(1, page - 1))}
+                    className={
+                      page === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+                {Array.from(
+                  { length: Math.max(1, totalPages) },
+                  (_, i) => i + 1
+                ).map((p) => (
+                  <PaginationItem key={p}>
+                    <PaginationLink
+                      isActive={page === p}
+                      onClick={() => handlePageChange(p)}
+                      className="cursor-pointer"
+                    >
+                      {p}
+                    </PaginationLink>
                   </PaginationItem>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (p) => (
-                      <PaginationItem key={p}>
-                        <PaginationLink
-                          isActive={page === p}
-                          onClick={() => handlePageChange(p)}
-                          className="cursor-pointer"
-                        >
-                          {p}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )
-                  )}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() =>
-                        handlePageChange(Math.min(totalPages, page + 1))
-                      }
-                      className={
-                        page === totalPages
-                          ? "pointer-events-none opacity-50"
-                          : "cursor-pointer"
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      handlePageChange(
+                        Math.min(Math.max(1, totalPages), page + 1)
+                      )
+                    }
+                    className={
+                      page === Math.max(1, totalPages)
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
         </CardContent>
       </Card>
 
