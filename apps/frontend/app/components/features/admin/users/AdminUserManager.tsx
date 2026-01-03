@@ -9,18 +9,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { ViewUserDialog, ManageUserDialog } from "./dialogs";
+import {
+  ViewUserDialog,
+  ManageUserDialog,
+  ResetPasswordDialog,
+} from "./dialogs";
 
 type AdminUserManagerProps = {
   user: AdminUserListItem;
   onBanUser?: (userId: string) => void;
-  onResetPassword?: (userId: string) => void;
+  onRefresh?: () => void;
 };
 
 const AdminUserManager = ({
   user,
   onBanUser,
-  onResetPassword,
+  onRefresh,
 }: AdminUserManagerProps) => {
   return (
     <DropdownMenu>
@@ -65,15 +69,21 @@ const AdminUserManager = ({
         />
 
         {/* Reset Password */}
-        {onResetPassword && (
-          <DropdownMenuItem
-            onClick={() => onResetPassword(user.id)}
-            className="cursor-pointer"
-          >
-            <Key className="h-4 w-4" />
-            Đặt lại mật khẩu
-          </DropdownMenuItem>
-        )}
+        <ResetPasswordDialog
+          userId={user.id}
+          userName={user.fullName}
+          userEmail={user.email}
+          onSuccess={onRefresh}
+          trigger={
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer"
+            >
+              <Key className="h-4 w-4" />
+              Đặt lại mật khẩu
+            </DropdownMenuItem>
+          }
+        />
 
         {/* Ban User */}
         {onBanUser && user.accountStatus !== "BANNED" && (
