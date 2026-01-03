@@ -26,8 +26,8 @@ export function meta({}: Route.MetaArgs) {
 
 export default function NotFoundPage() {
   return (
-    <div className="px-auto py-10">
-      <Card className="w-xl">
+    <div className="py-10">
+      <Card className="min-w-xl">
         <CardHeader className="text-center">
           <div className="bg-muted text-muted-foreground mx-auto flex size-16 items-center justify-center rounded-full">
             <FileQuestion className="size-8" />

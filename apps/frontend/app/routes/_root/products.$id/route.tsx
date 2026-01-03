@@ -60,10 +60,7 @@ export default function ProductDetailPage() {
 
         // If product fetch fails, redirect to not found
         if (!product_res.success || !product_res.data) {
-          if (isMounted) {
-            throw new Error();
-          }
-          return;
+          throw new Error();
         }
 
         // Set product data

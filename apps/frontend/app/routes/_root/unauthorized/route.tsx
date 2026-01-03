@@ -26,8 +26,8 @@ export function meta({}: Route.MetaArgs) {
 
 export default function UnauthorizedPage() {
   return (
-    <div className="px-auto py-10">
-      <Card className="w-xl">
+    <div className="py-10">
+      <Card className="min-w-xl">
         <CardHeader className="text-center">
           <div className="bg-destructive/10 text-destructive mx-auto flex size-16 items-center justify-center rounded-full">
             <ShieldAlert className="size-8" />
@@ -40,7 +40,7 @@ export default function UnauthorizedPage() {
         </CardHeader>
 
         <CardContent className="flex flex-row justify-center">
-          <Button asChild className="">
+          <Button asChild>
             <Link to={APP_ROUTES.HOME}>
               <Home />
               Về Trang Chủ
