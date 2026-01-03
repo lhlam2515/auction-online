@@ -1,4 +1,5 @@
 import { Filter, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -22,6 +23,18 @@ export function UpgradeRequestFilters({
   onSearchChange,
   onStatusChange,
 }: UpgradeRequestFiltersProps) {
+  const [localSearch, setLocalSearch] = useState(search);
+
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      onSearchChange(localSearch);
+    }
+  };
+
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
@@ -30,8 +43,9 @@ export function UpgradeRequestFilters({
           <Input
             placeholder="Tìm kiếm người dùng..."
             className="pl-8"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
         <Select value={status} onValueChange={onStatusChange}>

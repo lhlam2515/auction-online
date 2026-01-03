@@ -64,7 +64,10 @@ export default function ApproveUpgradesPage() {
       const response = await api.admin.upgrades.getAll({
         page,
         limit: 10,
-        status: status === "all" ? undefined : status,
+        status:
+          status === "all"
+            ? undefined
+            : (status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED"),
         search: search || undefined,
       });
 
