@@ -8,13 +8,17 @@ import {
   FieldError,
   FieldLabel,
 } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface ImageUploadFieldsProps<T extends FieldValues> {
   control: Control<T>;
   selectedImages: Array<{ file: File; previewUrl: string; id: string }>;
-  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onImageRemove: (id: string) => void;
+  onImageUpload: (
+    event: React.ChangeEvent<HTMLInputElement>,
+    onChange: (files: File[]) => void
+  ) => void;
+  onImageRemove: (id: string, onChange: (files: File[]) => void) => void;
   uploadingImages: boolean;
 }
 
@@ -29,14 +33,14 @@ const ImageUploadFields = <T extends FieldValues>({
     <Controller
       control={control}
       name={"images" as Path<T>}
-      render={({ fieldState }) => (
+      render={({ field, fieldState }) => (
         <Field
           data-invalid={fieldState.invalid}
           className="flex flex-col gap-4"
         >
           <div>
             <FieldLabel
-              htmlFor="image-upload"
+              htmlFor={field.name}
               className="mb-2 block text-base font-semibold"
             >
               Chọn ảnh (tối thiểu 4 ảnh, tối đa 10 ảnh){" "}
@@ -47,17 +51,17 @@ const ImageUploadFields = <T extends FieldValues>({
               tải lên khi tạo sản phẩm.
             </FieldDescription>
             <div className="mt-4 rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors hover:border-blue-400 hover:bg-blue-50">
-              <input
-                id="image-upload"
+              <Input
+                id={field.name}
                 type="file"
                 multiple
                 accept="image/*"
-                onChange={onImageUpload}
+                onChange={(e) => onImageUpload(e, field.onChange)}
                 className="hidden"
                 disabled={uploadingImages || selectedImages.length >= 10}
               />
               <Label
-                htmlFor="image-upload"
+                htmlFor={field.name}
                 className="flex cursor-pointer flex-col items-center"
               >
                 {uploadingImages ? (
@@ -103,7 +107,7 @@ const ImageUploadFields = <T extends FieldValues>({
 
                     <button
                       type="button"
-                      onClick={() => onImageRemove(image.id)}
+                      onClick={() => onImageRemove(image.id, field.onChange)}
                       className="absolute top-2 right-2 rounded-full bg-red-500 p-1 text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100 hover:bg-red-600"
                     >
                       <X className="h-4 w-4" />

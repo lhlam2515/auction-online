@@ -20,8 +20,11 @@ interface CreateProductFormProps<T extends FieldValues> {
     children?: Array<{ id: string; name: string }>;
   }>;
   selectedImages: Array<{ file: File; previewUrl: string; id: string }>;
-  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onImageRemove: (id: string) => void;
+  onImageUpload: (
+    event: React.ChangeEvent<HTMLInputElement>,
+    onChange: (files: File[]) => void
+  ) => void;
+  onImageRemove: (id: string, onChange: (files: File[]) => void) => void;
   uploadingImages: boolean;
   onCancel: () => void;
 }

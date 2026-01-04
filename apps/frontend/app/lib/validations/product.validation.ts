@@ -1,4 +1,4 @@
-import { length, z } from "zod";
+import { z } from "zod";
 
 import { imageFileSchema, commonValidations } from "./common.validation";
 
