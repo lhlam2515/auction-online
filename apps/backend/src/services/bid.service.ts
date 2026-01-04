@@ -1,5 +1,5 @@
 import type { BidWithUser, ProductStatus } from "@repo/shared-types";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, ne } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { bids, autoBids, products, users } from "@/models";
@@ -87,6 +87,30 @@ export class BidService {
       // thì bid tối thiểu = startPrice.
       // Nếu đã có người bid, thì bid tối thiểu = currentPrice + stepPrice.
       const minBidAmount = currentPrice + (!product.winnerId ? 0 : stepPrice);
+
+      // Kiểm tra nếu người bid hiện tại đang là winner
+      if (product.winnerId === bidderId) {
+        // Kiểm tra xem có autobid nào có maxAmount > currentPrice không
+        const higherAutoBids = await tx.query.autoBids.findMany({
+          where: and(
+            eq(autoBids.productId, productId),
+            eq(autoBids.isActive, true),
+            ne(autoBids.userId, bidderId)
+          ),
+        });
+
+        const hasHigherAutoBid = higherAutoBids.some(
+          // @ts-expect-error - maxAmount is string in DB
+          (autobid) => parseFloat(autobid.maxAmount) > currentPrice
+        );
+
+        // Nếu không có autobid nào cao hơn, ngăn người dùng bid
+        if (!hasHigherAutoBid) {
+          throw new Error(
+            "Người giữ giá cao nhất không thể đặt thêm giá khi không có đối thủ cạnh tranh"
+          );
+        }
+      }
 
       if (amount < minBidAmount) {
         throw new BadRequestError(
@@ -328,6 +352,14 @@ export class BidService {
   }
 
   async createAutoBid(productId: string, userId: string, maxAmount: number) {
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+    });
+
+    if (!product) {
+      throw new NotFoundError("Sản phẩm không tồn tại");
+    }
+
     const checkExisting = await db.query.autoBids.findFirst({
       where: and(
         eq(autoBids.productId, productId),
@@ -338,6 +370,14 @@ export class BidService {
     if (checkExisting) {
       throw new BadRequestError(
         "Cấu hình đấu giá tự động đã tồn tại cho sản phẩm này"
+      );
+    }
+
+    const currentPrice = parseFloat(product.currentPrice || product.startPrice);
+
+    if (maxAmount < currentPrice) {
+      throw new BadRequestError(
+        `MaxAmount phải lớn hơn hoặc bằng giá hiện tại: ${currentPrice.toString()}`
       );
     }
 
@@ -381,6 +421,23 @@ export class BidService {
 
     if (!autoBid) {
       throw new NotFoundError("Không tìm thấy cấu hình đấu giá tự động");
+    }
+
+    // Kiểm tra sản phẩm và giá hiện tại
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, autoBid.productId),
+    });
+
+    if (!product) {
+      throw new NotFoundError("Sản phẩm không tồn tại");
+    }
+
+    const currentPrice = parseFloat(product.currentPrice || product.startPrice);
+
+    if (maxAmount < currentPrice) {
+      throw new BadRequestError(
+        `MaxAmount phải lớn hơn hoặc bằng giá hiện tại: ${currentPrice.toString()}`
+      );
     }
 
     await db
