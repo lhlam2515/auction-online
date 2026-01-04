@@ -61,10 +61,11 @@ export const autoBids = pgTable(
       .defaultNow(),
   }),
   (table) => [
-    // Essential indexes only
+    // Mỗi người dùng chỉ có 1 AutoBid cho mỗi sản phẩm
     unique("unique_auto_bid_per_user_product").on(
       table.productId,
-      table.userId
+      table.userId,
+      table.isActive
     ),
     check("positive_max_amount", sql`${table.maxAmount} > 0`),
   ]
