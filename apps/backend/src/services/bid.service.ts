@@ -211,6 +211,7 @@ export class BidService {
       // ---------------------------------------------------------
       // 5. AUTO-EXTEND (ANTI-SNIPING)
       // ---------------------------------------------------------
+      const oldEndTime = new Date(product.endTime);
       let extendedEndTime: Date | null = null;
       if (newStatus === "ACTIVE" && product.isAutoExtend) {
         // Config nên cache hoặc lấy cứng để đỡ query DB
@@ -241,6 +242,7 @@ export class BidService {
         sellerEmail,
         previousWinnerEmail,
         isBuyNow: newStatus === "SOLD",
+        oldEndTime,
         extendedEndTime,
       };
     };
@@ -256,6 +258,7 @@ export class BidService {
     if (result.extendedEndTime) {
       await systemService.rescheduleAuctionEnd(
         productId,
+        result.product.result.oldEndTime,
         result.extendedEndTime
       );
     }

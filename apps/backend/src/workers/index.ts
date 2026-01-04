@@ -56,8 +56,19 @@ export const startWorkers = () => {
     QUEUE_NAMES.AUCTION_TIMER,
     async (job: Job) => {
       const { auctionId } = job.data;
-      await auctionService.finalizeAuction(auctionId);
-      logger.info(`⏳ Auction finalized: #${auctionId}`);
+
+      // Gọi hàm finalizeAuction (Hàm này đã có logic check endTime > now)
+      const result = await auctionService.finalizeAuction(auctionId);
+
+      if (result.status === "skipped") {
+        logger.info(
+          `⏩ Skipped finalizing auction #${auctionId} (Extended or Closed)`
+        );
+      } else {
+        logger.info(
+          `✅ Auction finalized: #${auctionId} - Result: ${result.result}`
+        );
+      }
     },
     workerConfig
   );
