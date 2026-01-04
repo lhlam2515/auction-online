@@ -24,18 +24,23 @@ export function formatPrice(amount: number, currency = "VND"): string {
  */
 export function formatDate(date: string | Date, onlyDate = false): string {
   const d = new Date(date);
-  return d.toLocaleDateString("vi-VN", {
-    ...(onlyDate
-      ? {}
-      : {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }),
+  const dateStr = d.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
+
+  if (onlyDate) {
+    return dateStr;
+  }
+
+  const timeStr = d.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  return `${timeStr} - ${dateStr}`;
 }
 
 /**
