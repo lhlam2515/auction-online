@@ -59,7 +59,7 @@ const CreateProductForm = <T extends FieldValues>(
 
         setTimeout(() => {
           navigate(APP_ROUTES.PRODUCT((result.data as { id: string }).id));
-        }, 2000);
+        }, 1500);
       }
     },
     onError: (_data: T, error: unknown, errorMessage: string) => {
