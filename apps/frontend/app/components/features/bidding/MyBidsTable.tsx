@@ -146,7 +146,8 @@ export default MyBidsTable;
  * Active bid row component
  */
 const ActiveBidRow = ({ bid }: { bid: MyAutoBid }) => {
-  const isLeading = Number(bid.product.currentPrice) <= Number(bid.maxAmount);
+  const isLeading =
+    bid.product.winnerId === null || bid.product.winnerId === bid.userId;
 
   return (
     <TableRow>
