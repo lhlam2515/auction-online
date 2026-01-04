@@ -1,160 +1,106 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { ProductDetails, AutoBid } from "@repo/shared-types";
-import { InfoIcon, AlertTriangleIcon, Gavel } from "lucide-react";
-import { useState, useEffect } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { toast } from "sonner";
+import type { ProductDetails } from "@repo/shared-types";
+import { Gavel, AlertTriangleIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FormProvider } from "react-hook-form";
 
-import AlertSection from "@/components/common/feedback/AlertSection";
+import { AlertSection } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { api } from "@/lib/api-layer";
-import { getErrorMessage, showError } from "@/lib/handlers/error";
 import { formatPrice } from "@/lib/utils";
 
-import AutoBidConfirmationDialog from "./AutoBidConfirmationDialog";
-import AutoBidForm, {
-  createBidSchema,
-  type CreateBidFormData,
-} from "./AutoBidForm";
+import { AutoBidForm } from "./forms";
+import { useAutoBidForm } from "./hooks";
 
-interface AutoBidDialogProps {
+type AutoBidDialogProps = {
   product: ProductDetails;
   userRating: number;
+  trigger?: React.ReactNode;
+  onSuccess?: () => void;
   disabled?: boolean;
-}
+};
 
-export function AutoBidDialog({
+const AutoBidDialog = ({
   product,
   userRating,
+  trigger,
+  onSuccess,
   disabled = false,
-}: AutoBidDialogProps) {
+}: AutoBidDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [existingAutoBid, setExistingAutoBid] = useState<AutoBid | null>(null);
-  const [isLoadingAutoBid, setIsLoadingAutoBid] = useState(false);
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentPrice = Number(product.currentPrice ?? product.startPrice);
   const stepPrice = Number(product.stepPrice);
   const minBid = currentPrice + stepPrice;
   const isEligible = product.freeToBid || userRating >= 80;
-  const isUpdatingAutoBid = existingAutoBid !== null;
-  const minRequiredBid = isUpdatingAutoBid
-    ? Math.max(minBid, Number(existingAutoBid.maxAmount) + stepPrice)
-    : minBid;
 
-  const form = useForm<CreateBidFormData>({
-    resolver: zodResolver(createBidSchema(minRequiredBid, stepPrice)),
-    defaultValues: {
-      maxBid: "",
+  const {
+    form,
+    existingAutoBid,
+    isUpdating,
+    isLoadingAutoBid,
+    fetchAutoBid,
+    submitAutoBid,
+    resetForm,
+  } = useAutoBidForm({
+    productId: product.id,
+    productName: product.name,
+    minRequiredBid: minBid,
+    stepPrice,
+    onSuccess: () => {
+      setOpen(false);
+      onSuccess?.();
     },
   });
 
   // Fetch existing auto bid when dialog opens
   useEffect(() => {
-    const fetchAutoBid = async () => {
-      if (!open) return;
+    if (open) {
+      fetchAutoBid();
+    }
+  }, [open, fetchAutoBid]);
 
-      setIsLoadingAutoBid(true);
-      try {
-        const response = await api.bids.getAutoBid(product.id);
-        if (response.success && response.data) {
-          setExistingAutoBid(response.data);
-        } else {
-          setExistingAutoBid(null);
-        }
-      } catch {
-        setExistingAutoBid(null);
-      } finally {
-        setIsLoadingAutoBid(false);
-      }
-    };
+  const minRequiredBid = isUpdating
+    ? Math.max(minBid, Number(existingAutoBid?.maxAmount || 0) + stepPrice)
+    : minBid;
 
-    fetchAutoBid();
-  }, [open, product.id]);
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      resetForm();
+    }
+  };
 
-  const handleConfirmSubmit = async () => {
-    const { maxBid } = form.getValues();
-
+  const handleSubmit = async () => {
     try {
-      setIsConfirmDialogOpen(false);
-      setIsSubmitting(true);
-      form.clearErrors();
-
-      let response;
-      const bidAmount = Number.parseInt(maxBid.replace(/\D/g, ""));
-      if (isUpdatingAutoBid) {
-        response = await api.bids.updateAutoBid(existingAutoBid.id, {
-          maxAmount: bidAmount,
-        });
-      } else {
-        response = await api.bids.createAutoBid(product.id, {
-          maxAmount: bidAmount,
-        });
-      }
-
-      if (!response.success) {
-        throw new Error(
-          response.error?.message || "Đã có lỗi xảy ra. Vui lòng thử lại sau."
-        );
-      }
-
-      toast.success(
-        isUpdatingAutoBid ? "Cập nhật giá thành công!" : "Đặt giá thành công!",
-        {
-          description: `Bạn đã ${isUpdatingAutoBid ? "cập nhật" : "đặt"} giá tối đa ${formatPrice(bidAmount)} cho sản phẩm "${product.name}".`,
-        }
-      );
-    } catch (error) {
-      const errorMessage = getErrorMessage(
-        error,
-        isUpdatingAutoBid
-          ? "Có lỗi xảy ra khi cập nhật giá đấu tự động"
-          : "Có lỗi xảy ra khi đặt giá đấu tự động"
-      );
-
-      form.setError("root", { message: errorMessage });
-
-      showError(error, errorMessage);
-    } finally {
-      setIsSubmitting(false);
+      await submitAutoBid();
+    } catch {
+      // Error already handled in hook
     }
   };
 
-  const handleOpenDialog = async () => {
-    const isValid = await form.trigger();
-    if (isValid) {
-      setIsConfirmDialogOpen(true);
-    }
-  };
-
-  const handleClose = () => {
-    setExistingAutoBid(null);
-    setOpen(false);
-    form.reset();
-  };
+  const isFormValid = form.formState.isValid;
 
   return (
     <FormProvider {...form}>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
-          <Button
-            size="lg"
-            className="flex h-14 flex-1 cursor-pointer items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
-            disabled={disabled}
-          >
-            <Gavel className="h-4 w-4" />
-            Đặt giá
-          </Button>
+          {trigger || (
+            <Button
+              size="lg"
+              className="flex h-14 flex-1 cursor-pointer items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
+              disabled={disabled}
+            >
+              <Gavel className="h-4 w-4" />
+              Đặt giá
+            </Button>
+          )}
         </DialogTrigger>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -184,40 +130,9 @@ export function AutoBidDialog({
               </div>
             </div>
           ) : (
-            <div className="space-y-4 py-4">
-              {/* Existing Auto Bid Information */}
-              {existingAutoBid && (
-                <AlertSection
-                  variant="warning"
-                  icon={InfoIcon}
-                  description={
-                    <>
-                      Bạn đã có đấu giá tự động với giá tối đa:{" "}
-                      <strong>
-                        {formatPrice(Number(existingAutoBid.maxAmount))}
-                      </strong>
-                      <br />
-                      <span className="text-sm">
-                        Cập nhật giá tối đa mới để thay đổi.
-                      </span>
-                    </>
-                  }
-                />
-              )}
-
-              {/* Step Price Information */}
-              <AlertSection
-                variant="info"
-                icon={InfoIcon}
-                description={
-                  <>
-                    Bước giá: <strong>{formatPrice(stepPrice)}</strong>
-                  </>
-                }
-              />
-
+            <>
               {/* Eligibility Check - Only for new auto bids */}
-              {!isUpdatingAutoBid && !isEligible && (
+              {!isUpdating && !isEligible && (
                 <AlertSection
                   variant="destructive"
                   icon={AlertTriangleIcon}
@@ -236,49 +151,26 @@ export function AutoBidDialog({
               {/* Auto Bid Form */}
               {isEligible && (
                 <AutoBidForm
+                  form={form}
+                  productName={product.name}
                   minRequiredBid={minRequiredBid}
+                  stepPrice={stepPrice}
+                  buyNowPrice={
+                    product.buyNowPrice ? Number(product.buyNowPrice) : null
+                  }
                   existingAutoBid={existingAutoBid}
-                  isUpdateAutoBid={isUpdatingAutoBid}
+                  isUpdating={isUpdating}
+                  onCancel={() => setOpen(false)}
+                  onSubmit={handleSubmit}
+                  isFormValid={isFormValid}
                 />
               )}
-            </div>
+            </>
           )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              className="cursor-pointer"
-            >
-              Hủy
-            </Button>
-            {isEligible && (
-              <AutoBidConfirmationDialog
-                open={isConfirmDialogOpen}
-                onOpenChange={setIsConfirmDialogOpen}
-                productName={product.name}
-                bidAmount={
-                  form.watch("maxBid")
-                    ? Number.parseInt(form.watch("maxBid").replace(/\D/g, ""))
-                    : 0
-                }
-                buyNowPrice={
-                  product.buyNowPrice ? Number(product.buyNowPrice) : null
-                }
-                existingAutoBid={existingAutoBid}
-                isUpdating={isUpdatingAutoBid}
-                isSubmitting={isSubmitting}
-                isEligible={isEligible}
-                isLoadingAutoBid={isLoadingAutoBid}
-                onConfirm={handleConfirmSubmit}
-                onTriggerClick={handleOpenDialog}
-              />
-            )}
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </FormProvider>
   );
-}
+};
 
 export default AutoBidDialog;

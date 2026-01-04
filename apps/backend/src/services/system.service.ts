@@ -24,37 +24,74 @@ class SystemService {
     const now = new Date().getTime();
     const delay = endTime.getTime() - now;
 
-    if (delay > 0) {
+    // Nếu delay <= 0 (đã quá hạn), xử lý ngay lập tức
+    if (delay <= 0) {
+      logger.warn(
+        `⚠️ Auction #${auctionId} ended in the past, finalizing immediately.`
+      );
+      // Gọi trực tiếp service (Lưu ý: không nên await worker ở đây để tránh block request user)
+      // Tốt nhất là add job với delay = 0 để worker xử lý cho đồng bộ
       await auctionTimerQueue.add(
         "finalize-auction",
         { auctionId },
         {
-          delay: delay,
-          jobId: `auction-end-${auctionId}`, // Đảm bảo không trùng lặp job
+          jobId: `auction-end-${auctionId}-immediate-${now}`, // Unique ID
           removeOnComplete: true,
+          priority: 1, // Ưu tiên cao nhất
         }
       );
-      logger.info(
-        `⏰ Scheduled auction #${auctionId} to end in ${Math.round(delay / 1000 / 60)} minutes`
-      );
-    } else {
-      logger.warn(
-        `⚠️ Cannot schedule auction #${auctionId} to end in the past (endTime: ${endTime.toISOString()}), finalizing immediately.`
-      );
-      await auctionService.finalizeAuction(auctionId);
+      return;
     }
+
+    // Delay > 0: Add delayed job
+    // KỸ THUẬT: Thêm timestamp vào jobId để tránh trùng lặp nếu job cũ bị kẹt
+    // Ví dụ: auction-end-123-1700000000
+    const uniqueJobId = `auction-end-${auctionId}-${endTime.getTime()}`;
+
+    await auctionTimerQueue.add(
+      "finalize-auction",
+      { auctionId },
+      {
+        delay: delay,
+        jobId: uniqueJobId,
+        removeOnComplete: true, // Tự xóa khi xong
+        removeOnFail: { count: 1000 }, // Giữ lại để debug nếu lỗi, hoặc xóa (tùy config)
+      }
+    );
+
+    logger.info(
+      `⏰ Scheduled auction #${auctionId} in ${(delay / 60000).toFixed(1)} mins`
+    );
   }
 
   /**
    * Reschedule kết thúc đấu giá (dùng cho auto-extend)
    */
-  async rescheduleAuctionEnd(auctionId: string, endTime: Date) {
-    const jobId = `auction-end-${auctionId}`;
-    const existingJob = await auctionTimerQueue.getJob(jobId);
-    if (existingJob) {
-      await existingJob.remove();
+  async rescheduleAuctionEnd(
+    auctionId: string,
+    oldEndTime: Date | null,
+    newEndTime: Date
+  ) {
+    // 1. Cố gắng xóa các Job cũ (Best effort)
+    if (oldEndTime) {
+      const oldJobId = `auction-end-${auctionId}-${oldEndTime.getTime()}`;
+      const job = await auctionTimerQueue.getJob(oldJobId);
+      if (job) {
+        try {
+          // Chỉ remove nếu nó đang chờ (delayed/waiting).
+          // Nếu đang active thì kệ nó (nó sẽ tự skip).
+          const state = await job.getState();
+          if (state === "delayed" || state === "waiting") {
+            await job.remove();
+          }
+        } catch (e) {
+          logger.warn(`Could not remove old job ${oldJobId}`, e);
+        }
+      }
     }
-    await this.scheduleAuctionEnd(auctionId, endTime);
+
+    // 2. Lên lịch mới
+    await this.scheduleAuctionEnd(auctionId, newEndTime);
   }
 
   /**
@@ -62,12 +99,18 @@ class SystemService {
    * Gọi hàm này khi có người Ra giá (Place Bid)
    */
   async triggerAutoBidCheck(productId: string) {
+    // Sử dụng jobId cố định theo productId để tránh duplicate job
+    // khi có nhiều người bid cùng lúc.
+    const jobId = `auto-bid-${productId}`;
+
     await autoBidQueue.add(
       "process-auto-bid",
       { productId },
       {
+        jobId: jobId, // Key để Deduplication
         removeOnComplete: true,
-        priority: 1, // Ưu tiên cao
+        removeOnFail: 100, // Giữ lại để debug nếu lỗi
+        priority: 1,
       }
     );
   }
@@ -101,7 +144,7 @@ class SystemService {
 
     for (const auction of missedAuctions) {
       // Lên lịch lại job kết thúc đấu giá ngay lập tức
-      await this.rescheduleAuctionEnd(auction.id, auction.endTime);
+      await this.rescheduleAuctionEnd(auction.id, auction.endTime, new Date());
     }
 
     logger.info("✅ System Recovery: Recovery jobs enqueued.");

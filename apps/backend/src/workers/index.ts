@@ -56,8 +56,19 @@ export const startWorkers = () => {
     QUEUE_NAMES.AUCTION_TIMER,
     async (job: Job) => {
       const { auctionId } = job.data;
-      await auctionService.finalizeAuction(auctionId);
-      logger.info(`⏳ Auction finalized: #${auctionId}`);
+
+      // Gọi hàm finalizeAuction (Hàm này đã có logic check endTime > now)
+      const result = await auctionService.finalizeAuction(auctionId);
+
+      if (result.status === "skipped") {
+        logger.info(
+          `⏩ Skipped finalizing auction #${auctionId} (Extended or Closed)`
+        );
+      } else {
+        logger.info(
+          `✅ Auction finalized: #${auctionId} - Result: ${result.result}`
+        );
+      }
     },
     workerConfig
   );
@@ -67,9 +78,25 @@ export const startWorkers = () => {
     QUEUE_NAMES.AUTO_BID,
     async (job: Job) => {
       const { productId } = job.data;
-      await auctionService.processAutoBid(productId);
+
+      logger.info(
+        `[AutoBid] Processing product ${productId} at ${new Date().toISOString()}`
+      );
+
+      try {
+        // Gọi service xử lý logic nghiệp vụ
+        await auctionService.processAutoBid(productId);
+      } catch (error) {
+        logger.error(`[AutoBid] Failed for ${productId}`, error);
+        throw error; // Ném lỗi để BullMQ biết và retry (nếu có config)
+      }
     },
-    workerConfig
+    {
+      ...workerConfig,
+      // Concurrency tùy thuộc vào Server Spec và DB Connection Pool
+      // Nhưng cần đảm bảo code trong processAutoBid có Transaction Safe
+      concurrency: 5,
+    }
   );
 
   const workers = [emailWorker, auctionTimerWorker, autoBidWorker];

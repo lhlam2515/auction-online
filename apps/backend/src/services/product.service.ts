@@ -49,6 +49,9 @@ import {
 import { toPaginated } from "@/utils/pagination";
 import { maskName } from "@/utils/ultils";
 
+import { emailService } from "./email.service";
+import { orderService } from "./order.service";
+
 export class ProductService {
   async getProductsAdmin(
     params: AdminGetProductsParams
@@ -704,6 +707,132 @@ export class ProductService {
     }
 
     return enrichedProducts;
+  }
+
+  async buyNow(productId: string, buyerId: string) {
+    const result = await db.transaction(async (tx) => {
+      // 1. Transaction & Locking
+      // LOCK: Khóa dòng sản phẩm (quan trọng nhất)
+      const [product] = await tx
+        .select()
+        .from(products)
+        .where(eq(products.id, productId))
+        .for("update");
+
+      if (!product) throw new NotFoundError("Sản phẩm không tồn tại");
+
+      // 2. Validate điều kiện Mua Ngay
+      if (!product.buyNowPrice) {
+        throw new BadRequestError(
+          "Sản phẩm này không hỗ trợ tính năng Mua Ngay"
+        );
+      }
+
+      const buyNowPrice = Number(product.buyNowPrice);
+
+      if (product.sellerId === buyerId) {
+        throw new BadRequestError("Không thể tự mua sản phẩm của chính mình");
+      }
+
+      if (product.status !== "ACTIVE") {
+        throw new BadRequestError("Sản phẩm không còn khả dụng để mua");
+      }
+
+      const now = new Date();
+      if (product.endTime < now) {
+        throw new BadRequestError("Phiên đấu giá đã kết thúc");
+      }
+
+      // 3. Thực hiện hành động Mua (Chốt đơn)
+
+      // Update sản phẩm thành SOLD ngay lập tức
+      await tx
+        .update(products)
+        .set({
+          status: "SOLD", // Chốt trạng thái
+          winnerId: buyerId, // Người mua là người thắng
+          currentPrice: buyNowPrice.toString(), // Giá chốt là giá BuyNow
+          endTime: now, // Kết thúc ngay lúc này
+          updatedAt: now,
+        })
+        .where(eq(products.id, productId));
+
+      // Vô hiệu hóa tất cả AutoBid (vì game đã over)
+      await tx
+        .update(autoBids)
+        .set({ isActive: false, updatedAt: now })
+        .where(
+          and(eq(autoBids.productId, productId), eq(autoBids.isActive, true))
+        );
+
+      // Tạo Order ngay lập tức
+      const newOrder = await orderService.createFromAuction(
+        productId,
+        buyerId,
+        product.sellerId,
+        buyNowPrice,
+        true, // isBuyNow = true
+        tx
+      );
+
+      // Lấy thông tin user để gửi mail
+      const [buyer, seller] = await Promise.all([
+        tx.query.users.findFirst({ where: eq(users.id, buyerId) }),
+        tx.query.users.findFirst({ where: eq(users.id, product.sellerId) }),
+      ]);
+
+      if (buyer && seller) {
+        return {
+          newOrderId: newOrder.id,
+          sellerEmail: seller.email,
+          buyerEmail: buyer.email,
+          buyerName: buyer.fullName,
+          productName: product.name,
+          price: buyNowPrice,
+        };
+      }
+    });
+
+    // 4. Xử lý sau Transaction (Gửi Email)
+    if (result) {
+      const link = productService.buildProductLink(productId);
+
+      // Gửi mail cho Seller
+      emailService.notifyProductSold(
+        result.sellerEmail,
+        result.productName,
+        result.price,
+        result.buyerName,
+        link
+      );
+
+      // Gửi mail xác nhận cho người mua
+      emailService.notifyBuyNowSuccess(
+        result.buyerEmail,
+        result.productName,
+        result.price,
+        link
+      );
+
+      // Gửi mail cho những người đã tham gia đấu giá nhưng thua
+      const bidders = await productService.getBidders(productId);
+      const bidderEmails = bidders
+        .filter((b) => b.id !== buyerId)
+        .map((b) => b.email);
+
+      emailService.notifyBuyNowOthers(
+        bidderEmails,
+        result.productName,
+        result.price,
+        link
+      );
+    }
+
+    return {
+      newOrderId: result?.newOrderId,
+      message: "Mua ngay thành công",
+      orderCreated: true,
+    };
   }
 
   /**

@@ -45,29 +45,20 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
     try {
       setIsProcessing(true);
 
-      const orderData = {
-        productId: product.id,
-        winnerId: user.id,
-        sellerId: product.sellerId,
-        finalPrice: product.buyNowPrice.toString(),
-      };
+      const response = await api.products.buyNow(product.id);
 
-      logger.info("Creating buy now order:", orderData);
-
-      const response = await api.orders.create(orderData);
-
-      if (response.success && response.data) {
+      if (response.success) {
         toast.success("Đơn hàng đã được tạo thành công!");
 
         setTimeout(() => {
-          navigate(ACCOUNT_ROUTES.ORDER(response.data.id));
+          navigate(ACCOUNT_ROUTES.ORDER(response.data.newOrderId));
         }, 2000);
       } else {
-        throw new Error("Failed to create order");
+        throw new Error("Failed to buy product");
       }
     } catch (error) {
-      logger.error("Error creating buy now order:", error);
-      toast.error("Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.");
+      logger.error("Error buying product:", error);
+      toast.error("Có lỗi xảy ra khi mua sản phẩm. Vui lòng thử lại.");
     } finally {
       setIsProcessing(false);
     }

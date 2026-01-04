@@ -252,6 +252,121 @@ class EmailService {
     );
   }
 
+  /**
+   * 3. MUA NGAY THÀNH CÔNG -> Gửi cho Người bán (Seller)
+   */
+  public notifyProductSold(
+    sellerEmail: string,
+    productName: string,
+    price: number,
+    buyerName: string,
+    productLink: string
+  ) {
+    const priceStr = price.toLocaleString("vi-VN") + " đ";
+    const html = this.getBaseTemplate(
+      "Sản phẩm đã được mua ngay! 🎉",
+      `<p>Tin vui! Sản phẩm <strong>${productName}</strong> của bạn đã được mua ngay bởi khách hàng <strong>${buyerName}</strong>.</p>
+
+       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; color: white;">
+         <p style="margin: 0; font-size: 16px; opacity: 0.9;">Giá bán thành công</p>
+         <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+           ${priceStr}
+         </p>
+       </div>
+
+       <p style="font-size: 15px; color: ${COLORS.foreground}; line-height: 1.8;">
+         <strong>Bước tiếp theo:</strong><br/>
+         • Kiểm tra thông tin đơn hàng trong hệ thống<br/>
+         • Chuẩn bị sản phẩm và đóng gói cẩn thận<br/>
+         • Chờ người mua thanh toán để tiến hành giao hàng
+       </p>`,
+      { link: productLink, text: "Xem chi tiết đơn hàng" }
+    );
+    this.queueEmail(
+      sellerEmail,
+      `[Mua Ngay] ${productName} đã được bán thành công`,
+      html
+    );
+  }
+
+  /**
+   * 4. MUA NGAY THÀNH CÔNG -> Gửi cho Người mua (Buyer)
+   */
+  public notifyBuyNowSuccess(
+    buyerEmail: string,
+    productName: string,
+    price: number,
+    productLink: string
+  ) {
+    const priceStr = price.toLocaleString("vi-VN") + " đ";
+    const html = this.getBaseTemplate(
+      "Mua ngay thành công! 🎊",
+      `<p>Chúc mừng! Bạn đã mua thành công sản phẩm <strong>${productName}</strong>.</p>
+
+       <div style="background-color: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; padding: 20px; margin: 25px 0;">
+         <p style="margin: 0; color: #166534; font-size: 15px;">
+           <strong>✓ Giao dịch đã được xác nhận</strong>
+         </p>
+         <p style="margin: 10px 0 0 0; color: #166534; font-size: 18px; font-weight: 600;">
+           Tổng thanh toán: <span style="font-size: 22px;">${priceStr}</span>
+         </p>
+       </div>
+
+       <p style="font-size: 15px; color: ${COLORS.foreground}; line-height: 1.8;">
+         <strong>Các bước tiếp theo:</strong><br/>
+         1️⃣ Cập nhật địa chỉ giao hàng (nếu chưa có)<br/>
+         2️⃣ Thanh toán đơn hàng để người bán chuẩn bị giao hàng<br/>
+         3️⃣ Theo dõi trạng thái đơn hàng trong hệ thống
+       </p>
+
+       <p style="background: ${COLORS.muted}; padding: 15px; border-radius: 6px; font-size: 14px; color: ${COLORS.mutedFg};">
+         💡 <strong>Lưu ý:</strong> Vui lòng thanh toán trong vòng 24 giờ để tránh đơn hàng bị hủy.
+       </p>`,
+      { link: productLink, text: "Quản lý đơn hàng" }
+    );
+    this.queueEmail(buyerEmail, `[Thành công] Bạn đã mua ${productName}`, html);
+  }
+
+  /**
+   * 5. MUA NGAY THÀNH CÔNG -> Thông báo cho các Bidder khác (Đã thua)
+   */
+  public notifyBuyNowOthers(
+    bidderEmails: string[],
+    productName: string,
+    buyNowPrice: number,
+    productLink: string
+  ) {
+    if (bidderEmails.length === 0) return;
+
+    const priceStr = buyNowPrice.toLocaleString("vi-VN") + " đ";
+    const html = this.getBaseTemplate(
+      "Sản phẩm đã được mua ngay 📢",
+      `<p>Rất tiếc, sản phẩm <strong>${productName}</strong> mà bạn đang tham gia đấu giá đã được một người mua khác mua ngay.</p>
+
+       <div style="background-color: #fef2f2; border-left: 4px solid ${COLORS.destructive}; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
+         <p style="margin: 0; color: ${COLORS.destructive}; font-weight: 600;">
+           ⚠️ Phiên đấu giá đã kết thúc sớm
+         </p>
+         <p style="margin: 8px 0 0 0; color: #991b1b;">
+           Giá mua ngay: <strong>${priceStr}</strong>
+         </p>
+       </div>
+
+       <p>Các lượt ra giá trước đó của bạn đã được hủy và không phát sinh chi phí nào.</p>
+
+       <p style="font-size: 14px; color: ${COLORS.mutedFg}; font-style: italic;">
+         💡 Đừng lo lắng! Còn rất nhiều sản phẩm tương tự đang chờ bạn khám phá.
+       </p>`,
+      { link: productLink, text: "Khám phá sản phẩm khác" }
+    );
+
+    this.queueEmail(
+      bidderEmails,
+      `[Thông báo] ${productName} đã được mua ngay`,
+      html
+    );
+  }
+
   // ============================================================
   // GROUP 4: INTERACTION (Hỏi & Đáp)
   // ============================================================

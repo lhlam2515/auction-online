@@ -6,7 +6,6 @@ import type {
   UpdateAutoBidRequest,
   AutoBid,
   BidWithUser,
-  MyAutoBid,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -20,6 +19,16 @@ export const getBiddingHistory = asyncHandler(
     const productId = req.params.id;
     const bids = await bidService.getHistory(productId);
     return ResponseHandler.sendSuccess<BidWithUser[]>(res, bids);
+  }
+);
+
+export const getAutoBid = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const productId = req.params.id;
+
+    const autoBid = await bidService.getAutoBid(productId, userId);
+    return ResponseHandler.sendSuccess<AutoBid>(res, autoBid);
   }
 );
 
@@ -65,22 +74,13 @@ export const createAutoBid = asyncHandler(
   }
 );
 
-export const getAutoBid = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { id: userId } = req.user!;
-    const productId = req.params.id;
-
-    const autoBid = await bidService.getAutoBid(productId, userId);
-    return ResponseHandler.sendSuccess<AutoBid>(res, autoBid);
-  }
-);
-
 export const updateAutoBid = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
     const { maxAmount } = req.body as UpdateAutoBidRequest;
     const autoBidId = req.params.id;
 
-    const result = await bidService.updateAutoBid(autoBidId, maxAmount);
+    const result = await bidService.updateAutoBid(autoBidId, userId, maxAmount);
 
     return ResponseHandler.sendSuccess(res, null, 200, result.message);
   }
