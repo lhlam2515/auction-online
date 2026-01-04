@@ -114,29 +114,31 @@ class AuctionService {
   }
 
   /**
-   * Proxy Bidding (AutoBid) cho một sản phẩm.
-   * Ý tưởng: giống eBay-style proxy:
-   *  - Lấy tất cả auto-bids đang active.
-   *  - Người có MaxBid cao nhất là winner.
-   *  - Giá hiện tại = min(MaxBid_winner, MaxBid_thứ2 + StepPrice), và không thấp hơn currentPrice/startPrice.
+   * Proxy Bidding (AutoBid) Logic
+   * Rule:
+   * 1. Nếu chỉ có 1 AutoBidder: Bid = Giá hiện tại + Step (nhưng không quá Max).
+   * 2. Nếu có nhiều AutoBidder: Bid = Max của người về nhì + Step (nhưng không quá Max của người nhất).
+   * 3. Ưu tiên thời gian: Nếu Max bằng nhau, người đến trước thắng (giữ nguyên giá Max đó).
    */
   async processAutoBid(productId: string) {
     return db.transaction(async (tx) => {
-      const product = await tx.query.products.findFirst({
-        where: eq(products.id, productId),
-      });
+      // 1. Lấy thông tin sản phẩm (Lock row if needed for high concurrency)
+      const [product] = await tx
+        .select()
+        .from(products)
+        .where(eq(products.id, productId))
+        .for("update");
 
-      if (!product) {
-        throw new NotFoundError("Product");
-      }
-
-      // Chỉ xử lý trên phiên đang ACTIVE và chưa hết giờ
-      const now = new Date();
-      if (product.status !== "ACTIVE" || product.endTime <= now) {
+      if (
+        !product ||
+        product.status !== "ACTIVE" ||
+        product.endTime <= new Date()
+      ) {
         return { status: "skipped" as const };
       }
 
-      // Lấy tất cả auto-bids đang active cho sản phẩm
+      // 2. Lấy danh sách AutoBids active, sort giảm dần theo tiền, tăng dần theo thời gian
+      // (Người đặt cao nhất và sớm nhất sẽ ở index 0)
       const proxies = await tx.query.autoBids.findMany({
         where: and(
           eq(autoBids.productId, productId),
@@ -144,7 +146,7 @@ class AuctionService {
         ),
         orderBy: (table, { desc, asc }) => [
           desc(table.maxAmount),
-          asc(table.createdAt),
+          asc(table.updatedAt),
         ],
       });
 
@@ -153,47 +155,87 @@ class AuctionService {
       }
 
       const step = Number(product.stepPrice);
-      const basePrice = product.currentPrice
-        ? Number(product.currentPrice)
-        : Number(product.startPrice);
+      const currentPrice = Number(product.currentPrice || product.startPrice);
 
-      // Nếu chỉ có một auto-bidder
+      const topBidder = proxies[0];
+      const topMax = Number(topBidder.maxAmount);
+
+      // --- LOGIC TÍNH TOÁN GIÁ MỚI ---
+      let newPrice = currentPrice;
+
+      // TRƯỜNG HỢP 1: Chỉ có 1 người đặt AutoBid (hoặc người này áp đảo hoàn toàn)
+      // Đối thủ là "Giá hiện tại" (do người manual bid tạo ra)
       if (proxies.length === 1) {
-        const winner = proxies[0];
-        // TH1: chưa ai đặt -> đặt = giá khởi điểm (hoặc giữ nguyên nếu đã có currentPrice)
-        const newPrice = Math.min(parseFloat(winner.maxAmount), basePrice);
-
-        if (product.winnerId === winner.userId) {
-          return { status: "skipped" as const }; // Đã là người dẫn đầu, không cần đặt thêm
+        // Nếu người này đang thắng rồi thì thôi, không tự nâng giá mình lên
+        if (product.winnerId === topBidder.userId) {
+          return { status: "skipped" as const };
         }
 
-        await bidService.placeBid(productId, winner.userId, newPrice, true, tx);
-
-        return { status: "ok" as const, winnerId: winner.userId, newPrice };
+        // Nếu chưa thắng, cần bid mức: Giá hiện tại + Step
+        // Giá vào sản phẩm luôn là giá vừa đủ thắng
+        newPrice = currentPrice + step;
       }
 
-      // Nhiều auto-bidder: người đầu là MaxBid cao nhất, người thứ 2 là "giá giữ" thứ 2
-      const top = proxies[0];
-      const second = proxies[1];
+      // TRƯỜNG HỢP 2: Có cạnh tranh giữa các AutoBidder
+      else {
+        const secondBidder = proxies[1];
+        const secondMax = Number(secondBidder.maxAmount);
 
-      const topMax = Number(top.maxAmount);
-      const secondMax = Number(second.maxAmount);
+        // Kiểm tra xem Top và Second có phải cùng 1 người không?
+        // (User tự nâng MaxBid thì không tính là cạnh tranh giá với chính mình)
+        if (topBidder.userId === secondBidder.userId) {
+          // Logic tương tự trường hợp 1
+          if (product.winnerId === topBidder.userId)
+            return { status: "skipped" as const };
+          newPrice = currentPrice + step;
+        } else {
+          // Cạnh tranh thật sự:
+          // Giá sàn để thắng được người thứ 2 là: Max của người thứ 2 + Step
+          // Ví dụ bảng: User#1 max 11m, User#3 max 11.5m -> Giá sp 11.1m (11m + step)
+          newPrice = secondMax + step;
 
-      // Kiểm tra nếu không thể tăng ít nhất một bước giá
-      if (topMax < basePrice + step) {
+          // Xử lý trường hợp HÒA (Tie):
+          // Nếu TopMax == SecondMax, do sort theo updateAt ASC nên Top là người đến trước.
+          // Top sẽ thắng tại đúng mức giá Max đó (không cộng step vì sẽ vượt Max).
+          if (topMax === secondMax) {
+            newPrice = topMax;
+          }
+        }
+      }
+
+      // --- RÀNG BUỘC CUỐI CÙNG (CLAMPING) ---
+
+      // 1. Không được vượt quá MaxBid của người thắng
+      newPrice = Math.min(newPrice, topMax);
+
+      // 2. Phải đảm bảo logic Bước giá so với giá hiện tại (nếu đang thua)
+      // Nếu newPrice tính ra mà <= currentPrice (do max thấp), thì không thể bid.
+      if (newPrice <= currentPrice && product.winnerId !== topBidder.userId) {
+        // Trường hợp này AutoBidder này đã thua (Max < Current + Step)
+        // Đáng lẽ query DB không nên lấy ra hoặc logic placeBid sẽ throw error
+        return { status: "failed_max_too_low" as const };
+      }
+
+      // 3. Nếu giá không đổi và người thắng không đổi -> Bỏ qua
+      if (newPrice === currentPrice && product.winnerId === topBidder.userId) {
         return { status: "skipped" as const };
       }
 
-      // Giá đề xuất theo rule: secondMax (cho phép bidder đặt giá bằng secondMax để thắng nếu đến trước)
-      // Không cộng thêm step vì bidder có thể đặt giá bằng secondMax và thắng theo thứ tự thời gian
-      const suggestedPrice = Math.min(secondMax, topMax);
+      // --- THỰC HIỆN RA GIÁ ---
+      // Gọi service placeBid (lưu ý truyền flag isAutoBid=true để tránh vòng lặp vô tận nếu có trigger)
+      await bidService.placeBid(
+        productId,
+        topBidder.userId,
+        newPrice,
+        true,
+        tx
+      );
 
-      // Đảm bảo giá đưa ra lớn hơn ít nhất một bước giá so với giá hiện tại
-      const finalPrice = Math.max(basePrice + step, suggestedPrice);
-
-      await bidService.placeBid(productId, top.userId, finalPrice, true, tx);
-
-      return { status: "ok" as const, winnerId: top.userId, finalPrice };
+      return {
+        status: "ok" as const,
+        winnerId: topBidder.userId,
+        price: newPrice,
+      };
     });
   }
 }
