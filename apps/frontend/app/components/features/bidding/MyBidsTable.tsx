@@ -1,5 +1,12 @@
 import type { MyAutoBid, OrderWithDetails } from "@repo/shared-types";
-import { Eye } from "lucide-react";
+import {
+  AlertTriangle,
+  Eye,
+  Gavel,
+  Search,
+  Trophy,
+  XCircle,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
@@ -9,6 +16,14 @@ import { ProductCell } from "@/components/features/product/display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
   Table,
   TableBody,
   TableCell,
@@ -17,7 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TabsContent } from "@/components/ui/tabs";
-import { ACCOUNT_ROUTES } from "@/constants/routes";
+import { ACCOUNT_ROUTES, APP_ROUTES } from "@/constants/routes";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
 type BidsTableVariant = "active" | "won" | "lost";
@@ -31,7 +46,10 @@ type BidsTableProps = {
 const VARIANT_CONFIG = {
   active: {
     tabValue: "active",
-    emptyMessage: "Không có đấu giá đang hoạt động.",
+    emptyTitle: "Chưa có đấu giá nào đang hoạt động",
+    emptyDescription:
+      "Bạn chưa tham gia đấu giá nào. Khám phá các sản phẩm hấp dẫn và bắt đầu đấu giá ngay!",
+    emptyIcon: Gavel,
     columns: [
       "Sản phẩm",
       "Giá hiện tại",
@@ -42,7 +60,10 @@ const VARIANT_CONFIG = {
   },
   won: {
     tabValue: "won",
-    emptyMessage: "Không có đấu giá đã thắng.",
+    emptyTitle: "Chưa có đấu giá nào chiến thắng",
+    emptyDescription:
+      "Bạn chưa thắng bất kỳ cuộc đấu giá nào. Tiếp tục tham gia để giành chiến thắng!",
+    emptyIcon: Trophy,
     columns: [
       "Sản phẩm",
       "Giá cuối",
@@ -53,7 +74,10 @@ const VARIANT_CONFIG = {
   },
   lost: {
     tabValue: "lost",
-    emptyMessage: "Không có đấu giá đã thua.",
+    emptyTitle: "Không có đấu giá nào bị thua",
+    emptyDescription:
+      "Tuyệt vời! Bạn chưa thua bất kỳ cuộc đấu giá nào. Hãy tiếp tục phát huy!",
+    emptyIcon: XCircle,
     columns: [
       "Sản phẩm",
       "Giá cuối",
@@ -101,6 +125,38 @@ const MyBidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
     }
   };
 
+  // Show empty state if no bids
+  if (bids.length === 0) {
+    const EmptyIcon = config.emptyIcon;
+
+    return (
+      <TabsContent value={config.tabValue} className="space-y-4">
+        <Empty className="from-muted/60 to-background h-full border bg-linear-to-b from-30%">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <EmptyIcon />
+            </EmptyMedia>
+            <EmptyTitle>{config.emptyTitle}</EmptyTitle>
+            <EmptyDescription>{config.emptyDescription}</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button asChild variant="default">
+                <Link to={APP_ROUTES.SEARCH}>
+                  <Search className="h-4 w-4" />
+                  Khám phá sản phẩm
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to={APP_ROUTES.HOME}>Về trang chủ</Link>
+              </Button>
+            </div>
+          </EmptyContent>
+        </Empty>
+      </TabsContent>
+    );
+  }
+
   return (
     <TabsContent value={config.tabValue} className="space-y-4">
       <div className="rounded-md border">
@@ -112,20 +168,7 @@ const MyBidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {paginatedItems.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={config.columns.length}
-                  className="py-4 text-center"
-                >
-                  {config.emptyMessage}
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedItems.map(renderRow)
-            )}
-          </TableBody>
+          <TableBody>{paginatedItems.map(renderRow)}</TableBody>
         </Table>
       </div>
 
@@ -165,12 +208,16 @@ const ActiveBidRow = ({ bid }: { bid: MyAutoBid }) => {
       <TableCell>{formatDate(bid.product.endTime)}</TableCell>
       <TableCell>
         {isLeading ? (
-          <Badge className="bg-emerald-600 text-emerald-50">Đang dẫn đầu</Badge>
+          <Badge className="bg-emerald-600 text-emerald-50">
+            <Trophy className="mr-1 h-3 w-3" />
+            Đang dẫn đầu
+          </Badge>
         ) : (
           <Badge
             variant="outline"
             className="border-amber-300 bg-amber-50 text-amber-600"
           >
+            <AlertTriangle className="mr-1 h-3 w-3" />
             Bị vượt
           </Badge>
         )}
@@ -213,7 +260,7 @@ const WonBidRow = ({
             size="sm"
             className={cn(
               order.status === "PENDING" &&
-                "border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-600"
+                "bg-emerald-500 text-emerald-50 hover:bg-emerald-700 hover:text-emerald-50"
             )}
             asChild
           >
@@ -257,6 +304,7 @@ const LostBidRow = ({ bid }: { bid: MyAutoBid }) => {
           variant="outline"
           className="border-red-300 bg-red-50 text-red-600"
         >
+          <XCircle className="mr-1 h-3 w-3" />
           Đã thua
         </Badge>
       </TableCell>
