@@ -95,7 +95,10 @@ const BasicInfoFields = <T extends FieldValues>({
                 onValueChange={field.onChange}
                 defaultValue={field.value as string}
               >
-                <SelectTrigger id={field.name} className="min-h-12 text-base">
+                <SelectTrigger
+                  id={field.name}
+                  className="min-h-12 cursor-pointer"
+                >
                   <SelectValue placeholder="Chọn danh mục" />
                 </SelectTrigger>
                 <SelectContent>{renderCategoryOptions()}</SelectContent>

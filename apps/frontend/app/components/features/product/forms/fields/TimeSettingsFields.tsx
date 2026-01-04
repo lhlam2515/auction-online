@@ -53,7 +53,7 @@ const TimeSettingsFields = <T extends FieldValues>({
                     id={field.name}
                     variant="outline"
                     className={cn(
-                      "min-h-12 w-full justify-start pl-3 text-left font-normal",
+                      "min-h-12 w-full cursor-pointer justify-start pl-3 text-left font-normal",
                       !field.value && "text-muted-foreground"
                     )}
                   >
@@ -125,6 +125,7 @@ const TimeSettingsFields = <T extends FieldValues>({
                   id={field.name}
                   checked={field.value as boolean}
                   onCheckedChange={field.onChange}
+                  className="mt-1 cursor-pointer"
                 />
                 <div className="space-y-1 leading-none">
                   <FieldLabel

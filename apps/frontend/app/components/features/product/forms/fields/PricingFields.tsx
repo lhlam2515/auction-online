@@ -148,6 +148,7 @@ const PricingFields = <T extends FieldValues>({
                 id={field.name}
                 checked={field.value as boolean}
                 onCheckedChange={field.onChange}
+                className="mt-1 cursor-pointer"
               />
               <div className="space-y-1 leading-none">
                 <FieldLabel

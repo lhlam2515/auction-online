@@ -95,6 +95,12 @@ export const RichTextEditor = forwardRef<
             disabled && "opacity-50 cursor-not-allowed"
           ),
         },
+        transformPastedHTML: (html: string) => {
+          // Strip all HTML tags and keep only plain text
+          const temp = document.createElement("div");
+          temp.innerHTML = html;
+          return temp.textContent || temp.innerText || "";
+        },
       },
       onUpdate: ({ editor }) => {
         const html = editor.getHTML();

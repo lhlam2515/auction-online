@@ -1,5 +1,6 @@
 import type { CategoryTree } from "@repo/shared-types";
 import { useState, useEffect } from "react";
+import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
 import { ActiveSellerRoute } from "@/components/ActiveSellerRoute";
@@ -68,7 +69,10 @@ export default function CreateProductPage() {
     };
   }, [selectedImages]);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    onChange: (files: File[]) => void
+  ) => {
     const files = Array.from(event.target.files || []);
 
     if (selectedImages.length + files.length > 10) {
@@ -82,11 +86,16 @@ export default function CreateProductPage() {
       id: crypto.randomUUID(),
     }));
 
-    setSelectedImages((prev) => [...prev, ...newImages]);
+    setSelectedImages((prev) => {
+      const updated = [...prev, ...newImages];
+      // Sync with react-hook-form field
+      onChange(updated.map((img) => img.file));
+      return updated;
+    });
     toast.success(`Đã chọn ${files.length} ảnh`);
   };
 
-  const removeImage = (id: string) => {
+  const removeImage = (id: string, onChange: (files: File[]) => void) => {
     const imageIndex = selectedImages.findIndex((img) => img.id === id);
     if (imageIndex === -1) return;
 
@@ -95,7 +104,12 @@ export default function CreateProductPage() {
       URL.revokeObjectURL(imageToRemove.previewUrl);
     }
 
-    setSelectedImages((prev) => prev.filter((img) => img.id !== id));
+    setSelectedImages((prev) => {
+      const updated = prev.filter((img) => img.id !== id);
+      // Sync with react-hook-form field
+      onChange(updated.map((img) => img.file));
+      return updated;
+    });
   };
 
   const handleCancel = () => {

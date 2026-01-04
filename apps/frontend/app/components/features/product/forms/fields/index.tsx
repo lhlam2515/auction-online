@@ -31,8 +31,11 @@ interface ProductFormFieldsProps<T extends FieldValues> {
     children?: Array<{ id: string; name: string }>;
   }>;
   selectedImages: Array<{ file: File; previewUrl: string; id: string }>;
-  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onImageRemove: (id: string) => void;
+  onImageUpload: (
+    event: React.ChangeEvent<HTMLInputElement>,
+    onChange: (files: File[]) => void
+  ) => void;
+  onImageRemove: (id: string, onChange: (files: File[]) => void) => void;
   uploadingImages: boolean;
   onCancel: () => void;
   isSubmitting: boolean;
@@ -158,7 +161,7 @@ const ProductFormFields = <T extends FieldValues>({
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="w-full sm:w-auto"
+              className="cursor-pointer"
               disabled={isSubmitting || uploadingImages}
             >
               Hủy
@@ -166,7 +169,7 @@ const ProductFormFields = <T extends FieldValues>({
             <Button
               type="submit"
               disabled={isSubmitting || uploadingImages}
-              className="w-full min-w-[120px] bg-blue-600 hover:bg-blue-700 sm:w-auto"
+              className="cursor-pointer"
             >
               {isSubmitting && <Spinner />}
               {isSubmitting ? "Đang tạo..." : "Tạo sản phẩm"}
