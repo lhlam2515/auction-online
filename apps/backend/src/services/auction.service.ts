@@ -3,7 +3,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/config/database";
 import { autoBids, bids, products, users } from "@/models";
 import { orderService } from "@/services/order.service";
-import { BadRequestError, NotFoundError } from "@/utils/errors";
+import { NotFoundError } from "@/utils/errors";
 
 import { bidService } from "./bid.service";
 import { emailService } from "./email.service";
@@ -15,74 +15,82 @@ class AuctionService {
    * Idempotent: nếu sản phẩm không còn ACTIVE hoặc đã quá trình xử lý, hàm sẽ thoát sớm.
    */
   async finalizeAuction(productId: string) {
-    return db.transaction(async (tx) => {
-      const product = await tx.query.products.findFirst({
-        where: eq(products.id, productId),
-        with: {
-          seller: { columns: { email: true } },
-          winner: { columns: { email: true, fullName: true } },
-        },
+    const result = await db.transaction(async (tx) => {
+      // LOCK: Khóa dòng sản phẩm
+      const [product] = await tx
+        .select()
+        .from(products)
+        .where(eq(products.id, productId))
+        .for("update");
+
+      if (!product) throw new NotFoundError("Product not found");
+
+      // Lấy email seller
+      const seller = await tx.query.users.findFirst({
+        where: eq(users.id, product.sellerId),
+        columns: { email: true },
       });
+      if (!seller) throw new Error("Seller not found");
 
-      if (!product) {
-        throw new NotFoundError("Product");
-      }
-
-      // Chỉ xử lý khi đang ACTIVE và đã hết thời gian
-      const now = new Date();
+      // CHECK 1: Nếu không phải ACTIVE -> SKIPPED
       if (product.status !== "ACTIVE") {
-        return { status: "skipped", reason: "not-active" };
-      }
-      if (product.endTime > now) {
-        throw new BadRequestError("Auction has not ended yet");
+        return {
+          type: "SKIPPED" as const,
+          sellerEmail: seller.email,
+          productName: product.name,
+        };
       }
 
-      // Lấy bid cao nhất (ưu tiên amount cao, rồi đến thời gian sớm hơn)
+      // CHECK 2: Nếu chưa hết giờ -> SKIPPED
+      const now = new Date();
+      if (product.endTime > now) {
+        return {
+          type: "SKIPPED" as const,
+          sellerEmail: seller.email,
+          productName: product.name,
+        };
+      }
+
+      // Lấy bid cao nhất
       const topBid = await tx.query.bids.findFirst({
         where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
         orderBy: [desc(bids.amount), asc(bids.createdAt)],
+        with: {
+          user: { columns: { email: true, fullName: true } },
+        },
       });
 
-      // Không có bid hợp lệ -> đánh dấu NO_SALE
+      // --- TRƯỜNG HỢP 1: KHÔNG CÓ NGƯỜI MUA ---
       if (!topBid) {
         await tx
           .update(products)
           .set({
             status: "NO_SALE",
             winnerId: null,
-            currentPrice: String(
-              Number(product.currentPrice ?? product.startPrice)
-            ),
-            endTime: now,
             updatedAt: now,
           })
           .where(eq(products.id, productId));
 
-        // Gửi email thông báo không có người mua
-        emailService.notifyAuctionEndNoWinner(
-          product.seller.email,
-          product.name,
-          productService.buildProductLink(productId)
-        );
-
-        return { status: "no_sale" };
+        return {
+          type: "NO_SALE" as const,
+          sellerEmail: seller.email,
+          productName: product.name,
+        };
       }
 
+      // --- TRƯỜNG HỢP 2: ĐẤU GIÁ THÀNH CÔNG ---
       const finalPrice = Number(topBid.amount);
 
-      // Cập nhật sản phẩm thành SOLD và set winner
       await tx
         .update(products)
         .set({
           status: "SOLD",
           winnerId: topBid.userId,
           currentPrice: finalPrice.toString(),
-          endTime: now,
           updatedAt: now,
         })
         .where(eq(products.id, productId));
 
-      // Tạo order từ phiên đấu giá
       await orderService.createFromAuction(
         productId,
         topBid.userId,
@@ -92,25 +100,41 @@ class AuctionService {
         tx
       );
 
-      // Lấy thông tin winner để gửi email
-      const winner = await tx.query.users.findFirst({
-        where: eq(users.id, topBid.userId),
-      });
+      return {
+        type: "SOLD" as const,
+        sellerEmail: seller.email,
+        winnerEmail: topBid.user.email,
+        winnerName: topBid.user.fullName,
+        productName: product.name,
+        finalPrice: finalPrice,
+      };
+    });
 
-      // Gửi email thông báo chúc mừng người thắng
-      if (winner) {
+    // 2. LOGIC GỬI EMAIL (Dựa trên kết quả trả về từ transaction)
+    if (result.type === "NO_SALE") {
+      emailService.notifyAuctionEndNoWinner(
+        result.sellerEmail,
+        result.productName,
+        productService.buildProductLink(productId)
+      );
+    } else if (result.type === "SOLD") {
+      // Kiểm tra kỹ để TS không báo lỗi undefined cho các field optional
+      if (result.winnerEmail && result.winnerName && result.finalPrice) {
         emailService.notifyAuctionEndSuccess(
-          product.seller.email,
-          winner.email,
-          product.name,
-          finalPrice,
-          winner.fullName,
+          result.sellerEmail,
+          result.winnerEmail,
+          result.productName,
+          result.finalPrice,
+          result.winnerName,
           productService.buildProductLink(productId)
         );
       }
+    }
 
-      return { status: "completed", winnerId: topBid.userId, finalPrice };
-    });
+    return {
+      status: result.type === "SKIPPED" ? "skipped" : "completed",
+      result: result.type,
+    };
   }
 
   /**
