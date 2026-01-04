@@ -10,6 +10,7 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import { UserAvatar } from "@/components/common";
 import { AutoBidDialog, BuyNowDialog } from "@/components/features/bidding";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -112,73 +113,118 @@ const ProductInfo = ({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div>
-        <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
-          {product.name}
-        </h1>
+      <h1 className="text-foreground mb-6 text-3xl font-bold">
+        {product.name}
+      </h1>
 
-        {/* Current Price */}
-        <div className="mb-4">
-          <p className="text-muted-foreground mb-1 text-sm font-medium uppercase">
-            Giá hiện tại
-          </p>
-          <p className="text-accent text-4xl font-bold">
-            {formatPrice(Number(product.currentPrice ?? product.startPrice))}
-          </p>
-        </div>
-
-        {/* Buy Now Price */}
-        {product.buyNowPrice && (
-          <div className="text-muted-foreground mb-4 flex items-center gap-2 text-lg">
-            <ShoppingCart className="h-5 w-5" />
-            <span className="font-bold">
-              Mua ngay:{" "}
-              <span className="text-red-500">
-                {formatPrice(Number(product.buyNowPrice))}
-              </span>
-            </span>
+      {/* Current Price Card */}
+      <Card>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground mb-2 text-sm font-medium tracking-wide uppercase">
+                Giá hiện tại
+              </p>
+              <p className="text-primary text-4xl font-bold">
+                {formatPrice(
+                  Number(product.currentPrice ?? product.startPrice)
+                )}
+              </p>
+            </div>
+            {product.buyNowPrice && (
+              <div className="text-right">
+                <p className="text-muted-foreground mb-2 text-sm font-medium tracking-wide uppercase">
+                  Mua ngay
+                </p>
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="text-destructive h-5 w-5" />
+                  <span className="text-destructive text-2xl font-bold">
+                    {formatPrice(Number(product.buyNowPrice))}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </CardContent>
+      </Card>
 
-        {/* Time Left */}
-        <div
-          className={`mb-4 flex items-center gap-2 ${
-            timeDisplay.isUrgent
-              ? "font-bold text-red-600"
-              : "text-muted-foreground"
-          }`}
-        >
-          <Clock className="h-5 w-5" />
-          <span className={"text-lg font-semibold"}>
-            Kết thúc đấu giá: {timeDisplay.text}
-          </span>
-        </div>
-        <div className="text-muted-foreground mb-6 flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          <span className="text-lg font-semibold">
-            Ngày đăng: {formatDate(new Date(product.createdAt))}
-          </span>
-        </div>
-      </div>
+      {/* Auction Info Card */}
+      <Card>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Time Left */}
+            <div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  timeDisplay.isUrgent ? "bg-destructive" : "bg-primary"
+                }`}
+              >
+                <Clock className="size-5 text-white" />
+              </div>
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  Kết thúc đấu giá lúc
+                </p>
+                <p
+                  className={`text-lg font-semibold ${
+                    timeDisplay.isUrgent
+                      ? "text-destructive"
+                      : "text-foreground"
+                  }`}
+                >
+                  {timeDisplay.text}{" "}
+                  {timeDisplay.isUrgent && (
+                    <span className="text-muted-foreground text-sm">{`(${formatDate(endDateTime)})`}</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Creation Date */}
+            <div className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
+              <div className="bg-secondary flex h-10 w-10 items-center justify-center rounded-full">
+                <Calendar className="text-secondary-foreground h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  Đăng bán lúc
+                </p>
+                <p className="text-foreground text-lg font-semibold">
+                  {formatDate(new Date(product.createdAt))}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Seller Info */}
-      <Card className="bg-slate-50 dark:bg-slate-800">
+      <Card>
         <CardContent>
-          <div className="flex items-start justify-between">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground mb-1 text-sm">Người bán</p>
-              <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                {product.sellerName}
+              <p className="text-muted-foreground mb-3 text-sm font-medium tracking-wide uppercase">
+                Người bán
               </p>
-              <div className="mt-2 flex items-center gap-1">
-                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                <span className="text-lg font-semibold text-amber-500">
-                  {product.sellerRatingScore * 100}%
-                </span>
-                <span className="text-muted-foreground ml-1 text-sm">
-                  ({product.sellerRatingCount} đánh giá)
-                </span>
+              <div className="flex items-center gap-3">
+                <UserAvatar
+                  name={product.sellerName}
+                  imageUrl={product.sellerAvatarUrl}
+                />
+                <p className="text-foreground text-xl font-bold">
+                  {product.sellerName}
+                </p>
               </div>
+            </div>
+
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-2 dark:bg-amber-950">
+              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
+              <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                {(product.sellerRatingScore * 100).toFixed(0)}%
+              </span>
+              <span className="text-muted-foreground text-sm">
+                ({product.sellerRatingCount} đánh giá)
+              </span>
             </div>
           </div>
         </CardContent>
