@@ -386,6 +386,12 @@ export const api = {
           paramsToRecord(params)
         )
       ),
+
+    /**
+     * Buy product instantly at buy-now price
+     */
+    buyNow: (productId: string) =>
+      apiCall<{ newOrderId: string }>("POST", `/products/${productId}/buy-now`),
   },
 
   /**
