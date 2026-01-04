@@ -62,12 +62,18 @@ class SystemService {
    * Gọi hàm này khi có người Ra giá (Place Bid)
    */
   async triggerAutoBidCheck(productId: string) {
+    // Sử dụng jobId cố định theo productId để tránh duplicate job
+    // khi có nhiều người bid cùng lúc.
+    const jobId = `auto-bid-${productId}`;
+
     await autoBidQueue.add(
       "process-auto-bid",
       { productId },
       {
+        jobId: jobId, // Key để Deduplication
         removeOnComplete: true,
-        priority: 1, // Ưu tiên cao
+        removeOnFail: 100, // Giữ lại để debug nếu lỗi
+        priority: 1,
       }
     );
   }
