@@ -1,4 +1,4 @@
-import type { ProductDetails } from "@repo/shared-types";
+import type { ProductDetails, User } from "@repo/shared-types";
 import React from "react";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import {
 import { APP_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 
 import type { Route } from "./+types/route";
 
@@ -36,8 +37,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = React.useState(false);
   const [product, setProduct] = React.useState<ProductDetails>();
   const [isSeller, setIsSeller] = React.useState(false);
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-
+  const [userData, setUserData] = React.useState<User | null>(null);
   const [isEnded, setIsEnded] = React.useState(true);
 
   React.useEffect(() => {
@@ -94,12 +94,45 @@ export default function ProductDetailPage() {
   // Handle user authentication state
   React.useEffect(() => {
     if (!isLoading) {
-      setIsLoggedIn(!!user);
       if (user && product) {
         setIsSeller(user.id === product.sellerId);
       } else {
         setIsSeller(false);
       }
+
+      const isLoggedIn = !!user;
+      let isMounted = true;
+
+      const fetchUserData = async () => {
+        if (!isMounted || !isLoggedIn) return;
+
+        try {
+          const result = await api.users.getProfile();
+
+          if (!result.success) {
+            throw new Error(
+              result.error?.message || "Không thể tải dữ liệu người dùng"
+            );
+          }
+
+          if (isMounted && result.data) {
+            setUserData(result.data);
+          }
+        } catch (error) {
+          if (isMounted) {
+            const errorMessage = getErrorMessage(
+              error,
+              "Có lỗi khi tải dữ liệu người dùng"
+            );
+            showError(error, errorMessage);
+          }
+        }
+      };
+
+      fetchUserData();
+      return () => {
+        isMounted = false;
+      };
     }
   }, [isLoading, user, product]);
 
@@ -117,9 +150,8 @@ export default function ProductDetailPage() {
             <ProductInfo
               className="lg:col-span-3"
               product={product}
-              isLoggedIn={isLoggedIn}
               isSeller={isSeller}
-              userId={user?.id}
+              userData={userData}
             />
           </section>
 
@@ -141,7 +173,7 @@ export default function ProductDetailPage() {
           <section className="mb-8">
             <ProductQnA
               productId={product.id}
-              isLoggedIn={isLoggedIn}
+              isLoggedIn={!!user}
               isSeller={isSeller}
               isEnded={isEnded}
             />
