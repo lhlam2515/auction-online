@@ -158,3 +158,14 @@ export const getWatchListByCard = asyncHandler(
     return ResponseHandler.sendSuccess<ProductListing[]>(res, listCard);
   }
 );
+
+export const buyNow = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: productId } = req.params;
+    const { id: buyerId } = req.user!;
+
+    const result = await productService.buyNow(productId, buyerId);
+
+    return ResponseHandler.sendSuccess(res, { newOrderId: result.newOrderId });
+  }
+);

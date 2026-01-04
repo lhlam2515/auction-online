@@ -176,4 +176,17 @@ router.post(
   productController.uploadImages
 );
 
+/**
+ * @route   POST /api/products/:id/buy-now
+ * @desc    Buy product instantly at buy-now price
+ * @access  Private (Bidder only)
+ */
+router.post(
+  "/:id/buy-now",
+  authenticate,
+  authorize("BIDDER"),
+  validate({ params: productValidation.buyNowSchema }),
+  productController.buyNow
+);
+
 export default router;

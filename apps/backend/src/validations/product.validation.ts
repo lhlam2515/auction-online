@@ -56,3 +56,7 @@ export const updateDescriptionSchema = z.object({
 export const autoExtendSchema = z.object({
   isAutoExtend: z.boolean(),
 });
+
+export const buyNowSchema = z.object({
+  id: z.uuid({ error: "Invalid product ID" }),
+});
