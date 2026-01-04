@@ -184,8 +184,9 @@ class AuctionService {
         return { status: "skipped" as const };
       }
 
-      // Giá đề xuất theo rule: secondMax + step (nhưng không vượt quá topMax)
-      const suggestedPrice = Math.min(secondMax + step, topMax);
+      // Giá đề xuất theo rule: secondMax (cho phép bidder đặt giá bằng secondMax để thắng nếu đến trước)
+      // Không cộng thêm step vì bidder có thể đặt giá bằng secondMax và thắng theo thứ tự thời gian
+      const suggestedPrice = Math.min(secondMax, topMax);
 
       // Đảm bảo giá đưa ra lớn hơn ít nhất một bước giá so với giá hiện tại
       const finalPrice = Math.max(basePrice + step, suggestedPrice);
