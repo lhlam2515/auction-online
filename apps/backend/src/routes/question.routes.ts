@@ -26,7 +26,6 @@ router.get(
 router.post(
   "/:id/questions",
   authenticate,
-  authorize("BIDDER", "SELLER"),
   validate({
     params: questionValidation.productIdSchema,
     body: questionValidation.askQuestionSchema,
@@ -42,7 +41,6 @@ router.post(
 router.post(
   "/questions/:questionId/answer",
   authenticate,
-  authorize("SELLER"),
   validate({
     params: questionValidation.questionIdSchema,
     body: questionValidation.answerQuestionSchema,
