@@ -29,10 +29,9 @@ const ProductInfo = ({
     product.status !== "ACTIVE" || new Date() > endDateTime;
 
   let timeDisplay = useCountdown(endDateTime, false);
-  if (
-    endDateTime.getTime() - new Date().getTime() >=
-    RELATIVE_TIME_THRESHOLD_MS
-  ) {
+  const usingRelativeTime =
+    endDateTime.getTime() - new Date().getTime() < RELATIVE_TIME_THRESHOLD_MS;
+  if (!usingRelativeTime) {
     timeDisplay = {
       text: formatDate(endDateTime),
       isUrgent: false,
@@ -101,7 +100,7 @@ const ProductInfo = ({
                   }`}
                 >
                   {timeDisplay.text}{" "}
-                  {timeDisplay.isUrgent && (
+                  {usingRelativeTime && (
                     <span className="text-muted-foreground text-sm">{`(${formatDate(endDateTime)})`}</span>
                   )}
                 </p>
