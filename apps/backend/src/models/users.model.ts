@@ -42,6 +42,7 @@ export const users = pgTable(
   (table) => [
     // Essential indexes only
     index("idx_users_email").on(table.email), // Login lookup
+    index("idx_users_username").on(table.username), // Username lookup
 
     // Business logic constraints
     check(
