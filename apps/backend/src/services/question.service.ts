@@ -10,6 +10,7 @@ import { db } from "@/config/database";
 import { productQuestions, users } from "@/models";
 import {
   BadRequestError,
+  ForbiddenError,
   NotFoundError,
   UnauthorizedError,
 } from "@/utils/errors";
@@ -73,8 +74,17 @@ export class QuestionService {
     // implement question creation
     const product = await productService.getById(productId);
     const sellerId = product.sellerId;
+
+    if (!sellerId) {
+      throw new BadRequestError(
+        "Không thể đặt câu hỏi cho sản phẩm khi người bán không còn tồn tại"
+      );
+    }
+
     if (askerId === sellerId) {
-      throw new BadRequestError("Seller cannot ask question on own product");
+      throw new BadRequestError(
+        "Người bán không thể đặt câu hỏi cho sản phẩm của mình"
+      );
     }
 
     const [newQuestion] = await db
@@ -118,10 +128,15 @@ export class QuestionService {
     }
 
     const product = await productService.getById(question.productId);
-    if (product.sellerId !== answeredBy) {
-      throw new UnauthorizedError(
-        "Only product seller can answer the question"
+
+    if (!product.sellerId) {
+      throw new ForbiddenError(
+        "Không thể trả lời câu hỏi khi người bán không còn tồn tại"
       );
+    }
+
+    if (product.sellerId !== answeredBy) {
+      throw new UnauthorizedError("Chỉ người bán mới có thể trả lời câu hỏi");
     }
 
     const [updatedQuestion] = await db
