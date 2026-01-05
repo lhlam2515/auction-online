@@ -1,15 +1,21 @@
 import type { ProductQuestionWithUsers } from "@repo/shared-types";
-import { Loader2, MessageCircle, Send } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { z } from "zod";
 
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api-layer";
-import logger from "@/lib/logger";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 import { formatDate } from "@/lib/utils";
+import {
+  askQuestionSchema,
+  answerQuestionSchema,
+} from "@/lib/validations/question.validation";
+
+import AnswerForm from "./forms/AnswerForm";
+import AskForm from "./forms/AskForm";
 
 interface ProductQnAProps {
   productId: string;
@@ -29,14 +35,6 @@ const ProductQnA = ({
   const [questions, setQuestions] = useState<ProductQuestionWithUsers[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [questionInput, setQuestionInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [answerInputs, setAnswerInputs] = useState<Record<string, string>>({});
-  const [answeringQuestions, setAnsweringQuestions] = useState<
-    Record<string, boolean>
-  >({});
-
   const fetchQuestions = useCallback(
     async (isMounted: boolean) => {
       if (!productId) return;
@@ -48,13 +46,13 @@ const ProductQnA = ({
           if (response.success && response.data) {
             setQuestions(response.data);
           } else {
-            toast.error("Không thể tải câu hỏi");
+            throw new Error("Có lỗi khi tải câu hỏi");
           }
         }
-      } catch (err) {
+      } catch (error) {
         if (isMounted) {
-          toast.error("Có lỗi khi tải câu hỏi");
-          logger.error("Failed to fetch questions:", err);
+          const errorMessage = getErrorMessage(error, "Có lỗi khi tải câu hỏi");
+          showError(error, errorMessage);
         }
       } finally {
         if (isMounted) {
@@ -74,47 +72,43 @@ const ProductQnA = ({
     };
   }, [fetchQuestions, productId]);
 
-  const handleQuestionSubmit = async () => {
-    if (!questionInput.trim()) return;
-
+  const handleQuestionSubmit = async (
+    data: z.infer<typeof askQuestionSchema>
+  ) => {
     try {
-      setIsSubmitting(true);
       const response = await api.questions.ask(productId!, {
-        questionContent: questionInput,
+        questionContent: data.questionContent,
       });
-      setQuestionInput("");
-      toast.success("Đã gửi câu hỏi thành công");
-      await fetchQuestions(true);
-    } catch (err) {
-      toast.error("Có lỗi khi gửi câu hỏi");
-      logger.error("Failed to submit question:", err);
-    } finally {
-      setIsSubmitting(false);
+      if (response.success) {
+        toast.success("Đã gửi câu hỏi thành công");
+        await fetchQuestions(true);
+      } else {
+        throw new Error("Không thể gửi câu hỏi");
+      }
+    } catch (error) {
+      const errorMessage = getErrorMessage(error, "Có lỗi khi gửi câu hỏi");
+      showError(error, errorMessage);
     }
   };
 
-  const handleAnswerSubmit = async (questionId: string) => {
-    const answerContent = answerInputs[questionId];
-    if (!answerContent?.trim()) return;
-
+  const handleAnswerSubmit = async (
+    questionId: string,
+    data: z.infer<typeof answerQuestionSchema>
+  ) => {
     try {
-      setAnsweringQuestions((prev) => ({ ...prev, [questionId]: true }));
       const response = await api.questions.answer(questionId, {
-        answerContent: answerContent,
+        answerContent: data.answerContent,
       });
-      setAnswerInputs((prev) => ({ ...prev, [questionId]: "" }));
-      toast.success("Đã gửi câu trả lời thành công");
-      await fetchQuestions(true);
-    } catch (err) {
-      toast.error("Có lỗi khi gửi câu trả lời");
-      logger.error("Failed to submit answer:", err);
-    } finally {
-      setAnsweringQuestions((prev) => ({ ...prev, [questionId]: false }));
+      if (response.success) {
+        toast.success("Đã gửi câu trả lời thành công");
+        await fetchQuestions(true);
+      } else {
+        throw new Error("Có lỗi khi gửi câu trả lời");
+      }
+    } catch (error) {
+      const errorMessage = getErrorMessage(error, "Có lỗi khi gửi câu trả lời");
+      showError(error, errorMessage);
     }
-  };
-
-  const updateAnswerInput = (questionId: string, value: string) => {
-    setAnswerInputs((prev) => ({ ...prev, [questionId]: value }));
   };
 
   return (
@@ -132,30 +126,8 @@ const ProductQnA = ({
       <CardContent>
         {/* Question Input - Only for logged in buyers when auction is not ended */}
         {isLoggedIn && !isSeller && !isEnded && (
-          <div className="mb-6 rounded-lg bg-slate-50 p-4 dark:bg-slate-800">
-            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Đặt câu hỏi cho người bán
-            </label>
-            <div className="flex gap-2">
-              <Textarea
-                placeholder="Nhập câu hỏi của bạn về sản phẩm này..."
-                value={questionInput}
-                onChange={(e) => setQuestionInput(e.target.value)}
-                className="min-h-20 resize-none"
-                disabled={isSubmitting}
-              />
-              <Button
-                onClick={handleQuestionSubmit}
-                disabled={!questionInput.trim() || isSubmitting}
-                className="cursor-pointer self-end bg-slate-900 text-white hover:bg-slate-800"
-                size="icon"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-muted-foreground mt-2 text-xs">
-              Câu hỏi của bạn sẽ được người bán trả lời sớm nhất có thể
-            </p>
+          <div className="bg-muted/50 mb-6 rounded-lg p-4">
+            <AskForm onSubmit={handleQuestionSubmit} />
           </div>
         )}
 
@@ -239,37 +211,14 @@ const ProductQnA = ({
                   </div>
                 )}
 
+                {/* Answer Form - Only for seller if not answered yet */}
                 {!q.answerContent && isSeller && (
                   <div className="mt-3 ml-8">
                     <div className="mb-3 rounded-lg bg-green-50 p-4 dark:bg-green-950">
-                      <label className="mb-2 block text-sm font-medium text-green-700 dark:text-green-300">
-                        Trả lời câu hỏi
-                      </label>
-                      <div className="flex gap-2">
-                        <Textarea
-                          placeholder="Nhập câu trả lời của bạn..."
-                          value={answerInputs[q.id] || ""}
-                          onChange={(e) =>
-                            updateAnswerInput(q.id, e.target.value)
-                          }
-                          className="min-h-20 resize-none"
-                          disabled={answeringQuestions[q.id]}
-                        />
-                        <Button
-                          onClick={() => handleAnswerSubmit(q.id)}
-                          disabled={
-                            !answerInputs[q.id]?.trim() ||
-                            answeringQuestions[q.id]
-                          }
-                          className="cursor-pointer self-end bg-green-600 text-white hover:bg-green-700"
-                          size="icon"
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p className="mt-2 text-xs text-green-600 dark:text-green-400">
-                        Câu trả lời của bạn sẽ được hiển thị công khai
-                      </p>
+                      <AnswerForm
+                        questionId={q.id}
+                        onSubmit={handleAnswerSubmit}
+                      />
                     </div>
                   </div>
                 )}
