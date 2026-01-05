@@ -57,10 +57,10 @@ const AnswerForm = ({ questionId, onSubmit }: AnswerFormProps) => {
                   disabled={
                     !field.value?.trim() || answerForm.formState.isSubmitting
                   }
-                  className="cursor-pointer self-end bg-green-600 text-white hover:bg-green-700"
+                  className="cursor-pointer self-end bg-green-600 hover:bg-green-600/90"
                   size="icon"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="size-4" />
                 </Button>
               </div>
               <FieldDescription>

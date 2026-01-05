@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { z } from "zod";
 
-import { Avatar } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/common";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
@@ -115,7 +116,7 @@ const ProductQnA = ({
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-5 text-2xl">
-          <MessageCircle className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+          <MessageCircle className="text-muted-foreground h-5 w-5" />
           Hỏi đáp
           <span className="text-muted-foreground text-sm">
             ({questions.length} câu hỏi)
@@ -126,7 +127,7 @@ const ProductQnA = ({
       <CardContent>
         {/* Question Input - Only for logged in buyers when auction is not ended */}
         {isLoggedIn && !isSeller && !isEnded && (
-          <div className="bg-muted/50 mb-6 rounded-lg p-4">
+          <div className="bg-primary/5 mb-6 rounded-lg p-4">
             <AskForm onSubmit={handleQuestionSubmit} />
           </div>
         )}
@@ -151,52 +152,43 @@ const ProductQnA = ({
               >
                 {/* Question */}
                 <div className="mb-3 flex gap-3">
-                  <Avatar className="h-10 w-10 shrink-0 bg-blue-100 dark:bg-blue-900">
-                    <div className="flex h-full w-full items-center justify-center font-semibold text-blue-600 select-none dark:text-blue-300">
-                      {q.userName.charAt(0).toUpperCase()}
-                    </div>
-                  </Avatar>
+                  <UserAvatar name={q.userName} imageUrl={q.userAvatarUrl} />
                   <div className="flex-1">
                     <div className="mb-1 flex items-center gap-2">
-                      <span className="font-semibold text-slate-900 dark:text-slate-100">
+                      <span className="text-foreground font-semibold">
                         {q.userName}
                       </span>
                       <span className="text-muted-foreground text-xs">
                         {formatDate(q.createdAt)}
                       </span>
                     </div>
-                    <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
-                        {q.questionContent}
-                      </p>
+                    <div className="bg-primary/5 rounded-lg p-3">
+                      <p className="text-sm">{q.questionContent}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Answer */}
                 {q.answerContent && (
-                  <div className="mt-3 ml-8 flex gap-3">
-                    <Avatar className="h-10 w-10 shrink-0 bg-green-100 dark:bg-green-900">
-                      <div className="flex h-full w-full items-center justify-center font-semibold text-green-600 select-none dark:text-green-300">
-                        {q.answererName!.charAt(0).toUpperCase()}
-                      </div>
-                    </Avatar>
+                  <div className="mt-3 ml-12 flex gap-3">
+                    <UserAvatar
+                      name={q.answererName!}
+                      imageUrl={q.answererAvatarUrl!}
+                    />
                     <div className="flex-1">
                       <div className="mb-1 flex items-center gap-2">
-                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                        <span className="text-foreground font-semibold">
                           {q.answererName!}
                         </span>
-                        <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                        <Badge variant="default" className="bg-green-600">
                           Người bán
-                        </span>
+                        </Badge>
                         <span className="text-muted-foreground text-xs">
                           {formatDate(q.answeredAt!)}
                         </span>
                       </div>
-                      <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950">
-                        <p className="text-sm text-slate-700 dark:text-slate-300">
-                          {q.answerContent}
-                        </p>
+                      <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950">
+                        <p className="text-sm">{q.answerContent}</p>
                       </div>
                     </div>
                   </div>
@@ -204,7 +196,7 @@ const ProductQnA = ({
 
                 {/* Awaiting answer */}
                 {!q.answerContent && !isSeller && (
-                  <div className="mt-3 ml-8">
+                  <div className="mt-3 ml-12">
                     <p className="text-muted-foreground text-xs italic">
                       Đang chờ người bán trả lời...
                     </p>
@@ -213,7 +205,7 @@ const ProductQnA = ({
 
                 {/* Answer Form - Only for seller if not answered yet */}
                 {!q.answerContent && isSeller && (
-                  <div className="mt-3 ml-8">
+                  <div className="mt-3 ml-12">
                     <div className="mb-3 rounded-lg bg-green-50 p-4 dark:bg-green-950">
                       <AnswerForm
                         questionId={q.id}
