@@ -448,105 +448,6 @@ class EmailService {
   }
 
   // ============================================================
-  // CORE: QUEUE & SENDING LOGIC
-  // ============================================================
-
-  async processEmailJob(to: string | string[], subject: string, html: string) {
-    try {
-      await this.transporter.sendMail({
-        from: `"Sàn Đấu Giá" <${this.mailerFrom}>`,
-        to: Array.isArray(to) ? undefined : to,
-        bcc: Array.isArray(to) ? to : undefined,
-        subject: subject,
-        html: html,
-      });
-
-      logger.info(
-        `[Email Sent] To: ${Array.isArray(to) ? "Multiple Users" : to} | Subject: ${subject}`
-      );
-    } catch (error) {
-      logger.error(`[Email Failed] To: ${to}`, error);
-    }
-  }
-
-  private async queueEmail(
-    to: string | string[],
-    subject: string,
-    html: string
-  ) {
-    await emailQueue.add(
-      "send-email",
-      { to, subject, html },
-      {
-        removeOnComplete: true,
-        attempts: 3, // Retry 3 lần nếu lỗi
-      }
-    );
-  }
-
-  private getBaseTemplate(
-    title: string,
-    bodyContent: string,
-    cta?: { link: string; text: string }
-  ) {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          /* Reset cơ bản cho email */
-          body { margin: 0; padding: 0; background-color: ${COLORS.muted}; }
-          a { text-decoration: none; }
-        </style>
-      </head>
-      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: ${COLORS.muted}; padding: 40px 0;">
-
-        <div style="max-width: 600px; margin: 0 auto; background-color: ${COLORS.background}; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-
-          <div style="background-color: ${COLORS.primary}; padding: 30px 20px; text-align: center;">
-            <h1 style="color: ${COLORS.primaryFg}; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
-              Sàn Đấu Giá - Online Auction
-            </h1>
-          </div>
-
-          <div style="padding: 40px 30px; color: ${COLORS.foreground};">
-            <h2 style="color: ${COLORS.primary}; margin-top: 0; font-size: 20px; font-weight: 600;">
-              ${title}
-            </h2>
-
-            <div style="line-height: 1.6; font-size: 16px; color: ${COLORS.foreground}; margin-top: 20px;">
-              ${bodyContent}
-            </div>
-
-            ${
-              cta
-                ? `
-              <div style="margin-top: 35px; text-align: center;">
-                <a href="${cta.link}" style="display: inline-block; background-color: ${COLORS.primary}; color: ${COLORS.primaryFg}; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(20, 71, 230, 0.39);">
-                  ${cta.text}
-                </a>
-              </div>
-            `
-                : ""
-            }
-          </div>
-
-          <div style="background-color: ${COLORS.muted}; padding: 20px; text-align: center; border-top: 1px solid ${COLORS.border};">
-            <p style="margin: 0; font-size: 13px; color: ${COLORS.mutedFg};">
-              Email này được gửi tự động từ hệ thống Sàn Đấu Giá.
-            </p>
-            <p style="margin: 5px 0 0; font-size: 13px; color: ${COLORS.mutedFg};">
-              © 2025 Online Auction. Bảo lưu mọi quyền.
-            </p>
-          </div>
-        </div>
-
-      </body>
-      </html>
-    `;
-  }
-  // ============================================================
   // GROUP 5: ADMIN USER MANAGEMENT (Quản lý User bởi Admin)
   // ============================================================
 
@@ -926,6 +827,110 @@ class EmailService {
       "Trạng thái tài khoản đã được thay đổi",
       fullHtml
     );
+  }
+
+  // ============================================================
+  // CORE: QUEUE & SENDING LOGIC
+  // ============================================================
+
+  async processEmailJob(to: string | string[], subject: string, html: string) {
+    try {
+      await this.transporter.sendMail({
+        from: `"Sàn Đấu Giá" <${this.mailerFrom}>`,
+        to: Array.isArray(to) ? undefined : to,
+        bcc: Array.isArray(to) ? to : undefined,
+        subject: subject,
+        html: html,
+      });
+
+      logger.info(
+        `[Email Sent] To: ${Array.isArray(to) ? "Multiple Users" : to} | Subject: ${subject}`
+      );
+    } catch (error) {
+      logger.error(`[Email Failed] To: ${to}`, error);
+    }
+  }
+
+  private async queueEmail(
+    to: string | string[],
+    subject: string,
+    html: string
+  ) {
+    try {
+      await emailQueue.add(
+        "send-email",
+        { to, subject, html },
+        {
+          removeOnComplete: true,
+          attempts: 3, // Retry 3 times if failed
+        }
+      );
+    } catch (error) {
+      logger.error("[Email Queue Failed]", error);
+    }
+  }
+
+  private getBaseTemplate(
+    title: string,
+    bodyContent: string,
+    cta?: { link: string; text: string }
+  ) {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          /* Reset cơ bản cho email */
+          body { margin: 0; padding: 0; background-color: ${COLORS.muted}; }
+          a { text-decoration: none; }
+        </style>
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: ${COLORS.muted}; padding: 40px 0;">
+
+        <div style="max-width: 600px; margin: 0 auto; background-color: ${COLORS.background}; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+
+          <div style="background-color: ${COLORS.primary}; padding: 30px 20px; text-align: center;">
+            <h1 style="color: ${COLORS.primaryFg}; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
+              Sàn Đấu Giá - Online Auction
+            </h1>
+          </div>
+
+          <div style="padding: 40px 30px; color: ${COLORS.foreground};">
+            <h2 style="color: ${COLORS.primary}; margin-top: 0; font-size: 20px; font-weight: 600;">
+              ${title}
+            </h2>
+
+            <div style="line-height: 1.6; font-size: 16px; color: ${COLORS.foreground}; margin-top: 20px;">
+              ${bodyContent}
+            </div>
+
+            ${
+              cta
+                ? `
+              <div style="margin-top: 35px; text-align: center;">
+                <a href="${cta.link}" style="display: inline-block; background-color: ${COLORS.primary}; color: ${COLORS.primaryFg}; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(20, 71, 230, 0.39);">
+                  ${cta.text}
+                </a>
+              </div>
+            `
+                : ""
+            }
+          </div>
+
+          <div style="background-color: ${COLORS.muted}; padding: 20px; text-align: center; border-top: 1px solid ${COLORS.border};">
+            <p style="margin: 0; font-size: 13px; color: ${COLORS.mutedFg};">
+              Email này được gửi tự động từ hệ thống Sàn Đấu Giá.
+            </p>
+            <p style="margin: 5px 0 0; font-size: 13px; color: ${COLORS.mutedFg};">
+              © 2025 Online Auction. Bảo lưu mọi quyền.
+            </p>
+          </div>
+        </div>
+
+      </body>
+      </html>
+    `;
   }
 }
 
