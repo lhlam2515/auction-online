@@ -9,11 +9,13 @@ import type {
   OrderFeedbackRequest,
   MarkPaidRequest,
   PaginatedResponse,
+  RatingWithUsers,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { ratingService } from "@/services";
 import { orderService } from "@/services/order.service";
 import { ForbiddenError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
@@ -169,13 +171,24 @@ export const cancelOrder = asyncHandler(
   }
 );
 
+export const getOrderFeedbacks = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { id: userId } = req.user!;
+
+    const feedbacks = await ratingService.getByOrder(orderId, userId);
+
+    return ResponseHandler.sendSuccess<RatingWithUsers[]>(res, feedbacks);
+  }
+);
+
 export const leaveFeedback = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: orderId } = req.params;
     const { rating, comment } = req.body as OrderFeedbackRequest;
     const { id: userId } = req.user!;
 
-    const feedback = await orderService.leaveFeedback(
+    const feedback = await ratingService.createFeedback(
       orderId,
       userId,
       rating,

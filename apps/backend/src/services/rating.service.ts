@@ -1,39 +1,139 @@
-import { eq, and, avg } from "drizzle-orm";
+import type { RatingWithUsers } from "@repo/shared-types";
+import { eq, and, or } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { ratings } from "@/models";
-import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
+import { orders, ratings, users } from "@/models";
+import { NotFoundError, BadRequestError, ForbiddenError } from "@/utils/errors";
 
 export class RatingService {
-  async create(
+  async createFeedback(
     orderId: string,
-    raterId: string,
-    targetUserId: string,
+    userId: string,
     rating: number,
-    ratingType: string,
     comment?: string
   ) {
-    // TODO: validate order exists, buyer rated seller, no duplicate
-    if (rating < 1 || rating > 5) {
-      throw new BadRequestError("Rating score must be between 1 and 5");
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+    });
+
+    if (!order) {
+      throw new NotFoundError("Order not found");
     }
 
-    return await db.transaction(async (tx) => {
-      // check for existing rating
-      // insert rating
-      // update seller's average rating
-      throw new BadRequestError("Not implemented");
+    // Handle nullable fields - cannot leave feedback if users deleted
+    if (!order.winnerId || !order.sellerId) {
+      throw new BadRequestError(
+        "Cannot leave feedback - buyer or seller information is missing"
+      );
+    }
+
+    // Check if user is buyer or seller of this order
+    if (order.winnerId !== userId && order.sellerId !== userId) {
+      throw new ForbiddenError(
+        "Not authorized to leave feedback for this order"
+      );
+    }
+
+    // Can only leave feedback for completed or cancelled orders
+    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
+      throw new BadRequestError(
+        "Can only leave feedback for completed or cancelled orders"
+      );
+    }
+
+    // Determine receiver (the other party in the transaction)
+    const receiverId =
+      order.winnerId === userId ? order.sellerId : order.winnerId;
+
+    // Handle nullable productId
+    if (!order.productId) {
+      throw new BadRequestError(
+        "Cannot leave feedback - product information is missing"
+      );
+    }
+
+    // Check if user already left feedback for this specific order
+    // Query by checking productId + senderId + correct receiver to ensure it's from this order
+    const existingFeedback = await db.query.ratings.findFirst({
+      where: and(
+        eq(ratings.orderId, order.id),
+        eq(ratings.senderId, userId),
+        eq(ratings.receiverId, receiverId)
+      ),
     });
+
+    if (existingFeedback) {
+      throw new BadRequestError("You already left feedback for this order");
+    }
+
+    // Create rating record
+    const [newRating] = await db
+      .insert(ratings)
+      .values({
+        orderId: order.id,
+        senderId: userId,
+        receiverId,
+        score: rating,
+        comment: comment || null,
+      })
+      .returning();
+
+    // Update receiver's rating score and count
+    const receiver = await db.query.users.findFirst({
+      where: eq(users.id, receiverId),
+    });
+
+    if (receiver) {
+      const newRatingCount = receiver.ratingCount + 1;
+      const newRatingScore =
+        (receiver.ratingScore * receiver.ratingCount + rating) / newRatingCount;
+
+      await db
+        .update(users)
+        .set({
+          ratingScore: newRatingScore,
+          ratingCount: newRatingCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, receiverId));
+    }
+
+    return newRating;
   }
 
-  async getBySeller(sellerId: string) {
-    // TODO: get all ratings for a seller with pagination
-    return [];
-  }
+  async getByOrder(orderId: string, userId: string) {
+    const order = await db.query.orders.findFirst({
+      where: or(eq(orders.winnerId, userId), eq(orders.sellerId, userId)),
+    });
 
-  async getByOrder(orderId: string) {
-    // TODO: get rating for specific order
-    return null;
+    if (!order) {
+      throw new NotFoundError("Order not found or access denied");
+    }
+
+    const feedbacks = await db.query.ratings
+      .findMany({
+        where: and(
+          eq(ratings.orderId, orderId),
+          or(eq(ratings.senderId, userId), eq(ratings.receiverId, userId))
+        ),
+        with: {
+          sender: {
+            columns: { fullName: true, avatarUrl: true },
+          },
+          receiver: {
+            columns: { fullName: true, avatarUrl: true },
+          },
+        },
+      })
+      .then((rows) => {
+        return rows.map((row) => ({
+          ...row,
+          createdAt: row.createdAt.toISOString(),
+          updatedAt: row.updatedAt.toISOString(),
+        }));
+      });
+
+    return feedbacks as RatingWithUsers[];
   }
 
   async getSellerStats(sellerId: string) {
