@@ -25,6 +25,25 @@ class AuctionService {
 
       if (!product) throw new NotFoundError("Product not found");
 
+      // Kiểm tra seller có tồn tại không
+      if (!product.sellerId) {
+        // Nếu seller đã bị xóa, chuyển sản phẩm sang NO_SALE
+        await tx
+          .update(products)
+          .set({
+            status: "NO_SALE",
+            winnerId: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(products.id, productId));
+
+        return {
+          type: "NO_SALE" as const,
+          sellerEmail: null,
+          productName: product.name,
+        };
+      }
+
       // Lấy email seller
       const seller = await tx.query.users.findFirst({
         where: eq(users.id, product.sellerId),
@@ -112,11 +131,14 @@ class AuctionService {
 
     // 2. LOGIC GỬI EMAIL (Dựa trên kết quả trả về từ transaction)
     if (result.type === "NO_SALE") {
-      emailService.notifyAuctionEndNoWinner(
-        result.sellerEmail,
-        result.productName,
-        productService.buildProductLink(productId)
-      );
+      // Kiểm tra kỹ để TS không báo lỗi undefined cho các field optional
+      if (result.sellerEmail) {
+        emailService.notifyAuctionEndNoWinner(
+          result.sellerEmail,
+          result.productName,
+          productService.buildProductLink(productId)
+        );
+      }
     } else if (result.type === "SOLD") {
       // Kiểm tra kỹ để TS không báo lỗi undefined cho các field optional
       if (result.winnerEmail && result.winnerName && result.finalPrice) {

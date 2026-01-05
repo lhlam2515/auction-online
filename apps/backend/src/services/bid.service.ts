@@ -92,6 +92,11 @@ export class BidService {
       // ---------------------------------------------------------
       // 2. VALIDATION CƠ BẢN
       // ---------------------------------------------------------
+      if (!product.sellerId) {
+        throw new BadRequestError(
+          "Không thể đấu giá sản phẩm khi người bán không còn tồn tại"
+        );
+      }
       if (product.sellerId === bidderId) {
         throw new BadRequestError(
           "Không thể tự đấu giá sản phẩm của chính mình"

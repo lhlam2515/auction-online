@@ -7,7 +7,7 @@ import type {
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import { orders, orderPayments, ratings, users } from "@/models";
+import { orders, orderPayments } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
 import { ratingService } from "./rating.service";
@@ -40,8 +40,13 @@ export class OrderService {
     }
 
     // 2. Validate nhanh dữ liệu đầu vào (Optional - vì caller thường đã đảm bảo)
-    if (!productId || !winnerId || !sellerId) {
+    if (!productId || !winnerId) {
       throw new Error("Missing required order information");
+    }
+
+    // Nếu seller đã bị xóa, không thể tạo order
+    if (!sellerId) {
+      throw new Error("Cannot create order when seller no longer exists");
     }
 
     // 3. Tạo mã đơn hàng (Unique Order Number)
