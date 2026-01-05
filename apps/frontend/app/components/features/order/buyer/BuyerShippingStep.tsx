@@ -1,5 +1,5 @@
-import type { OrderWithDetails } from "@repo/shared-types";
-import { Truck, Package } from "lucide-react";
+import type { OrderWithDetails, ShippingProvider } from "@repo/shared-types";
+import { Truck, Package, Building2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -15,7 +15,7 @@ import {
 import { api } from "@/lib/api-layer";
 import { formatDate } from "@/lib/utils";
 
-import { ShippingInfo } from "../shared";
+import { SHIPPING_PROVIDERS, ShippingInfo } from "../shared";
 
 interface BuyerShippingStepProps {
   order: OrderWithDetails;
@@ -52,6 +52,13 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
     }
   };
 
+  const getShippingProviderName = (provider: ShippingProvider | null) => {
+    return (
+      SHIPPING_PROVIDERS.find((p) => p.value === provider)?.label ||
+      "Chưa xác định"
+    );
+  };
+
   const shippedAt = order.shippedAt ? new Date(order.shippedAt) : new Date();
 
   return (
@@ -73,20 +80,30 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
 
         {/* Tracking Information */}
         {order.trackingNumber && (
-          <div className="space-y-3 rounded-lg bg-slate-50 p-4">
-            <h4 className="font-semibold text-slate-900">
-              Thông tin vận chuyển
-            </h4>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-slate-600" />
-                <span className="text-sm text-slate-600">Mã vận đơn:</span>
-                <span className="font-mono text-sm font-medium text-slate-900">
-                  {order.trackingNumber}
-                </span>
-              </div>
-            </div>
-          </div>
+          <AlertSection
+            variant="info"
+            title="Thông tin vận chuyển"
+            description={
+              <>
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-slate-600" />
+                  <span className="text-sm text-slate-600">
+                    Đơn vị vận chuyển:
+                  </span>
+                  <span className="text-sm font-medium text-slate-900">
+                    {getShippingProviderName(order.shippingProvider)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-slate-600" />
+                  <span className="text-sm text-slate-600">Mã vận đơn:</span>
+                  <span className="font-mono text-sm font-medium text-slate-900">
+                    {order.trackingNumber}
+                  </span>
+                </div>
+              </>
+            }
+          />
         )}
 
         {/* Shipping Address */}

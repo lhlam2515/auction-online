@@ -1,4 +1,7 @@
-export { default as DeliveryInfoForm } from "./DeliveryInfoForm";
+export {
+  default as DeliveryInfoForm,
+  SHIPPING_PROVIDERS,
+} from "./DeliveryInfoForm";
 export { default as OrderCancelledCard } from "./OrderCancelledCard";
 export { default as PrivateChatWindow } from "../../interaction/PrivateChatWindow";
 export { default as OrderRatingStep } from "./OrderRatingStep";
