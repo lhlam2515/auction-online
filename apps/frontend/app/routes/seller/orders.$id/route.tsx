@@ -77,7 +77,11 @@ export default function SellerOrderDetailPage() {
 
         // Determine current step based on order status for seller perspective
         // OrderStatus: "PENDING" | "PAID" | "SHIPPED" | "COMPLETED" | "CANCELLED"
-        if (orderData.status === "PAID") {
+        if (orderData.status === "CANCELLED") {
+          setCurrentStep(0); // Đơn hàng đã hủy, không có bước tiếp theo
+        } else if (orderData.status === "PENDING") {
+          setCurrentStep(1); // Chờ người mua thanh toán
+        } else if (orderData.status === "PAID") {
           if (orderData.sellerConfirmedAt) {
             setCurrentStep(2); // Người bán đã xác nhận thanh toán, chờ bàn giao hàng
           } else {
@@ -87,8 +91,6 @@ export default function SellerOrderDetailPage() {
           setCurrentStep(2); // Đơn hàng đã được gửi đi
         } else if (orderData.status === "COMPLETED") {
           setCurrentStep(3); // Đơn hàng hoàn thành, yêu cầu đánh giá
-        } else if (orderData.status === "CANCELLED") {
-          setCurrentStep(0); // Đơn hàng đã hủy, không có bước tiếp theo
         }
       } catch (error) {
         toast.error(
@@ -127,12 +129,17 @@ export default function SellerOrderDetailPage() {
   // Callback handlers for component interactions
   const handlePaymentConfirmed = (updatedOrder: OrderWithDetails) => {
     setOrder(updatedOrder);
-    setCurrentStep(2); // Chuyển sang Bàn giao hàng
+
+    if (updatedOrder.status === "CANCELLED") {
+      setCurrentStep(0);
+    } else if (updatedOrder.sellerConfirmedAt) {
+      setCurrentStep(2); // Chuyển sang Bàn giao hàng
+    }
   };
 
   const handleShippingSuccess = (updatedOrder: OrderWithDetails) => {
     setOrder(updatedOrder);
-    setCurrentStep(3); // Chuyển sang Đánh giá
+    setCurrentStep(2); // Giữ nguyên bước hiện tại để hiển thị trạng thái thành công
   };
 
   const handleRatingSuccess = () => {
