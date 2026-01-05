@@ -1,9 +1,11 @@
 import type { MyAutoBid, OrderWithDetails } from "@repo/shared-types";
 import {
   AlertTriangle,
+  CreditCard,
   Eye,
   Gavel,
   Search,
+  Star,
   Trophy,
   XCircle,
 } from "lucide-react";
@@ -266,11 +268,19 @@ const WonBidRow = ({
           >
             <Link to={ACCOUNT_ROUTES.ORDER(order.id)}>
               {order.status === "PENDING" ? (
-                "Thanh toán"
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  <span>Thanh toán</span>
+                </>
+              ) : order.status === "COMPLETED" ? (
+                <>
+                  <Star className="h-4 w-4" />
+                  <span>Đánh giá</span>
+                </>
               ) : (
                 <>
                   <Eye className="h-4 w-4" />
-                  <span>Xem chi tiết</span>
+                  <span>Theo dõi</span>
                 </>
               )}
             </Link>
