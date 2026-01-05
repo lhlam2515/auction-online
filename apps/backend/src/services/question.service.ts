@@ -4,7 +4,7 @@ import type {
   QuestionStatus,
   QuestionVisibility,
 } from "@repo/shared-types";
-import { eq, and, aliasedTable } from "drizzle-orm";
+import { eq, and, aliasedTable, asc } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { productQuestions, users } from "@/models";
@@ -49,7 +49,8 @@ export class QuestionService {
           eq(productQuestions.productId, productId),
           eq(productQuestions.isPublic, true)
         )
-      );
+      )
+      .orderBy(asc(productQuestions.createdAt));
     return questions.map((q) => {
       return {
         ...q.question,
