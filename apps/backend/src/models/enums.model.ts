@@ -55,12 +55,11 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 ]);
 
 // Enum cho Nhà vận chuyển
-export const shipmentProviderEnum = pgEnum("shipment_provider", [
+export const shippingProviderEnum = pgEnum("shipping_provider", [
   "VNPOST",
   "GHN",
   "GHTK",
   "JNT",
-  "OTHER",
 ]);
 
 // Enum cho Mục đích OTP

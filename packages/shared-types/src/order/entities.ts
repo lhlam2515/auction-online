@@ -24,6 +24,7 @@ export interface Order {
   // Shipping information
   shippingAddress: string;
   phoneNumber: string;
+  shippingProvider: ShippingProvider | null;
   trackingNumber: string | null;
 
   // Timeline

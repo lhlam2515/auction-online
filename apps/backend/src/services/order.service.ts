@@ -2,6 +2,7 @@ import type {
   GetOrdersParams,
   OrderWithDetails,
   PaymentMethod,
+  ShippingProvider,
 } from "@repo/shared-types";
 import { eq, and } from "drizzle-orm";
 
@@ -333,7 +334,7 @@ export class OrderService {
     orderId: string,
     sellerId: string,
     trackingNumber: string,
-    _shippingProvider?: string
+    shippingProvider: ShippingProvider
   ) {
     const order = await this.getById(orderId);
 
@@ -352,14 +353,12 @@ export class OrderService {
       throw new BadRequestError("Order must be paid before shipping");
     }
 
-    // Note: shippingProvider could be stored if we add it to the model
-    // For now, we'll skip it or could add it later
-
     const [updatedOrder] = await db
       .update(orders)
       .set({
         status: "SHIPPED",
-        trackingNumber: trackingNumber || null,
+        trackingNumber: trackingNumber,
+        shippingProvider: shippingProvider,
         shippedAt: new Date(),
         updatedAt: new Date(),
       })
