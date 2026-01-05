@@ -40,6 +40,7 @@ import {
   users,
   watchLists,
 } from "@/models";
+import { maskName } from "@/utils";
 import {
   BadRequestError,
   NotFoundError,
@@ -47,7 +48,6 @@ import {
   ForbiddenError,
 } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
-import { maskName } from "@/utils/ultils";
 
 import { emailService } from "./email.service";
 import { orderService } from "./order.service";

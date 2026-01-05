@@ -4,8 +4,8 @@ import { eq, desc, and, ne } from "drizzle-orm";
 import { db } from "@/config/database";
 import logger from "@/config/logger";
 import { bids, autoBids, products, users } from "@/models";
+import { maskName } from "@/utils";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
-import { maskName } from "@/utils/ultils";
 
 import { emailService } from "./email.service";
 import { orderService } from "./order.service";
