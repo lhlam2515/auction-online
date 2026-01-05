@@ -615,6 +615,12 @@ export const api = {
      */
     submitFeedback: (orderId: string, data: OrderFeedbackRequest) =>
       apiCall<Rating>("POST", `/orders/${orderId}/feedback`, data),
+
+    /**
+     * Update feedback after transaction
+     */
+    updateFeedback: (orderId: string, data: OrderFeedbackRequest) =>
+      apiCall<Rating>("PUT", `/orders/${orderId}/feedback`, data),
   },
 
   /**

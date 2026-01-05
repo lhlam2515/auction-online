@@ -151,4 +151,18 @@ router.post(
   orderController.leaveFeedback
 );
 
+/**
+ * @route   PUT /api/orders/:id/feedback
+ * @desc    Edit feedback after transaction
+ * @access  Private (buyer or seller)
+ */
+router.put(
+  "/:id/feedback",
+  validate({
+    params: orderValidation.orderIdSchema,
+    body: orderValidation.feedbackSchema,
+  }),
+  orderController.editFeedback
+);
+
 export default router;

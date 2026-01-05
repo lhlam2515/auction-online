@@ -136,6 +136,63 @@ export class RatingService {
     return feedbacks as RatingWithUsers[];
   }
 
+  async updateFeedback(
+    orderId: string,
+    userId: string,
+    rating: number,
+    comment?: string
+  ) {
+    const existingFeedback = await db.query.ratings.findFirst({
+      where: and(eq(ratings.orderId, orderId), eq(ratings.senderId, userId)),
+    });
+
+    if (!existingFeedback) {
+      throw new NotFoundError("Feedback not found");
+    }
+
+    if (!existingFeedback.receiverId) {
+      throw new BadRequestError(
+        "Cannot update feedback - receiver information is missing"
+      );
+    }
+
+    // Update rating record
+    const [updatedRating] = await db
+      .update(ratings)
+      .set({
+        score: rating,
+        comment,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(eq(ratings.id, existingFeedback.id), eq(ratings.senderId, userId))
+      )
+      .returning();
+
+    // Update receiver's rating score
+    const receiver = await db.query.users.findFirst({
+      where: eq(users.id, existingFeedback.receiverId),
+    });
+
+    const ratingDifference = rating - existingFeedback.score;
+
+    if (receiver) {
+      const newRatingScore =
+        (receiver.ratingScore * receiver.ratingCount + ratingDifference) /
+        receiver.ratingCount;
+
+      await db
+        .update(users)
+        .set({
+          ratingScore: newRatingScore,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existingFeedback.receiverId));
+    }
+
+    return updatedRating;
+  }
+
   async getSellerStats(sellerId: string) {
     // TODO: calculate average rating and count
     return {

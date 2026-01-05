@@ -195,6 +195,23 @@ export const leaveFeedback = asyncHandler(
       comment
     );
 
-    return ResponseHandler.sendSuccess(res, feedback);
+    return ResponseHandler.sendCreated(res, feedback);
+  }
+);
+
+export const editFeedback = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { rating, comment } = req.body as OrderFeedbackRequest;
+    const { id: userId } = req.user!;
+
+    const updatedFeedback = await ratingService.updateFeedback(
+      orderId,
+      userId,
+      rating,
+      comment
+    );
+
+    return ResponseHandler.sendSuccess(res, updatedFeedback);
   }
 );
