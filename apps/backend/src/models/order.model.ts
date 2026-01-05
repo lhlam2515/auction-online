@@ -5,6 +5,7 @@ import {
   orderStatusEnum,
   paymentMethodEnum,
   paymentStatusEnum,
+  shippingProviderEnum,
 } from "./enums.model";
 import { products } from "./products.model";
 import { users } from "./users.model";
@@ -37,6 +38,7 @@ export const orders = pgTable(
     // Shipping information
     shippingAddress: t.text("shipping_address").notNull(),
     phoneNumber: t.text("phone_number").notNull(),
+    shippingProvider: shippingProviderEnum("shipping_provider"),
     trackingNumber: t.text("tracking_number"),
 
     // Timeline

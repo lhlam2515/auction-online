@@ -127,6 +127,17 @@ router.post(
 );
 
 /**
+ * @route  GET /api/orders/:id/feedback
+ * @desc   Get feedback for a specific order
+ * @access Private (buyer or seller)
+ */
+router.get(
+  "/:id/feedback",
+  validate({ params: orderValidation.orderIdSchema }),
+  orderController.getOrderFeedbacks
+);
+
+/**
  * @route   POST /api/orders/:id/feedback
  * @desc    Leave feedback after transaction
  * @access  Private (buyer or seller)
@@ -138,6 +149,20 @@ router.post(
     body: orderValidation.feedbackSchema,
   }),
   orderController.leaveFeedback
+);
+
+/**
+ * @route   PUT /api/orders/:id/feedback
+ * @desc    Edit feedback after transaction
+ * @access  Private (buyer or seller)
+ */
+router.put(
+  "/:id/feedback",
+  validate({
+    params: orderValidation.orderIdSchema,
+    body: orderValidation.feedbackSchema,
+  }),
+  orderController.editFeedback
 );
 
 export default router;

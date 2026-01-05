@@ -2,12 +2,15 @@ import type {
   GetOrdersParams,
   OrderWithDetails,
   PaymentMethod,
+  ShippingProvider,
 } from "@repo/shared-types";
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, orderPayments, ratings, users } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
+
+import { ratingService } from "./rating.service";
 
 export type ShippingAddress = {
   street: string;
@@ -331,7 +334,7 @@ export class OrderService {
     orderId: string,
     sellerId: string,
     trackingNumber: string,
-    _shippingProvider?: string
+    shippingProvider: ShippingProvider
   ) {
     const order = await this.getById(orderId);
 
@@ -350,14 +353,12 @@ export class OrderService {
       throw new BadRequestError("Order must be paid before shipping");
     }
 
-    // Note: shippingProvider could be stored if we add it to the model
-    // For now, we'll skip it or could add it later
-
     const [updatedOrder] = await db
       .update(orders)
       .set({
         status: "SHIPPED",
-        trackingNumber: trackingNumber || null,
+        trackingNumber: trackingNumber,
+        shippingProvider: shippingProvider,
         shippedAt: new Date(),
         updatedAt: new Date(),
       })
@@ -438,98 +439,9 @@ export class OrderService {
       .returning();
 
     // Leave negative feedback automatically
-    await this.leaveFeedback(orderId, userId, -1, reason);
+    await ratingService.createFeedback(orderId, userId, -1, reason);
 
     return updatedOrder;
-  }
-
-  async leaveFeedback(
-    orderId: string,
-    userId: string,
-    rating: number,
-    comment?: string
-  ) {
-    const order = await this.getById(orderId);
-
-    // Handle nullable fields - cannot leave feedback if users deleted
-    if (!order.winnerId || !order.sellerId) {
-      throw new BadRequestError(
-        "Cannot leave feedback - buyer or seller information is missing"
-      );
-    }
-
-    // Check if user is buyer or seller of this order
-    if (order.winnerId !== userId && order.sellerId !== userId) {
-      throw new ForbiddenError(
-        "Not authorized to leave feedback for this order"
-      );
-    }
-
-    // Can only leave feedback for completed or cancelled orders
-    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
-      throw new BadRequestError(
-        "Can only leave feedback for completed or cancelled orders"
-      );
-    }
-
-    // Determine receiver (the other party in the transaction)
-    const receiverId =
-      order.winnerId === userId ? order.sellerId : order.winnerId;
-
-    // Handle nullable productId
-    if (!order.productId) {
-      throw new BadRequestError(
-        "Cannot leave feedback - product information is missing"
-      );
-    }
-
-    // Check if user already left feedback for this specific order
-    // Query by checking productId + senderId + correct receiver to ensure it's from this order
-    const existingFeedback = await db.query.ratings.findFirst({
-      where: and(
-        eq(ratings.productId, order.productId),
-        eq(ratings.senderId, userId),
-        eq(ratings.receiverId, receiverId)
-      ),
-    });
-
-    if (existingFeedback) {
-      throw new BadRequestError("You already left feedback for this order");
-    }
-
-    // Create rating record
-    const [newRating] = await db
-      .insert(ratings)
-      .values({
-        productId: order.productId,
-        senderId: userId,
-        receiverId,
-        score: rating,
-        comment: comment || null,
-      })
-      .returning();
-
-    // Update receiver's rating score and count
-    const receiver = await db.query.users.findFirst({
-      where: eq(users.id, receiverId),
-    });
-
-    if (receiver) {
-      const newRatingCount = receiver.ratingCount + 1;
-      const newRatingScore =
-        (receiver.ratingScore * receiver.ratingCount + rating) / newRatingCount;
-
-      await db
-        .update(users)
-        .set({
-          ratingScore: newRatingScore,
-          ratingCount: newRatingCount,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, receiverId));
-    }
-
-    return newRating;
   }
 }
 

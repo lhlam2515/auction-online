@@ -38,11 +38,11 @@ interface ShippingFormProps<T extends FieldValues> {
   onSuccess?: (data: T) => void;
 }
 
-const SHIPPING_PROVIDERS = [
-  { value: "VNPOST", label: "Bưu điện Việt Nam" },
+export const SHIPPING_PROVIDERS = [
+  { value: "VNPOST", label: "Bưu điện Việt Nam (VNPost)" },
   { value: "GHN", label: "Giao Hàng Nhanh (GHN)" },
-  { value: "GHTK", label: "Giao Hàng Tiết Kiệm" },
-  { value: "JNT", label: "JNT Express" },
+  { value: "GHTK", label: "Giao Hàng Tiết Kiệm (GHTK)" },
+  { value: "JNT", label: "J&T Express (JNT)" },
 ];
 
 const DeliveryInfoForm = <T extends FieldValues>({

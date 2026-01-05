@@ -6,7 +6,7 @@ import type { RatingScore } from "../common/enums";
  */
 export interface Rating {
   id: string;
-  productId: string; // CASCADE deleted with product
+  orderId: string; // CASCADE deleted with product
   senderId: string;
   receiverId: string;
   score: RatingScore; // 1 (positive) or -1 (negative)
@@ -20,10 +20,14 @@ export interface Rating {
  * Note: Ratings are CASCADE deleted with product, so productName always exists
  */
 export interface RatingWithUsers extends Rating {
-  senderName: string;
-  senderAvatarUrl?: string;
-  receiverName: string;
-  productName: string; // Always present due to CASCADE constraint
+  sender: {
+    fullName: string;
+    avatarUrl?: string | null;
+  };
+  receiver: {
+    fullName: string;
+    avatarUrl?: string | null;
+  };
 }
 
 /**

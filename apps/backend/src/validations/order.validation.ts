@@ -36,7 +36,9 @@ export const updateShippingInfoSchema = z.object({
 
 export const shipOrderSchema = z.object({
   trackingNumber: z.string({ error: "Tracking number is required" }),
-  shippingProvider: z.string().optional(),
+  shippingProvider: z.enum(["VNPOST", "GHN", "GHTK", "JNT"], {
+    error: "Invalid shipping provider",
+  }),
 });
 
 export const cancelOrderSchema = z.object({

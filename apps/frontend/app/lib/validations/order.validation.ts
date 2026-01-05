@@ -34,7 +34,7 @@ export const submitFeedbackSchema = z.object({
  * @description Validates shipping provider, tracking number, and optional notes
  */
 export const submitOrderShippingSchema = z.object({
-  shippingProvider: z.enum(["GHN", "VNPOST", "GHTK", "JNT", "OTHER"], {
+  shippingProvider: z.enum(["GHN", "VNPOST", "GHTK", "JNT"], {
     error: "Vui lòng chọn đơn vị vận chuyển",
   }),
   trackingNumber: z

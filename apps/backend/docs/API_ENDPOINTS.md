@@ -125,7 +125,9 @@
 | POST   | /api/v1/orders/:id/receive         | WIN     | Buyer xác nhận nhận hàng         |
 | POST   | /api/v1/orders/:id/cancel          | SEL     | Hủy đơn hàng                     |
 | GET    | /api/v1/users/selling-orders       | SEL     | Đơn hàng của seller              |
+| GET    | /api/v1/orders/:id/feedback        | WIN/SEL | Lấy đánh giá sau giao dịch       |
 | POST   | /api/v1/orders/:id/feedback        | WIN/SEL | Đánh giá sau giao dịch           |
+| PUT    | /api/v1/orders/:id/feedback        | WIN/SEL | Chỉnh sửa đánh giá sau giao dịch |
 
 ---
 

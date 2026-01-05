@@ -75,6 +75,7 @@ import type {
   // Rating types
   CreateRatingRequest,
   Rating,
+  RatingWithUsers,
   RatingSummary,
 
   // Admin types
@@ -604,10 +605,22 @@ export const api = {
       apiCall<Order>("POST", `/orders/${orderId}/cancel`, data),
 
     /**
+     * Get order feedbacks
+     */
+    getFeedbacks: (orderId: string) =>
+      apiCall<RatingWithUsers[]>("GET", `/orders/${orderId}/feedback`),
+
+    /**
      * Submit feedback after transaction
      */
     submitFeedback: (orderId: string, data: OrderFeedbackRequest) =>
       apiCall<Rating>("POST", `/orders/${orderId}/feedback`, data),
+
+    /**
+     * Update feedback after transaction
+     */
+    updateFeedback: (orderId: string, data: OrderFeedbackRequest) =>
+      apiCall<Rating>("PUT", `/orders/${orderId}/feedback`, data),
   },
 
   /**

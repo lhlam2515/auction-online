@@ -31,6 +31,8 @@ interface RatingFormProps<T extends FieldValues> {
   onSubmit: (data: T) => Promise<ApiResponse>;
   onSuccess?: () => void;
   onSkip?: () => void;
+  onCancel?: () => void;
+  isEditing?: boolean;
 }
 
 const RatingForm = <T extends FieldValues>({
@@ -39,6 +41,8 @@ const RatingForm = <T extends FieldValues>({
   onSubmit,
   onSuccess,
   onSkip,
+  onCancel,
+  isEditing = false,
 }: RatingFormProps<T>) => {
   const form = useForm<T>({
     // Type assertion needed for generic Zod schema with react-hook-form
@@ -171,17 +175,23 @@ const RatingForm = <T extends FieldValues>({
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onSkip}
-          disabled={form.formState.isSubmitting}
-        >
-          Bỏ qua
-        </Button>
+        {(onSkip || onCancel) && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={isEditing ? onCancel : onSkip}
+            disabled={form.formState.isSubmitting}
+          >
+            {isEditing ? "Hủy" : "Bỏ qua"}
+          </Button>
+        )}
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting && <Spinner />}
-          {form.formState.isSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
+          {form.formState.isSubmitting
+            ? "Đang gửi..."
+            : isEditing
+              ? "Cập nhật đánh giá"
+              : "Gửi đánh giá"}
         </Button>
       </div>
     </form>
