@@ -80,12 +80,12 @@ const PrivateChatWindow = ({
           (payload) => {
             const newMsg = payload.new as any;
 
-            // Client-side filtering to ensure we only get messages for this product
-            if (newMsg.product_id !== order.productId) return;
+            // Client-side filtering to ensure we only get messages for this order
+            if (newMsg.order_id !== order.id) return;
 
             const mappedMsg: ChatMessage = {
               id: newMsg.id,
-              productId: newMsg.product_id,
+              orderId: newMsg.order_id,
               senderId: newMsg.sender_id,
               receiverId: newMsg.receiver_id,
               content: newMsg.content,
@@ -110,7 +110,7 @@ const PrivateChatWindow = ({
           (payload) => {
             const updatedMsg = payload.new as any;
 
-            if (updatedMsg.product_id !== order.productId) return;
+            if (updatedMsg.order_id !== order.id) return;
 
             setMessages((prev) =>
               prev.map((msg) =>

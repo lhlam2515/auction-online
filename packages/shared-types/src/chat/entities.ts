@@ -2,12 +2,12 @@ import type { MessageType } from "../common/enums";
 
 /**
  * Chat message entity - matches backend chatMessages table
- * Note: Messages are CASCADE deleted when product is deleted
- * productId should remain non-null due to CASCADE constraint
+ * Note: Messages are CASCADE deleted when order is deleted
+ * orderId should remain non-null due to CASCADE constraint
  */
 export interface ChatMessage {
   id: string;
-  productId: string; // Messages cascade deleted with product
+  orderId: string; // Messages cascade deleted with order
   senderId: string;
   receiverId: string;
   content: string;

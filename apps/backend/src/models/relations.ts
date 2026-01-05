@@ -214,9 +214,9 @@ export const autoBidsRelations = relations(autoBids, ({ one }) => ({
 
 // Rating Relations
 export const ratingsRelations = relations(ratings, ({ one }) => ({
-  product: one(products, {
-    fields: [ratings.productId],
-    references: [products.id],
+  order: one(orders, {
+    fields: [ratings.orderId],
+    references: [orders.id],
   }),
 
   sender: one(users, {
@@ -234,9 +234,9 @@ export const ratingsRelations = relations(ratings, ({ one }) => ({
 
 // Chat Message Relations
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
-  product: one(products, {
-    fields: [chatMessages.productId],
-    references: [products.id],
+  order: one(orders, {
+    fields: [chatMessages.orderId],
+    references: [orders.id],
   }),
 
   sender: one(users, {
@@ -276,7 +276,7 @@ export const productQuestionsRelations = relations(
 );
 
 // Order Relations
-export const ordersRelations = relations(orders, ({ one }) => ({
+export const ordersRelations = relations(orders, ({ one, many }) => ({
   product: one(products, {
     fields: [orders.productId],
     references: [products.id],
@@ -298,6 +298,11 @@ export const ordersRelations = relations(orders, ({ one }) => ({
   payment: one(orderPayments, {
     fields: [orders.id],
     references: [orderPayments.orderId],
+  }),
+
+  // Ratings for this order
+  ratings: many(ratings, {
+    relationName: "order",
   }),
 }));
 

@@ -30,15 +30,8 @@ export class ChatService {
       throw new BadRequestError("User is not a participant in this chat");
     }
 
-    // Handle nullable productId
-    if (!order.productId) {
-      throw new BadRequestError(
-        "Cannot access chat - product information is missing"
-      );
-    }
-
     const messages = await db.query.chatMessages.findMany({
-      where: eq(chatMessages.productId, order.productId),
+      where: eq(chatMessages.orderId, order.id),
       orderBy: [desc(chatMessages.createdAt)],
     });
 
@@ -70,20 +63,13 @@ export class ChatService {
       throw new BadRequestError("User is not a participant in this chat");
     }
 
-    // Handle nullable productId
-    if (!order.productId) {
-      throw new BadRequestError(
-        "Cannot send message - product information is missing"
-      );
-    }
-
     const receiverId =
       senderId === order.winnerId ? order.sellerId : order.winnerId;
 
     const [newMessage] = await db
       .insert(chatMessages)
       .values({
-        productId: order.productId,
+        orderId: order.id,
         senderId,
         receiverId,
         content,
@@ -120,13 +106,6 @@ export class ChatService {
       throw new BadRequestError("User is not a participant in this chat");
     }
 
-    // Handle nullable productId
-    if (!order.productId) {
-      throw new BadRequestError(
-        "Cannot mark messages - product information is missing"
-      );
-    }
-
     // If messageIds is provided, mark specific messages as read
     if (messageIds && messageIds.length > 0) {
       await db
@@ -134,7 +113,7 @@ export class ChatService {
         .set({ isRead: true })
         .where(
           and(
-            eq(chatMessages.productId, order.productId),
+            eq(chatMessages.orderId, order.id),
             eq(chatMessages.receiverId, userId),
             inArray(chatMessages.id, messageIds)
           )
@@ -146,7 +125,7 @@ export class ChatService {
         .set({ isRead: true })
         .where(
           and(
-            eq(chatMessages.productId, order.productId),
+            eq(chatMessages.orderId, order.id),
             eq(chatMessages.receiverId, userId),
             eq(chatMessages.isRead, false)
           )
