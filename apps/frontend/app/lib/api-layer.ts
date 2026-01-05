@@ -504,7 +504,11 @@ export const api = {
      * Answer a question (Seller only)
      */
     answer: (questionId: string, data: AnswerQuestionRequest) =>
-      apiCall<ProductQuestion>("POST", `/questions/${questionId}/answer`, data),
+      apiCall<ProductQuestion>(
+        "POST",
+        `/products/questions/${questionId}/answer`,
+        data
+      ),
   },
 
   /**
