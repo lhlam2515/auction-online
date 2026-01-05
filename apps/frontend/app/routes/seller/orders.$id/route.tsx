@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import { OrderStatusBadge } from "@/components/common/badges";
 import {
   SellerPaymentStep,
   SellerShippingStep,
@@ -171,18 +172,21 @@ export default function SellerOrderDetailPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
-              <ShoppingBag className="text-primary h-5 w-5" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+                <ShoppingBag className="text-primary h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">
+                  Chi tiết đơn hàng đã bán
+                </CardTitle>
+                <CardDescription className="text-lg">
+                  Mã đơn hàng: {order.orderNumber}
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-2xl">
-                Chi tiết đơn hàng đã bán
-              </CardTitle>
-              <CardDescription className="text-lg">
-                Mã đơn hàng: {order.orderNumber}
-              </CardDescription>
-            </div>
+            <OrderStatusBadge status={order.status} />
           </div>
 
           {/* Stepper */}
