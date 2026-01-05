@@ -359,7 +359,7 @@ export class ProductService {
       ...productInfo.products,
       mainImageUrl: productInfo.productImages?.imageUrl ?? "",
       categoryName: productInfo.categories?.name ?? "",
-      sellerName: productInfo.users?.fullName ?? "",
+      sellerName: productInfo.users?.fullName ?? "[Người dùng đã bị xóa]",
       sellerAvatarUrl: productInfo.users?.avatarUrl ?? "",
       sellerRatingScore: productInfo.users?.ratingScore ?? 0,
       sellerRatingCount: productInfo.users?.ratingCount ?? 0,
@@ -473,7 +473,7 @@ export class ProductService {
   }
 
   async getProductImages(productId: string): Promise<ProductImage[]> {
-    const product = await this.getById(productId);
+    await this.getById(productId); // Validate product exists
 
     const images = await db.query.productImages.findMany({
       where: eq(productImages.productId, productId),
@@ -485,7 +485,7 @@ export class ProductService {
   async getDescriptionUpdates(
     productId: string
   ): Promise<UpdateDescriptionResponse[]> {
-    const product = await this.getById(productId);
+    await this.getById(productId); // Validate product exists
 
     const updates = await db.query.productUpdates.findMany({
       where: eq(productUpdates.productId, productId),
@@ -572,6 +572,7 @@ export class ProductService {
           startTime: new Date(),
           endTime: new Date(endTime),
           isAutoExtend: isAutoExtend ?? true,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any)
         .returning();
 
@@ -618,7 +619,7 @@ export class ProductService {
           productId,
           updatedBy: sellerId,
           content: description,
-        } as any)
+        })
         .returning();
       return updatedContent;
     });
@@ -766,10 +767,11 @@ export class ProductService {
         );
 
       // Tạo Order ngay lập tức
+      // sellerId đã được kiểm tra không null ở trên
       const newOrder = await orderService.createFromAuction(
         productId,
         buyerId,
-        product.sellerId,
+        product.sellerId!, // Safe because we checked above
         buyNowPrice,
         true, // isBuyNow = true
         tx
@@ -778,7 +780,9 @@ export class ProductService {
       // Lấy thông tin user để gửi mail
       const [buyer, seller] = await Promise.all([
         tx.query.users.findFirst({ where: eq(users.id, buyerId) }),
-        tx.query.users.findFirst({ where: eq(users.id, product.sellerId) }),
+        product.sellerId
+          ? tx.query.users.findFirst({ where: eq(users.id, product.sellerId) })
+          : Promise.resolve(null),
       ]);
 
       if (buyer && seller) {
@@ -847,16 +851,24 @@ export class ProductService {
     // ===== Extract IDs =====
     const productIds = productsList.map((p) => p.id);
     const categoryIds = [...new Set(productsList.map((p) => p.categoryId))];
-    const sellerIds = [...new Set(productsList.map((p) => p.sellerId))];
+    const sellerIds = [
+      ...new Set(
+        productsList
+          .map((p) => p.sellerId)
+          .filter((id): id is string => id !== null)
+      ),
+    ];
 
     // ===== Batch fetch: categories & sellers =====
     const [categoriesRows, sellersRows] = await Promise.all([
       db.query.categories.findMany({
         where: inArray(categories.id, categoryIds),
       }),
-      db.query.users.findMany({
-        where: inArray(users.id, sellerIds),
-      }),
+      sellerIds.length > 0
+        ? db.query.users.findMany({
+            where: inArray(users.id, sellerIds),
+          })
+        : Promise.resolve([]),
     ]);
 
     // ===== Images, bidCounts, watchCounts =====
@@ -932,11 +944,12 @@ export class ProductService {
 
     // ===== Final enrichment =====
     return productsList.map((p) => {
+      const seller = p.sellerId ? sellerMap.get(p.sellerId) : null;
       return {
         ...p,
         categoryName: categoryMap.get(p.categoryId)?.name ?? "",
-        sellerName: sellerMap.get(p.sellerId)?.fullName ?? "",
-        sellerAvatarUrl: sellerMap.get(p.sellerId)?.avatarUrl ?? null,
+        sellerName: seller?.fullName ?? null,
+        sellerAvatarUrl: seller?.avatarUrl ?? null,
 
         currentPrice: p.currentPrice ?? p.startPrice,
         currentWinnerName: currentWinnerMap.get(p.id)?.winner ?? null,
