@@ -89,14 +89,14 @@ const AutoBidForm = ({
           variant="warning"
           icon={InfoIcon}
           description={
-            <>
+            <p>
               Bạn đã có đấu giá tự động với giá tối đa:{" "}
               <strong>{formatPrice(Number(existingAutoBid.maxAmount))}</strong>
               <br />
               <span className="text-sm">
                 Cập nhật giá tối đa mới để thay đổi.
               </span>
-            </>
+            </p>
           }
         />
       )}
@@ -106,9 +106,9 @@ const AutoBidForm = ({
         variant="info"
         icon={InfoIcon}
         description={
-          <>
+          <p>
             Bước giá: <strong>{formatPrice(stepPrice)}</strong>
-          </>
+          </p>
         }
       />
 
@@ -123,8 +123,8 @@ const AutoBidForm = ({
             >
               <FieldLabel htmlFor="maxBid" className="text-base font-semibold">
                 {isUpdating
-                  ? "Giá Đặt Tối Đa Mới (Bí Mật)"
-                  : "Giá Đặt Tối Đa Của Bạn (Bí Mật)"}
+                  ? "Giá đặt tối đa mới (Bí mật)"
+                  : "Giá đặt tối đa của bạn (Bí mật)"}
               </FieldLabel>
               <Input
                 {...field}
@@ -141,14 +141,10 @@ const AutoBidForm = ({
               <FieldDescription>
                 {isUpdating
                   ? "Cập nhật giá tối đa mới cho đấu giá tự động."
-                  : "Hệ thống sẽ tự động đấu giá cho bạn lên đến mức này."}{" "}
-                Giá tối thiểu: <strong>{formatPrice(minRequiredBid)}</strong>
-                {isUpdating && existingAutoBid && (
-                  <span>
-                    {" "}
-                    (Giá cũ: {formatPrice(Number(existingAutoBid.maxAmount))})
-                  </span>
-                )}
+                  : "Hệ thống sẽ tự động đấu giá cho bạn lên đến mức này."}
+                <br />
+                Giá mới tối thiểu:{" "}
+                <strong>{formatPrice(minRequiredBid)}</strong>
               </FieldDescription>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -163,6 +159,7 @@ const AutoBidForm = ({
           variant="outline"
           onClick={onCancel}
           disabled={isConfirming}
+          className="cursor-pointer"
         >
           Hủy
         </Button>
@@ -173,8 +170,9 @@ const AutoBidForm = ({
               type="button"
               variant="default"
               disabled={!isFormValid || isConfirming}
+              className="cursor-pointer"
             >
-              {isUpdating ? "Cập Nhật Giá" : "Đặt Giá"}
+              {isUpdating ? "Cập nhật giá" : "Đặt giá"}
             </Button>
           }
           title={isUpdating ? "Xác nhận cập nhật giá" : "Xác nhận đặt giá"}
@@ -188,29 +186,29 @@ const AutoBidForm = ({
           isConfirming={isConfirming}
         >
           <div className="space-y-4">
-            <div className="rounded-lg bg-slate-50 p-4">
-              <p className="text-sm text-slate-600">Sản phẩm:</p>
-              <p className="font-semibold text-slate-900">{productName}</p>
+            <div className="bg-muted/50 rounded-lg p-4">
+              <p className="text-muted-foreground text-sm">Sản phẩm:</p>
+              <p className="text-foreground font-semibold">{productName}</p>
 
               {isUpdating && existingAutoBid && (
                 <>
-                  <p className="mt-3 text-sm text-slate-600">
+                  <p className="text-muted-foreground mt-3 text-sm">
                     Giá tối đa hiện tại:
                   </p>
-                  <p className="text-base font-semibold text-slate-700">
+                  <p className="text-foreground text-base font-semibold">
                     {formatPrice(Number(existingAutoBid.maxAmount))}
                   </p>
                 </>
               )}
 
-              <p className="mt-3 text-sm text-slate-600">
+              <p className="text-muted-foreground mt-3 text-sm">
                 {isUpdating ? "Giá tối đa mới:" : "Giá đặt tối đa:"}
               </p>
-              <p className="text-lg font-bold text-slate-900">
+              <p className="text-foreground text-lg font-bold">
                 {formatPrice(bidAmount)}
               </p>
 
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="text-muted-foreground mt-2 text-xs">
                 * Hệ thống sẽ tự động đấu giá cho bạn đến mức giá này
               </p>
             </div>
@@ -222,14 +220,14 @@ const AutoBidForm = ({
                 icon={AlertTriangleIcon}
                 title="Lưu ý:"
                 description={
-                  <>
-                    Giá đặt của bạn đã đạt hoặc vượt giá mua ngay (
-                    {formatPrice(buyNowPrice)}).
+                  <p>
+                    Giá đặt của bạn đã đạt hoặc vượt giá mua ngay{" "}
+                    <strong>({formatPrice(buyNowPrice)})</strong>.
                     <br />
                     Khi hệ thống tự động đấu giá đạt mức giá mua ngay, sản phẩm
                     sẽ được <strong>mua ngay tự động</strong> và cuộc đấu giá sẽ
                     kết thúc.
-                  </>
+                  </p>
                 }
               />
             )}
