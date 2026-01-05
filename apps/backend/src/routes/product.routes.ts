@@ -184,7 +184,7 @@ router.post(
 router.post(
   "/:id/buy-now",
   authenticate,
-  authorize("BIDDER"),
+  authorize("BIDDER", "SELLER"),
   validate({ params: productValidation.buyNowSchema }),
   productController.buyNow
 );
