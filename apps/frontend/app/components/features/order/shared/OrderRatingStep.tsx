@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { FeedbackCard } from "@/components/common/cards";
 import { AlertSection } from "@/components/common/feedback";
-import RatingForm from "@/components/features/interaction/RatingForm";
+import { RatingInfo } from "@/components/features/interaction";
 import {
   Card,
   CardContent,
@@ -16,7 +16,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
-import { submitFeedbackSchema } from "@/lib/validations/order.validation";
 
 interface OrderRatingStepProps {
   order: OrderWithDetails;
@@ -126,14 +125,16 @@ const OrderRatingStep = ({
               />
             )}
 
-            {/* Display sent feedback if exists */}
-            {sentFeedback && (
-              <FeedbackCard
-                feedback={sentFeedback}
-                title={`Đánh giá của bạn cho ${isSeller ? "người mua" : "người bán"}`}
-                isSent={true}
-              />
-            )}
+            {/* Display sent feedback or rating form */}
+            <RatingInfo
+              orderId={order.id}
+              feedback={sentFeedback}
+              title={`Đánh giá của bạn cho ${isSeller ? "người mua" : "người bán"}`}
+              isSent={true}
+              isEditable={true}
+              onSuccess={handleSubmitSuccess}
+              onSkip={onSkip}
+            />
 
             {/* Show message if feedback has been exchanged */}
             {sentFeedback && receivedFeedback && (
@@ -154,30 +155,16 @@ const OrderRatingStep = ({
                 description={`Đang chờ ${isSeller ? "người mua" : "người bán"} gửi đánh giá.`}
               />
             )}
-          </>
-        )}
 
-        {/* Show rating form only if no feedback has been sent */}
-        {!isLoading && !sentFeedback && (
-          <>
-            {/* Info Alert */}
-            <AlertSection
-              variant="info"
-              icon={Star}
-              title={`Đánh giá ${isSeller ? "người mua" : "người bán"}`}
-              description={`Đánh giá của bạn sẽ giúp cộng đồng Online Auction xây dựng một môi trường mua bán tin cậy và minh bạch. Hãy trung thực và công bằng trong đánh giá của bạn.`}
-            />
-
-            <RatingForm
-              schema={submitFeedbackSchema}
-              defaultValues={{
-                rating: 0,
-                comment: "",
-              }}
-              onSubmit={api.orders.submitFeedback.bind(null, order.id)}
-              onSuccess={handleSubmitSuccess}
-              onSkip={onSkip}
-            />
+            {/* Show info alert if no feedback has been sent */}
+            {!sentFeedback && (
+              <AlertSection
+                variant="info"
+                icon={Star}
+                title={`Đánh giá ${isSeller ? "người mua" : "người bán"}`}
+                description={`Đánh giá của bạn sẽ giúp cộng đồng Online Auction xây dựng một môi trường mua bán tin cậy và minh bạch. Hãy trung thực và công bằng trong đánh giá của bạn.`}
+              />
+            )}
           </>
         )}
       </CardContent>

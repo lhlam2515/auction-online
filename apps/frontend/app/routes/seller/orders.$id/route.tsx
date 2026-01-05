@@ -144,7 +144,7 @@ export default function SellerOrderDetailPage() {
   };
 
   const handleRatingSuccess = () => {
-    navigate(SELLER_ROUTES.DASHBOARD);
+    // Giữ nguyên trên trang chi tiết đơn hàng sau khi đánh giá thành công
   };
 
   const handleSkipRating = () => {
