@@ -40,8 +40,7 @@ export const products = pgTable(
     id: t.uuid("id").primaryKey().defaultRandom(),
     sellerId: t
       .uuid("seller_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }), // Cascade delete with business logic protection
+      .references(() => users.id, { onDelete: "set null" }), // Retain products if user deleted
     categoryId: t
       .uuid("category_id")
       .notNull()
