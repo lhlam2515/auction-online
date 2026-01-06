@@ -1,5 +1,5 @@
 import type { RatingWithUsers } from "@repo/shared-types";
-import { UserIcon } from "lucide-react";
+import { UserIcon, ThumbsUp, ThumbsDown } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +25,12 @@ const RatingCard = ({ rating }: RatingCardProps) => {
   const date = new Date(r.createdAt).toLocaleDateString("vi-VN");
 
   return (
-    <Card>
+    <Card
+      className={cn(
+        "border-l-4",
+        isPositive ? "border-l-green-600" : "border-l-red-600"
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
@@ -52,12 +57,17 @@ const RatingCard = ({ rating }: RatingCardProps) => {
               <Badge
                 variant={isPositive ? "default" : "destructive"}
                 className={cn(
-                  "px-1.5 py-0.5 text-xs",
+                  "flex items-center gap-1 px-2 py-1 text-xs",
                   isPositive
                     ? "bg-green-600 hover:bg-green-700"
                     : "bg-red-600 hover:bg-red-700"
                 )}
               >
+                {isPositive ? (
+                  <ThumbsUp className="h-3 w-3" />
+                ) : (
+                  <ThumbsDown className="h-3 w-3" />
+                )}
                 {isPositive ? "Tích cực" : "Tiêu cực"}
               </Badge>
               {/* Star icons logic could go here */}
