@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { formatPrice } from "@/lib/utils";
 
 import { AutoBidForm } from "./forms";
@@ -66,10 +67,6 @@ const AutoBidDialog = ({
     }
   }, [open, fetchAutoBid]);
 
-  const minRequiredBid = isUpdating
-    ? Math.max(minBid, Number(existingAutoBid?.maxAmount || 0) + stepPrice)
-    : minBid;
-
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
     if (!newOpen) {
@@ -87,6 +84,11 @@ const AutoBidDialog = ({
 
   const isFormValid = form.formState.isValid;
 
+  // Check if existing auto bid is inactive - it may be due to auction ended or bidder is kicked
+  const isUnavailable = existingAutoBid
+    ? existingAutoBid.isActive === false
+    : false;
+
   return (
     <FormProvider {...form}>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -94,40 +96,39 @@ const AutoBidDialog = ({
           {trigger || (
             <Button
               size="lg"
-              className="flex h-14 flex-1 cursor-pointer items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
+              className="h-14 flex-1 cursor-pointer text-lg font-semibold"
               disabled={disabled}
             >
-              <Gavel className="h-4 w-4" />
+              <Gavel className="size-6" />
               Đặt giá
             </Button>
           )}
         </DialogTrigger>
+
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-lg">{product.name}</DialogTitle>
             <DialogDescription className="text-base">
-              <div>
-                Giá hiện tại:{" "}
-                <span className="text-lg font-bold text-slate-900">
-                  {formatPrice(currentPrice)}
-                </span>
-              </div>
+              Giá hiện tại:{" "}
+              <span className="text-foreground text-lg font-bold">
+                {formatPrice(currentPrice)}
+              </span>
               {product.buyNowPrice && (
-                <div>
+                <>
+                  <br />
                   Giá mua ngay:{" "}
-                  <span className="text-lg font-bold text-slate-900">
+                  <span className="text-foreground text-lg font-bold">
                     {formatPrice(Number(product.buyNowPrice))}
                   </span>
-                </div>
+                </>
               )}
             </DialogDescription>
           </DialogHeader>
 
           {isLoadingAutoBid ? (
-            <div className="flex justify-center py-8">
-              <div className="text-sm text-slate-600">
-                Đang tải thông tin đấu giá...
-              </div>
+            <div className="text-muted-foreground flex items-center justify-center gap-2 py-8">
+              <Spinner />
+              <p>Đang tải thông tin đấu giá...</p>
             </div>
           ) : (
             <>
@@ -138,22 +139,37 @@ const AutoBidDialog = ({
                   icon={AlertTriangleIcon}
                   description={
                     <>
-                      Điểm uy tín của bạn quá thấp để đấu giá sản phẩm này.
+                      Điểm đánh giá của bạn quá thấp để đấu giá sản phẩm này.
                       <br />
                       <span className="text-sm">
-                        Điểm hiện tại: {userRating}% - Yêu cầu tối thiểu: 80%
+                        Điểm hiện tại: <strong>{userRating}%</strong> - Yêu cầu
+                        tối thiểu: <strong>80%</strong>
                       </span>
                     </>
                   }
                 />
               )}
 
+              {isUnavailable && (
+                <AlertSection
+                  variant="warning"
+                  icon={AlertTriangleIcon}
+                  description={
+                    <p>
+                      Bạn không thể cập nhật hoặc đặt giá đấu tự động cho sản
+                      phẩm này vì <strong>đấu giá đã kết thúc</strong> hoặc{" "}
+                      <strong>bạn đã bị chặn</strong> khỏi phiên đấu giá.
+                    </p>
+                  }
+                />
+              )}
+
               {/* Auto Bid Form */}
-              {isEligible && (
+              {isEligible && !isUnavailable && (
                 <AutoBidForm
                   form={form}
                   productName={product.name}
-                  minRequiredBid={minRequiredBid}
+                  minRequiredBid={minBid}
                   stepPrice={stepPrice}
                   buyNowPrice={
                     product.buyNowPrice ? Number(product.buyNowPrice) : null

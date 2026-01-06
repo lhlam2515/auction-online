@@ -42,6 +42,10 @@ export interface PublicProfile {
   ratingScore: number;
   ratingCount: number;
   createdAt: Date | string;
+  stats?: {
+    totalAuctionProducts: number; // As Seller
+    totalBiddingProducts: number; // As Bidder
+  };
 }
 
 /**

@@ -3,9 +3,9 @@ import { eq, desc, and, ne } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
-import { bids, autoBids, products, users } from "@/models";
+import { bids, autoBids, products } from "@/models";
+import { maskName } from "@/utils";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
-import { maskName } from "@/utils/ultils";
 
 import { emailService } from "./email.service";
 import { orderService } from "./order.service";
@@ -14,31 +14,47 @@ import { systemService } from "./system.service";
 import { userService } from "./user.service";
 
 export class BidService {
-  async getHistory(productId: string): Promise<BidWithUser[]> {
-    await productService.getById(productId); // Ensure product exists
+  async getHistory(
+    productId: string,
+    sellerId?: string
+  ): Promise<BidWithUser[]> {
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      columns: { id: true, sellerId: true },
+    });
 
-    const productBids = await db
-      .select({
-        id: bids.id,
-        productId: bids.productId,
-        userId: bids.userId,
-        amount: bids.amount,
-        status: bids.status,
-        isAuto: bids.isAuto,
-        createdAt: bids.createdAt,
-        userName: users.fullName,
-        ratingScore: users.ratingScore,
-      })
-      .from(bids)
-      .leftJoin(users, eq(bids.userId, users.id))
-      .where(and(eq(bids.productId, productId), eq(bids.status, "VALID")))
-      .orderBy(desc(bids.amount));
+    if (!product) {
+      throw new NotFoundError("Sản phẩm không tồn tại");
+    }
+
+    let isSeller = false;
+    if (sellerId) {
+      if (product.sellerId === sellerId) {
+        isSeller = true;
+      } else {
+        throw new ForbiddenError(
+          "Bạn không có quyền xem lịch sử đấu giá của sản phẩm này"
+        );
+      }
+    }
+
+    const productBids = await db.query.bids.findMany({
+      where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
+      with: {
+        user: { columns: { fullName: true, ratingScore: true } },
+      },
+      orderBy: [desc(bids.amount)],
+    });
 
     return productBids.map((bid) => {
+      const { user, ...bidData } = bid;
       return {
-        ...bid,
-        userName: maskName(bid.userName || "****"),
-        ratingScore: bid.ratingScore ?? 0,
+        ...bidData,
+        userId: isSeller ? bid.userId : "",
+        userName: isSeller
+          ? user.fullName || "Unknown"
+          : maskName(user.fullName || "****"),
+        ratingScore: user.ratingScore ?? 0,
       };
     });
   }
@@ -47,7 +63,8 @@ export class BidService {
     const autoBid = await db.query.autoBids.findFirst({
       where: and(
         eq(autoBids.productId, productId),
-        eq(autoBids.userId, userId)
+        eq(autoBids.userId, userId),
+        eq(autoBids.isActive, true)
       ),
     });
     if (!autoBid) {
@@ -92,6 +109,11 @@ export class BidService {
       // ---------------------------------------------------------
       // 2. VALIDATION CƠ BẢN
       // ---------------------------------------------------------
+      if (!product.sellerId) {
+        throw new BadRequestError(
+          "Không thể đấu giá sản phẩm khi người bán không còn tồn tại"
+        );
+      }
       if (product.sellerId === bidderId) {
         throw new BadRequestError(
           "Không thể tự đấu giá sản phẩm của chính mình"
@@ -203,7 +225,6 @@ export class BidService {
           bidderId,
           product.sellerId,
           amount,
-          true, // isBuyNow = true
           tx
         );
       }

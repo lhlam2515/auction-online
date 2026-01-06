@@ -16,8 +16,7 @@ export const ratings = pgTable(
       .references(() => orders.id, { onDelete: "cascade" }),
     senderId: t
       .uuid("sender_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "set null" }), // Set null for statistics
     receiverId: t
       .uuid("receiver_id")
       .notNull()

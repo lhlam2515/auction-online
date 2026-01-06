@@ -68,15 +68,16 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 
 ## ✅ 5. Bidding & Auction
 
-| Endpoint                           | Route File    | Controller                            | Validation                                            |
-| ---------------------------------- | ------------- | ------------------------------------- | ----------------------------------------------------- |
-| GET /api/v1/products/:id/bids      | bid.routes.ts | bid.controller.ts → getBiddingHistory | bid.validation.ts → productIdSchema, paginationSchema |
-| POST /api/v1/products/:id/bids     | bid.routes.ts | bid.controller.ts → placeBid          | bid.validation.ts → placeBidSchema                    |
-| POST /api/v1/products/:id/kick     | bid.routes.ts | bid.controller.ts → kickBidder        | bid.validation.ts → kickBidderSchema                  |
-| POST /api/v1/products/:id/auto-bid | bid.routes.ts | bid.controller.ts → createAutoBid     | bid.validation.ts → autoBidSchema                     |
-| GET /api/v1/products/:id/auto-bid  | bid.routes.ts | bid.controller.ts → getAutoBid        | bid.validation.ts → productIdSchema                   |
-| PUT /api/v1/auto-bid/:id           | bid.routes.ts | bid.controller.ts → updateAutoBid     | bid.validation.ts → updateAutoBidSchema               |
-| DELETE /api/v1/auto-bid/:id        | bid.routes.ts | bid.controller.ts → deleteAutoBid     | bid.validation.ts → autoBidIdSchema                   |
+| Endpoint                             | Route File    | Controller                                     | Validation                                            |
+| ------------------------------------ | ------------- | ---------------------------------------------- | ----------------------------------------------------- |
+| GET /api/v1/products/:id/bids        | bid.routes.ts | bid.controller.ts → getBiddingHistory          | bid.validation.ts → productIdSchema, paginationSchema |
+| GET /api/v1/products/:id/bids/seller | bid.routes.ts | bid.controller.ts → getBiddingHistoryForSeller | bid.validation.ts → productIdSchema, paginationSchema |
+| POST /api/v1/products/:id/bids       | bid.routes.ts | bid.controller.ts → placeBid                   | bid.validation.ts → placeBidSchema                    |
+| POST /api/v1/products/:id/kick       | bid.routes.ts | bid.controller.ts → kickBidder                 | bid.validation.ts → kickBidderSchema                  |
+| POST /api/v1/products/:id/auto-bid   | bid.routes.ts | bid.controller.ts → createAutoBid              | bid.validation.ts → autoBidSchema                     |
+| GET /api/v1/products/:id/auto-bid    | bid.routes.ts | bid.controller.ts → getAutoBid                 | bid.validation.ts → productIdSchema                   |
+| PUT /api/v1/auto-bid/:id             | bid.routes.ts | bid.controller.ts → updateAutoBid              | bid.validation.ts → updateAutoBidSchema               |
+| DELETE /api/v1/auto-bid/:id          | bid.routes.ts | bid.controller.ts → deleteAutoBid              | bid.validation.ts → autoBidIdSchema                   |
 
 ---
 

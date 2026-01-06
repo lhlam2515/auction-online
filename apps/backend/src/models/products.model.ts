@@ -40,8 +40,7 @@ export const products = pgTable(
     id: t.uuid("id").primaryKey().defaultRandom(),
     sellerId: t
       .uuid("seller_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }), // Cascade delete with business logic protection
+      .references(() => users.id, { onDelete: "set null" }), // Retain products if user deleted
     categoryId: t
       .uuid("category_id")
       .notNull()
@@ -94,6 +93,9 @@ export const products = pgTable(
     index("idx_products_active_ending_soon")
       .on(table.endTime.asc())
       .where(sql`${table.status} = 'ACTIVE'`), // Ending soon auctions
+    index("idx_products_slug").on(table.slug), // Fast lookup by slug
+
+    // Uniqueness constraints
     unique("unique_product_slug").on(table.slug), // SEO URLs
 
     // Business logic constraints

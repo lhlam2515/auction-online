@@ -22,6 +22,21 @@ router.get(
 );
 
 /**
+ * @route   GET /api/products/:id/bids/seller
+ * @desc    Get bidding history of a product
+ * @access  Private (User - owner)
+ */
+router.get(
+  "/:id/bids/seller",
+  authenticate,
+  validate({
+    params: bidValidation.productIdSchema,
+    query: bidValidation.paginationSchema,
+  }),
+  bidController.getBiddingHistoryForSeller
+);
+
+/**
  * @route   POST /api/products/:id/bids
  * @desc    Place a bid on product
  * @access  Private (Bidder)

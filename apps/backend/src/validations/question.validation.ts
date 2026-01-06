@@ -18,5 +18,5 @@ export const askQuestionSchema = z.object({
 export const answerQuestionSchema = z.object({
   answerContent: z
     .string()
-    .min(5, { error: "Answer must be at least 5 characters" }),
+    .min(10, { error: "Answer must be at least 10 characters" }),
 });

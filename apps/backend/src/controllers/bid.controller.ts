@@ -22,6 +22,14 @@ export const getBiddingHistory = asyncHandler(
   }
 );
 
+export const getBiddingHistoryForSeller = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const productId = req.params.id;
+    const bids = await bidService.getHistory(productId, req.user?.id);
+    return ResponseHandler.sendSuccess<BidWithUser[]>(res, bids);
+  }
+);
+
 export const getAutoBid = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: userId } = req.user!;

@@ -1,216 +1,231 @@
-import type { RatingWithUsers } from "@repo/shared-types";
-import { eq, and, or } from "drizzle-orm";
+import type {
+  GetRatingsParams,
+  PaginatedResponse,
+  Rating,
+  RatingScore,
+  RatingWithUsers,
+} from "@repo/shared-types";
+import { eq, and, or, count, sql, asc, desc } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, ratings, users } from "@/models";
 import { NotFoundError, BadRequestError, ForbiddenError } from "@/utils/errors";
+import { toPaginated } from "@/utils/pagination";
+
+type DbTransaction =
+  | typeof db
+  | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export class RatingService {
+  async getByUser(
+    userId: string,
+    params: GetRatingsParams
+  ): Promise<PaginatedResponse<RatingWithUsers>> {
+    const { page = 1, limit = 20, sortOrder = "desc" } = params;
+    const offset = (page - 1) * limit;
+
+    const sortExpr =
+      sortOrder === "asc" ? asc(ratings.createdAt) : desc(ratings.createdAt);
+
+    const [items, totalResult] = await Promise.all([
+      db.query.ratings.findMany({
+        where: eq(ratings.receiverId, userId),
+        with: {
+          sender: { columns: { fullName: true, avatarUrl: true } },
+        },
+        orderBy: [sortExpr],
+        limit,
+        offset,
+      }),
+      db
+        .select({ count: count() })
+        .from(ratings)
+        .where(eq(ratings.receiverId, userId)),
+    ]);
+
+    const total = totalResult[0]?.count || 0;
+
+    return toPaginated(
+      items.map((item) => ({
+        ...item,
+        score: item.score as RatingScore,
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.updatedAt.toISOString(),
+      })),
+      page,
+      limit,
+      total
+    );
+  }
+
   async createFeedback(
     orderId: string,
     userId: string,
     rating: number,
     comment?: string
-  ) {
-    const order = await db.query.orders.findFirst({
-      where: eq(orders.id, orderId),
+  ): Promise<Rating> {
+    return await db.transaction(async (tx) => {
+      const order = await tx.query.orders.findFirst({
+        where: eq(orders.id, orderId),
+        columns: { id: true, winnerId: true, sellerId: true, status: true },
+      });
+
+      if (!order) {
+        throw new NotFoundError("Không tìm thấy đơn hàng");
+      }
+
+      // Validate dữ liệu
+      if (!order.winnerId || !order.sellerId) {
+        throw new BadRequestError(
+          "Không thể để lại đánh giá - thiếu thông tin người nhận"
+        );
+      }
+
+      if (order.winnerId !== userId && order.sellerId !== userId) {
+        throw new ForbiddenError(
+          "Bạn không có quyền để lại đánh giá cho đơn hàng này"
+        );
+      }
+
+      if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
+        throw new BadRequestError(
+          "Chỉ có thể để lại đánh giá cho đơn hàng đã hoàn thành hoặc đã hủy"
+        );
+      }
+
+      const receiverId =
+        order.winnerId === userId ? order.sellerId : order.winnerId;
+
+      // Kiểm tra feedback đã tồn tại chưa
+      const existingFeedback = await tx.query.ratings.findFirst({
+        where: and(eq(ratings.orderId, order.id), eq(ratings.senderId, userId)),
+      });
+
+      if (existingFeedback) {
+        throw new BadRequestError(
+          "Bạn đã để lại đánh giá cho đơn hàng này rồi"
+        );
+      }
+
+      const [newRating] = await tx
+        .insert(ratings)
+        .values({
+          orderId: order.id,
+          senderId: userId,
+          receiverId,
+          score: rating,
+          comment: comment || null,
+        })
+        .returning();
+
+      // Cập nhật lại thống kê đánh giá cho người nhận
+      await this.refreshUserRatingStats(receiverId, tx);
+
+      return {
+        ...newRating,
+        score: newRating.score as RatingScore,
+        createdAt: newRating.createdAt.toISOString(),
+        updatedAt: newRating.updatedAt.toISOString(),
+      };
     });
+  }
 
-    if (!order) {
-      throw new NotFoundError("Order not found");
-    }
-
-    // Handle nullable fields - cannot leave feedback if users deleted
-    if (!order.winnerId || !order.sellerId) {
-      throw new BadRequestError(
-        "Cannot leave feedback - buyer or seller information is missing"
-      );
-    }
-
-    // Check if user is buyer or seller of this order
-    if (order.winnerId !== userId && order.sellerId !== userId) {
-      throw new ForbiddenError(
-        "Not authorized to leave feedback for this order"
-      );
-    }
-
-    // Can only leave feedback for completed or cancelled orders
-    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
-      throw new BadRequestError(
-        "Can only leave feedback for completed or cancelled orders"
-      );
-    }
-
-    // Determine receiver (the other party in the transaction)
-    const receiverId =
-      order.winnerId === userId ? order.sellerId : order.winnerId;
-
-    // Handle nullable productId
-    if (!order.productId) {
-      throw new BadRequestError(
-        "Cannot leave feedback - product information is missing"
-      );
-    }
-
-    // Check if user already left feedback for this specific order
-    // Query by checking productId + senderId + correct receiver to ensure it's from this order
-    const existingFeedback = await db.query.ratings.findFirst({
+  async getByOrder(
+    orderId: string,
+    userId: string
+  ): Promise<RatingWithUsers[]> {
+    const order = await db.query.orders.findFirst({
       where: and(
-        eq(ratings.orderId, order.id),
-        eq(ratings.senderId, userId),
-        eq(ratings.receiverId, receiverId)
+        eq(orders.id, orderId),
+        or(eq(orders.winnerId, userId), eq(orders.sellerId, userId))
       ),
     });
 
-    if (existingFeedback) {
-      throw new BadRequestError("You already left feedback for this order");
-    }
-
-    // Create rating record
-    const [newRating] = await db
-      .insert(ratings)
-      .values({
-        orderId: order.id,
-        senderId: userId,
-        receiverId,
-        score: rating,
-        comment: comment || null,
-      })
-      .returning();
-
-    // Update receiver's rating score and count
-    const receiver = await db.query.users.findFirst({
-      where: eq(users.id, receiverId),
-    });
-
-    if (receiver) {
-      const newRatingCount = receiver.ratingCount + 1;
-      const newRatingScore =
-        (receiver.ratingScore * receiver.ratingCount + rating) / newRatingCount;
-
-      await db
-        .update(users)
-        .set({
-          ratingScore: newRatingScore,
-          ratingCount: newRatingCount,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, receiverId));
-    }
-
-    return newRating;
-  }
-
-  async getByOrder(orderId: string, userId: string) {
-    const order = await db.query.orders.findFirst({
-      where: or(eq(orders.winnerId, userId), eq(orders.sellerId, userId)),
-    });
-
     if (!order) {
-      throw new NotFoundError("Order not found or access denied");
+      throw new NotFoundError(
+        "Đơn hàng không tồn tại hoặc bạn không có quyền truy cập"
+      );
     }
 
-    const feedbacks = await db.query.ratings
-      .findMany({
-        where: and(
-          eq(ratings.orderId, orderId),
-          or(eq(ratings.senderId, userId), eq(ratings.receiverId, userId))
-        ),
-        with: {
-          sender: {
-            columns: { fullName: true, avatarUrl: true },
-          },
-          receiver: {
-            columns: { fullName: true, avatarUrl: true },
-          },
+    const feedbacks = await db.query.ratings.findMany({
+      where: and(
+        eq(ratings.orderId, orderId),
+        or(eq(ratings.senderId, userId), eq(ratings.receiverId, userId))
+      ),
+      with: {
+        sender: {
+          columns: { fullName: true, avatarUrl: true },
         },
-      })
-      .then((rows) => {
-        return rows.map((row) => ({
-          ...row,
-          createdAt: row.createdAt.toISOString(),
-          updatedAt: row.updatedAt.toISOString(),
-        }));
-      });
+        receiver: {
+          columns: { fullName: true, avatarUrl: true },
+        },
+      },
+    });
 
-    return feedbacks as RatingWithUsers[];
+    return feedbacks.map((row) => ({
+      ...row,
+      score: row.score as RatingScore,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+    }));
   }
 
   async updateFeedback(
     orderId: string,
     userId: string,
-    rating: number,
+    rating: RatingScore,
     comment?: string
-  ) {
-    const existingFeedback = await db.query.ratings.findFirst({
-      where: and(eq(ratings.orderId, orderId), eq(ratings.senderId, userId)),
-    });
+  ): Promise<Rating> {
+    return await db.transaction(async (tx) => {
+      const existingFeedback = await tx.query.ratings.findFirst({
+        where: and(eq(ratings.orderId, orderId), eq(ratings.senderId, userId)),
+      });
 
-    if (!existingFeedback) {
-      throw new NotFoundError("Feedback not found");
-    }
+      if (!existingFeedback) {
+        throw new NotFoundError("Không tìm thấy đánh giá để cập nhật");
+      }
 
-    if (!existingFeedback.receiverId) {
-      throw new BadRequestError(
-        "Cannot update feedback - receiver information is missing"
-      );
-    }
-
-    // Update rating record
-    const [updatedRating] = await db
-      .update(ratings)
-      .set({
-        score: rating,
-        comment,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(eq(ratings.id, existingFeedback.id), eq(ratings.senderId, userId))
-      )
-      .returning();
-
-    // Update receiver's rating score
-    const receiver = await db.query.users.findFirst({
-      where: eq(users.id, existingFeedback.receiverId),
-    });
-
-    const ratingDifference = rating - existingFeedback.score;
-
-    if (receiver) {
-      const newRatingScore =
-        (receiver.ratingScore * receiver.ratingCount + ratingDifference) /
-        receiver.ratingCount;
-
-      await db
-        .update(users)
+      const [updatedRating] = await tx
+        .update(ratings)
         .set({
-          ratingScore: newRatingScore,
+          score: rating,
+          comment,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, existingFeedback.receiverId));
-    }
+        .where(eq(ratings.id, existingFeedback.id))
+        .returning();
 
-    return updatedRating;
+      // Cập nhật lại thống kê đánh giá cho người nhận
+      await this.refreshUserRatingStats(existingFeedback.receiverId, tx);
+
+      return {
+        ...updatedRating,
+        score: updatedRating.score as RatingScore,
+        createdAt: updatedRating.createdAt.toISOString(),
+        updatedAt: updatedRating.updatedAt.toISOString(),
+      };
+    });
   }
 
-  async getSellerStats(sellerId: string) {
-    // TODO: calculate average rating and count
-    return {
-      averageRating: 0,
-      totalRatings: 0,
-      ratingDistribution: {
-        5: 0,
-        4: 0,
-        3: 0,
-        2: 0,
-        1: 0,
-      },
-    };
-  }
+  private async refreshUserRatingStats(userId: string, tx: DbTransaction) {
+    const [stats] = await tx
+      .select({
+        count: sql<number>`cast(count(${ratings.id}) as int)`,
+        avgScore: sql<number>`avg(${ratings.score})`,
+      })
+      .from(ratings)
+      .where(eq(ratings.receiverId, userId));
 
-  async canRate(orderId: string, raterId: string): Promise<boolean> {
-    // TODO: check if user can rate (order delivered, not already rated)
-    return false;
+    const { count = 0, avgScore = 0 } = stats;
+
+    await tx
+      .update(users)
+      .set({
+        ratingCount: count,
+        ratingScore: Math.min(Math.max(avgScore, 0), 1), // Clamp between 0 and 1
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
   }
 }
 

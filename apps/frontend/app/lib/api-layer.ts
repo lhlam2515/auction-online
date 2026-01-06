@@ -104,6 +104,7 @@ import type {
   PaginationParams,
   SearchProductsParams,
   AdminGetProductsParams,
+  GetRatingsParams,
 } from "@repo/shared-types";
 
 import { apiClient } from "@/lib/handlers/api";
@@ -213,8 +214,17 @@ export const api = {
     /**
      * Update user profile
      */
-    updateProfile: (data: UpdateProfileRequest) =>
-      apiCall<User>("PUT", "/users/profile", data),
+    updateProfile: (data: UpdateProfileRequest | FormData) => {
+      const isFormData = data instanceof FormData;
+      return apiCall<User>(
+        "PUT",
+        "/users/profile",
+        data,
+        isFormData
+          ? { headers: { "Content-Type": "multipart/form-data" } }
+          : undefined
+      );
+    },
 
     /**
      * Change user password
@@ -437,6 +447,21 @@ export const api = {
       ),
 
     /**
+     * Get bidding history of a product for seller
+     */
+    getBiddingHistoryForSeller: (
+      productId: string,
+      params?: PaginationParams
+    ) =>
+      apiCall<BidWithUser[]>(
+        "GET",
+        appendQueryParams(
+          `/products/${productId}/bids/seller`,
+          paramsToRecord(params)
+        )
+      ),
+
+    /**
      * Place a bid on a product
      */
     placeBid: (productId: string, data: PlaceBidRequest) =>
@@ -504,7 +529,11 @@ export const api = {
      * Answer a question (Seller only)
      */
     answer: (questionId: string, data: AnswerQuestionRequest) =>
-      apiCall<ProductQuestion>("POST", `/questions/${questionId}/answer`, data),
+      apiCall<ProductQuestion>(
+        "POST",
+        `/products/questions/${questionId}/answer`,
+        data
+      ),
   },
 
   /**
@@ -636,8 +665,8 @@ export const api = {
     /**
      * Get user's rating history
      */
-    getByUser: (userId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Rating>>(
+    getByUser: (userId: string, params?: GetRatingsParams) =>
+      apiCall<PaginatedResponse<RatingWithUsers>>(
         "GET",
         appendQueryParams(`/ratings/${userId}`, paramsToRecord(params))
       ),
