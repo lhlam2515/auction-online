@@ -35,7 +35,11 @@ export const updateProfile = asyncHandler(
 
     // Handle avatar upload if file is present
     if (req.file) {
-      const { urls } = await uploadService.uploadImages([req.file], "avatars");
+      const { urls } = await uploadService.uploadImages(
+        [req.file],
+        "avatars",
+        userId
+      );
       avatarUrl = urls[0];
     }
 
