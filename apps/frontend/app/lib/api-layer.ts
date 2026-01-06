@@ -104,6 +104,7 @@ import type {
   PaginationParams,
   SearchProductsParams,
   AdminGetProductsParams,
+  GetRatingsParams,
 } from "@repo/shared-types";
 
 import { apiClient } from "@/lib/handlers/api";
@@ -636,8 +637,8 @@ export const api = {
     /**
      * Get user's rating history
      */
-    getByUser: (userId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Rating>>(
+    getByUser: (userId: string, params?: GetRatingsParams) =>
+      apiCall<PaginatedResponse<RatingWithUsers>>(
         "GET",
         appendQueryParams(`/ratings/${userId}`, paramsToRecord(params))
       ),

@@ -24,7 +24,7 @@ export interface RatingWithUsers extends Rating {
     fullName: string;
     avatarUrl?: string | null;
   } | null;
-  receiver: {
+  receiver?: {
     fullName: string;
     avatarUrl?: string | null;
   };

@@ -17,6 +17,5 @@ export interface CreateRatingRequest {
 export interface GetRatingsParams {
   page?: number;
   limit?: number;
-  userId?: string;
-  productId?: string;
+  sortOrder?: "asc" | "desc";
 }

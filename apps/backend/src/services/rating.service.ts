@@ -1,5 +1,11 @@
-import type { Rating, RatingScore, RatingWithUsers } from "@repo/shared-types";
-import { eq, and, or, count, sql } from "drizzle-orm";
+import type {
+  GetRatingsParams,
+  PaginatedResponse,
+  Rating,
+  RatingScore,
+  RatingWithUsers,
+} from "@repo/shared-types";
+import { eq, and, or, count, sql, asc, desc } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, ratings, users } from "@/models";
@@ -13,35 +19,21 @@ type DbTransaction =
 export class RatingService {
   async getByUser(
     userId: string,
-    params: {
-      page?: number;
-      limit?: number;
-      sortBy?: string;
-      sortOrder?: "asc" | "desc";
-    }
-  ) {
-    const {
-      page = 1,
-      limit = 20,
-      sortBy = "createdAt",
-      sortOrder = "desc",
-    } = params;
+    params: GetRatingsParams
+  ): Promise<PaginatedResponse<RatingWithUsers>> {
+    const { page = 1, limit = 20, sortOrder = "desc" } = params;
     const offset = (page - 1) * limit;
+
+    const sortExpr =
+      sortOrder === "asc" ? asc(ratings.createdAt) : desc(ratings.createdAt);
 
     const [items, totalResult] = await Promise.all([
       db.query.ratings.findMany({
         where: eq(ratings.receiverId, userId),
         with: {
-          sender: {
-            columns: {
-              fullName: true,
-              avatarUrl: true,
-            },
-          },
+          sender: { columns: { fullName: true, avatarUrl: true } },
         },
-        orderBy: (rating, { asc, desc }) => [
-          sortOrder === "asc" ? asc(rating.createdAt) : desc(rating.createdAt),
-        ],
+        orderBy: [sortExpr],
         limit,
         offset,
       }),
@@ -56,9 +48,10 @@ export class RatingService {
     return toPaginated(
       items.map((item) => ({
         ...item,
+        score: item.score as RatingScore,
         createdAt: item.createdAt.toISOString(),
         updatedAt: item.updatedAt.toISOString(),
-      })) as RatingWithUsers[],
+      })),
       page,
       limit,
       total
