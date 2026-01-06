@@ -7,7 +7,7 @@ import type {
   PaginatedResponse,
   UpdateUserInfoRequest,
 } from "@repo/shared-types";
-import { eq, and, or, ilike, count, gte } from "drizzle-orm";
+import { eq, and, or, ilike, count, gte, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
@@ -20,6 +20,7 @@ import {
   products,
   orders,
   autoBids,
+  ratings,
 } from "@/models";
 import { emailService } from "@/services";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
@@ -33,7 +34,24 @@ export class UserService {
 
     if (!result) throw new NotFoundError("User");
 
-    return result;
+    // Recalculate ratings from source of truth to ensure accuracy
+    // Using findMany ensures type safety and accuracy compared to raw SQL aggregation
+    const userRatings = await db.query.ratings.findMany({
+      where: eq(ratings.receiverId, userId),
+      columns: {
+        score: true,
+      },
+    });
+
+    const realCount = userRatings.length;
+    const realSum = userRatings.reduce((acc, curr) => acc + curr.score, 0);
+    const realScore = realCount > 0 ? realSum / realCount : 0;
+
+    return {
+      ...result,
+      ratingCount: realCount,
+      ratingScore: realScore,
+    };
   }
 
   async updateProfile(
