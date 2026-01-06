@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 
-import { SellerSidebar } from "@/components/layout/sidebar";
+import { Sidebar } from "@/components/layout";
 import { SellerExpirationBanner } from "@/components/SellerExpirationBanner";
 import { SellerRoute } from "@/components/SellerRoute";
 
@@ -19,7 +19,7 @@ export default function SellerLayout() {
   return (
     <SellerRoute>
       <div className="sidebar-layout">
-        <SellerSidebar />
+        <Sidebar />
         <div className="container space-y-4">
           <SellerExpirationBanner />
           <Outlet />

@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 
-import { AdminSidebar } from "@/components/layout/sidebar";
+import { Sidebar } from "@/components/layout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 /**
@@ -12,7 +12,7 @@ export default function AdminLayout() {
   return (
     <ProtectedRoute requiredRole={["ADMIN"]}>
       <div className="sidebar-layout">
-        <AdminSidebar />
+        <Sidebar />
         <div className="container">
           <Outlet />
         </div>

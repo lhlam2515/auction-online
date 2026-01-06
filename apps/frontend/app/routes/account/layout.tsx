@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 
-import { ProfileSidebar } from "@/components/layout/sidebar";
+import { Sidebar } from "@/components/layout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ADMIN_ROUTES } from "@/constants/routes";
 
@@ -16,7 +16,7 @@ export default function AccountLayout() {
       redirectTo={ADMIN_ROUTES.DASHBOARD}
     >
       <div className="sidebar-layout">
-        <ProfileSidebar />
+        <Sidebar />
         <div className="container">
           <Outlet />
         </div>
