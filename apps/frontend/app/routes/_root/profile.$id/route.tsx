@@ -54,7 +54,6 @@ export default function PublicProfilePage() {
 
       try {
         setIsLoading(true);
-        // Clean errors or loading states if needed
 
         const [profileRes, summaryRes, ratingsRes] = await Promise.all([
           api.users.getPublicProfile(id),
@@ -62,8 +61,6 @@ export default function PublicProfilePage() {
           api.ratings.getByUser(id, {
             limit,
             page,
-            // Note: Filter is not yet supported by backend, passing it for future compatibility
-            // or we might need to filter client side if the dataset is small (cached)
           }),
         ]);
 
