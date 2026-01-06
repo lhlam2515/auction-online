@@ -84,6 +84,11 @@ const AutoBidDialog = ({
 
   const isFormValid = form.formState.isValid;
 
+  // Check if existing auto bid is inactive - it may be due to auction ended or bidder is kicked
+  const isUnavailable = existingAutoBid
+    ? existingAutoBid.isActive === false
+    : false;
+
   return (
     <FormProvider {...form}>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -145,8 +150,22 @@ const AutoBidDialog = ({
                 />
               )}
 
+              {isUnavailable && (
+                <AlertSection
+                  variant="warning"
+                  icon={AlertTriangleIcon}
+                  description={
+                    <p>
+                      Bạn không thể cập nhật hoặc đặt giá đấu tự động cho sản
+                      phẩm này vì <strong>đấu giá đã kết thúc</strong> hoặc{" "}
+                      <strong>bạn đã bị chặn</strong> khỏi phiên đấu giá.
+                    </p>
+                  }
+                />
+              )}
+
               {/* Auto Bid Form */}
-              {isEligible && (
+              {isEligible && !isUnavailable && (
                 <AutoBidForm
                   form={form}
                   productName={product.name}

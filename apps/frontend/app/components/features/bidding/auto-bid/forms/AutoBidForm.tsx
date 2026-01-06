@@ -26,7 +26,7 @@ type AutoBidFormProps = {
   existingAutoBid: AutoBid | null;
   isUpdating: boolean;
   onCancel: () => void;
-  onSubmit: () => void;
+  onSubmit: () => Promise<void>;
   isFormValid: boolean;
 };
 
@@ -76,13 +76,6 @@ const AutoBidForm = ({
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-4" noValidate>
-      {formState.errors.root && (
-        <AlertSection
-          variant="destructive"
-          description={formState.errors.root.message}
-        />
-      )}
-
       {/* Existing Auto Bid Information */}
       {existingAutoBid && (
         <AlertSection
@@ -151,6 +144,13 @@ const AutoBidForm = ({
           )}
         />
       </FieldGroup>
+
+      {formState.errors.root && (
+        <AlertSection
+          variant="destructive"
+          description={formState.errors.root.message}
+        />
+      )}
 
       {/* Action Buttons with Confirmation Dialog */}
       <div className="flex justify-end gap-3 pt-4">
