@@ -93,6 +93,9 @@ export const products = pgTable(
     index("idx_products_active_ending_soon")
       .on(table.endTime.asc())
       .where(sql`${table.status} = 'ACTIVE'`), // Ending soon auctions
+    index("idx_products_slug").on(table.slug), // Fast lookup by slug
+
+    // Uniqueness constraints
     unique("unique_product_slug").on(table.slug), // SEO URLs
 
     // Business logic constraints

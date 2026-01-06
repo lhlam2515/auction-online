@@ -40,7 +40,7 @@ import {
   users,
   watchLists,
 } from "@/models";
-import { maskName } from "@/utils";
+import { generateRandomSuffix, maskName } from "@/utils";
 import {
   BadRequestError,
   NotFoundError,
@@ -53,13 +53,15 @@ import { emailService } from "./email.service";
 import { orderService } from "./order.service";
 
 export class ProductService {
+  /**
+   * Lấy danh sách sản phẩm cho admin với filters và pagination
+   */
   async getProductsAdmin(
     params: AdminGetProductsParams
   ): Promise<PaginatedResponse<ProductDetails>> {
     const { page = 1, limit = 20, status, q, categoryId } = params;
     const offset = (page - 1) * limit;
 
-    // Build base query conditions
     const conditions = [];
 
     if (status) {
@@ -82,7 +84,6 @@ export class ProductService {
       );
     }
 
-    // Build the base query
     const baseQuery = db
       .select({
         product: products,
@@ -104,17 +105,14 @@ export class ProductService {
       .leftJoin(orders, eq(products.id, orders.productId))
       .$dynamic();
 
-    // Apply WHERE conditions
     const queryWithWhere =
       conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
 
-    // Apply sorting
     const finalQuery = queryWithWhere
       .orderBy(asc(products.name))
       .limit(limit)
       .offset(offset);
 
-    // Build count query with same conditions
     const baseCountQuery = db
       .select({ count: sql`count(*)` })
       .from(products)
@@ -126,7 +124,6 @@ export class ProductService {
         ? baseCountQuery.where(and(...conditions))
         : baseCountQuery;
 
-    // Execute queries
     const [results, countResult] = await Promise.all([finalQuery, countQuery]);
 
     const total = Number(countResult[0]?.count) || 0;
@@ -146,14 +143,27 @@ export class ProductService {
     return toPaginated(productsList, page, limit, total);
   }
 
+  /**
+   * Gỡ sản phẩm (suspend) - chỉ admin có thể thực hiện
+   * Sử dụng transaction với row-level locking để tránh race condition
+   */
   async suspendProduct(productId: string): Promise<Product> {
-    const product = await this.getById(productId);
-    if (product.status !== "ACTIVE") {
-      throw new BadRequestError("Chỉ có thể gỡ sản phẩm đang đấu giá");
-    }
+    return await db.transaction(async (tx) => {
+      const [product] = await tx
+        .select({ status: products.status })
+        .from(products)
+        .where(eq(products.id, productId))
+        .for("update");
 
-    const [result] = await db.transaction(async (tx) => {
-      const productUpdate = await tx
+      if (!product) {
+        throw new NotFoundError("Không tìm thấy sản phẩm");
+      }
+
+      if (product.status !== "ACTIVE") {
+        throw new BadRequestError("Chỉ có thể gỡ sản phẩm đang đấu giá");
+      }
+
+      const [updated] = await tx
         .update(products)
         .set({
           status: "SUSPENDED",
@@ -164,24 +174,25 @@ export class ProductService {
         .where(eq(products.id, productId))
         .returning();
 
-      await tx.delete(watchLists).where(eq(watchLists.productId, productId));
+      await Promise.all([
+        tx.delete(watchLists).where(eq(watchLists.productId, productId)),
+        tx
+          .update(autoBids)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(eq(autoBids.productId, productId)),
+        tx
+          .update(bids)
+          .set({ status: "INVALID" })
+          .where(eq(bids.productId, productId)),
+      ]);
 
-      await tx
-        .update(autoBids)
-        .set({ isActive: false, updatedAt: new Date() })
-        .where(eq(autoBids.productId, productId));
-
-      await tx
-        .update(bids)
-        .set({ status: "INVALID" })
-        .where(eq(bids.productId, productId));
-
-      return productUpdate;
+      return updated;
     });
-
-    return result;
   }
 
+  /**
+   * Tìm kiếm sản phẩm với filters, sorting và pagination
+   */
   async searchProducts(
     params: SearchProductsParams
   ): Promise<PaginatedResponse<ProductListing>> {
@@ -198,19 +209,15 @@ export class ProductService {
 
     const offset = (page - 1) * limit;
 
-    // Build base query conditions
     const conditions = [];
 
-    // Full text search using PostgreSQL's built-in FTS
     if (q?.trim()) {
       const searchTerm = q.trim();
-      // Use the FTS index from products.model.ts
       conditions.push(
         sql`to_tsvector('simple', ${products.name} || ' ' || COALESCE(${products.description}, '')) @@ websearch_to_tsquery('simple', ${searchTerm})`
       );
     }
 
-    // Category filter
     if (categoryId) {
       conditions.push(
         or(
@@ -220,10 +227,8 @@ export class ProductService {
       );
     }
 
-    // Status filter (default to ACTIVE if not specified)
     conditions.push(eq(products.status, status));
 
-    // Price filter
     if (minPrice) {
       conditions.push(
         sql`COALESCE(${products.currentPrice}, ${products.startPrice}) >= ${minPrice}`
@@ -234,18 +239,16 @@ export class ProductService {
         sql`COALESCE(${products.currentPrice}, ${products.startPrice}) <= ${maxPrice}`
       );
     }
-    // Build the base query
+
     const baseQuery = db
       .select({ product: products })
       .from(products)
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .$dynamic();
 
-    // Apply WHERE conditions
     const queryWithWhere =
       conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
 
-    // Apply sorting
     let finalQuery;
     switch (sort) {
       case "price_asc":
@@ -267,7 +270,6 @@ export class ProductService {
         break;
     }
 
-    // Build count query with same conditions
     const baseCountQuery = db
       .select({ count: sql`count(*)` })
       .from(products)
@@ -279,7 +281,6 @@ export class ProductService {
         ? baseCountQuery.where(and(...conditions))
         : baseCountQuery;
 
-    // Execute queries
     const [results, countResult] = await Promise.all([
       finalQuery.limit(limit).offset(offset),
       countQuery,
@@ -287,13 +288,15 @@ export class ProductService {
 
     const total = Number(countResult[0]?.count) || 0;
 
-    // Extract products and enrich them
     const productsList = results.map((r) => r.product);
     const enrichedProducts = await this.enrichProducts(productsList);
 
     return toPaginated(enrichedProducts, page, limit, total);
   }
 
+  /**
+   * Lấy danh sách sản phẩm của một seller
+   */
   async getSellerProducts(
     sellerId: string,
     params: GetSellerProductsParams
@@ -302,7 +305,6 @@ export class ProductService {
     const offset = (page - 1) * limit;
     const now = new Date();
 
-    // Build base query conditions
     const conditions = [eq(products.sellerId, sellerId)];
     if (status) {
       if (status === "ENDED") {
@@ -313,132 +315,125 @@ export class ProductService {
         conditions.push(eq(products.status, status));
       }
     }
+
     const results = await db.query.products.findMany({
       where: and(...conditions),
       limit,
       offset,
     });
+
     const total = await db
       .select({ value: count() })
       .from(products)
       .where(and(...conditions))
       .then((res) => Number(res[0]?.value) || 0);
+
     const enriched = await this.enrichProducts(results);
     return toPaginated(enriched, page, limit, total);
   }
 
+  /**
+   * Lấy sản phẩm theo ID (basic info)
+   */
   async getById(productId: string): Promise<Product> {
     const result = await db.query.products.findFirst({
       where: eq(products.id, productId),
     });
-    if (!result) throw new NotFoundError("Product");
+    if (!result) {
+      throw new NotFoundError("Không tìm thấy sản phẩm");
+    }
     return result;
   }
 
+  /**
+   * Lấy chi tiết đầy đủ của sản phẩm (có join với các bảng liên quan)
+   */
   async getProductDetailsById(productId: string): Promise<ProductDetails> {
-    const [productInfo] = await db
-      .select({ products, categories, users, orders, productImages })
-      .from(products)
-      .where(eq(products.id, productId))
-      .leftJoin(
-        productImages,
-        and(
-          eq(productImages.productId, products.id),
-          eq(productImages.isMain, true)
-        )
-      )
-      .leftJoin(categories, eq(products.categoryId, categories.id))
-      .leftJoin(users, eq(products.sellerId, users.id))
-      .leftJoin(orders, eq(products.id, orders.productId));
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      with: {
+        images: {
+          where: eq(productImages.isMain, true),
+          columns: { imageUrl: true },
+        },
+        category: { columns: { name: true } },
+        seller: true,
+        orders: { columns: { id: true } },
+      },
+    });
 
-    if (!productInfo || productInfo.products.status === "SUSPENDED") {
-      throw new NotFoundError("Product");
+    if (!product || product.status === "SUSPENDED") {
+      throw new NotFoundError("Không tìm thấy sản phẩm");
     }
 
+    const { images, category, seller, orders, ...rest } = product;
     return {
-      ...productInfo.products,
-      mainImageUrl: productInfo.productImages?.imageUrl ?? "",
-      categoryName: productInfo.categories?.name ?? "",
-      sellerName: productInfo.users?.fullName ?? "[Người dùng đã bị xóa]",
-      sellerAvatarUrl: productInfo.users?.avatarUrl ?? "",
-      sellerRatingScore: productInfo.users?.ratingScore ?? 0,
-      sellerRatingCount: productInfo.users?.ratingCount ?? 0,
-      orderId: productInfo.orders?.id ?? null,
+      ...rest,
+      mainImageUrl: images[0]?.imageUrl ?? "",
+      categoryName: category?.name ?? "",
+      sellerName: seller?.fullName ?? "[Người dùng đã bị xóa]",
+      sellerAvatarUrl: seller?.avatarUrl ?? "",
+      sellerRatingScore: seller?.ratingScore ?? 0,
+      sellerRatingCount: seller?.ratingCount ?? 0,
+      orderId: orders[0]?.id ?? null,
     };
   }
 
+  /**
+   * Lấy danh sách sản phẩm nổi bật (ending soon, hot, highest price)
+   */
   async getTopListings(
     limit: number,
     userId?: string
   ): Promise<TopListingResponse> {
     const now = new Date();
 
-    // Điều kiện dùng chung cho cả 3 truy vấn
     const activeAndNotEnded = and(
       eq(products.status, "ACTIVE"),
       gt(products.endTime, now)
     );
 
-    // --------------------------
-    // 1️⃣ Ending soon
-    // --------------------------
-    const endingSoonRows = await db.query.products.findMany({
-      where: activeAndNotEnded,
-      orderBy: asc(products.endTime),
-      limit,
-    });
-
-    // --------------------------
-    // 2️⃣ Hot products (most bids)
-    // --------------------------
-    const hotRows = await db
-      .select({ product: products })
-      .from(products)
-      .leftJoin(
-        bids,
-        and(eq(bids.productId, products.id), eq(bids.status, "VALID"))
-      )
-      .where(activeAndNotEnded)
-      .groupBy(products.id)
-      .orderBy(desc(count(bids.id)))
-      .limit(limit);
+    const [endingSoonRows, highestRows, hotRows] = await Promise.all([
+      db.query.products.findMany({
+        where: activeAndNotEnded,
+        orderBy: asc(products.endTime),
+        limit,
+      }),
+      db.query.products.findMany({
+        where: activeAndNotEnded,
+        orderBy: desc(
+          sql`COALESCE(${products.currentPrice}, ${products.startPrice})`
+        ),
+        limit,
+      }),
+      db
+        .select({ product: products })
+        .from(products)
+        .leftJoin(
+          bids,
+          and(eq(bids.productId, products.id), eq(bids.status, "VALID"))
+        )
+        .where(activeAndNotEnded)
+        .groupBy(products.id)
+        .orderBy(desc(count(bids.id)))
+        .limit(limit),
+    ]);
 
     const hotProducts = hotRows.map((r) => r.product);
 
-    // --------------------------
-    // 3️⃣ Highest price
-    // --------------------------
-    const highestRows = await db
-      .select()
-      .from(products)
-      .where(activeAndNotEnded)
-      .orderBy(
-        desc(sql`COALESCE(${products.currentPrice}, ${products.startPrice})`)
-      )
-      .limit(limit);
-
-    // --------------------------
-    // 4️⃣ Tổng hợp tất cả products và enrich 1 lần
-    // --------------------------
     const allProducts = new Map<string, Product>();
 
-    // Add all products to map để loại bỏ duplicates
     endingSoonRows.forEach((p) => allProducts.set(p.id, p));
     hotProducts.forEach((p) => allProducts.set(p.id, p));
     highestRows.forEach((p) => allProducts.set(p.id, p));
 
-    // Enrich tất cả products 1 lần
     const enrichedProducts = await this.enrichProducts(
       Array.from(allProducts.values()),
       userId
     );
 
-    // Tạo map để lookup enriched products
     const enrichedMap = new Map(enrichedProducts.map((p) => [p.id, p]));
 
-    // --------------------------
-    // 5️⃣ Phân bổ lại kết quả cho từng category
-    // --------------------------
     const listings: TopListingResponse = {
       endingSoon: endingSoonRows
         .map((p) => enrichedMap.get(p.id)!)
@@ -452,12 +447,21 @@ export class ProductService {
     return listings;
   }
 
+  /**
+   * Lấy các sản phẩm liên quan (cùng category)
+   */
   async getRelatedProducts(
     productId: string,
     limit: number
   ): Promise<ProductListing[]> {
-    // implement related products by category
-    const product = await this.getById(productId);
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      columns: { categoryId: true },
+    });
+
+    if (!product) {
+      throw new NotFoundError("Không tìm thấy sản phẩm");
+    }
 
     const relatedProducts = await db.query.products.findMany({
       where: and(
@@ -465,37 +469,60 @@ export class ProductService {
         not(eq(products.id, productId)),
         eq(products.status, "ACTIVE")
       ),
-      limit: limit,
+      limit,
     });
     const enriched = await this.enrichProducts(relatedProducts);
 
     return enriched;
   }
 
+  /**
+   * Lấy danh sách hình ảnh của sản phẩm
+   */
   async getProductImages(productId: string): Promise<ProductImage[]> {
-    await this.getById(productId); // Validate product exists
-
-    const images = await db.query.productImages.findMany({
-      where: eq(productImages.productId, productId),
-      orderBy: asc(productImages.displayOrder),
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      with: {
+        images: {
+          orderBy: (images, { asc }) => [asc(images.displayOrder)],
+        },
+      },
     });
-    return images;
+
+    if (!product) {
+      throw new NotFoundError("Không tìm thấy sản phẩm");
+    }
+
+    return product.images;
   }
 
+  /**
+   * Lấy lịch sử cập nhật mô tả của sản phẩm
+   */
   async getDescriptionUpdates(
     productId: string
   ): Promise<UpdateDescriptionResponse[]> {
-    await this.getById(productId); // Validate product exists
-
-    const updates = await db.query.productUpdates.findMany({
-      where: eq(productUpdates.productId, productId),
-      orderBy: asc(productUpdates.createdAt),
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      with: {
+        updates: {
+          orderBy: (updates, { asc }) => [asc(updates.createdAt)],
+        },
+      },
     });
-    return updates;
+
+    if (!product) {
+      throw new NotFoundError("Không tìm thấy sản phẩm");
+    }
+
+    return product.updates;
   }
 
+  /**
+   * Tạo sản phẩm mới
+   * Sử dụng transaction để đảm bảo data consistency
+   */
   async create(sellerId: string, data: CreateProductRequest): Promise<Product> {
-    // validate business rules and insert product
     const {
       name,
       description,
@@ -509,50 +536,63 @@ export class ProductService {
       images,
     } = data;
 
-    // ensure seller exists
     const seller = await db.query.users.findFirst({
       where: eq(users.id, sellerId),
+      columns: { id: true },
     });
-    if (!seller) throw new NotFoundError("Seller");
+    if (!seller) {
+      throw new NotFoundError("Không tìm thấy người bán");
+    }
 
-    // ensure category exists
     const category = await db.query.categories.findFirst({
       where: eq(categories.id, categoryId),
+      columns: { id: true },
     });
-    if (!category) throw new NotFoundError("Category");
+    if (!category) {
+      throw new NotFoundError("Không tìm thấy danh mục");
+    }
 
     if (new Date(endTime) <= new Date()) {
-      throw new BadRequestError("End time must be after current time");
+      throw new BadRequestError(
+        "Thời gian kết thúc phải sau thời gian hiện tại"
+      );
     }
 
     if (startPrice % stepPrice !== 0) {
-      throw new BadRequestError("Start price must be a multiple of step price");
+      throw new BadRequestError("Giá khởi điểm phải là bội số của bước giá");
     }
 
     if (buyNowPrice != null) {
       if (buyNowPrice < startPrice + stepPrice) {
         throw new BadRequestError(
-          "Buy now price must be greater than start price + step price"
+          "Giá mua ngay phải lớn hơn giá khởi điểm cộng bước giá"
         );
       }
       if (buyNowPrice % stepPrice !== 0) {
-        throw new BadRequestError(
-          "Buy now price must be a multiple of step price"
-        );
+        throw new BadRequestError("Giá mua ngay phải là bội số của bước giá");
       }
     }
 
     const nameTrimmed = name.trim();
     const baseSlug = slug(nameTrimmed);
     let slugifiedName = baseSlug;
-    let i = 0;
-    while (true) {
-      const exists = await db.query.products.findFirst({
-        where: eq(products.slug, slugifiedName),
+    let maxRetries = 5;
+
+    while (maxRetries > 0) {
+      const suffix = generateRandomSuffix(4);
+      const candidate = `${baseSlug}-${suffix}`;
+
+      const isTaken = await db.query.products.findFirst({
+        where: eq(products.slug, candidate),
+        columns: { id: true },
       });
-      if (!exists) break;
-      i += 1;
-      slugifiedName = `${baseSlug}-${i}`;
+
+      if (!isTaken) {
+        slugifiedName = candidate;
+        break;
+      }
+
+      maxRetries--;
     }
 
     return await db.transaction(async (tx) => {
@@ -576,7 +616,6 @@ export class ProductService {
         } as any)
         .returning();
 
-      // insert product images
       const imageRows = images.map((url, idx) => ({
         productId: created.id,
         imageUrl: url,
@@ -590,29 +629,51 @@ export class ProductService {
     });
   }
 
+  /**
+   * Xóa sản phẩm (chỉ khi không đang active)
+   */
   async delete(productId: string, sellerId: string) {
-    // ensure auction not active, then delete
-    const product = await this.getById(productId);
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      columns: { id: true, sellerId: true, status: true },
+    });
+
+    if (!product) {
+      throw new NotFoundError("Không tìm thấy sản phẩm");
+    }
+
     if (product.sellerId !== sellerId) {
-      throw new ForbiddenError("Not authorized to delete this product");
+      throw new ForbiddenError("Không có quyền xóa sản phẩm này");
     }
     if (product.status === "ACTIVE") {
-      throw new ConflictError("Cannot delete an active auction product");
+      throw new ConflictError("Không thể xóa sản phẩm đang đấu giá");
     }
     await db.delete(products).where(eq(products.id, productId));
   }
 
+  /**
+   * Cập nhật mô tả sản phẩm (thêm vào history)
+   * Sử dụng transaction để đảm bảo consistency
+   */
   async updateDescription(
     productId: string,
     sellerId: string,
     description: string
   ): Promise<UpdateDescriptionResponse> {
-    // append description update history
-    const product = await this.getById(productId);
-    if (product.sellerId !== sellerId) {
-      throw new ForbiddenError("Not authorized to update this product");
-    }
     return await db.transaction(async (tx) => {
+      const product = await tx.query.products.findFirst({
+        where: eq(products.id, productId),
+        columns: { id: true, sellerId: true },
+      });
+
+      if (!product) {
+        throw new NotFoundError("Không tìm thấy sản phẩm");
+      }
+
+      if (product.sellerId !== sellerId) {
+        throw new ForbiddenError("Không có quyền cập nhật sản phẩm này");
+      }
+
       const [updatedContent] = await tx
         .insert(productUpdates)
         .values({
@@ -621,37 +682,53 @@ export class ProductService {
           content: description,
         })
         .returning();
+
       return updatedContent;
     });
   }
 
+  /**
+   * Bật/tắt auto-extend cho sản phẩm
+   * Sử dụng transaction để đảm bảo consistency
+   */
   async setAutoExtend(
     productId: string,
     sellerId: string,
     isAutoExtend: boolean
   ) {
-    // set auto extend flag
-    const product = await this.getById(productId);
-    if (product.sellerId !== sellerId) {
-      throw new ForbiddenError("Not authorized to update this product");
-    }
-    await db.transaction(async (tx) => {
-      await tx
+    return await db.transaction(async (tx) => {
+      const product = await tx.query.products.findFirst({
+        where: eq(products.id, productId),
+        columns: { id: true, sellerId: true },
+      });
+
+      if (!product) {
+        throw new NotFoundError("Không tìm thấy sản phẩm");
+      }
+
+      if (product.sellerId !== sellerId) {
+        throw new ForbiddenError("Không có quyền cập nhật sản phẩm này");
+      }
+
+      const [updated] = await tx
         .update(products)
         .set({ isAutoExtend, updatedAt: new Date() })
-        .where(eq(products.id, productId));
+        .where(eq(products.id, productId))
+        .returning();
+
+      return updated;
     });
-    // Return updated product
-    return this.getById(productId);
   }
 
+  /**
+   * Lấy danh sách người đã đấu giá sản phẩm (unique users)
+   */
   async getBidders(productId: string) {
     const histories = await db.query.bids.findMany({
       where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
       with: { user: true },
     });
 
-    // Deduplicate users by ID using JavaScript
     const userMap = new Map();
     histories.forEach((bid) => {
       if (bid.user) {
@@ -661,21 +738,23 @@ export class ProductService {
     return Array.from(userMap.values());
   }
 
+  /**
+   * Build link tới trang chi tiết sản phẩm
+   */
   buildProductLink(productId: string): string {
     return `${process.env.FRONTEND_URL}/products/${productId}`;
   }
 
+  /**
+   * Lấy danh sách sản phẩm trong watchlist của user
+   */
   async getWatchListByCard(
     userId: string,
     sort?: ProductSortOption
   ): Promise<ProductListing[]> {
-    // const existingUser = await this.getById(userId); // ensure user exists
-
     const items = await db.query.watchLists.findMany({
       where: eq(watchLists.userId, userId),
-      with: {
-        product: true,
-      },
+      with: { product: true },
     });
 
     const productsList: Product[] = items.map((item) => ({
@@ -710,19 +789,30 @@ export class ProductService {
     return enrichedProducts;
   }
 
+  /**
+   * Mua ngay sản phẩm
+   * Sử dụng transaction với row-level locking để tránh race condition
+   * Email notification được gửi sau khi transaction commit thành công
+   */
   async buyNow(productId: string, buyerId: string) {
     const result = await db.transaction(async (tx) => {
-      // 1. Transaction & Locking
-      // LOCK: Khóa dòng sản phẩm (quan trọng nhất)
       const [product] = await tx
-        .select()
+        .select({
+          id: products.id,
+          sellerId: products.sellerId,
+          status: products.status,
+          endTime: products.endTime,
+          buyNowPrice: products.buyNowPrice,
+          name: products.name,
+        })
         .from(products)
         .where(eq(products.id, productId))
         .for("update");
 
-      if (!product) throw new NotFoundError("Sản phẩm không tồn tại");
+      if (!product) {
+        throw new NotFoundError("Không tìm thấy sản phẩm");
+      }
 
-      // 2. Validate điều kiện Mua Ngay
       if (!product.buyNowPrice) {
         throw new BadRequestError(
           "Sản phẩm này không hỗ trợ tính năng Mua Ngay"
@@ -744,21 +834,17 @@ export class ProductService {
         throw new BadRequestError("Phiên đấu giá đã kết thúc");
       }
 
-      // 3. Thực hiện hành động Mua (Chốt đơn)
-
-      // Update sản phẩm thành SOLD ngay lập tức
       await tx
         .update(products)
         .set({
-          status: "SOLD", // Chốt trạng thái
-          winnerId: buyerId, // Người mua là người thắng
-          currentPrice: buyNowPrice.toString(), // Giá chốt là giá BuyNow
-          endTime: now, // Kết thúc ngay lúc này
+          status: "SOLD",
+          winnerId: buyerId,
+          currentPrice: buyNowPrice.toString(),
+          endTime: now,
           updatedAt: now,
         })
         .where(eq(products.id, productId));
 
-      // Vô hiệu hóa tất cả AutoBid (vì game đã over)
       await tx
         .update(autoBids)
         .set({ isActive: false, updatedAt: now })
@@ -766,8 +852,6 @@ export class ProductService {
           and(eq(autoBids.productId, productId), eq(autoBids.isActive, true))
         );
 
-      // Tạo Order ngay lập tức
-      // sellerId đã được kiểm tra không null ở trên
       const newOrder = await orderService.createFromAuction(
         productId,
         buyerId,
@@ -776,7 +860,6 @@ export class ProductService {
         tx
       );
 
-      // Lấy thông tin user để gửi mail
       const [buyer, seller] = await Promise.all([
         tx.query.users.findFirst({ where: eq(users.id, buyerId) }),
         product.sellerId
@@ -796,39 +879,42 @@ export class ProductService {
       }
     });
 
-    // 4. Xử lý sau Transaction (Gửi Email)
     if (result) {
       const link = productService.buildProductLink(productId);
 
-      // Gửi mail cho Seller
-      emailService.notifyProductSold(
-        result.sellerEmail,
-        result.productName,
-        result.price,
-        result.buyerName,
-        link
-      );
+      const emailPromises = [
+        emailService.notifyProductSold(
+          result.sellerEmail,
+          result.productName,
+          result.price,
+          result.buyerName,
+          link
+        ),
+        emailService.notifyBuyNowSuccess(
+          result.buyerEmail,
+          result.productName,
+          result.price,
+          link
+        ),
+      ];
 
-      // Gửi mail xác nhận cho người mua
-      emailService.notifyBuyNowSuccess(
-        result.buyerEmail,
-        result.productName,
-        result.price,
-        link
-      );
-
-      // Gửi mail cho những người đã tham gia đấu giá nhưng thua
       const bidders = await productService.getBidders(productId);
       const bidderEmails = bidders
         .filter((b) => b.id !== buyerId)
         .map((b) => b.email);
 
-      emailService.notifyBuyNowOthers(
-        bidderEmails,
-        result.productName,
-        result.price,
-        link
-      );
+      if (bidderEmails.length > 0) {
+        emailPromises.push(
+          emailService.notifyBuyNowOthers(
+            bidderEmails,
+            result.productName,
+            result.price,
+            link
+          )
+        );
+      }
+
+      await Promise.all(emailPromises);
     }
 
     return {
@@ -839,7 +925,8 @@ export class ProductService {
   }
 
   /**
-   * Enrich a list of products with related data in batch to avoid N+1 queries.
+   * Enrich products với thông tin bổ sung (category, seller, images, bids, etc.)
+   * Sử dụng batch queries để tránh N+1 problem
    */
   private async enrichProducts(
     productsList: Product[],
@@ -847,7 +934,6 @@ export class ProductService {
   ): Promise<ProductListing[]> {
     if (!productsList.length) return [];
 
-    // ===== Extract IDs =====
     const productIds = productsList.map((p) => p.id);
     const categoryIds = [...new Set(productsList.map((p) => p.categoryId))];
     const sellerIds = [
@@ -858,7 +944,6 @@ export class ProductService {
       ),
     ];
 
-    // ===== Batch fetch: categories & sellers =====
     const [categoriesRows, sellersRows] = await Promise.all([
       db.query.categories.findMany({
         where: inArray(categories.id, categoryIds),
@@ -870,7 +955,6 @@ export class ProductService {
         : Promise.resolve([]),
     ]);
 
-    // ===== Images, bidCounts, watchCounts =====
     const [mainImages, bidCounts, watchCounts] = await Promise.all([
       db.query.productImages.findMany({
         where: and(
@@ -900,7 +984,6 @@ export class ProductService {
         .groupBy(watchLists.productId),
     ]);
 
-    // ===== Current winner names =====
     const currentWinnerName = await db
       .select({
         productId: products.id,
@@ -910,7 +993,6 @@ export class ProductService {
       .leftJoin(users, eq(products.winnerId, users.id))
       .where(inArray(products.id, productIds));
 
-    // ===== User watch set =====
     let userWatchSet = new Set<string>();
     if (userId) {
       const watchRows = await db.query.watchLists.findMany({
@@ -922,7 +1004,6 @@ export class ProductService {
       userWatchSet = new Set(watchRows.map((w) => w.productId));
     }
 
-    // ===== Lookup maps =====
     const categoryMap = new Map(categoriesRows.map((c) => [c.id, c]));
     const sellerMap = new Map(sellersRows.map((s) => [s.id, s]));
     const imageMap = new Map(mainImages.map((i) => [i.productId, i]));
@@ -941,7 +1022,6 @@ export class ProductService {
       ])
     );
 
-    // ===== Final enrichment =====
     return productsList.map((p) => {
       const seller = p.sellerId ? sellerMap.get(p.sellerId) : null;
       return {
@@ -952,7 +1032,7 @@ export class ProductService {
 
         currentPrice: p.currentPrice ?? p.startPrice,
         currentWinnerName: currentWinnerMap.get(p.id)?.winner ?? null,
-        winnerId: null, // hide winnerId in listing
+        winnerId: null,
 
         bidCount: bidMap.get(p.id) ?? 0,
         watchCount: watchMap.get(p.id) ?? 0,

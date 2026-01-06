@@ -15,7 +15,7 @@ export const maskName = (fullName: string) => {
   return "****" + last;
 };
 
-function generateRandomSuffix(length: number = 4): string {
+export function generateRandomSuffix(length: number = 4): string {
   let result = "";
   const charactersLength = ALPHABET.length;
   for (let i = 0; i < length; i++) {
