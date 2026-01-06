@@ -80,6 +80,7 @@ import type {
   RatingSummary,
 
   // Analytics types
+  RevenueAnalytics,
   SpendingAnalytics,
 
   // Admin types
@@ -449,6 +450,15 @@ export const api = {
      * Get seller's dashboard statistics
      */
     getStats: () => apiCall<SellerStats>("GET", "/seller/stats"),
+
+    /**
+     * Get seller revenue analytics for charts
+     */
+    getSellerRevenue: (period: "7d" | "30d" | "12m" = "30d") =>
+      apiCall<RevenueAnalytics>(
+        "GET",
+        `/seller/analytics/revenue?period=${period}`
+      ),
   },
 
   /**

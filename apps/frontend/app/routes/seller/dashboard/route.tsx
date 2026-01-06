@@ -3,11 +3,13 @@ import type {
   User,
   RatingSummary,
   RatingWithUsers,
+  RevenueAnalytics,
 } from "@repo/shared-types";
-import { LayoutDashboard, BarChart3 } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { RevenueChart } from "@/components/features/analytics";
 import {
   RatingSummaryCard,
   RatingHistoryList,
@@ -16,7 +18,6 @@ import {
   SellerProfileHeader,
   SellerStatsCards,
 } from "@/components/features/seller";
-import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
@@ -41,7 +42,9 @@ export default function SellerDashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>();
   const [ratingHistory, setRatingHistory] = useState<RatingWithUsers[]>([]);
+  const [revenueData, setRevenueData] = useState<RevenueAnalytics>();
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingChart, setIsLoadingChart] = useState(false);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -50,12 +53,13 @@ export default function SellerDashboardPage() {
       try {
         setIsLoading(true);
 
-        const [statsResult, userResult, summaryRes, historyRes] =
+        const [statsResult, userResult, summaryRes, historyRes, revenueRes] =
           await Promise.all([
             api.seller.getStats(),
             api.users.getProfile(),
             api.ratings.getSummary(authUser.id),
             api.ratings.getByUser(authUser.id, { page: 1, limit: 10 }),
+            api.seller.getSellerRevenue("30d"),
           ]);
 
         if (statsResult?.success) setStats(statsResult.data);
@@ -68,6 +72,10 @@ export default function SellerDashboardPage() {
         if (historyRes?.success && historyRes.data) {
           setRatingHistory(historyRes.data.items);
         }
+
+        if (revenueRes?.success && revenueRes.data) {
+          setRevenueData(revenueRes.data);
+        }
       } catch (error) {
         toast.error("Không thể tải dữ liệu dashboard");
         console.error("Dashboard data fetch error:", error);
@@ -78,6 +86,21 @@ export default function SellerDashboardPage() {
 
     fetchAllData();
   }, [authUser?.id]);
+
+  const handlePeriodChange = async (period: "7d" | "30d" | "12m") => {
+    try {
+      setIsLoadingChart(true);
+      const response = await api.seller.getSellerRevenue(period);
+      if (response?.success && response.data) {
+        setRevenueData(response.data);
+      }
+    } catch (error) {
+      toast.error("Không thể tải dữ liệu biểu đồ");
+      console.error("Failed to fetch revenue data:", error);
+    } finally {
+      setIsLoadingChart(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -104,15 +127,18 @@ export default function SellerDashboardPage() {
         {stats && <SellerStatsCards stats={stats} />}
       </section>
 
-      {/* 3. Placeholder for Chart/Recent Activity (Để lấp đầy khoảng trắng dưới cùng) */}
+      {/* 3. Chart and Rating Summary Section */}
       <section className="grid gap-6 md:grid-cols-7">
-        {/* Vùng này dành cho Biểu đồ doanh thu (chiếm 4 phần) */}
-        <Card className="bg-muted/60 col-span-4 flex min-h-[300px] flex-col items-center justify-center border-dashed">
-          <div className="text-muted-foreground flex flex-col items-center gap-2">
-            <BarChart3 className="h-10 w-10 opacity-20" />
-            <p>Biểu đồ doanh thu (Coming soon)</p>
-          </div>
-        </Card>
+        {/* Vùng này dành cho Biểu đồ doanh thu */}
+        <div className="col-span-4">
+          {revenueData && (
+            <RevenueChart
+              data={revenueData}
+              onPeriodChange={handlePeriodChange}
+              isLoading={isLoadingChart}
+            />
+          )}
+        </div>
 
         {/* Vùng này dành cho Rating Summary */}
         <div className="col-span-3">
