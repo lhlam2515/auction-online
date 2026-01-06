@@ -1,5 +1,6 @@
 import type { RatingWithUsers } from "@repo/shared-types";
 import { UserIcon, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Link } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,48 +32,54 @@ const RatingCard = ({ rating }: RatingCardProps) => {
         isPositive ? "border-l-green-600" : "border-l-red-600"
       )}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0">
-            {r.sender?.avatarUrl ? (
-              <img
-                src={r.sender.avatarUrl}
-                alt={r.sender.fullName}
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                <UserIcon className="h-6 w-6 text-gray-400" />
-              </div>
-            )}
+      <CardContent className="px-4 py-2.5">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 pt-0.5">
+            <Link to={`/profile/${r.senderId}`} className="block">
+              {r.sender?.avatarUrl ? (
+                <img
+                  src={r.sender.avatarUrl}
+                  alt={r.sender.fullName}
+                  className="h-10 w-10 rounded-full object-cover transition-opacity hover:opacity-80"
+                />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200">
+                  <UserIcon className="h-6 w-6 text-gray-400" />
+                </div>
+              )}
+            </Link>
           </div>
           <div className="flex-1 space-y-1">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold">
-                {r.sender?.fullName || "Người dùng ẩn danh"}
-              </h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-semibold">
+                  <Link
+                    to={`/profile/${r.senderId}`}
+                    className="hover:underline"
+                  >
+                    {r.sender?.fullName || "Người dùng ẩn danh"}
+                  </Link>
+                </h4>
+                <Badge
+                  variant={isPositive ? "default" : "destructive"}
+                  className={cn(
+                    "flex items-center gap-1 px-2 py-0.5 text-[10px]",
+                    isPositive
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-red-600 hover:bg-red-700"
+                  )}
+                >
+                  {isPositive ? (
+                    <ThumbsUp className="h-3 w-3" />
+                  ) : (
+                    <ThumbsDown className="h-3 w-3" />
+                  )}
+                  {isPositive ? "Tích cực" : "Tiêu cực"}
+                </Badge>
+              </div>
               <span className="text-muted-foreground text-xs">{date}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={isPositive ? "default" : "destructive"}
-                className={cn(
-                  "flex items-center gap-1 px-2 py-1 text-xs",
-                  isPositive
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                )}
-              >
-                {isPositive ? (
-                  <ThumbsUp className="h-3 w-3" />
-                ) : (
-                  <ThumbsDown className="h-3 w-3" />
-                )}
-                {isPositive ? "Tích cực" : "Tiêu cực"}
-              </Badge>
-              {/* Star icons logic could go here */}
-            </div>
-            <p className="mt-2 text-sm text-gray-700">
+            <p className="mt-1 text-sm text-gray-700">
               {r.comment || "Không có nhận xét"}
             </p>
           </div>
