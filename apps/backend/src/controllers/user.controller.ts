@@ -13,7 +13,7 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { userService } from "@/services";
+import { userService, uploadService } from "@/services";
 import { ResponseHandler } from "@/utils/response";
 
 export const getProfile = asyncHandler(
@@ -28,9 +28,19 @@ export const getProfile = asyncHandler(
 
 export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { fullName, address, birthDate, avatarUrl } =
-      req.body as UpdateProfileRequest;
+    const { fullName, address, birthDate } = req.body as UpdateProfileRequest;
     const { id: userId } = req.user!;
+    let avatarUrl = req.body.avatarUrl;
+
+    // Handle avatar upload if file is present
+    if (req.file) {
+      const { urls } = await uploadService.uploadImages(
+        [req.file],
+        "avatars",
+        userId
+      );
+      avatarUrl = urls[0];
+    }
 
     const updatedUser = await userService.updateProfile(
       userId,

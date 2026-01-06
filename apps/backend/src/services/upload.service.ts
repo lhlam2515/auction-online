@@ -2,15 +2,17 @@ import { randomUUID } from "crypto";
 import path from "path";
 
 import type { UploadImagesResponse } from "@repo/shared-types";
+import { index } from "drizzle-orm/gel-core";
 
 import logger from "@/config/logger";
-import { supabase } from "@/config/supabase";
+import { supabaseAdmin } from "@/config/supabase";
 import { BadRequestError } from "@/utils/errors";
 
 export class UploadService {
   async uploadImages(
     files: Express.Multer.File[],
-    pathPrefix: string
+    pathPrefix: string,
+    customName?: string
   ): Promise<UploadImagesResponse> {
     if (!files || files.length === 0) {
       throw new BadRequestError("No files provided");
@@ -50,15 +52,41 @@ export class UploadService {
 
       for (const file of files) {
         const fileExt = path.extname(file.originalname).toLowerCase();
-        const fileName = `${randomUUID()}${fileExt}`;
+
+        let fileName;
+        if (customName) {
+          // If customName is provided, use it.
+          // If multiple files, append index to ensure uniqueness,
+          // unless it's a single file then keep it clean.
+          fileName =
+            files.length > 1
+              ? `${customName}-${index}${fileExt}`
+              : `${customName}${fileExt}`;
+        } else {
+          fileName = `${randomUUID()}${fileExt}`;
+        }
+
         const filePath = `${pathPrefix}/${fileName}`;
 
-        const { error } = await supabase.storage
+        // If using customName, remove existing files with that name (all extensions)
+        if (customName) {
+          const extensions = [".jpg", ".jpeg", ".png", ".webp"];
+          const filesRemove = extensions.map(
+            (ext) => `${pathPrefix}/${customName}${ext}`
+          );
+          if (filesRemove.length > 0) {
+            await supabaseAdmin.storage.from("images").remove(filesRemove);
+          }
+        }
+
+        // Use supabaseAdmin to bypass RLS policies
+        const cacheControl = customName ? "0" : "3600"; // No cache for custom names
+        const { error } = await supabaseAdmin.storage
           .from("images")
           .upload(filePath, file.buffer, {
             contentType: file.mimetype,
-            cacheControl: "3600",
-            upsert: false,
+            cacheControl: cacheControl,
+            upsert: true,
           });
 
         if (error) {
@@ -70,11 +98,16 @@ export class UploadService {
         uploadedPaths.push(filePath);
 
         // Get public URL
-        const { data: urlData } = supabase.storage
+        const { data: urlData } = supabaseAdmin.storage
           .from("images")
           .getPublicUrl(filePath);
 
-        urls.push(urlData.publicUrl);
+        // Append timestamp to URL to prevent caching if customName is used
+        if (customName) {
+          urls.push(`${urlData.publicUrl}?v=${Date.now()}`);
+        } else {
+          urls.push(urlData.publicUrl);
+        }
       }
 
       return { urls };
@@ -85,7 +118,7 @@ export class UploadService {
           `Rolling back ${uploadedPaths.length} uploaded files due to error`
         );
 
-        const { error: deleteError } = await supabase.storage
+        const { error: deleteError } = await supabaseAdmin.storage
           .from("images")
           .remove(uploadedPaths);
 
