@@ -13,7 +13,8 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { userService } from "@/services";
+import { userService, uploadService } from "@/services";
+import { BadRequestError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
 export const getProfile = asyncHandler(
@@ -28,9 +29,15 @@ export const getProfile = asyncHandler(
 
 export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { fullName, address, birthDate, avatarUrl } =
-      req.body as UpdateProfileRequest;
+    const { fullName, address, birthDate } = req.body as UpdateProfileRequest;
     const { id: userId } = req.user!;
+    let avatarUrl = req.body.avatarUrl;
+
+    // Handle avatar upload if file is present
+    if (req.file) {
+      const { urls } = await uploadService.uploadImages([req.file], "avatars");
+      avatarUrl = urls[0];
+    }
 
     const updatedUser = await userService.updateProfile(
       userId,
@@ -41,6 +48,22 @@ export const updateProfile = asyncHandler(
     );
 
     return ResponseHandler.sendSuccess<User>(res, updatedUser);
+  }
+);
+
+export const uploadAvatar = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const file = req.file;
+
+    if (!file) {
+      throw new BadRequestError("Please upload an image");
+    }
+
+    // Reuse uploadService
+    const { urls } = await uploadService.uploadImages([file], "avatars");
+    const avatarUrl = urls[0];
+
+    return ResponseHandler.sendSuccess(res, { url: avatarUrl });
   }
 );
 

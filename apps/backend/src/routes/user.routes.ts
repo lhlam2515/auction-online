@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import * as userController from "@/controllers/user.controller";
 import { authenticate, authorize } from "@/middlewares/auth";
+import { uploadMiddleware } from "@/middlewares/upload";
 import { validate } from "@/middlewares/validate";
 import * as userValidation from "@/validations/user.validation";
 
@@ -24,8 +25,20 @@ router.get("/profile", userController.getProfile);
  */
 router.put(
   "/profile",
+  uploadMiddleware.single("avatar"),
   validate({ body: userValidation.updateProfileSchema }),
   userController.updateProfile
+);
+
+/**
+ * @route   POST /api/users/avatar
+ * @desc    Upload user avatar
+ * @access  Private
+ */
+router.post(
+  "/avatar",
+  uploadMiddleware.single("avatar"),
+  userController.uploadAvatar
 );
 
 /**
