@@ -3,7 +3,7 @@ import { eq, desc, and, ne } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
-import { bids, autoBids, products, users } from "@/models";
+import { bids, autoBids, products } from "@/models";
 import { maskName } from "@/utils";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/utils/errors";
 
@@ -18,7 +18,14 @@ export class BidService {
     productId: string,
     sellerId?: string
   ): Promise<BidWithUser[]> {
-    const product = await productService.getById(productId); // Ensure product exists
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      columns: { id: true, sellerId: true },
+    });
+
+    if (!product) {
+      throw new NotFoundError("Sản phẩm không tồn tại");
+    }
 
     let isSeller = false;
     if (sellerId) {
@@ -31,31 +38,23 @@ export class BidService {
       }
     }
 
-    const productBids = await db
-      .select({
-        id: bids.id,
-        productId: bids.productId,
-        userId: bids.userId,
-        amount: bids.amount,
-        status: bids.status,
-        isAuto: bids.isAuto,
-        createdAt: bids.createdAt,
-        userName: users.fullName,
-        ratingScore: users.ratingScore,
-      })
-      .from(bids)
-      .leftJoin(users, eq(bids.userId, users.id))
-      .where(and(eq(bids.productId, productId), eq(bids.status, "VALID")))
-      .orderBy(desc(bids.amount));
+    const productBids = await db.query.bids.findMany({
+      where: and(eq(bids.productId, productId), eq(bids.status, "VALID")),
+      with: {
+        user: { columns: { fullName: true, ratingScore: true } },
+      },
+      orderBy: [desc(bids.amount)],
+    });
 
     return productBids.map((bid) => {
+      const { user, ...bidData } = bid;
       return {
-        ...bid,
+        ...bidData,
         userId: isSeller ? bid.userId : "",
         userName: isSeller
-          ? bid.userName || "Unknown"
-          : maskName(bid.userName || "****"),
-        ratingScore: bid.ratingScore ?? 0,
+          ? user.fullName || "Unknown"
+          : maskName(user.fullName || "****"),
+        ratingScore: user.ratingScore ?? 0,
       };
     });
   }
@@ -64,7 +63,8 @@ export class BidService {
     const autoBid = await db.query.autoBids.findFirst({
       where: and(
         eq(autoBids.productId, productId),
-        eq(autoBids.userId, userId)
+        eq(autoBids.userId, userId),
+        eq(autoBids.isActive, true)
       ),
     });
     if (!autoBid) {
