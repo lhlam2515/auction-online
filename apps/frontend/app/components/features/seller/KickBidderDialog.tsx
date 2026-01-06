@@ -40,12 +40,14 @@ interface KickBidderProps {
   bidderId: string;
   productId: string;
   bidderName: string;
+  onSuccess?: () => void;
 }
 
 const KickBidderDialog = ({
   bidderId,
   productId,
   bidderName,
+  onSuccess,
 }: KickBidderProps) => {
   const [open, setOpen] = useState(false);
   const [isKicking, setIsKicking] = useState(false);
@@ -75,9 +77,7 @@ const KickBidderDialog = ({
       if (response.success) {
         handleClose();
         toast.success(`Đã chặn ${bidderName} khỏi phiên đấu giá`);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        onSuccess?.();
       } else {
         throw new Error(
           response.error.message || "Có lỗi khi chặn người đặt giá"

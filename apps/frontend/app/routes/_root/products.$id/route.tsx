@@ -1,4 +1,5 @@
 import type { ProductDetails, User } from "@repo/shared-types";
+import type { id } from "date-fns/locale";
 import React from "react";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -40,6 +41,33 @@ export default function ProductDetailPage() {
   const [isSeller, setIsSeller] = React.useState(false);
   const [userData, setUserData] = React.useState<User | null>(null);
   const [isEnded, setIsEnded] = React.useState(true);
+
+  // Refresh function to refetch product data
+  const refreshProduct = React.useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setTimeout(async () => {
+        const product_res = await api.products.getById(id);
+
+        if (!product_res.success || !product_res.data) {
+          throw new Error("Không thể làm mới dữ liệu sản phẩm");
+        }
+
+        setProduct(product_res.data);
+        setIsEnded(
+          product_res.data.status !== "ACTIVE" ||
+            new Date() > new Date(product_res.data.endTime)
+        );
+      }, 3000);
+    } catch (error) {
+      const errorMessage = getErrorMessage(
+        error,
+        "Có lỗi khi làm mới dữ liệu sản phẩm"
+      );
+      showError(error, errorMessage);
+    }
+  }, [id]);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -143,10 +171,7 @@ export default function ProductDetailPage() {
         <div className="container mx-auto space-y-10 px-4 py-6">
           {/* Top Section */}
           <section className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-            <ProductImageGallery
-              productId={product.id}
-              className="lg:col-span-2"
-            />
+            <ProductImageGallery productId={id!} className="lg:col-span-2" />
 
             <div className="space-y-6 lg:col-span-3">
               <ProductInfo product={product} />
@@ -155,13 +180,15 @@ export default function ProductDetailPage() {
                 product={product}
                 isSeller={isSeller}
                 userData={userData}
+                isEnded={isEnded}
+                onRefresh={refreshProduct}
               />
             </div>
           </section>
 
           <section>
             <ProductDescription
-              productId={product.id}
+              productId={id!}
               initialDescription={product.description}
             />
           </section>
@@ -172,12 +199,13 @@ export default function ProductDetailPage() {
               userId={user?.id}
               canKick={isSeller && !isEnded}
               isAuthLoading={isLoading}
+              onRefresh={refreshProduct}
             />
           </section>
 
           <section>
             <ProductQnA
-              productId={product.id}
+              productId={id!}
               isLoggedIn={!!user}
               isSeller={isSeller}
               isEnded={isEnded}
@@ -185,7 +213,7 @@ export default function ProductDetailPage() {
           </section>
 
           <section>
-            <ProductRelatedList productId={product.id} />
+            <ProductRelatedList productId={id!} />
           </section>
         </div>
       )}

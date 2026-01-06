@@ -25,6 +25,7 @@ interface BidHistoryTableProps {
   userId?: string;
   canKick: boolean;
   isAuthLoading: boolean;
+  onRefresh?: () => void;
   className?: string;
 }
 
@@ -33,6 +34,7 @@ const BidHistoryTable = ({
   userId,
   canKick,
   isAuthLoading,
+  onRefresh,
   className,
 }: BidHistoryTableProps) => {
   const [bids, setBids] = useState<BidWithUser[]>([]);
@@ -81,7 +83,7 @@ const BidHistoryTable = ({
     return () => {
       isMounted = false;
     };
-  }, [isAuthLoading, product.id, isSeller]);
+  }, [isAuthLoading, product, isSeller]);
 
   const displayedBids = showAll ? bids : bids.slice(0, 5);
 
@@ -162,6 +164,7 @@ const BidHistoryTable = ({
                             bidderId={bid.userId}
                             productId={product.id}
                             bidderName={bid.userName}
+                            onSuccess={onRefresh}
                           />
                         </TableCell>
                       )}

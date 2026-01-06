@@ -12,21 +12,22 @@ interface ProductActionButtonsProps {
   product: ProductDetails;
   isSeller: boolean;
   userData: User | null;
+  isEnded: boolean;
+  onRefresh?: () => void;
 }
 
 const ProductActionButtons = ({
   product,
   isSeller,
   userData,
+  isEnded,
+  onRefresh,
 }: ProductActionButtonsProps) => {
   const {
     toggleWatchlist,
     isInWatchlist,
     isLoading: watchlistLoading,
   } = useWatchlist();
-
-  const isAuctionEnded =
-    product.status !== "ACTIVE" || new Date() > new Date(product.endTime);
 
   // Memoize để tránh re-compute liên tục
   const isProductInWatchlist = useMemo(
@@ -88,13 +89,14 @@ const ProductActionButtons = ({
   }
 
   // Logged in users can bid/buy (if auction not ended)
-  if (userData && !isAuctionEnded) {
+  if (userData && !isEnded) {
     return (
       <div className="flex gap-3">
         {/* Bid Button with Dialog */}
         <AutoBidDialog
           product={product}
           userRating={userData?.ratingScore ? userData.ratingScore * 100 : 0}
+          onSuccess={onRefresh}
         />
 
         {/* Buy Now Button with Dialog */}
@@ -119,7 +121,7 @@ const ProductActionButtons = ({
   }
 
   // Not logged in - show login prompt (if auction not ended)
-  if (!isAuctionEnded) {
+  if (!isEnded) {
     return (
       <p className="text-muted-foreground py-5 text-center font-semibold">
         <Link to={AUTH_ROUTES.LOGIN} className="text-primary hover:underline">
