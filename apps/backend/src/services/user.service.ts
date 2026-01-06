@@ -47,10 +47,34 @@ export class UserService {
     const realSum = userRatings.reduce((acc, curr) => acc + curr.score, 0);
     const realScore = realCount > 0 ? realSum / realCount : 0;
 
+    // Calculate additional stats
+    // 1. Total products as Seller (created products)
+    const [sellerStats] = await db
+      .select({ count: count() })
+      .from(products)
+      .where(eq(products.sellerId, userId));
+
+    // 2. Total products participated as Bidder (unique products bid on)
+    // Using simple count for now, distinct product count would be better but requires more complex query
+    // This counts total bids
+    // To count unique products:
+    const bidderStats = await db.query.bids.findMany({
+      where: eq(bids.userId, userId),
+      columns: {
+        productId: true,
+      },
+    });
+    const uniqueBiddedProducts = new Set(bidderStats.map((b) => b.productId))
+      .size;
+
     return {
       ...result,
       ratingCount: realCount,
       ratingScore: realScore,
+      stats: {
+        totalAuctionProducts: sellerStats?.count || 0,
+        totalBiddingProducts: uniqueBiddedProducts || 0,
+      },
     };
   }
 
