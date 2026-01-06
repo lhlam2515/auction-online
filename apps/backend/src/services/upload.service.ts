@@ -59,12 +59,29 @@ export class UploadService {
 
       const filePath = `${pathPrefix}/${fileName}`;
 
+      // Nếu dùng customName (Avatar), thực hiện xóa file cũ trước (nếu có)
+      // Theo yêu cầu: Xóa tất cả ảnh cũ (kể cả cùng extension) để đảm bảo không bị cache hoặc lỗi không update nội dung
+      if (customName) {
+        const extensions = [".jpg", ".jpeg", ".png", ".webp"];
+        // Xóa hết các file có tên customName với mọi extension
+        const filesRemove = extensions.map(
+          (ext) => `${pathPrefix}/${customName}${ext}`
+        );
+
+        if (filesRemove.length > 0) {
+          await supabaseAdmin.storage.from("images").remove(filesRemove);
+        }
+      }
+
       // Use supabaseAdmin to bypass RLS policies
+      // If customName is used (like avatar), set cacheControl to '0' (no-cache) to ensure updates are seen immediately.
+      const cacheControl = customName ? "0" : "3600";
+
       const { data, error } = await supabaseAdmin.storage
         .from("images")
         .upload(filePath, file.buffer, {
           contentType: file.mimetype,
-          cacheControl: "3600",
+          cacheControl: cacheControl,
           upsert: true,
         });
 
@@ -78,6 +95,11 @@ export class UploadService {
       const { data: urlData } = supabaseAdmin.storage
         .from("images")
         .getPublicUrl(filePath);
+
+      // Append timestamp to prevent browser caching only for custom named files (which are likely overwritten)
+      if (customName) {
+        return `${urlData.publicUrl}?v=${Date.now()}`;
+      }
 
       return urlData.publicUrl;
     });

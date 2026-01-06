@@ -1,6 +1,6 @@
 import type { User } from "@repo/shared-types";
 import { Camera } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,15 @@ export default function UserAvatarUploader({
 }: UserAvatarUploaderProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Clean up preview URL when component unmounts or previewUrl changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   /**
    * Triggers the hidden file input click to open file selection dialog
@@ -77,6 +86,13 @@ export default function UserAvatarUploader({
       onFileSelect(file);
     }
   };
+
+  // Reset preview when userData changes (e.g., after successful upload)
+  useEffect(() => {
+    if (userData?.avatarUrl) {
+      setPreviewUrl(null);
+    }
+  }, [userData?.avatarUrl]);
 
   const currentAvatarUrl = previewUrl || userData?.avatarUrl;
 

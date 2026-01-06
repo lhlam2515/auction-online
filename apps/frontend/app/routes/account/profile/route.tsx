@@ -103,6 +103,12 @@ export default function UserProfilePage() {
       }
 
       const result = await api.users.updateProfile(formData);
+
+      if (result.success && result.data) {
+        setUserData(result.data);
+        setSelectedAvatarFile(null);
+      }
+
       return result;
     },
     [selectedAvatarFile]
