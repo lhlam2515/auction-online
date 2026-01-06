@@ -103,16 +103,14 @@ const ProductActionButtons = ({
         {/* Watchlist Button */}
         <Button
           size="lg"
-          variant="outline"
+          variant="secondary"
           className="group h-14 w-14 cursor-pointer"
           onClick={handleToggleWatchlist}
           disabled={watchlistLoading}
         >
           <Heart
             className={`h-6 w-6 transition-colors ${
-              isProductInWatchlist
-                ? "fill-destructive text-destructive"
-                : "text-muted-foreground group-hover:text-destructive"
+              isProductInWatchlist && "fill-destructive text-destructive"
             }`}
           />
         </Button>
