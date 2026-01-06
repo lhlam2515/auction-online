@@ -94,6 +94,24 @@ const ProductImageGallery = ({
     };
   }, [carouselApi]);
 
+  // Scroll thumbnail container to selected image
+  useEffect(() => {
+    if (thumbnailContainerRef.current && images.length > 1) {
+      const container = thumbnailContainerRef.current;
+      const thumbnailWidth = 80 + 12; // w-20 (80px) + gap-3 (12px)
+      const containerWidth = container.offsetWidth;
+      const scrollPosition =
+        selectedImage * thumbnailWidth -
+        containerWidth / 2 +
+        thumbnailWidth / 2;
+
+      container.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: "smooth",
+      });
+    }
+  }, [selectedImage, images.length]);
+
   const handleThumbnailClick = (index: number) => {
     setSelectedImage(index);
     if (carouselApi) {
