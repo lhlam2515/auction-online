@@ -107,12 +107,14 @@ const ConfirmationDialog = ({
             variant="outline"
             onClick={handleCancel}
             disabled={isConfirming}
+            className="cursor-pointer"
           >
             {cancelLabel}
           </Button>
           <Button
             variant={variant === "destructive" ? "destructive" : "default"}
             className={cn(
+              "cursor-pointer",
               variant !== "destructive" && config.confirmButtonClass
             )}
             onClick={handleConfirm}

@@ -438,6 +438,21 @@ export const api = {
       ),
 
     /**
+     * Get bidding history of a product for seller
+     */
+    getBiddingHistoryForSeller: (
+      productId: string,
+      params?: PaginationParams
+    ) =>
+      apiCall<BidWithUser[]>(
+        "GET",
+        appendQueryParams(
+          `/products/${productId}/bids/seller`,
+          paramsToRecord(params)
+        )
+      ),
+
+    /**
      * Place a bid on a product
      */
     placeBid: (productId: string, data: PlaceBidRequest) =>
@@ -505,7 +520,11 @@ export const api = {
      * Answer a question (Seller only)
      */
     answer: (questionId: string, data: AnswerQuestionRequest) =>
-      apiCall<ProductQuestion>("POST", `/questions/${questionId}/answer`, data),
+      apiCall<ProductQuestion>(
+        "POST",
+        `/products/questions/${questionId}/answer`,
+        data
+      ),
   },
 
   /**

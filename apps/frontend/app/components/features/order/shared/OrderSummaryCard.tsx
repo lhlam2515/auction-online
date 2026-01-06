@@ -2,6 +2,7 @@ import type { OrderWithDetails } from "@repo/shared-types";
 import { MessageCircle, MapPin, Package } from "lucide-react";
 import { useState } from "react";
 
+import { RatingBadge } from "@/components/common";
 import { PrivateChatWindow } from "@/components/features/interaction";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,27 +74,25 @@ const OrderSummaryCard = ({
                         ? order.winner!.fullName
                         : order.seller!.fullName}
                     </span>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "px-2 py-1 text-sm",
+
+                    <RatingBadge
+                      score={
+                        isSeller
+                          ? order.winner!.ratingScore
+                          : order.seller!.ratingScore
+                      }
+                      className={
                         (isSeller
                           ? order.winner!.ratingScore
                           : order.seller!.ratingScore) >= 0.8
-                          ? "border-green-300 bg-green-50 text-green-600"
+                          ? "border-green-300 bg-green-50"
                           : (isSeller
                                 ? order.winner!.ratingScore
                                 : order.seller!.ratingScore) >= 0.5
-                            ? "border-amber-300 bg-amber-50 text-amber-600"
-                            : "border-red-500 bg-red-50 text-red-600"
-                      )}
-                    >
-                      {(isSeller
-                        ? order.winner!.ratingScore * 100
-                        : order.seller!.ratingScore * 100
-                      ).toFixed(1)}
-                      % Tích cực
-                    </Badge>
+                            ? "border-amber-300 bg-amber-50"
+                            : "border-red-500 bg-red-50"
+                      }
+                    />
                   </div>
                   <div className="space-y-1 text-sm">
                     <div className="text-muted-foreground flex items-start gap-2">

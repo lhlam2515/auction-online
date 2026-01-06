@@ -65,22 +65,13 @@ const ProductRelatedList = ({
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-5 text-2xl">
-          <ShoppingCart className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+          <ShoppingCart className="text-muted-foreground h-5 w-5" />
           Sản phẩm cùng loại
         </CardTitle>
       </CardHeader>
 
       <CardContent>
-        {loading || products.length !== 0 ? (
-          <ProductGallery
-            products={products}
-            loading={loading}
-          ></ProductGallery>
-        ) : (
-          <p className="text-muted-foreground text-center">
-            Không có sản phẩm liên quan
-          </p>
-        )}
+        <ProductGallery products={products} loading={loading} />
       </CardContent>
     </Card>
   );

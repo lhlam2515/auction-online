@@ -78,15 +78,16 @@
 
 # ✅ **5. Bidding & Auction**
 
-| Method | Endpoint                      | Role    | Mô tả                 |
-| ------ | ----------------------------- | ------- | --------------------- |
-| GET    | /api/v1/products/:id/bids     | G       | Lịch sử bidding       |
-| POST   | /api/v1/products/:id/bids     | BID/SEL | Ra giá                |
-| POST   | /api/v1/products/:id/kick     | SEL     | Kick bidder           |
-| POST   | /api/v1/products/:id/auto-bid | BID/SEL | Tạo auto-bid          |
-| PUT    | /api/v1/products/auto-bid/:id | BID/SEL | Cập nhật auto-bid     |
-| DELETE | /api/v1/products/auto-bid/:id | BID/SEL | Xóa auto-bid          |
-| GET    | /api/v1/products/:id/auto-bid | BID/SEL | Xem auto-bid của mình |
+| Method | Endpoint                         | Role    | Mô tả                    |
+| ------ | -------------------------------- | ------- | ------------------------ |
+| GET    | /api/v1/products/:id/bids        | G       | Lịch sử bidding          |
+| GET    | /api/v1/products/:id/bids/seller | U       | Lịch sử bidding (Seller) |
+| POST   | /api/v1/products/:id/bids        | BID/SEL | Ra giá                   |
+| POST   | /api/v1/products/:id/kick        | SEL     | Kick bidder              |
+| POST   | /api/v1/products/:id/auto-bid    | BID/SEL | Tạo auto-bid             |
+| PUT    | /api/v1/products/auto-bid/:id    | BID/SEL | Cập nhật auto-bid        |
+| DELETE | /api/v1/products/auto-bid/:id    | BID/SEL | Xóa auto-bid             |
+| GET    | /api/v1/products/:id/auto-bid    | BID/SEL | Xem auto-bid của mình    |
 
 ---
 

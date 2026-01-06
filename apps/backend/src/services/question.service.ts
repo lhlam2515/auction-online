@@ -3,7 +3,7 @@ import type {
   ProductQuestionWithUsers,
   QuestionVisibility,
 } from "@repo/shared-types";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, desc } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
@@ -30,6 +30,7 @@ export class QuestionService {
         asker: { columns: { fullName: true, avatarUrl: true } },
         answerer: { columns: { fullName: true, avatarUrl: true } },
       },
+      orderBy: desc(productQuestions.createdAt),
     });
 
     return questions.map((question) => {
