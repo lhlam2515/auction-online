@@ -34,19 +34,6 @@ export class UserService {
 
     if (!result) throw new NotFoundError("User");
 
-    // Recalculate ratings from source of truth to ensure accuracy
-    // Using findMany ensures type safety and accuracy compared to raw SQL aggregation
-    const userRatings = await db.query.ratings.findMany({
-      where: eq(ratings.receiverId, userId),
-      columns: {
-        score: true,
-      },
-    });
-
-    const realCount = userRatings.length;
-    const realSum = userRatings.reduce((acc, curr) => acc + curr.score, 0);
-    const realScore = realCount > 0 ? realSum / realCount : 0;
-
     // Calculate additional stats
     // 1. Total products as Seller (created products)
     const [sellerStats] = await db
@@ -69,8 +56,6 @@ export class UserService {
 
     return {
       ...result,
-      ratingCount: realCount,
-      ratingScore: realScore,
       stats: {
         totalAuctionProducts: sellerStats?.count || 0,
         totalBiddingProducts: uniqueBiddedProducts || 0,
