@@ -8,37 +8,42 @@ import { useAuth } from "@/contexts/auth-provider";
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: UserRole[];
+  redirectTo?: string;
 }
 
+/**
+ * Protected Route - handles authentication and role-based authorization
+ *
+ * @param requiredRole - Array of roles that can access this route
+ * @param redirectTo - Custom redirect path when unauthorized (default: /unauthorized)
+ */
 export function ProtectedRoute({
   children,
   requiredRole,
+  redirectTo = "/unauthorized",
 }: ProtectedRouteProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking auth
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading...</span>
+        <span className="ml-2">Đang tải...</span>
       </div>
     );
   }
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return (
       <Navigate to={AUTH_ROUTES.LOGIN} state={{ from: location }} replace />
     );
   }
 
-  // Check role-based access
   if (requiredRole && user) {
     const hasRequiredRole = requiredRole.includes(user.role);
     if (!hasRequiredRole) {
-      return <Navigate to="/unauthorized" replace />;
+      return <Navigate to={redirectTo} replace />;
     }
   }
 

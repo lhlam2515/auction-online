@@ -5,7 +5,7 @@ import { db } from "@/config/database";
 import logger from "@/config/logger";
 import { supabase, supabaseAdmin } from "@/config/supabase";
 import { passwordResetTokens, users } from "@/models";
-import { otpService } from "@/services";
+import { otpService, sellerService } from "@/services";
 import { generateUniqueUsername } from "@/utils";
 import {
   BadRequestError,
@@ -20,6 +20,14 @@ export class AuthService {
   async getAuthData(userId: string): Promise<UserAuthData> {
     const userProfile = await db.query.users.findFirst({
       where: eq(users.id, userId),
+      columns: {
+        birthDate: false,
+        address: false,
+        ratingScore: false,
+        ratingCount: false,
+        createdAt: false,
+        updatedAt: false,
+      },
     });
 
     if (!userProfile) {
@@ -38,15 +46,15 @@ export class AuthService {
       );
     }
 
+    const isTemporarySeller = await sellerService.isTemporarySeller(userId);
+
     return {
-      id: userProfile.id,
-      username: userProfile.username,
-      email: userProfile.email,
-      fullName: userProfile.fullName,
-      role: userProfile.role as UserRole,
-      avatarUrl: userProfile.avatarUrl || undefined,
-      accountStatus: userProfile.accountStatus,
-      sellerExpireDate: userProfile.sellerExpireDate?.toISOString() ?? null,
+      ...userProfile,
+      avatarUrl: userProfile.avatarUrl || "",
+      sellerExpireDate: userProfile.sellerExpireDate
+        ? userProfile.sellerExpireDate.toISOString()
+        : null,
+      isTemporarySeller,
     };
   }
 
@@ -198,6 +206,10 @@ export class AuthService {
         );
       }
 
+      const isTemporarySeller = await sellerService.isTemporarySeller(
+        userProfile.id
+      );
+
       // 4. Prepare UserAuthData response
       const userData: UserAuthData = {
         id: userProfile.id,
@@ -208,6 +220,7 @@ export class AuthService {
         avatarUrl: userProfile.avatarUrl || undefined, // Handle null vs undefined
         accountStatus: userProfile.accountStatus,
         sellerExpireDate: userProfile.sellerExpireDate?.toISOString() ?? null,
+        isTemporarySeller,
       };
 
       return {

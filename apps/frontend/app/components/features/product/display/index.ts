@@ -12,3 +12,4 @@ export {
   type ProductTableAction,
 } from "./ProductTable";
 export { default as ProductWatchlist } from "./ProductWatchlist";
+export { default as ProductActionButtons } from "./ProductActionButtons";

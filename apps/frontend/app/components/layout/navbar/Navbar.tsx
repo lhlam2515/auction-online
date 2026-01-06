@@ -3,6 +3,7 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
+import { RoleGuard } from "@/components/RoleGuard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,12 +58,14 @@ const Navbar = () => {
               </>
             ) : user ? (
               <>
-                <Button asChild variant="ghost">
-                  <Link to={ACCOUNT_ROUTES.WATCHLIST}>
-                    <Heart className="h-6 w-6" />
-                    Danh sách theo dõi
-                  </Link>
-                </Button>
+                <RoleGuard roles={["BIDDER", "SELLER"]}>
+                  <Button asChild variant="ghost">
+                    <Link to={ACCOUNT_ROUTES.WATCHLIST}>
+                      <Heart className="h-6 w-6" />
+                      Danh sách theo dõi
+                    </Link>
+                  </Button>
+                </RoleGuard>
                 <UserDropdownMenu user={user} onLogout={logout} />
               </>
             ) : (

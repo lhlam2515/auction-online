@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 
 import { db } from "@/config/database";
 import { users, products } from "@/models";
+import { sellerService } from "@/services";
 import { UserRole } from "@/types/model";
 import {
   UnauthorizedError,
@@ -55,23 +56,15 @@ export const authenticate = async (
       throw new UnauthorizedError("User not found");
     }
 
-    // Check for seller expiration
     if (
       user.role === "SELLER" &&
       user.sellerExpireDate &&
       new Date() > new Date(user.sellerExpireDate)
     ) {
-      // Check if seller has any active products
-      const activeProducts = await db.query.products.findFirst({
-        where: and(
-          eq(products.sellerId, user.id),
-          eq(products.status, "ACTIVE")
-        ),
-        columns: { id: true },
-      });
+      const isTemporarySeller = await sellerService.isTemporarySeller(user.id);
 
-      // Only downgrade if NO active products
-      if (!activeProducts) {
+      // If not a temporary seller, downgrade to BIDDER
+      if (!isTemporarySeller) {
         // Downgrade to BIDDER
         await db
           .update(users)

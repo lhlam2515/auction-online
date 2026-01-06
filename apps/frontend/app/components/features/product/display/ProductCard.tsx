@@ -10,6 +10,7 @@ import {
 import { useMemo } from "react";
 import { Link } from "react-router";
 
+import { RoleGuard } from "@/components/RoleGuard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -100,16 +101,18 @@ const ProductCard = ({
 
           {/* Nút Watchlist góc phải */}
           {!watchlistLoading && (
-            <Button
-              size="icon"
-              variant="outline"
-              className="text-accent absolute top-3 right-3 rounded-full border-0 shadow-sm backdrop-blur-sm"
-              onClick={handleToggleWatchlist}
-            >
-              <Heart
-                className={`h-5 w-5 transition-colors ${isProductInWatchlist && "fill-red-500 text-red-500"}`}
-              />
-            </Button>
+            <RoleGuard roles={["BIDDER", "SELLER"]}>
+              <Button
+                size="icon"
+                variant="outline"
+                className="text-accent absolute top-3 right-3 rounded-full border-0 shadow-sm backdrop-blur-sm"
+                onClick={handleToggleWatchlist}
+              >
+                <Heart
+                  className={`h-5 w-5 transition-colors ${isProductInWatchlist && "fill-red-500 text-red-500"}`}
+                />
+              </Button>
+            </RoleGuard>
           )}
         </div>
 
