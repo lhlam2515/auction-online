@@ -37,6 +37,7 @@ import {
 } from "drizzle-orm";
 
 import { db } from "@/config/database";
+import logger from "@/config/logger";
 import {
   users,
   upgradeRequests,
@@ -266,7 +267,8 @@ export class AdminService {
       })
       .from(upgradeRequests);
 
-    const totalBidders = Number(userRoleStats.totalBidders);
+    const totalBidders =
+      Number(userRoleStats.totalBidders) + Number(userRoleStats.totalSellers);
     const requestsSent = upgradeStats.total;
     const requestsPending = Number(upgradeStats.pending);
     const requestsApproved = Number(upgradeStats.approved);
