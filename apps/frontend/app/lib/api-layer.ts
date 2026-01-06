@@ -213,8 +213,25 @@ export const api = {
     /**
      * Update user profile
      */
-    updateProfile: (data: UpdateProfileRequest) =>
-      apiCall<User>("PUT", "/users/profile", data),
+    updateProfile: (data: UpdateProfileRequest | FormData) => {
+      const isFormData = data instanceof FormData;
+      return apiCall<User>(
+        "PUT",
+        "/users/profile",
+        data,
+        isFormData
+          ? { headers: { "Content-Type": "multipart/form-data" } }
+          : undefined
+      );
+    },
+
+    /**
+     * Upload user avatar
+     */
+    uploadAvatar: (formData: FormData) =>
+      apiCall<{ url: string }>("POST", "/users/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
 
     /**
      * Change user password

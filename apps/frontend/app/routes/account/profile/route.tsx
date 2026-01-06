@@ -41,6 +41,9 @@ export function meta({}: Route.MetaArgs) {
 export default function UserProfilePage() {
   const [userData, setUserData] = useState<User>();
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
+    null
+  );
 
   const defaultValues: ProfileFormData = useMemo(
     () => ({
@@ -77,16 +80,33 @@ export default function UserProfilePage() {
     fetchData();
   }, []);
 
-  const handleProfileSubmit = useCallback(async (data: ProfileFormData) => {
-    const result = await api.users.updateProfile({
-      fullName: data.fullName,
-      email: data.email,
-      birthDate: data.birthDate && data.birthDate.toISOString().split("T")[0],
-      address: data.address,
-      avatarUrl: data.avatarUrl,
-    });
-    return result;
-  }, []);
+  const handleProfileSubmit = useCallback(
+    async (data: ProfileFormData) => {
+      // Create FormData to send both fields and file
+      const formData = new FormData();
+      formData.append("fullName", data.fullName);
+      if (data.email) formData.append("email", data.email);
+      if (data.address) formData.append("address", data.address);
+      if (data.birthDate) {
+        formData.append(
+          "birthDate",
+          data.birthDate.toISOString().split("T")[0]
+        );
+      }
+
+      // If a new avatar file was selected, append it
+      if (selectedAvatarFile) {
+        formData.append("avatar", selectedAvatarFile);
+      } else if (data.avatarUrl) {
+        // If no new file but we have url (maybe didn't change), we can send it or let backend keep current
+        formData.append("avatarUrl", data.avatarUrl);
+      }
+
+      const result = await api.users.updateProfile(formData);
+      return result;
+    },
+    [selectedAvatarFile]
+  );
 
   const handlePasswordSubmit = useCallback(
     async (data: z.infer<typeof changePassword>) => {
@@ -124,11 +144,7 @@ export default function UserProfilePage() {
           />
           <UserAvatarUploader
             userData={userData}
-            onAvatarUpdate={(newAvatarUrl: string) =>
-              setUserData((prev: User | undefined) =>
-                prev ? { ...prev, avatarUrl: newAvatarUrl } : prev
-              )
-            }
+            onFileSelect={setSelectedAvatarFile}
           />
         </CardContent>
       </Card>
