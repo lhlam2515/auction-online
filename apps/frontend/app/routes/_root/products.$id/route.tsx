@@ -164,9 +164,10 @@ export default function ProductDetailPage() {
 
           <section className="mb-8">
             <BidHistoryTable
-              productId={product.id}
-              isSeller={isSeller}
-              isEnded={isEnded}
+              product={product}
+              userId={user?.id}
+              canKick={isSeller && !isEnded}
+              isAuthLoading={isLoading}
             />
           </section>
 

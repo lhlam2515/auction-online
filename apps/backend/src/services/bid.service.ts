@@ -14,8 +14,22 @@ import { systemService } from "./system.service";
 import { userService } from "./user.service";
 
 export class BidService {
-  async getHistory(productId: string): Promise<BidWithUser[]> {
-    await productService.getById(productId); // Ensure product exists
+  async getHistory(
+    productId: string,
+    sellerId?: string
+  ): Promise<BidWithUser[]> {
+    const product = await productService.getById(productId); // Ensure product exists
+
+    let isSeller = false;
+    if (sellerId) {
+      if (product.sellerId === sellerId) {
+        isSeller = true;
+      } else {
+        throw new ForbiddenError(
+          "Bạn không có quyền xem lịch sử đấu giá của sản phẩm này"
+        );
+      }
+    }
 
     const productBids = await db
       .select({
@@ -37,7 +51,10 @@ export class BidService {
     return productBids.map((bid) => {
       return {
         ...bid,
-        userName: maskName(bid.userName || "****"),
+        userId: isSeller ? bid.userId : "",
+        userName: isSeller
+          ? bid.userName || "Unknown"
+          : maskName(bid.userName || "****"),
         ratingScore: bid.ratingScore ?? 0,
       };
     });

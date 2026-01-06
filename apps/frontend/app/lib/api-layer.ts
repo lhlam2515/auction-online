@@ -437,6 +437,21 @@ export const api = {
       ),
 
     /**
+     * Get bidding history of a product for seller
+     */
+    getBiddingHistoryForSeller: (
+      productId: string,
+      params?: PaginationParams
+    ) =>
+      apiCall<BidWithUser[]>(
+        "GET",
+        appendQueryParams(
+          `/products/${productId}/bids/seller`,
+          paramsToRecord(params)
+        )
+      ),
+
+    /**
      * Place a bid on a product
      */
     placeBid: (productId: string, data: PlaceBidRequest) =>

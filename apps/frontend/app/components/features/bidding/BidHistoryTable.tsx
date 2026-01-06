@@ -1,7 +1,6 @@
-import type { BidWithUser } from "@repo/shared-types";
+import type { BidWithUser, ProductDetails } from "@repo/shared-types";
 import { Star, ChevronDown, ChevronUp, Gavel, Loader2 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 import { KickBidderDialog } from "@/components/features/seller";
 import { Badge } from "@/components/ui/badge";
@@ -16,61 +15,72 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/lib/api-layer";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 import logger from "@/lib/logger";
 import { formatDate, formatPrice } from "@/lib/utils";
 
 interface BidHistoryTableProps {
-  productId: string;
-  isSeller: boolean;
-  isEnded: boolean;
+  product: ProductDetails;
+  userId?: string;
+  canKick: boolean;
+  isAuthLoading: boolean;
   className?: string;
 }
 
 const BidHistoryTable = ({
-  productId,
-  isSeller,
-  isEnded,
+  product,
+  userId,
+  canKick,
+  isAuthLoading,
   className,
 }: BidHistoryTableProps) => {
   const [bids, setBids] = useState<BidWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
-  const fetchBidHistory = useCallback(
-    async (isMounted: boolean) => {
-      try {
-        setLoading(true);
-        const response = await api.bids.getHistory(productId);
-
-        if (isMounted) {
-          if (response.success && response.data) {
-            setBids(response.data);
-          } else {
-            toast.error("Không thể tải lịch sử đấu giá");
-          }
-        }
-      } catch (err) {
-        if (isMounted) {
-          toast.error("Có lỗi khi tải lịch sử đấu giá");
-          logger.error("Error fetching bid history:", err);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    },
-    [productId]
-  );
+  const isSeller = userId === product.sellerId;
 
   useEffect(() => {
+    // Chỉ fetch khi auth đã load xong để tránh fetch duplicate
     let isMounted = true;
 
-    fetchBidHistory(isMounted);
+    const fetchBidHistory = async () => {
+      try {
+        setLoading(true);
+        if (isAuthLoading) return;
+        logger.info("Fetching bid history for product:", {
+          productId: product.id,
+          isSeller,
+        });
+        const response = isSeller
+          ? await api.bids.getBiddingHistoryForSeller(product.id)
+          : await api.bids.getHistory(product.id);
+
+        if (!isMounted) return;
+
+        if (response.success && response.data) {
+          setBids(response.data);
+        } else {
+          throw new Error("Không thể tải lịch sử đấu giá");
+        }
+      } catch (error) {
+        if (isMounted) {
+          const errorMessage = getErrorMessage(
+            error,
+            "Có lỗi khi tải lịch sử đấu giá"
+          );
+          showError(error, errorMessage);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBidHistory();
     return () => {
       isMounted = false;
     };
-  }, [fetchBidHistory, productId]);
+  }, [isAuthLoading, product.id, isSeller]);
 
   const handleKickSuccess = () => {
     setTimeout(() => {
@@ -113,7 +123,7 @@ const BidHistoryTable = ({
                   <TableHead>Người đấu giá</TableHead>
                   <TableHead>Điểm đánh giá</TableHead>
                   <TableHead className="text-right">Giá đặt</TableHead>
-                  {isSeller && !isEnded && (
+                  {canKick && (
                     <TableHead className="text-right">Hành động</TableHead>
                   )}
                 </TableRow>
@@ -153,11 +163,11 @@ const BidHistoryTable = ({
                       <TableCell className="text-right font-semibold">
                         {formatPrice(Number(bid.amount))}
                       </TableCell>
-                      {isSeller && !isEnded && (
+                      {canKick && (
                         <TableCell className="text-right">
                           <KickBidderDialog
                             bidderId={bid.userId}
-                            productId={productId}
+                            productId={product.id}
                             onSuccess={handleKickSuccess}
                           />
                         </TableCell>
