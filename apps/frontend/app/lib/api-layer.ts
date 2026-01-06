@@ -19,6 +19,7 @@ import type {
   PublicProfile,
   UserRatingSummary,
   MyAutoBid,
+  UserStats,
 
   // Product types
   Product,
@@ -267,6 +268,11 @@ export const api = {
         "GET",
         appendQueryParams("/users/bids", paramsToRecord(params))
       ),
+
+    /**
+     * Get bidder dashboard statistics
+     */
+    getBidderStats: () => apiCall<UserStats>("GET", "/users/stats"),
 
     /**
      * Request upgrade to seller account

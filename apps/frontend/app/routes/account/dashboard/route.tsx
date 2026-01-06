@@ -1,10 +1,8 @@
 import type {
   User,
-  OrderWithDetails,
-  PaginatedResponse,
-  MyAutoBid,
   RatingSummary,
   RatingWithUsers,
+  UserStats,
 } from "@repo/shared-types";
 import { BarChart3, LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -38,9 +36,7 @@ export function meta({}: Route.MetaArgs) {
 export default function AccountDashboardPage() {
   const { user } = useAuth();
   const [userData, setUserData] = useState<User>();
-  const [userOrder, setUserOrder] =
-    useState<PaginatedResponse<OrderWithDetails>>();
-  const [userAutoBids, setUserAutoBids] = useState<MyAutoBid[]>([]);
+  const [userStats, setUserStats] = useState<UserStats>();
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>();
   const [ratingHistory, setRatingHistory] = useState<RatingWithUsers[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,14 +47,12 @@ export default function AccountDashboardPage() {
 
       try {
         setIsLoading(true);
-        const [userRes, orderRes, autoBidsRes, summaryRes, historyRes] =
-          await Promise.all([
-            api.users.getProfile(),
-            api.orders.getAll(),
-            api.users.getBids(),
-            api.ratings.getSummary(user.id),
-            api.ratings.getByUser(user.id, { page: 1, limit: 10 }),
-          ]);
+        const [userRes, statsRes, summaryRes, historyRes] = await Promise.all([
+          api.users.getProfile(),
+          api.users.getBidderStats(),
+          api.ratings.getSummary(user.id),
+          api.ratings.getByUser(user.id, { page: 1, limit: 10 }),
+        ]);
 
         if (userRes?.success && userRes.data) {
           setUserData(userRes.data);
@@ -66,16 +60,8 @@ export default function AccountDashboardPage() {
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
         }
 
-        if (orderRes?.success && orderRes.data) {
-          setUserOrder(orderRes.data);
-        } else {
-          toast.error(ERROR_MESSAGES.SERVER_ERROR);
-        }
-
-        if (autoBidsRes?.success && autoBidsRes.data) {
-          setUserAutoBids(autoBidsRes.data);
-        } else {
-          toast.error(ERROR_MESSAGES.SERVER_ERROR);
+        if (statsRes?.success && statsRes.data) {
+          setUserStats(statsRes.data);
         }
 
         if (summaryRes?.success && summaryRes.data) {
@@ -121,9 +107,7 @@ export default function AccountDashboardPage() {
             Tổng quan chi tiêu
           </h2>
         </div>
-        {userOrder && (
-          <UserStatsCards stats={userOrder.items} autoBids={userAutoBids} />
-        )}
+        {userStats && <UserStatsCards stats={userStats} />}
       </section>
 
       {/* 3. Placeholder for Chart/Recent Activity (Để lấp đầy khoảng trắng dưới cùng) */}
