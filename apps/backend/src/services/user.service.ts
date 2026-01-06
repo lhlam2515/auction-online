@@ -349,7 +349,7 @@ export class UserService {
   }
 
   async getBidderStats(userId: string): Promise<UserStats> {
-    const [completedOrders, totalBids] = await Promise.all([
+    const [completedOrders, totalBids, activeAutoBids] = await Promise.all([
       db
         .select({
           totalSpent: sql<number>`COALESCE(SUM(${orders.finalPrice}), 0)`,
@@ -363,16 +363,22 @@ export class UserService {
         .select({ count: countDistinct(bids.productId) })
         .from(bids)
         .where(eq(bids.userId, userId)),
+      db
+        .select({ count: count() })
+        .from(autoBids)
+        .where(and(eq(autoBids.userId, userId), eq(autoBids.isActive, true))),
     ]);
 
     const totalSpent = Number(completedOrders[0]?.totalSpent || 0);
     const totalAuctionsWon = Number(completedOrders[0]?.totalAuctionsWon || 0);
     const totalBidsPlaced = totalBids[0]?.count || 0;
+    const activeBids = activeAutoBids[0]?.count || 0;
 
     return {
       totalSpent,
       totalBidsPlaced,
       totalAuctionsWon,
+      activeBids,
     };
   }
 

@@ -63,6 +63,7 @@ export interface UserStats {
   totalBidsPlaced: number;
   totalAuctionsWon: number;
   totalSpent: number; // In smallest currency unit
+  activeBids: number; // Number of products currently bidding on
 }
 
 /**
