@@ -1,6 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { UserMinus } from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,64 +15,80 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 import logger from "@/lib/logger";
+
+const kickBidderSchema = z.object({
+  reason: z.string().min(10, "Lý do phải có ít nhất 10 ký tự"),
+});
+
+type KickBidderFormData = z.infer<typeof kickBidderSchema>;
 
 interface KickBidderProps {
   bidderId: string;
   productId: string;
-  bidderName?: string;
-  onSuccess?: () => void;
+  bidderName: string;
 }
 
 const KickBidderDialog = ({
   bidderId,
   productId,
   bidderName,
-  onSuccess,
 }: KickBidderProps) => {
   const [open, setOpen] = useState(false);
   const [isKicking, setIsKicking] = useState(false);
-  const [kickReason, setKickReason] = useState("");
-  const [reasonError, setReasonError] = useState("");
 
-  const handleKickBidder = async () => {
+  const form = useForm<KickBidderFormData>({
+    resolver: zodResolver(kickBidderSchema),
+    defaultValues: {
+      reason: "",
+    },
+  });
+
+  const handleKickBidder = async (data: KickBidderFormData) => {
     if (!bidderId) return;
-
-    // Validate reason
-    if (kickReason.trim().length < 10) {
-      setReasonError("Lý do phải có ít nhất 10 ký tự");
-      return;
-    }
 
     setIsKicking(true);
     try {
       logger.info("Kicking bidder:", {
         bidderId,
-        reason: kickReason,
+        reason: data.reason,
       });
 
       const response = await api.bids.kickBidder(productId, {
         bidderId,
-        reason: kickReason.trim(),
+        reason: data.reason.trim(),
       });
 
-      if (!response.success) {
+      if (response.success) {
+        handleClose();
+        toast.success(`Đã chặn ${bidderName} khỏi phiên đấu giá`);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
         throw new Error(
-          response.error.message || "Không thể kick người đặt giá"
+          response.error.message || "Có lỗi khi chặn người đặt giá"
         );
       }
-
-      // Reset form and close dialog
-      handleClose();
-
-      // Call success callback
-      onSuccess?.();
-    } catch (err) {
-      toast.error("Có lỗi khi kick người đặt giá");
-      logger.error("Error kicking bidder:", err);
+    } catch (error) {
+      const errorMessage = getErrorMessage(
+        error,
+        "Có lỗi khi chặn người đặt giá"
+      );
+      showError(error, errorMessage);
     } finally {
       setIsKicking(false);
     }
@@ -77,8 +96,7 @@ const KickBidderDialog = ({
 
   const handleClose = () => {
     setOpen(false);
-    setKickReason("");
-    setReasonError("");
+    form.reset();
   };
 
   return (
@@ -87,58 +105,78 @@ const KickBidderDialog = ({
         <Button
           size="sm"
           variant="outline"
-          className="cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950"
+          className="text-destructive hover:bg-destructive cursor-pointer"
         >
           <UserMinus className="h-4 w-4" />
+          Chặn
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Xác nhận kick người đặt giá</DialogTitle>
-          <DialogDescription>
-            Bạn có chắc chắn muốn kick{" "}
-            <span className="font-semibold">
-              {bidderName || "người dùng này"}
-            </span>{" "}
-            khỏi phiên đấu giá? Hành động này không thể hoàn tác.
+          <DialogTitle>Xác nhận chặn người đặt giá</DialogTitle>
+          <DialogDescription className="text-accent">
+            <p>
+              Bạn có chắc chắn muốn chặn{" "}
+              <span className="font-medium">{bidderName}</span> khỏi phiên đấu
+              giá?
+            </p>
+            <p>Hành động này không thể hoàn tác.</p>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="kickReason" className="text-sm font-medium">
-              Lý do kick <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="kickReason"
-              value={kickReason}
-              onChange={(e) => {
-                setKickReason(e.target.value);
-                if (reasonError) setReasonError("");
-              }}
-              placeholder="Nhập lý do kick người đặt giá (tối thiểu 10 ký tự)"
-              disabled={isKicking}
-              className={reasonError ? "border-red-500" : ""}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleKickBidder)} className="py-2">
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Lý do chặn <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Nhập lý do chặn người đặt giá (tối thiểu 10 ký tự)"
+                      disabled={isKicking}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Đã nhập: {field.value?.length || 0}/10 ký tự tối thiểu
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {reasonError && (
-              <p className="text-sm text-red-500">{reasonError}</p>
-            )}
-            <p className="text-xs text-gray-500">
-              Đã nhập: {kickReason.length}/10 ký tự tối thiểu
-            </p>
-          </div>
-        </div>
+          </form>
+        </Form>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isKicking}>
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isKicking}
+            className="cursor-pointer"
+          >
             Hủy
           </Button>
           <Button
             variant="destructive"
-            onClick={handleKickBidder}
-            disabled={isKicking || kickReason.trim().length < 10}
+            onClick={form.handleSubmit(handleKickBidder)}
+            disabled={isKicking || !form.formState.isValid}
+            className="cursor-pointer"
           >
-            {isKicking ? "Đang xử lý..." : "Kick"}
+            {isKicking ? (
+              <>
+                <Spinner />
+                Đang xử lý...
+              </>
+            ) : (
+              <>
+                <UserMinus />
+                Chặn
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

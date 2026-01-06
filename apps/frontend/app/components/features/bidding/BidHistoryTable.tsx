@@ -1,11 +1,12 @@
 import type { BidWithUser, ProductDetails } from "@repo/shared-types";
-import { Star, ChevronDown, ChevronUp, Gavel, Loader2 } from "lucide-react";
+import { Star, ChevronDown, ChevronUp, Gavel } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { KickBidderDialog } from "@/components/features/seller";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -82,19 +83,13 @@ const BidHistoryTable = ({
     };
   }, [isAuthLoading, product.id, isSeller]);
 
-  const handleKickSuccess = () => {
-    setTimeout(() => {
-      window.location.reload();
-    }, 2000);
-  };
-
   const displayedBids = showAll ? bids : bids.slice(0, 5);
 
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-5 text-2xl">
-          <Gavel className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+          <Gavel className="text-muted-foreground h-5 w-5" />
           Lịch sử đấu giá
           {!loading && (
             <span className="text-muted-foreground text-sm">
@@ -105,17 +100,17 @@ const BidHistoryTable = ({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-muted-foreground text-center">
-            <Loader2 className="mr-2 inline-block h-5 w-5 animate-spin" />
+          <div className="text-muted-foreground flex items-center justify-center gap-2 text-center">
+            <Spinner className="size-5" />
             Đang tải lịch sử đấu giá...
-          </p>
+          </div>
         ) : bids.length === 0 ? (
           <div className="text-muted-foreground py-8 text-center">
             <Gavel className="mx-auto mb-2 h-12 w-12 opacity-50" />
             <p>Chưa có lượt đấu giá nào</p>
           </div>
         ) : (
-          <>
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -124,7 +119,7 @@ const BidHistoryTable = ({
                   <TableHead>Điểm đánh giá</TableHead>
                   <TableHead className="text-right">Giá đặt</TableHead>
                   {canKick && (
-                    <TableHead className="text-right">Hành động</TableHead>
+                    <TableHead className="text-center">Hành động</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -136,17 +131,15 @@ const BidHistoryTable = ({
                     <TableRow
                       key={bid.id}
                       className={
-                        index === 0 ? "bg-emerald-50 dark:bg-emerald-950" : ""
+                        index === 0 ? "bg-green-50 dark:bg-green-950" : ""
                       }
                     >
-                      <TableCell className="font-medium">
-                        {formatDate(bidDateTime)}
-                      </TableCell>
+                      <TableCell>{formatDate(bidDateTime)}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 font-medium">
                           {bid.userName}
                           {index === 0 && (
-                            <Badge className="bg-emerald-600 hover:bg-emerald-700">
+                            <Badge className="bg-green-600">
                               Người thắng hiện tại
                             </Badge>
                           )}
@@ -155,20 +148,20 @@ const BidHistoryTable = ({
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                          <span className="font-semibold text-amber-500">
+                          <span className="font-medium text-amber-500">
                             {bid.ratingScore * 100}%
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold">
+                      <TableCell className="text-right font-medium">
                         {formatPrice(Number(bid.amount))}
                       </TableCell>
                       {canKick && (
-                        <TableCell className="text-right">
+                        <TableCell className="text-center">
                           <KickBidderDialog
                             bidderId={bid.userId}
                             productId={product.id}
-                            onSuccess={handleKickSuccess}
+                            bidderName={bid.userName}
                           />
                         </TableCell>
                       )}
@@ -181,23 +174,23 @@ const BidHistoryTable = ({
             {bids.length > 5 && (
               <Button
                 variant="outline"
-                className="w-full cursor-pointer bg-transparent"
+                className="w-full cursor-pointer"
                 onClick={() => setShowAll(!showAll)}
               >
                 {showAll ? (
                   <>
-                    <ChevronUp className="mr-2 h-4 w-4" />
+                    <ChevronUp className="h-4 w-4" />
                     Thu gọn
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="mr-2 h-4 w-4" />
+                    <ChevronDown className="h-4 w-4" />
                     Xem thêm ({bids.length - 5} lượt đặt giá)
                   </>
                 )}
               </Button>
             )}
-          </>
+          </div>
         )}
       </CardContent>
     </Card>
