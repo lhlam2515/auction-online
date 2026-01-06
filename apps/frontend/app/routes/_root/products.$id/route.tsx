@@ -47,19 +47,19 @@ export default function ProductDetailPage() {
     if (!id) return;
 
     try {
-      setTimeout(async () => {
-        const product_res = await api.products.getById(id);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-        if (!product_res.success || !product_res.data) {
-          throw new Error("Không thể làm mới dữ liệu sản phẩm");
-        }
+      const product_res = await api.products.getById(id);
 
-        setProduct(product_res.data);
-        setIsEnded(
-          product_res.data.status !== "ACTIVE" ||
-            new Date() > new Date(product_res.data.endTime)
-        );
-      }, 3000);
+      if (!product_res.success || !product_res.data) {
+        throw new Error("Không thể làm mới dữ liệu sản phẩm");
+      }
+
+      setProduct(product_res.data);
+      setIsEnded(
+        product_res.data.status !== "ACTIVE" ||
+          new Date() > new Date(product_res.data.endTime)
+      );
     } catch (error) {
       const errorMessage = getErrorMessage(
         error,
