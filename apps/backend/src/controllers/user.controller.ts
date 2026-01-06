@@ -51,22 +51,6 @@ export const updateProfile = asyncHandler(
   }
 );
 
-export const uploadAvatar = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const file = req.file;
-
-    if (!file) {
-      throw new BadRequestError("Please upload an image");
-    }
-
-    // Reuse uploadService
-    const { urls } = await uploadService.uploadImages([file], "avatars");
-    const avatarUrl = urls[0];
-
-    return ResponseHandler.sendSuccess(res, { url: avatarUrl });
-  }
-);
-
 export const changePassword = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: userId } = req.user!;

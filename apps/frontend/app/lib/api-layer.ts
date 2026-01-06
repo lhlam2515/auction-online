@@ -226,14 +226,6 @@ export const api = {
     },
 
     /**
-     * Upload user avatar
-     */
-    uploadAvatar: (formData: FormData) =>
-      apiCall<{ url: string }>("POST", "/users/avatar", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      }),
-
-    /**
      * Change user password
      */
     changePassword: (data: ChangePasswordRequest) =>

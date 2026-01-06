@@ -31,17 +31,6 @@ router.put(
 );
 
 /**
- * @route   POST /api/users/avatar
- * @desc    Upload user avatar
- * @access  Private
- */
-router.post(
-  "/avatar",
-  uploadMiddleware.single("avatar"),
-  userController.uploadAvatar
-);
-
-/**
  * @route   PATCH /api/users/password
  * @desc    Change password
  * @access  Private
