@@ -93,6 +93,13 @@ router.get(
 );
 
 /**
+ * @route   GET /api/users/stats
+ * @desc    Get bidder dashboard statistics
+ * @access  Private
+ */
+router.get("/stats", userController.getBidderStats);
+
+/**
  * @route   POST /api/users/upgrade-request
  * @desc    Request upgrade to Seller role
  * @access  Private (Bidder)

@@ -8,6 +8,7 @@ import type {
   UpdateUserInfoRequest,
   User,
   PublicProfile,
+  UserStats,
 } from "@repo/shared-types";
 import {
   eq,
@@ -345,6 +346,34 @@ export class UserService {
         imageUrl: item.product.images[0]?.imageUrl || null,
       },
     }));
+  }
+
+  async getBidderStats(userId: string): Promise<UserStats> {
+    const [completedOrders, totalBids] = await Promise.all([
+      db
+        .select({
+          totalSpent: sql<number>`COALESCE(SUM(${orders.finalPrice}), 0)`,
+          totalAuctionsWon: sql<number>`COUNT(*)`,
+        })
+        .from(orders)
+        .where(
+          and(eq(orders.winnerId, userId), eq(orders.status, "COMPLETED"))
+        ),
+      db
+        .select({ count: countDistinct(bids.productId) })
+        .from(bids)
+        .where(eq(bids.userId, userId)),
+    ]);
+
+    const totalSpent = Number(completedOrders[0]?.totalSpent || 0);
+    const totalAuctionsWon = Number(completedOrders[0]?.totalAuctionsWon || 0);
+    const totalBidsPlaced = totalBids[0]?.count || 0;
+
+    return {
+      totalSpent,
+      totalBidsPlaced,
+      totalAuctionsWon,
+    };
   }
 
   async getAllUsersAdmin(

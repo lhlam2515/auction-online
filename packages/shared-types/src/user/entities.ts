@@ -57,6 +57,15 @@ export interface UserRatingSummary {
 }
 
 /**
+ * User statistics for dashboard
+ */
+export interface UserStats {
+  totalBidsPlaced: number;
+  totalAuctionsWon: number;
+  totalSpent: number; // In smallest currency unit
+}
+
+/**
  * Upgrade request entity - matches backend upgradeRequests table
  */
 export interface UpgradeRequest {
