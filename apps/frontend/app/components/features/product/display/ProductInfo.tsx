@@ -2,7 +2,8 @@ import type { ProductDetails } from "@repo/shared-types";
 import { ShoppingCart, Clock, Calendar } from "lucide-react";
 import { Link } from "react-router";
 
-import { UserAvatar, RatingBadge } from "@/components/common";
+import { UserAvatar } from "@/components/common";
+import { RatingBadge } from "@/components/common/badges";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
 import { APP_ROUTES } from "@/constants/routes";

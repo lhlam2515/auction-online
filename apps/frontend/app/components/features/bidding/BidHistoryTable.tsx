@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Gavel } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
 
-import { RatingBadge } from "@/components/common";
+import { RatingBadge } from "@/components/common/badges";
 import { KickBidderDialog } from "@/components/features/seller";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

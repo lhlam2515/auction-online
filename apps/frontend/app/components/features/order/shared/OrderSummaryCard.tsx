@@ -2,13 +2,12 @@ import type { OrderWithDetails } from "@repo/shared-types";
 import { MessageCircle, MapPin, Package } from "lucide-react";
 import { useState } from "react";
 
-import { RatingBadge } from "@/components/common";
+import { RatingBadge } from "@/components/common/badges";
 import { PrivateChatWindow } from "@/components/features/interaction";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 interface OrderSummaryCardProps {
   order: OrderWithDetails;
