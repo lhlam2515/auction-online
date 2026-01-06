@@ -1,6 +1,7 @@
 import type { BidWithUser, ProductDetails } from "@repo/shared-types";
 import { ChevronDown, ChevronUp, Gavel } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Link } from "react-router";
 
 import { RatingBadge } from "@/components/common";
 import { KickBidderDialog } from "@/components/features/seller";
@@ -16,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { APP_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
 import { getErrorMessage, showError } from "@/lib/handlers/error";
 import logger from "@/lib/logger";
@@ -140,7 +142,16 @@ const BidHistoryTable = ({
                       <TableCell>{formatDate(bidDateTime)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 font-medium">
-                          {bid.userName}
+                          {isSeller ? (
+                            <Link
+                              to={APP_ROUTES.PROFILE(bid.userId)}
+                              className="hover:underline"
+                            >
+                              {bid.userName}
+                            </Link>
+                          ) : (
+                            bid.userName
+                          )}
                           {index === 0 && (
                             <Badge className="bg-green-600">
                               Người thắng hiện tại

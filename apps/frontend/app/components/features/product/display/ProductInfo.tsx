@@ -1,9 +1,11 @@
 import type { ProductDetails } from "@repo/shared-types";
 import { ShoppingCart, Clock, Calendar } from "lucide-react";
+import { Link } from "react-router";
 
 import { UserAvatar, RatingBadge } from "@/components/common";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
+import { APP_ROUTES } from "@/constants/routes";
 import useCountdown from "@/hooks/useCountdown";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
@@ -128,7 +130,16 @@ const ProductInfo = ({ product, className }: ProductInfoProps) => {
                   imageUrl={product.sellerAvatarUrl}
                 />
                 <p className="text-foreground text-xl font-bold">
-                  {product.sellerName}
+                  {product.sellerId === null ? (
+                    "Người dùng đã xóa"
+                  ) : (
+                    <Link
+                      to={APP_ROUTES.PROFILE(product.sellerId)}
+                      className="hover:underline"
+                    >
+                      {product.sellerName}
+                    </Link>
+                  )}
                 </p>
               </div>
             </div>
