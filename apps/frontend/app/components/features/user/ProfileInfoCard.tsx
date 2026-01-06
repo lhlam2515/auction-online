@@ -1,14 +1,14 @@
 import type { PublicProfile } from "@repo/shared-types";
 import {
   Calendar,
-  MessageCircle,
   Shield,
   Star,
   User as UserIcon,
+  Gavel,
+  Store,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -105,13 +105,26 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
               Verified
             </span>
           </div>
-        </div>
 
-        <div className="pt-2">
-          <Button className="w-full" variant="outline">
-            <MessageCircle className="mr-2 h-4 w-4" />
-            Nhắn tin
-          </Button>
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2 text-sm">
+              <Store className="h-4 w-4" /> Sản phẩm bán
+            </span>
+            <span className="text-sm font-medium">
+              {profile.stats?.totalAuctionProducts || 0}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2 text-sm">
+              <Gavel className="h-4 w-4" /> Đã tham gia đấu giá
+            </span>
+            <span className="text-sm font-medium">
+              {profile.stats?.totalBiddingProducts || 0}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>
