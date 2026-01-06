@@ -7,12 +7,14 @@ import {
   isSellerExpired,
   getDaysUntilExpiration,
   shouldShowExpirationWarning,
+  isTemporarySeller,
 } from "@/lib/auth-utils";
 
 export interface SellerStatus {
   isSeller: boolean;
   isActive: boolean;
   isExpired: boolean;
+  isTemporary: boolean;
   expireDate: Date | null;
   daysRemaining: number | null;
   shouldShowWarning: boolean;
@@ -29,6 +31,7 @@ export function useSellerStatus(): SellerStatus {
     const isSeller = hasSellerRole(user);
     const isActive = hasActiveSellerRole(user);
     const expired = isSellerExpired(user);
+    const temporary = isTemporarySeller(user);
     const expireDate = user?.sellerExpireDate
       ? new Date(user.sellerExpireDate)
       : null;
@@ -39,6 +42,7 @@ export function useSellerStatus(): SellerStatus {
       isSeller,
       isActive,
       isExpired: expired,
+      isTemporary: temporary,
       expireDate,
       daysRemaining,
       shouldShowWarning: showWarning,

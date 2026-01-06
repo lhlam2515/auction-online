@@ -12,7 +12,7 @@ export interface UserAuthData {
   avatarUrl?: string;
   accountStatus: AccountStatus;
   sellerExpireDate?: string | null; // ISO timestamp for seller expiration
-  hasActiveProducts?: boolean; // Whether user has active products (for sellers)
+  isTemporarySeller?: boolean; // Whether user is a temporary seller (expired seller with active products and incomplete orders)
 }
 
 /**

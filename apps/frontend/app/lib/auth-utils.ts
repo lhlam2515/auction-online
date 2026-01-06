@@ -61,18 +61,23 @@ export function isSellerExpired(user: UserAuthData | null): boolean {
 }
 
 /**
+ * Check if user is a temporary seller
+ * Temporary seller = expired seller with active products AND incomplete orders
+ */
+export function isTemporarySeller(user: UserAuthData | null): boolean {
+  return user?.isTemporarySeller === true;
+}
+
+/**
  * Check if user can access seller pages
  * Sellers with expired accounts can still access if they have products
  */
-export function canAccessSellerPages(
-  user: UserAuthData | null,
-  hasProducts: boolean = false
-): boolean {
+export function canAccessSellerPages(user: UserAuthData | null): boolean {
   if (!hasSellerRole(user)) return false;
 
   if (hasActiveSellerRole(user)) return true;
 
-  return isSellerExpired(user) && hasProducts;
+  return isTemporarySeller(user);
 }
 
 /**

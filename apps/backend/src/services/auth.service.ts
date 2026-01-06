@@ -1,11 +1,11 @@
 import type { UserAuthData, UserRole } from "@repo/shared-types";
-import { and, eq, like, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
 import { supabase, supabaseAdmin } from "@/config/supabase";
-import { passwordResetTokens, users, products } from "@/models";
-import { otpService } from "@/services";
+import { passwordResetTokens, users } from "@/models";
+import { otpService, sellerService } from "@/services";
 import { generateUniqueUsername } from "@/utils";
 import {
   BadRequestError,
@@ -46,18 +46,7 @@ export class AuthService {
       );
     }
 
-    // Check if user has any products (for seller access control)
-    let hasActiveProducts = false;
-    if (userProfile.role === "SELLER") {
-      const productCount = await db.query.products.findFirst({
-        where: and(
-          eq(products.sellerId, userId),
-          eq(products.status, "ACTIVE")
-        ),
-        columns: { id: true },
-      });
-      hasActiveProducts = !!productCount;
-    }
+    const isTemporarySeller = await sellerService.isTemporarySeller(userId);
 
     return {
       ...userProfile,
@@ -65,7 +54,7 @@ export class AuthService {
       sellerExpireDate: userProfile.sellerExpireDate
         ? userProfile.sellerExpireDate.toISOString()
         : null,
-      hasActiveProducts,
+      isTemporarySeller,
     };
   }
 
@@ -217,18 +206,9 @@ export class AuthService {
         );
       }
 
-      // Check if user has any products (for seller access control)
-      let hasActiveProducts = false;
-      if (userProfile.role === "SELLER") {
-        const productCount = await db.query.products.findFirst({
-          where: and(
-            eq(products.sellerId, userProfile.id),
-            eq(products.status, "ACTIVE")
-          ),
-          columns: { id: true },
-        });
-        hasActiveProducts = !!productCount;
-      }
+      const isTemporarySeller = await sellerService.isTemporarySeller(
+        userProfile.id
+      );
 
       // 4. Prepare UserAuthData response
       const userData: UserAuthData = {
@@ -240,7 +220,7 @@ export class AuthService {
         avatarUrl: userProfile.avatarUrl || undefined, // Handle null vs undefined
         accountStatus: userProfile.accountStatus,
         sellerExpireDate: userProfile.sellerExpireDate?.toISOString() ?? null,
-        hasActiveProducts,
+        isTemporarySeller,
       };
 
       return {

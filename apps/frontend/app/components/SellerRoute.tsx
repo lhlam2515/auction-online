@@ -1,16 +1,18 @@
 import { AlertCircle } from "lucide-react";
 import { Navigate, useLocation, useNavigate } from "react-router";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ACCOUNT_ROUTES, AUTH_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
 import {
   hasSellerRole,
   isSellerExpired,
-  canAccessSellerPages,
+  isTemporarySeller,
+  hasActiveSellerRole,
 } from "@/lib/auth-utils";
 import { formatDate } from "@/lib/utils";
+
+import { AlertSection } from "./common/feedback";
 
 interface SellerRouteProps {
   children: React.ReactNode;
@@ -38,57 +40,66 @@ export function SellerRoute({
 
   const isSeller = hasSellerRole(user);
   const expired = isSellerExpired(user);
-  const hasActiveProducts = user?.hasActiveProducts ?? false;
+  const temporary = isTemporarySeller(user);
 
   if (!isSeller) {
     return <Navigate to={ACCOUNT_ROUTES.UPGRADE} replace />;
   }
 
-  if (requireActive && expired) {
-    return (
-      <div className="container mx-auto max-w-2xl py-12">
-        <Alert
-          variant="destructive"
-          className="mb-6 border-red-300 bg-red-50 text-red-600"
-        >
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Tài Khoản Người Bán Đã Hết Hạn</AlertTitle>
-          <AlertDescription>
-            Tài khoản người bán của bạn đã hết hạn vào lúc{" "}
-            {user?.sellerExpireDate
-              ? formatDate(user.sellerExpireDate)
-              : "không xác định"}
-            . Bạn cần gia hạn tài khoản để thực hiện chức năng này.
-          </AlertDescription>
-        </Alert>
+  // For pages that require active seller (like create product)
+  if (requireActive) {
+    // Only active sellers can create products
+    if (!hasActiveSellerRole(user)) {
+      return (
+        <div className="container mx-auto max-w-2xl py-12">
+          <AlertSection
+            variant="destructive"
+            icon={AlertCircle}
+            title={
+              temporary
+                ? "Người Bán Tạm Thời Không Thể Tạo Sản Phẩm Mới"
+                : "Tài Khoản Người Bán Đã Hết Hạn"
+            }
+            description={
+              temporary
+                ? "Bạn đang ở trạng thái người bán tạm thời. Bạn có thể quản lý các sản phẩm và đơn hàng hiện có, nhưng không thể tạo sản phẩm mới. Vui lòng gia hạn tài khoản để tạo sản phẩm mới."
+                : `Tài khoản người bán của bạn đã hết hạn vào lúc ${
+                    user?.sellerExpireDate
+                      ? formatDate(user.sellerExpireDate)
+                      : "không xác định"
+                  }. Bạn cần gia hạn tài khoản để thực hiện chức năng này.`
+            }
+          />
 
-        <div className="flex flex-col gap-4">
-          <Button
-            size="lg"
-            onClick={() => {
-              navigate(ACCOUNT_ROUTES.UPGRADE);
-            }}
-          >
-            Gia Hạn Tài Khoản Người Bán
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              navigate(-1);
-            }}
-          >
-            Quay Lại
-          </Button>
+          <div className="flex flex-col gap-4">
+            <Button
+              size="lg"
+              onClick={() => {
+                navigate(ACCOUNT_ROUTES.UPGRADE);
+              }}
+            >
+              Gia Hạn Tài Khoản Người Bán
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigate(-1);
+              }}
+            >
+              Quay Lại
+            </Button>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
-  if (expired && !hasActiveProducts) {
+  // For general seller pages (not requiring active status)
+  if (expired && !temporary) {
     return <Navigate to={ACCOUNT_ROUTES.UPGRADE} replace />;
   }
 
-  if (!canAccessSellerPages(user, hasActiveProducts)) {
+  if (expired && temporary) {
     return <Navigate to={ACCOUNT_ROUTES.UPGRADE} replace />;
   }
 

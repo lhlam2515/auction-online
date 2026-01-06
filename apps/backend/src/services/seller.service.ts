@@ -3,7 +3,7 @@ import { eq, and, count, isNotNull, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
-import { orders, products } from "@/models";
+import { orders, products, users } from "@/models";
 
 const PRODUCT_STATUS_ACTIVE = "ACTIVE";
 const ORDER_STATUS_COMPLETED = "COMPLETED";
@@ -11,6 +11,55 @@ const DEFAULT_REVENUE = 0;
 const MIN_SUCCESS_RATE = 0;
 
 export class SellerService {
+  async isTemporarySeller(sellerId: string): Promise<boolean> {
+    // A temporary seller is defined as a seller whose account has expired
+    // but still has active products and incomplete orders.
+    try {
+      const userProfile = await db.query.users.findFirst({
+        where: eq(users.id, sellerId),
+        columns: { id: true, role: true, sellerExpireDate: true },
+      });
+
+      if (!userProfile || userProfile.role !== "SELLER") {
+        return false;
+      }
+
+      let hasActiveProducts = false;
+      let hasIncompleteOrders = false;
+
+      const [activeProducts, incompleteOrders] = await Promise.all([
+        // Check for active products
+        db.query.products.findFirst({
+          where: and(
+            eq(products.sellerId, sellerId),
+            eq(products.status, "ACTIVE")
+          ),
+          columns: { id: true },
+        }),
+        // Check for incomplete orders (not COMPLETED or CANCELLED)
+        db.query.orders.findFirst({
+          where: and(
+            eq(orders.sellerId, sellerId),
+            sql`${orders.status} IN ('PENDING', 'PAID', 'SHIPPED')`
+          ),
+          columns: { id: true },
+        }),
+      ]);
+
+      hasActiveProducts = !!activeProducts;
+      hasIncompleteOrders = !!incompleteOrders;
+
+      const isExpired = userProfile.sellerExpireDate
+        ? new Date(userProfile.sellerExpireDate) <= new Date()
+        : false;
+
+      return isExpired && hasActiveProducts && hasIncompleteOrders;
+    } catch (error) {
+      logger.error("Error checking temporary seller status:", error);
+      return false;
+    }
+  }
+
   async getStats(sellerId: string): Promise<SellerStats> {
     try {
       // Execute all queries in parallel for better performance
