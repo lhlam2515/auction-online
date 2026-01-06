@@ -82,14 +82,17 @@ const AutoBidForm = ({
           variant="warning"
           icon={InfoIcon}
           description={
-            <p>
-              Bạn đã có đấu giá tự động với giá tối đa:{" "}
-              <strong>{formatPrice(Number(existingAutoBid.maxAmount))}</strong>
-              <br />
-              <span className="text-sm">
-                Cập nhật giá tối đa mới để thay đổi.
-              </span>
-            </p>
+            <>
+              <p>
+                Bạn đã có đấu giá tự động với giá tối đa:{" "}
+                <strong>
+                  {formatPrice(Number(existingAutoBid.maxAmount))}
+                </strong>
+                {"\n"}
+                <span className="text-sm"></span>
+              </p>
+              <p>Cập nhật giá tối đa mới để thay đổi.</p>
+            </>
           }
         />
       )}
