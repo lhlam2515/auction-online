@@ -1,4 +1,4 @@
-import type { ProductDetails, User } from "@repo/shared-types";
+import type { ProductDetails } from "@repo/shared-types";
 import { Star, ShoppingCart, Clock, Calendar } from "lucide-react";
 
 import { UserAvatar } from "@/components/common";
@@ -7,26 +7,15 @@ import { TIME } from "@/constants/api";
 import useCountdown from "@/hooks/useCountdown";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
-import ProductActionButtons from "./ProductActionButtons";
-
 interface ProductInfoProps {
   product: ProductDetails;
-  isSeller: boolean;
-  userData: User | null;
   className?: string;
 }
 
 const RELATIVE_TIME_THRESHOLD_MS = 3 * TIME.DAY;
 
-const ProductInfo = ({
-  product,
-  isSeller,
-  userData,
-  className,
-}: ProductInfoProps) => {
+const ProductInfo = ({ product, className }: ProductInfoProps) => {
   const endDateTime = new Date(product.endTime);
-  const isAuctionEnded =
-    product.status !== "ACTIVE" || new Date() > endDateTime;
 
   let timeDisplay = useCountdown(endDateTime, false);
   const usingRelativeTime =
@@ -146,7 +135,7 @@ const ProductInfo = ({
 
             <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-2 dark:bg-amber-950">
               <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-              <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+              <span className="text-lg font-bold text-amber-500 dark:text-amber-500">
                 {(product.sellerRatingScore * 100).toFixed(0)}%
               </span>
               <span className="text-muted-foreground text-sm">
@@ -156,14 +145,6 @@ const ProductInfo = ({
           </div>
         </CardContent>
       </Card>
-
-      {/* Action Buttons */}
-      <ProductActionButtons
-        product={product}
-        isSeller={isSeller}
-        userData={userData}
-        isAuctionEnded={isAuctionEnded}
-      />
     </div>
   );
 };

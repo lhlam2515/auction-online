@@ -12,20 +12,21 @@ interface ProductActionButtonsProps {
   product: ProductDetails;
   isSeller: boolean;
   userData: User | null;
-  isAuctionEnded: boolean;
 }
 
 const ProductActionButtons = ({
   product,
   isSeller,
   userData,
-  isAuctionEnded,
 }: ProductActionButtonsProps) => {
   const {
     toggleWatchlist,
     isInWatchlist,
     isLoading: watchlistLoading,
   } = useWatchlist();
+
+  const isAuctionEnded =
+    product.status !== "ACTIVE" || new Date() > new Date(product.endTime);
 
   // Memoize để tránh re-compute liên tục
   const isProductInWatchlist = useMemo(

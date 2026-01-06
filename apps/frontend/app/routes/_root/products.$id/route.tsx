@@ -11,6 +11,7 @@ import {
   ProductDescription,
   ProductRelatedList,
 } from "@/components/features/product/display";
+import ProductActionButtons from "@/components/features/product/display/ProductActionButtons";
 import { APP_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
@@ -139,30 +140,33 @@ export default function ProductDetailPage() {
   return (
     <>
       {!loading && product && (
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto space-y-10 px-4 py-6">
           {/* Top Section */}
-          <section className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
+          <section className="grid grid-cols-1 gap-8 lg:grid-cols-5">
             <ProductImageGallery
               productId={product.id}
               className="lg:col-span-2"
             />
 
-            <ProductInfo
-              className="lg:col-span-3"
-              product={product}
-              isSeller={isSeller}
-              userData={userData}
-            />
+            <div className="space-y-6 lg:col-span-3">
+              <ProductInfo product={product} />
+
+              <ProductActionButtons
+                product={product}
+                isSeller={isSeller}
+                userData={userData}
+              />
+            </div>
           </section>
 
-          <section className="mb-8">
+          <section>
             <ProductDescription
               productId={product.id}
               initialDescription={product.description}
             />
           </section>
 
-          <section className="mb-8">
+          <section>
             <BidHistoryTable
               product={product}
               userId={user?.id}
@@ -171,7 +175,7 @@ export default function ProductDetailPage() {
             />
           </section>
 
-          <section className="mb-8">
+          <section>
             <ProductQnA
               productId={product.id}
               isLoggedIn={!!user}
@@ -180,7 +184,7 @@ export default function ProductDetailPage() {
             />
           </section>
 
-          <section className="mb-8">
+          <section>
             <ProductRelatedList productId={product.id} />
           </section>
         </div>
