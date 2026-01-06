@@ -174,7 +174,7 @@ export class RatingService {
       .update(users)
       .set({
         ratingCount: count,
-        ratingScore: avgScore,
+        ratingScore: Math.min(Math.max(avgScore, 0), 1), // Clamp between 0 and 1
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
