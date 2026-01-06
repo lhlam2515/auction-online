@@ -1,14 +1,24 @@
-import type { SellerStats, User } from "@repo/shared-types";
+import type {
+  SellerStats,
+  User,
+  RatingSummary,
+  RatingWithUsers,
+} from "@repo/shared-types";
 import { LayoutDashboard, BarChart3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import {
+  RatingSummaryCard,
+  RatingHistoryList,
+} from "@/components/features/interaction/rating";
+import {
   SellerProfileHeader,
   SellerStatsCards,
 } from "@/components/features/seller";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
 
 import type { Route } from "./+types/route";
@@ -26,20 +36,38 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function SellerDashboardPage() {
+  const { user: authUser } = useAuth();
   const [stats, setStats] = useState<SellerStats | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [ratingSummary, setRatingSummary] = useState<RatingSummary>();
+  const [ratingHistory, setRatingHistory] = useState<RatingWithUsers[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchAllData = async () => {
+      if (!authUser?.id) return;
+
       try {
-        const [statsResult, userResult] = await Promise.all([
-          api.seller.getStats(),
-          api.users.getProfile(),
-        ]);
+        setIsLoading(true);
+
+        const [statsResult, userResult, summaryRes, historyRes] =
+          await Promise.all([
+            api.seller.getStats(),
+            api.users.getProfile(),
+            api.ratings.getSummary(authUser.id),
+            api.ratings.getByUser(authUser.id, { page: 1, limit: 10 }),
+          ]);
 
         if (statsResult?.success) setStats(statsResult.data);
         if (userResult?.success) setUser(userResult.data);
+
+        if (summaryRes?.success && summaryRes.data) {
+          setRatingSummary(summaryRes.data);
+        }
+
+        if (historyRes?.success && historyRes.data) {
+          setRatingHistory(historyRes.data.items);
+        }
       } catch (error) {
         toast.error("Không thể tải dữ liệu dashboard");
         console.error("Dashboard data fetch error:", error);
@@ -48,8 +76,8 @@ export default function SellerDashboardPage() {
       }
     };
 
-    fetchDashboardData();
-  }, []);
+    fetchAllData();
+  }, [authUser?.id]);
 
   if (isLoading) {
     return (
@@ -86,17 +114,15 @@ export default function SellerDashboardPage() {
           </div>
         </Card>
 
-        {/* Vùng này dành cho Sản phẩm sắp hết hạn / Hoạt động gần đây (chiếm 3 phần) */}
-        <Card className="col-span-3 min-h-[300px]">
-          <CardHeader>
-            <CardTitle className="text-base">Hoạt động gần đây</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-muted-foreground py-10 text-center text-sm">
-              Chưa có hoạt động mới
-            </div>
-          </CardContent>
-        </Card>
+        {/* Vùng này dành cho Rating Summary */}
+        <div className="col-span-3">
+          {ratingSummary && <RatingSummaryCard summary={ratingSummary} />}
+        </div>
+      </section>
+
+      {/* 4. Rating History Section */}
+      <section>
+        <RatingHistoryList ratings={ratingHistory} isLoading={isLoading} />
       </section>
     </div>
   );

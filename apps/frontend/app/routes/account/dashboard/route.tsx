@@ -3,13 +3,19 @@ import type {
   OrderWithDetails,
   PaginatedResponse,
   MyAutoBid,
+  RatingSummary,
+  RatingWithUsers,
 } from "@repo/shared-types";
 import { BarChart3, LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  RatingSummaryCard,
+  RatingHistoryList,
+} from "@/components/features/interaction/rating";
 import { UserProfileHeader, UserStatsCards } from "@/components/features/user";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { ERROR_MESSAGES } from "@/constants/api";
 import { useAuth } from "@/contexts/auth-provider";
@@ -35,16 +41,24 @@ export default function AccountDashboardPage() {
   const [userOrder, setUserOrder] =
     useState<PaginatedResponse<OrderWithDetails>>();
   const [userAutoBids, setUserAutoBids] = useState<MyAutoBid[]>([]);
+  const [ratingSummary, setRatingSummary] = useState<RatingSummary>();
+  const [ratingHistory, setRatingHistory] = useState<RatingWithUsers[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    const fetchUserDate = async () => {
+    const fetchAllData = async () => {
+      if (!user?.id) return;
+
       try {
         setIsLoading(true);
-        const [userRes, orderRes, autoBidsRes] = await Promise.all([
-          api.users.getProfile(),
-          api.orders.getAll(),
-          api.users.getBids(),
-        ]);
+        const [userRes, orderRes, autoBidsRes, summaryRes, historyRes] =
+          await Promise.all([
+            api.users.getProfile(),
+            api.orders.getAll(),
+            api.users.getBids(),
+            api.ratings.getSummary(user.id),
+            api.ratings.getByUser(user.id, { page: 1, limit: 10 }),
+          ]);
 
         if (userRes?.success && userRes.data) {
           setUserData(userRes.data);
@@ -63,14 +77,24 @@ export default function AccountDashboardPage() {
         } else {
           toast.error(ERROR_MESSAGES.SERVER_ERROR);
         }
+
+        if (summaryRes?.success && summaryRes.data) {
+          setRatingSummary(summaryRes.data);
+        }
+
+        if (historyRes?.success && historyRes.data) {
+          setRatingHistory(historyRes.data.items);
+        }
       } catch (error) {
         toast.error(ERROR_MESSAGES.SERVER_ERROR);
+        console.error("Failed to fetch dashboard data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchUserDate();
-  }, []);
+
+    fetchAllData();
+  }, [user?.id]);
 
   if (isLoading) {
     return (
@@ -112,17 +136,15 @@ export default function AccountDashboardPage() {
           </div>
         </Card>
 
-        {/* Vùng này dành cho Sản phẩm sắp hết hạn / Hoạt động gần đây (chiếm 3 phần) */}
-        <Card className="col-span-3 min-h-[300px]">
-          <CardHeader>
-            <CardTitle className="text-base">Hoạt động gần đây</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-muted-foreground py-10 text-center text-sm">
-              Chưa có hoạt động mới
-            </div>
-          </CardContent>
-        </Card>
+        {/* Vùng này dành cho Rating Summary */}
+        <div className="col-span-3">
+          {ratingSummary && <RatingSummaryCard summary={ratingSummary} />}
+        </div>
+      </section>
+
+      {/* 4. Rating History Section */}
+      <section>
+        <RatingHistoryList ratings={ratingHistory} isLoading={isLoading} />
       </section>
     </div>
   );
