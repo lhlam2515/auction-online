@@ -31,5 +31,4 @@ const RatingBadge = ({ score, count, className }: RatingBadgeProps) => {
   );
 };
 
-export { RatingBadge };
-export type { RatingBadgeProps };
+export default RatingBadge;

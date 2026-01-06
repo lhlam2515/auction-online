@@ -8,7 +8,8 @@ import {
   Store,
 } from "lucide-react";
 
-import { RoleBadge, UserAvatar } from "@/components/common";
+import { UserAvatar } from "@/components/common";
+import { RoleBadge } from "@/components/common/badges";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";

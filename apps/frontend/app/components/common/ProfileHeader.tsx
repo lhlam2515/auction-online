@@ -1,10 +1,10 @@
-import { Star } from "lucide-react";
 import React from "react";
 
-import { RatingBadge } from "@/components/common";
 import UserAvatar from "@/components/common/UserAvatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+import { RatingBadge } from "./badges";
 
 export interface ProfileHeaderProps {
   user: {
