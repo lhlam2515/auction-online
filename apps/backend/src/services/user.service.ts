@@ -6,12 +6,14 @@ import type {
   AdminUser,
   PaginatedResponse,
   UpdateUserInfoRequest,
+  User,
 } from "@repo/shared-types";
-import { eq, and, or, ilike, count, gte } from "drizzle-orm";
+import { eq, and, or, ilike, count, gte, desc, asc, sql } from "drizzle-orm";
+import type { PostgresError } from "postgres";
 
 import { db } from "@/config/database";
 import logger from "@/config/logger";
-import { supabase, supabaseAdmin } from "@/config/supabase";
+import { getCloneClient, supabaseAdmin } from "@/config/supabase";
 import {
   users,
   watchLists,
@@ -26,14 +28,18 @@ import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 
 export class UserService {
-  async getById(userId: string) {
+  async getById(userId: string): Promise<User> {
     const result = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
 
-    if (!result) throw new NotFoundError("User");
+    if (!result) throw new NotFoundError("Không tìm thấy người dùng");
 
-    return result;
+    return {
+      ...result,
+      createdAt: result.createdAt.toISOString(),
+      updatedAt: result.updatedAt.toISOString(),
+    };
   }
 
   async updateProfile(
@@ -42,8 +48,20 @@ export class UserService {
     address?: string | null,
     birthDate?: string | null,
     avatarUrl?: string | null
-  ) {
-    const existingUser = await this.getById(userId); // ensure user exists
+  ): Promise<User> {
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: {
+        fullName: true,
+        address: true,
+        birthDate: true,
+        avatarUrl: true,
+      },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
 
     const updates = {
       fullName: fullName || existingUser.fullName,
@@ -52,7 +70,7 @@ export class UserService {
       avatarUrl: avatarUrl || existingUser.avatarUrl,
     };
 
-    const [updated] = await db
+    const [updatedUser] = await db
       .update(users)
       .set({
         ...updates,
@@ -61,11 +79,18 @@ export class UserService {
       .where(eq(users.id, userId))
       .returning();
 
-    return updated;
+    return updatedUser;
   }
 
-  async getWatchlist(userId: string) {
-    const existingUser = await this.getById(userId); // ensure user exists
+  async getWatchlist(userId: string): Promise<Product[]> {
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { id: true },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
 
     const items = await db.query.watchLists.findMany({
       where: eq(watchLists.userId, existingUser.id),
@@ -82,14 +107,22 @@ export class UserService {
   }
 
   async checkInWatchlist(userId: string, productId: string) {
-    const existingUser = await this.getById(userId); // ensure user exists
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { id: true },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
 
     const existingProduct = await db.query.products.findFirst({
       where: eq(products.id, productId),
+      columns: { id: true },
     });
 
     if (!existingProduct) {
-      throw new NotFoundError("Product");
+      throw new NotFoundError("Không tìm thấy sản phẩm");
     }
 
     const item = await db.query.watchLists.findFirst({
@@ -103,65 +136,106 @@ export class UserService {
   }
 
   async addToWatchlist(userId: string, productId: string) {
-    const exists = await this.checkInWatchlist(userId, productId);
+    try {
+      await db.insert(watchLists).values({
+        userId,
+        productId,
+        createdAt: new Date(),
+      });
 
-    if (exists) {
-      throw new ConflictError("Product already in watchlist");
+      return { inWatchlist: true };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const err = error?.cause ? (error.cause as PostgresError) : error;
+      if (err.code === "23505") {
+        // Unique violation
+        throw new ConflictError("Sản phẩm đã có trong danh sách yêu thích");
+      }
+
+      logger.error("Error adding to watchlist:", error);
+      throw new BadRequestError(
+        "Không thể thêm sản phẩm vào danh sách yêu thích"
+      );
     }
-
-    await db.insert(watchLists).values({
-      userId,
-      productId,
-    });
-
-    return { inWatchlist: true };
   }
 
   async removeFromWatchlist(userId: string, productId: string) {
-    const exists = await this.checkInWatchlist(userId, productId);
+    return await db.transaction(async (tx) => {
+      const deleted = await tx
+        .delete(watchLists)
+        .where(
+          and(
+            eq(watchLists.userId, userId),
+            eq(watchLists.productId, productId)
+          )
+        )
+        .returning();
 
-    if (!exists) {
-      throw new NotFoundError("Product not in watchlist");
-    }
+      if (deleted.length === 0) {
+        throw new NotFoundError("Sản phẩm không có trong danh sách yêu thích");
+      }
 
-    await db
-      .delete(watchLists)
-      .where(
-        and(eq(watchLists.userId, userId), eq(watchLists.productId, productId))
-      );
-
-    return { inWatchlist: false };
+      return { inWatchlist: false };
+    });
   }
 
   async changePassword(
-    userId: string,
+    email: string,
     currentPassword: string,
     newPassword: string
   ) {
-    const user = await this.getById(userId); // ensure user exists
+    const supabaseClient = getCloneClient();
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: currentPassword,
-    });
+    const { error: signInError } = await supabaseClient.auth.signInWithPassword(
+      {
+        email,
+        password: currentPassword,
+      }
+    );
 
-    if (error) {
-      throw new BadRequestError("Current password is incorrect");
+    if (signInError) {
+      throw new BadRequestError(
+        "Không tìm thấy người dùng hoặc mật khẩu không đúng"
+      );
     }
 
-    const { error: updatedError } = await supabase.auth.updateUser({
-      password: newPassword,
+    const userProfile = await db.query.users.findFirst({
+      where: eq(users.email, email),
+      columns: { id: true },
     });
+
+    if (!userProfile) {
+      // Trường hợp hy hữu: user tồn tại trong auth nhưng không có trong database
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
+
+    const { error: updatedError } =
+      await supabaseAdmin.auth.admin.updateUserById(userProfile.id, {
+        password: newPassword,
+      });
 
     if (updatedError) {
-      throw new BadRequestError(updatedError.message);
+      logger.error(
+        `Error changing password for user ${userProfile.id}:`,
+        updatedError
+      );
+      throw new BadRequestError(
+        "Đổi mật khẩu không thành công. Vui lòng thử lại sau."
+      );
     }
 
-    return { message: "Password updated successfully" };
+    return { message: "Đổi mật khẩu thành công" };
   }
 
   async requestUpgradeToSeller(userId: string, reason: string) {
-    const user = await this.getById(userId);
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { id: true, role: true },
+    });
+
+    if (!user) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
 
     if (user.role === "SELLER") {
       throw new ConflictError("User is already a seller");
@@ -175,7 +249,7 @@ export class UserService {
     });
 
     if (pending) {
-      throw new ConflictError("Upgrade request already pending");
+      throw new ConflictError("Yêu cầu nâng cấp đang chờ xử lý");
     }
 
     const [request] = await db
@@ -190,11 +264,9 @@ export class UserService {
     return request;
   }
 
-  async getBiddingHistory(userId: string) {
-    const existingUser = await this.getById(userId);
-
+  async getBiddingHistory(userId: string): Promise<MyAutoBid[]> {
     const bidHistory = await db.query.autoBids.findMany({
-      where: eq(bids.userId, existingUser.id),
+      where: eq(bids.userId, userId),
       with: {
         product: {
           columns: {
@@ -205,16 +277,14 @@ export class UserService {
           },
           with: {
             images: {
-              columns: {
-                imageUrl: true,
-              },
               where: (images, { eq }) => eq(images.isMain, true),
+              columns: { imageUrl: true },
               limit: 1,
             },
           },
         },
       },
-      orderBy: (bid, { desc }) => [desc(bid.createdAt)],
+      orderBy: [desc(autoBids.updatedAt)],
     });
 
     return bidHistory.map((item) => ({
@@ -226,7 +296,7 @@ export class UserService {
         winnerId: item.product.winnerId,
         imageUrl: item.product.images[0]?.imageUrl || null,
       },
-    })) as MyAutoBid[];
+    }));
   }
 
   async getAllUsersAdmin(
@@ -245,38 +315,33 @@ export class UserService {
 
     const conditions = [];
 
-    if (role) {
-      conditions.push(eq(users.role, role));
-    }
+    if (role) conditions.push(eq(users.role, role));
+    if (accountStatus) conditions.push(eq(users.accountStatus, accountStatus));
 
-    if (accountStatus) {
-      conditions.push(eq(users.accountStatus, accountStatus));
-    }
-
-    if (q) {
+    // Full text search using PostgreSQL's built-in FTS
+    if (q?.trim()) {
+      const searchTerm = q.trim();
       conditions.push(
-        or(
-          ilike(users.fullName, `%${q}%`),
-          ilike(users.email, `%${q}%`),
-          ilike(users.username, `%${q}%`)
-        )
+        sql`to_tsvector('simple', ${users.fullName} || ' ' || ${users.email} || ' ' || ${users.username}) @@ websearch_to_tsquery('simple', ${searchTerm})`
       );
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
+    const sortColumnMap = {
+      createdAt: users.createdAt,
+      fullName: users.fullName,
+      email: users.email,
+      ratingScore: users.ratingScore,
+    };
+
+    const sortColumn = sortColumnMap[sortBy] || users.createdAt;
+    const orderExpr = sortOrder === "asc" ? asc(sortColumn) : desc(sortColumn);
+
     const [userList, totalCountResult] = await Promise.all([
       db.query.users.findMany({
         where: whereClause,
-        orderBy: (user, { desc, asc }) => {
-          const sortColumn = {
-            createdAt: user.createdAt,
-            fullName: user.fullName,
-            email: user.email,
-            ratingScore: user.ratingScore,
-          }[sortBy];
-          return [sortOrder === "asc" ? asc(sortColumn) : desc(sortColumn)];
-        },
+        orderBy: [orderExpr],
         limit,
         offset,
       }),
@@ -310,7 +375,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundError("User");
+      throw new NotFoundError("Không tìm thấy người dùng");
     }
 
     return {
@@ -336,29 +401,28 @@ export class UserService {
       newValue: string;
     }> = [];
 
-    if (
-      data.fullName !== undefined &&
-      data.fullName !== existingUser.fullName
-    ) {
-      updates.fullName = data.fullName;
-      changedFields.push({
-        field: "Họ và tên",
-        oldValue: existingUser.fullName || "Chưa có",
-        newValue: data.fullName,
-      });
-    }
+    const checkChange = (
+      field: string,
+      oldVal: unknown,
+      newVal: unknown,
+      label: string
+    ) => {
+      if (newVal !== undefined && newVal !== oldVal) {
+        updates[field] = newVal as string | Date;
+        changedFields.push({
+          field: label,
+          oldValue: oldVal ? String(oldVal) : "Chưa có",
+          newValue: String(newVal),
+        });
+        return true;
+      }
+      return false;
+    };
 
-    if (data.address !== undefined && data.address !== existingUser.address) {
-      updates.address = data.address;
-      changedFields.push({
-        field: "Địa chỉ",
-        oldValue: existingUser.address || "Chưa có",
-        newValue: data.address,
-      });
-    }
+    checkChange("fullName", existingUser.fullName, data.fullName, "Họ và tên");
+    checkChange("address", existingUser.address, data.address, "Địa chỉ");
 
     if (data.birthDate !== undefined) {
-      // Convert to string for comparison
       const existingBirthDate = existingUser.birthDate
         ? new Date(existingUser.birthDate).toISOString().split("T")[0]
         : null;
@@ -405,11 +469,7 @@ export class UserService {
       };
     } else {
       // No changes, return existing user
-      return {
-        ...existingUser,
-        createdAt: existingUser.createdAt.toISOString(),
-        updatedAt: existingUser.updatedAt.toISOString(),
-      };
+      return existingUser;
     }
   }
 
@@ -417,8 +477,30 @@ export class UserService {
     userId: string,
     accountStatus: "PENDING_VERIFICATION" | "ACTIVE" | "BANNED"
   ): Promise<AdminUser> {
+    if (accountStatus === "BANNED") {
+      return this.toggleBanUserAdmin(
+        userId,
+        true,
+        "Bị admin thay đổi trạng thái tài khoản"
+      );
+    }
+
+    if (accountStatus === "ACTIVE") {
+      const currentUser = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: { accountStatus: true },
+      });
+      if (currentUser && currentUser.accountStatus === "BANNED") {
+        return this.toggleBanUserAdmin(userId, false);
+      }
+    }
+
     const existingUser = await this.getById(userId); // Ensure user exists
     const oldStatus = existingUser.accountStatus;
+
+    if (oldStatus === accountStatus) {
+      return existingUser;
+    }
 
     const [updated] = await db
       .update(users)
@@ -429,22 +511,16 @@ export class UserService {
       .where(eq(users.id, userId))
       .returning();
 
-    // Send email notification to user if status changed
-    if (oldStatus !== accountStatus) {
-      try {
-        emailService.notifyAccountStatusChanged(
-          updated.email,
-          updated.fullName || updated.username,
-          oldStatus,
-          accountStatus
-        );
-      } catch (emailError) {
-        // Log email error but don't fail the operation
-        logger.warn(
-          `Failed to send account status change notification email to user ${userId}:`,
-          emailError
-        );
-      }
+    try {
+      await emailService.notifyAccountStatusChanged(
+        updated.email,
+        updated.fullName || updated.username,
+        oldStatus,
+        accountStatus
+      );
+    } catch (error) {
+      // Log email error but don't fail the operation
+      logger.error("Send account status change email failed:", error);
     }
 
     return {
@@ -461,6 +537,10 @@ export class UserService {
     const existingUser = await this.getById(userId); // Ensure user exists
     const oldRole = existingUser.role;
 
+    if (oldRole === role) {
+      return existingUser;
+    }
+
     const [updated] = await db
       .update(users)
       .set({
@@ -470,22 +550,16 @@ export class UserService {
       .where(eq(users.id, userId))
       .returning();
 
-    // Send email notification to user if role changed
-    if (oldRole !== role) {
-      try {
-        emailService.notifyUserRoleChanged(
-          updated.email,
-          updated.fullName || updated.username,
-          oldRole,
-          role
-        );
-      } catch (emailError) {
-        // Log email error but don't fail the operation
-        logger.warn(
-          `Failed to send role change notification email to user ${userId}:`,
-          emailError
-        );
-      }
+    try {
+      emailService.notifyUserRoleChanged(
+        updated.email,
+        updated.fullName || updated.username,
+        oldRole,
+        role
+      );
+    } catch (emailError) {
+      // Log email error but don't fail the operation
+      logger.warn("Send role change notification email failed:", emailError);
     }
 
     return {
@@ -498,15 +572,25 @@ export class UserService {
   async resetUserPasswordAdmin(
     userId: string,
     newPassword: string
-  ): Promise<void> {
-    const user = await this.getById(userId); // Ensure user exists
+  ): Promise<{ message: string }> {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { id: true, email: true, fullName: true, username: true },
+    });
+
+    if (!user) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
 
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       password: newPassword,
     });
 
     if (error) {
-      throw new BadRequestError(`Failed to reset password: ${error.message}`);
+      logger.error(`Error resetting password for user ${userId}:`, error);
+      throw new BadRequestError(
+        "Đặt lại mật khẩu không thành công. Vui lòng thử lại sau."
+      );
     }
 
     // Send email notification to user
@@ -516,13 +600,12 @@ export class UserService {
         user.fullName || user.username,
         newPassword
       );
-    } catch (emailError) {
+    } catch (error) {
       // Log email error but don't fail the operation
-      logger.warn(
-        `Failed to send password reset notification email to user ${userId}:`,
-        emailError
-      );
+      logger.warn("Send password reset notification email failed:", error);
     }
+
+    return { message: "Đặt lại mật khẩu thành công" };
   }
 
   async toggleBanUserAdmin(
@@ -531,10 +614,17 @@ export class UserService {
     reason?: string,
     _duration?: number
   ): Promise<AdminUser> {
-    await this.getById(userId); // Ensure user exists
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { id: true, accountStatus: true },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
 
     if (isBanned && !reason) {
-      throw new BadRequestError("Reason is required when banning a user");
+      throw new BadRequestError("Không thể ban người dùng mà không có lý do");
     }
 
     // Validate business rules before banning (same as deletion)
@@ -594,13 +684,13 @@ export class UserService {
     // Send email notification to user
     try {
       if (isBanned) {
-        emailService.notifyUserBanned(
+        await emailService.notifyUserBanned(
           updated.email,
           updated.fullName || updated.username,
           reason || "Không có lý do cụ thể"
         );
       } else {
-        emailService.notifyUserUnbanned(
+        await emailService.notifyUserUnbanned(
           updated.email,
           updated.fullName || updated.username
         );
@@ -629,74 +719,102 @@ export class UserService {
     address?: string;
     birthDate?: string;
   }): Promise<AdminUser> {
-    const existingEmailUser = await db.query.users.findFirst({
-      where: eq(users.email, data.email),
-    });
+    let supabaseUserId: string | null = null;
 
-    if (existingEmailUser) {
-      throw new ConflictError("Email already exists");
-    }
-
-    const existingUsernameUser = await db.query.users.findFirst({
-      where: eq(users.username, data.username),
-    });
-
-    if (existingUsernameUser) {
-      throw new ConflictError("Username already exists");
-    }
-
-    const { data: authData, error: authError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true,
-        user_metadata: {
-          username: data.username,
-          full_name: data.fullName,
-        },
+    try {
+      const existingUsers = await db.query.users.findMany({
+        where: or(
+          eq(users.email, data.email),
+          eq(users.username, data.username)
+        ),
+        columns: { id: true, email: true, username: true },
       });
 
-    if (authError || !authData.user) {
+      if (existingUsers.length > 0) {
+        const emailExists = existingUsers.some(
+          (user) => user.email === data.email
+        );
+        const usernameExists = existingUsers.some(
+          (user) => user.username === data.username
+        );
+
+        if (emailExists) {
+          throw new ConflictError("Email này đã được sử dụng");
+        }
+
+        if (usernameExists) {
+          throw new ConflictError("Username này đã được sử dụng");
+        }
+      }
+
+      const { data: authData, error: authError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: data.email,
+          password: data.password,
+          email_confirm: true,
+          user_metadata: {
+            username: data.username,
+            full_name: data.fullName,
+          },
+        });
+
+      if (authError || !authData.user) {
+        logger.error("Error creating user in auth:", authError);
+        throw new BadRequestError(
+          `Tạo người dùng không thành công. Vui lòng thử lại sau.`
+        );
+      }
+      supabaseUserId = authData.user.id; // Lưu ID để rollback
+
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          id: authData.user.id,
+          email: data.email,
+          username: data.username,
+          fullName: data.fullName,
+          role: data.role || "BIDDER",
+          accountStatus: "ACTIVE",
+          address: data.address || null,
+          birthDate: data.birthDate || null,
+        })
+        .returning();
+
+      // Send email notification to new user
+      try {
+        emailService.notifyUserCreated(
+          newUser.email,
+          newUser.fullName || newUser.username,
+          data.password,
+          newUser.role
+        );
+      } catch (emailError) {
+        // Log email error but don't fail the operation
+        logger.warn(
+          `Failed to send account creation notification email to user ${newUser.id}:`,
+          emailError
+        );
+      }
+
+      return {
+        ...newUser,
+        createdAt: newUser.createdAt.toISOString(),
+        updatedAt: newUser.updatedAt.toISOString(),
+      };
+    } catch (error) {
+      // Rollback: Xóa user Supabase nếu DB insert thất bại
+      if (supabaseUserId) {
+        await supabaseAdmin.auth.admin.deleteUser(supabaseUserId);
+      }
+
+      if (error instanceof ConflictError || error instanceof BadRequestError)
+        throw error;
+
+      logger.error("Create User Admin Error:", error);
       throw new BadRequestError(
-        `Failed to create user in auth: ${authError?.message || "Unknown error"}`
+        "Tạo người dùng thất bại. Vui lòng thử lại sau."
       );
     }
-
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        id: authData.user.id,
-        email: data.email,
-        username: data.username,
-        fullName: data.fullName,
-        role: data.role || "BIDDER",
-        accountStatus: "ACTIVE",
-        address: data.address || null,
-        birthDate: data.birthDate || null,
-      })
-      .returning();
-
-    // Send email notification to new user
-    try {
-      emailService.notifyUserCreated(
-        newUser.email,
-        newUser.fullName || newUser.username,
-        data.password,
-        newUser.role
-      );
-    } catch (emailError) {
-      // Log email error but don't fail the operation
-      logger.warn(
-        `Failed to send account creation notification email to user ${newUser.id}:`,
-        emailError
-      );
-    }
-
-    return {
-      ...newUser,
-      createdAt: newUser.createdAt.toISOString(),
-      updatedAt: newUser.updatedAt.toISOString(),
-    };
   }
 
   async deleteUserAdmin(userId: string, reason?: string): Promise<void> {
@@ -717,8 +835,7 @@ export class UserService {
     // → Orders vẫn giữ: orderNumber, finalPrice, totalAmount, status, timestamps
 
     // Database foreign keys với onDelete: "cascade" sẽ xóa:
-    // - products (và cascade tiếp: productImages, productUpdates, watchLists, bids, autoBids, ratings, chatMessages, productQuestions)
-    // - ratings (as sender/receiver)
+    // - ratings (as sender)
     // - chatMessages (as sender/receiver)
     // - productQuestions
     // - bids, autoBids
@@ -775,7 +892,15 @@ export class UserService {
    * This ensures that users cannot be deleted or banned if they have active business obligations.
    */
   private async validateUserBusinessRules(userId: string): Promise<void> {
-    const user = await this.getById(userId);
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { id: true, role: true },
+    });
+
+    if (!user) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
+
     const now = new Date();
 
     // ========================================
@@ -823,29 +948,26 @@ export class UserService {
     if (user.role === "BIDDER" || user.role === "ADMIN") {
       // Check 1: Có đang giữ giá cao nhất ở sản phẩm nào không
       // Phải kiểm tra TẤT CẢ các sản phẩm đang active
-      const activeProducts = await db.query.products.findMany({
-        where: and(eq(products.status, "ACTIVE"), gte(products.endTime, now)),
-        with: {
-          bids: {
-            where: eq(bids.userId, userId),
-            orderBy: (bids, { desc }) => [desc(bids.amount)],
-            limit: 1,
-          },
-        },
-      });
+      const highBids = await db
+        .select({ id: products.id })
+        .from(bids)
+        .innerJoin(products, eq(bids.productId, products.id))
+        .where(
+          and(
+            eq(bids.userId, userId),
+            eq(bids.status, "VALID"),
+            eq(products.status, "ACTIVE"),
+            gte(products.endTime, now),
+            // Điều kiện quan trọng: Bid của user chính là giá hiện tại của sản phẩm
+            eq(bids.amount, products.currentPrice)
+          )
+        )
+        .limit(1);
 
-      // Kiểm tra từng sản phẩm xem user có đang giữ giá cao nhất không
-      for (const product of activeProducts) {
-        if (product.bids.length > 0) {
-          const userBidAmount = product.bids[0].amount;
-          const currentPrice = product.currentPrice;
-
-          if (currentPrice && userBidAmount === currentPrice) {
-            throw new BadRequestError(
-              `Không thể thực hiện hành động này với người mua đang giữ giá cao nhất trong phiên đấu giá "${product.name}". Vui lòng đợi đến khi phiên đấu giá kết thúc hoặc có người đấu giá cao hơn.`
-            );
-          }
-        }
+      if (highBids.length > 0) {
+        throw new BadRequestError(
+          "Không thể thực hiện hành động này với người mua đang giữ giá cao nhất ở một hoặc nhiều sản phẩm."
+        );
       }
 
       // Check 2: Đơn hàng đang chờ xác nhận (as winner)

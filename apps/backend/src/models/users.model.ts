@@ -44,6 +44,16 @@ export const users = pgTable(
     index("idx_users_email").on(table.email), // Login lookup
     index("idx_users_username").on(table.username), // Username lookup
 
+    // Search indexes
+    index("idx_users_search_fts").using(
+      "gin",
+      sql`to_tsvector('simple', ${table.fullName} || ' ' || ${table.email} || ' ' || ${table.username})`
+    ),
+    index("idx_users_fullname_trgm").using(
+      "gin",
+      sql`${table.fullName} gin_trgm_ops`
+    ),
+
     // Business logic constraints
     check(
       "rating_score_range",

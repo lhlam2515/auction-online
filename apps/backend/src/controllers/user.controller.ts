@@ -46,11 +46,11 @@ export const updateProfile = asyncHandler(
 
 export const changePassword = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { id: userId } = req.user!;
+    const { email } = req.user!;
     const { currentPassword, newPassword } = req.body as ChangePasswordRequest;
 
     const result = await userService.changePassword(
-      userId,
+      email,
       currentPassword,
       newPassword
     );
