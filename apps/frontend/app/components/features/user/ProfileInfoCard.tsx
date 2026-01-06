@@ -50,13 +50,12 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex flex-col items-center justify-center space-y-3">
-          <div className="h-24 w-24 rounded-full border-2 border-dashed border-gray-200 p-1">
-            <UserAvatar
-              imageUrl={profile.avatarUrl}
-              name={profile.fullName}
-              className="h-full w-full"
-            />
-          </div>
+          <UserAvatar
+            imageUrl={profile.avatarUrl}
+            name={profile.fullName}
+            className="h-26 w-26 border-2 border-white shadow-sm"
+            fallbackClassName="text-3xl"
+          />
           <div className="text-center">
             <h3 className="text-xl font-bold text-gray-900">
               {profile.fullName}
