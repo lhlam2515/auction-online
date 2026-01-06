@@ -21,3 +21,21 @@ export const getBidderSpending = asyncHandler(
     });
   }
 );
+
+/**
+ * Get seller revenue analytics
+ * GET /seller/analytics/revenue?period=30d
+ */
+export const getSellerRevenue = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const { id: userId } = req.user!;
+    const { period } = res.locals.query;
+
+    const analytics = await analyticsService.getSellerRevenue(userId, period);
+
+    res.json({
+      success: true,
+      data: analytics,
+    });
+  }
+);
