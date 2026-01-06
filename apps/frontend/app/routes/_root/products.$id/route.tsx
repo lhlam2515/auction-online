@@ -41,6 +41,7 @@ export default function ProductDetailPage() {
   const [isSeller, setIsSeller] = React.useState(false);
   const [userData, setUserData] = React.useState<User | null>(null);
   const [isEnded, setIsEnded] = React.useState(true);
+  const [loadingUserData, setLoadingUserData] = React.useState(isLoading);
 
   // Refresh function to refetch product data
   const refreshProduct = React.useCallback(async () => {
@@ -129,6 +130,10 @@ export default function ProductDetailPage() {
         setIsSeller(false);
       }
 
+      if (!user) {
+        setLoadingUserData(false);
+      }
+
       const isLoggedIn = !!user;
       let isMounted = true;
 
@@ -146,6 +151,7 @@ export default function ProductDetailPage() {
 
           if (isMounted && result.data) {
             setUserData(result.data);
+            setLoadingUserData(false);
           }
         } catch (error) {
           if (isMounted) {
@@ -176,13 +182,15 @@ export default function ProductDetailPage() {
             <div className="space-y-6 lg:col-span-3">
               <ProductInfo product={product} />
 
-              <ProductActionButtons
-                product={product}
-                isSeller={isSeller}
-                userData={userData}
-                isEnded={isEnded}
-                onRefresh={refreshProduct}
-              />
+              {!loadingUserData && (
+                <ProductActionButtons
+                  product={product}
+                  isSeller={isSeller}
+                  userData={userData}
+                  isEnded={isEnded}
+                  onRefresh={refreshProduct}
+                />
+              )}
             </div>
           </section>
 
