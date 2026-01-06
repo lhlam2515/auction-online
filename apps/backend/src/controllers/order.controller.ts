@@ -9,6 +9,7 @@ import type {
   OrderFeedbackRequest,
   MarkPaidRequest,
   PaginatedResponse,
+  RatingScore,
   RatingWithUsers,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
@@ -192,7 +193,7 @@ export const editFeedback = asyncHandler(
     const updatedFeedback = await ratingService.updateFeedback(
       orderId,
       userId,
-      rating,
+      rating as RatingScore,
       comment
     );
 

@@ -7,10 +7,10 @@ import type { RatingScore } from "../common/enums";
 export interface Rating {
   id: string;
   orderId: string; // CASCADE deleted with product
-  senderId: string;
+  senderId: string | null; // Nullable if user deleted (for statistics)
   receiverId: string;
   score: RatingScore; // 1 (positive) or -1 (negative)
-  comment?: string;
+  comment: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,7 +23,7 @@ export interface RatingWithUsers extends Rating {
   sender: {
     fullName: string;
     avatarUrl?: string | null;
-  };
+  } | null;
   receiver: {
     fullName: string;
     avatarUrl?: string | null;
