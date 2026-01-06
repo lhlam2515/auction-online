@@ -1,5 +1,4 @@
 import type { ProductDetails, User } from "@repo/shared-types";
-import type { id } from "date-fns/locale";
 import React from "react";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -23,10 +22,10 @@ import type { Route } from "./+types/route";
 // eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Product Detail - Online Auction" },
+    { title: "Chi tiết sản phẩm - Online Auction" },
     {
       name: "description",
-      content: "Product Detail page for Online Auction App",
+      content: "Đấu giá ngay trên Online Auction!",
     },
   ];
 }
