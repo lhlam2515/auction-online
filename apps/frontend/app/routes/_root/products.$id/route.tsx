@@ -40,7 +40,7 @@ export default function ProductDetailPage() {
   const [isSeller, setIsSeller] = React.useState(false);
   const [userData, setUserData] = React.useState<User | null>(null);
   const [isEnded, setIsEnded] = React.useState(true);
-  const [loadingUserData, setLoadingUserData] = React.useState(isLoading);
+  const [loadingUserData, setLoadingUserData] = React.useState(true);
 
   // Refresh function to refetch product data
   const refreshProduct = React.useCallback(async () => {
@@ -140,6 +140,7 @@ export default function ProductDetailPage() {
         if (!isMounted || !isLoggedIn) return;
 
         try {
+          setLoadingUserData(true);
           const result = await api.users.getProfile();
 
           if (!result.success) {
