@@ -1,10 +1,9 @@
 import type { CategoryTree } from "@repo/shared-types";
 import { useState, useEffect } from "react";
-import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
-import { ActiveSellerRoute } from "@/components/ActiveSellerRoute";
 import { CreateProductForm } from "@/components/features/product/forms";
+import { SellerRoute } from "@/components/SellerRoute";
 import { api } from "@/lib/api-layer";
 import logger from "@/lib/logger";
 import {
@@ -153,7 +152,7 @@ export default function CreateProductPage() {
   };
 
   return (
-    <ActiveSellerRoute>
+    <SellerRoute requireActive>
       <CreateProductForm
         schema={productSchema}
         defaultValues={defaultValues}
@@ -165,6 +164,6 @@ export default function CreateProductPage() {
         uploadingImages={uploadingImages}
         onCancel={handleCancel}
       />
-    </ActiveSellerRoute>
+    </SellerRoute>
   );
 }

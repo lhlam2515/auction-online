@@ -10,8 +10,8 @@ import {
   ProductInfo,
   ProductDescription,
   ProductRelatedList,
+  ProductActionButtons,
 } from "@/components/features/product/display";
-import ProductActionButtons from "@/components/features/product/display/ProductActionButtons";
 import { APP_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
@@ -185,7 +185,6 @@ export default function ProductDetailPage() {
               {!loadingUserData && (
                 <ProductActionButtons
                   product={product}
-                  isSeller={isSeller}
                   userData={userData}
                   isEnded={isEnded}
                   onRefresh={refreshProduct}

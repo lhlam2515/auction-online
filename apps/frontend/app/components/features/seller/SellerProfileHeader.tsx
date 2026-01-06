@@ -23,13 +23,26 @@ interface SellerProfileHeaderProps {
 }
 
 const SellerProfileHeader = ({ user, className }: SellerProfileHeaderProps) => {
-  const { isExpired, shouldShowWarning, daysRemaining, expireDate } =
-    useSellerStatus();
+  const {
+    isExpired,
+    isTemporary,
+    shouldShowWarning,
+    daysRemaining,
+    expireDate,
+  } = useSellerStatus();
 
   const badges = (
     <>
       <RoleBadge role="SELLER" />
-      {isExpired && (
+      {isTemporary && (
+        <Badge
+          variant="outline"
+          className="gap-1 border-blue-300 bg-blue-50 text-blue-600"
+        >
+          Người bán tạm thời
+        </Badge>
+      )}
+      {isExpired && !isTemporary && (
         <Badge variant="destructive" className="gap-1">
           Đã hết hạn
         </Badge>
