@@ -1,6 +1,6 @@
 import type { User } from "@repo/shared-types";
 import { Camera } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,8 @@ import logger from "@/lib/logger";
 interface UserAvatarUploaderProps {
   /** User data object containing profile information including avatar URL */
   userData?: User;
-  /** Callback function called when avatar is successfully updated with new URL */
-  onAvatarUpdate?: (newAvatarUrl: string) => void;
+  /** Callback function called when new file is selected */
+  onFileSelect?: (file: File) => void;
 }
 
 /**
@@ -23,20 +23,28 @@ interface UserAvatarUploaderProps {
  *
  * Features:
  * - Displays current user avatar with fallback to initials
- * - Allows selecting and uploading new avatar image
+ * - Allows selecting new avatar image with preview
  * - Validates file type (images only) and size (max 5MB)
- * - Shows upload progress and handles errors
- * - Calls onAvatarUpdate callback when upload succeeds
+ * - Passes selected file to parent component
  *
  * @param props - Component props
  * @returns JSX element
  */
 export default function UserAvatarUploader({
   userData,
-  onAvatarUpdate,
+  onFileSelect,
 }: UserAvatarUploaderProps) {
-  const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Clean up preview URL when component unmounts or previewUrl changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   /**
    * Triggers the hidden file input click to open file selection dialog
@@ -46,16 +54,14 @@ export default function UserAvatarUploader({
   };
 
   /**
-   * Handles file selection and upload process
+   * Handles file selection and preview
    *
-   * Validates the selected file, uploads it to the server,
-   * and updates the avatar URL if successful.
+   * Validates the selected file and updates preview.
+   * Calls onFileSelect callback with valid file.
    *
    * @param event - File input change event
    */
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -71,43 +77,24 @@ export default function UserAvatarUploader({
       return;
     }
 
-    setIsUploading(true);
+    // Create preview URL
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
 
-    try {
-      // TODO: Implement avatar upload logic
-      const user = await api.users.getProfile();
-      console.log(file);
-      if (user.success && user.data) {
-        const updated = await api.users.updateProfile({
-          fullName: user.data.fullName,
-          email: user.data.email,
-          address: user.data.address,
-          birthDate: (user.data.birthDate || "").toString(),
-          avatarUrl: file.toString(),
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // Placeholder: Assume upload successful and get new URL
-
-        logger.info("Avatar upload simulated successfully");
-
-        // Update the avatar URL
-        if (onAvatarUpdate) {
-          onAvatarUpdate(file.toString());
-        }
-      }
-    } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      showError(error, errorMessage);
-    } finally {
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+    // Notify parent
+    if (onFileSelect) {
+      onFileSelect(file);
     }
   };
+
+  // Reset preview when userData changes (e.g., after successful upload)
+  useEffect(() => {
+    if (userData?.avatarUrl) {
+      setPreviewUrl(null);
+    }
+  }, [userData?.avatarUrl]);
+
+  const currentAvatarUrl = previewUrl || userData?.avatarUrl;
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -123,10 +110,10 @@ export default function UserAvatarUploader({
 
       {/* Avatar display with fallback to user initials */}
       <Avatar className="h-36 w-36">
-        {userData && userData.avatarUrl ? (
+        {currentAvatarUrl ? (
           <AvatarImage
-            src={userData.avatarUrl}
-            alt={userData.fullName}
+            src={currentAvatarUrl}
+            alt={userData?.fullName || "User Avatar"}
             className="object-cover"
             width={144}
             height={144}
@@ -149,10 +136,9 @@ export default function UserAvatarUploader({
         variant="outline"
         size="sm"
         onClick={handleFileSelect}
-        disabled={isUploading}
       >
         <Camera className="mr-2 h-4 w-4" />
-        {isUploading ? "Đang tải lên..." : "Thay Đổi Ảnh"}
+        Thay Đổi Ảnh
       </Button>
 
       {/* Hidden file input for image selection */}
