@@ -30,6 +30,9 @@ export const APP_ROUTES = {
   PRODUCTS: "/products",
   PRODUCT: (id: string | number) => `/products/${id}`,
 
+  // Profile page
+  PROFILE: (id: string) => `/profile/${id}`,
+
   // Error pages
   NOT_FOUND: "/not-found",
   UNAUTHORIZED: "/unauthorized",

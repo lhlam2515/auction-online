@@ -56,7 +56,9 @@ const ProfileHeader = ({
                 <div className="flex items-center gap-1.5 rounded-md border border-yellow-100 bg-yellow-50 px-2 py-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   <span className="font-semibold text-slate-900">
-                    {(user.ratingScore * 100).toFixed(1)}%
+                    {user.ratingCount > 0
+                      ? `${(((user.ratingScore + 1) / 2) * 100).toFixed(1)}%`
+                      : "Chưa có đánh giá"}
                   </span>
                   <span className="text-slate-400">
                     ({user.ratingCount} đánh giá)
