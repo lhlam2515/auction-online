@@ -1,10 +1,9 @@
 import type { RatingWithUsers } from "@repo/shared-types";
 import { Package } from "lucide-react";
 
-import { RatingCard, RatingInfo } from "@/components/features/interaction";
+import { RatingCard } from "@/components/features/interaction";
 import { ProfileInfoCard } from "@/components/features/user";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api-layer";
 
 import type { Route } from "./+types/route";
@@ -77,12 +76,6 @@ export default function PublicProfilePage({
 }: Route.ComponentProps) {
   const { profile, ratings, ratingSummary } = loaderData;
 
-  // Mock filtering since we don't have real role data in Rating entity yet
-  // In a real app, we would filter by rating.role === 'SELLER' or 'BIDDER'
-  // For now, we'll display the same list or split arbitrarily if we could.
-  const sellerRatings = ratings;
-  const bidderRatings = ratings;
-
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
@@ -91,44 +84,25 @@ export default function PublicProfilePage({
           <ProfileInfoCard profile={profile} summary={ratingSummary} />
         </div>
 
-        {/* Right Content - Ratings Tabs */}
+        {/* Right Content - Ratings List */}
         <div className="md:col-span-8 lg:col-span-9">
           <Card className="h-full border-none bg-transparent shadow-none">
-            <Tabs defaultValue="seller" className="w-full">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Lịch sử đánh giá</h2>
-                <TabsList>
-                  <TabsTrigger value="seller">Là Người Bán</TabsTrigger>
-                  <TabsTrigger value="bidder">Là Người Mua</TabsTrigger>
-                </TabsList>
-              </div>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Lịch sử đánh giá</h2>
+            </div>
 
-              <TabsContent value="seller" className="space-y-4">
-                {sellerRatings.length > 0 ? (
-                  sellerRatings.map((rating) => (
-                    <RatingCard key={rating.id} rating={rating} />
-                  ))
-                ) : (
-                  <div className="text-muted-foreground rounded-lg border border-dashed bg-white py-10 text-center">
-                    <Package className="mx-auto mb-2 h-10 w-10 opacity-50" />
-                    Chưa có đánh giá nào với vai trò người bán
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="bidder" className="space-y-4">
-                {bidderRatings.length > 0 ? (
-                  bidderRatings.map((rating) => (
-                    <RatingCard key={rating.id} rating={rating} />
-                  ))
-                ) : (
-                  <div className="text-muted-foreground rounded-lg border border-dashed bg-white py-10 text-center">
-                    <Package className="mx-auto mb-2 h-10 w-10 opacity-50" />
-                    Chưa có đánh giá nào với vai trò người mua
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+            <div className="space-y-4">
+              {ratings.length > 0 ? (
+                ratings.map((rating) => (
+                  <RatingCard key={rating.id} rating={rating} />
+                ))
+              ) : (
+                <div className="text-muted-foreground rounded-lg border border-dashed bg-white py-10 text-center">
+                  <Package className="mx-auto mb-2 h-10 w-10 opacity-50" />
+                  Chưa có đánh giá nào
+                </div>
+              )}
+            </div>
           </Card>
         </div>
       </div>
