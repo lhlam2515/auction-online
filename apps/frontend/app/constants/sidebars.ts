@@ -19,6 +19,7 @@ export const ADMIN_SIDEBAR_ITEMS = [
   { title: "Sản phẩm", url: ADMIN_ROUTES.PRODUCTS },
   { title: "Danh mục", url: ADMIN_ROUTES.CATEGORIES },
   { title: "Yêu cầu nâng cấp", url: ADMIN_ROUTES.UPGRADES },
+  { title: "Cài đặt đấu giá", url: ADMIN_ROUTES.SETTINGS },
 ];
 
 export const SELLER_SIDEBAR_ITEMS = [

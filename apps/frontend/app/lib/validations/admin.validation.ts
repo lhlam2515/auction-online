@@ -93,3 +93,32 @@ export const createUserSchema = z.object({
     })
     .optional(),
 });
+
+/**
+ * Admin - Update auction settings validation schema
+ * @description Validates admin updating auction settings
+ */
+export const updateAuctionSettingsSchema = z.object({
+  extendThresholdMinutes: z
+    .number()
+    .int()
+    .min(1, { message: "Ngưỡng gia hạn phải từ 1 phút trở lên" })
+    .max(30, { message: "Ngưỡng gia hạn không được vượt quá 30 phút" }),
+  extendDurationMinutes: z
+    .number()
+    .int()
+    .min(1, { message: "Thời gian gia hạn phải từ 1 phút trở lên" })
+    .max(60, { message: "Thời gian gia hạn không được vượt quá 60 phút" }),
+});
+
+// Export form data types
+export type UpdateUserInfoFormData = z.infer<typeof updateUserInfoSchema>;
+export type UpdateAccountStatusFormData = z.infer<
+  typeof updateAccountStatusSchema
+>;
+export type UpdateUserRoleFormData = z.infer<typeof updateUserRoleSchema>;
+export type ResetUserPasswordFormData = z.infer<typeof resetUserPasswordSchema>;
+export type CreateUserFormData = z.infer<typeof createUserSchema>;
+export type UpdateAuctionSettingsFormData = z.infer<
+  typeof updateAuctionSettingsSchema
+>;
