@@ -3,39 +3,48 @@ import { Navigate, useLocation, useNavigate } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ACCOUNT_ROUTES, AUTH_ROUTES, SELLER_ROUTES } from "@/constants/routes";
+import { ACCOUNT_ROUTES, AUTH_ROUTES } from "@/constants/routes";
 import { useAuth } from "@/contexts/auth-provider";
-import { useSellerStatus } from "@/hooks/useSellerStatus";
+import {
+  hasSellerRole,
+  isSellerExpired,
+  canAccessSellerPages,
+} from "@/lib/auth-utils";
 import { formatDate } from "@/lib/utils";
 
-interface ActiveSellerRouteProps {
+interface SellerRouteProps {
   children: React.ReactNode;
+  requireActive?: boolean;
 }
 
 /**
- * Protected route that requires an active (not expired) seller
- * Shows warning message for expired sellers instead of redirecting
+ * Seller Route - specialized route for seller pages
+ *
+ * @param requireActive - If true, only active (non-expired) sellers can access
  */
-export function ActiveSellerRoute({ children }: ActiveSellerRouteProps) {
-  const { isAuthenticated } = useAuth();
+export function SellerRoute({
+  children,
+  requireActive = false,
+}: SellerRouteProps) {
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isSeller, isExpired, expireDate } = useSellerStatus();
 
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return (
       <Navigate to={AUTH_ROUTES.LOGIN} state={{ from: location }} replace />
     );
   }
 
-  // Redirect if not a seller at all
+  const isSeller = hasSellerRole(user);
+  const expired = isSellerExpired(user);
+  const hasActiveProducts = user?.hasActiveProducts ?? false;
+
   if (!isSeller) {
     return <Navigate to={ACCOUNT_ROUTES.UPGRADE} replace />;
   }
 
-  // Show expired message if seller account is expired
-  if (isExpired) {
+  if (requireActive && expired) {
     return (
       <div className="container mx-auto max-w-2xl py-12">
         <Alert
@@ -45,10 +54,11 @@ export function ActiveSellerRoute({ children }: ActiveSellerRouteProps) {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Tài Khoản Người Bán Đã Hết Hạn</AlertTitle>
           <AlertDescription>
-            Tài khoản người bán của bạn đã hết hạn vào ngày{" "}
-            {expireDate ? formatDate(expireDate) : "không xác định"}. Bạn vẫn có
-            thể quản lý các sản phẩm và đơn hàng hiện có, nhưng không thể tạo
-            sản phẩm mới cho đến khi gia hạn tài khoản người bán.
+            Tài khoản người bán của bạn đã hết hạn vào lúc{" "}
+            {user?.sellerExpireDate
+              ? formatDate(user.sellerExpireDate)
+              : "không xác định"}
+            . Bạn cần gia hạn tài khoản để thực hiện chức năng này.
           </AlertDescription>
         </Alert>
 
@@ -64,16 +74,23 @@ export function ActiveSellerRoute({ children }: ActiveSellerRouteProps) {
           <Button
             variant="outline"
             onClick={() => {
-              navigate(SELLER_ROUTES.DASHBOARD);
+              navigate(-1);
             }}
           >
-            Đến Trang Quản Lý Người Bán
+            Quay Lại
           </Button>
         </div>
       </div>
     );
   }
 
-  // Seller is active, allow access
+  if (expired && !hasActiveProducts) {
+    return <Navigate to={ACCOUNT_ROUTES.UPGRADE} replace />;
+  }
+
+  if (!canAccessSellerPages(user, hasActiveProducts)) {
+    return <Navigate to={ACCOUNT_ROUTES.UPGRADE} replace />;
+  }
+
   return <>{children}</>;
 }
