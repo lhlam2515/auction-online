@@ -22,6 +22,7 @@ import {
   products,
   orders,
   autoBids,
+  ratings,
 } from "@/models";
 import { emailService } from "@/services";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
@@ -35,10 +36,23 @@ export class UserService {
 
     if (!result) throw new NotFoundError("Không tìm thấy người dùng");
 
+    // Recalculate ratings from source of truth to ensure accuracy
+    // Using findMany ensures type safety and accuracy compared to raw SQL aggregation
+    const userRatings = await db.query.ratings.findMany({
+      where: eq(ratings.receiverId, userId),
+      columns: {
+        score: true,
+      },
+    });
+
+    const realCount = userRatings.length;
+    const realSum = userRatings.reduce((acc, curr) => acc + curr.score, 0);
+    const realScore = realCount > 0 ? realSum / realCount : 0;
+
     return {
       ...result,
-      createdAt: result.createdAt.toISOString(),
-      updatedAt: result.updatedAt.toISOString(),
+      ratingCount: realCount,
+      ratingScore: realScore,
     };
   }
 

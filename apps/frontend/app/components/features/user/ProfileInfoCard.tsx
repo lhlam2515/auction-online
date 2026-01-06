@@ -27,11 +27,15 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
   const ratingScore = profile.ratingScore ?? summary.averageRating ?? 0;
   const ratingCount = profile.ratingCount ?? summary.totalRatings ?? 0;
 
+  // Rating is calculated as Average (-1 to 1) from 1 (Like) and -1 (Dislike)
+  // Convert to Percentage (0-100%)
+  const percentScore = ratingCount > 0 ? ((ratingScore + 1) / 2) * 100 : 0;
+
   // Logic from OrderSummaryCard for badge color
   let badgeColor = "border-red-500 bg-red-50 text-red-600";
-  if (ratingScore >= 4.0) {
+  if (percentScore >= 80) {
     badgeColor = "border-green-300 bg-green-50 text-green-600";
-  } else if (ratingScore >= 2.5) {
+  } else if (percentScore >= 50) {
     badgeColor = "border-amber-300 bg-amber-50 text-amber-600";
   }
 
@@ -77,7 +81,9 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
               <Star className="h-4 w-4" /> Đánh giá
             </span>
             <div className="flex items-center gap-2">
-              <span className="font-bold">{ratingScore.toFixed(1)}/5.0</span>
+              <span className="font-bold">
+                {ratingCount > 0 ? `${percentScore.toFixed(1)}%` : "Chưa có"}
+              </span>
               <Badge variant="outline" className={cn("text-xs", badgeColor)}>
                 {ratingCount} lượt
               </Badge>
