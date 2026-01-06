@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import * as questionController from "@/controllers/question.controller";
-import { authenticate, authorize } from "@/middlewares/auth";
+import { authenticate } from "@/middlewares/auth";
 import { validate } from "@/middlewares/validate";
 import * as questionValidation from "@/validations/question.validation";
 
@@ -26,7 +26,6 @@ router.get(
 router.post(
   "/:id/questions",
   authenticate,
-  authorize("BIDDER", "SELLER"),
   validate({
     params: questionValidation.productIdSchema,
     body: questionValidation.askQuestionSchema,
@@ -42,7 +41,6 @@ router.post(
 router.post(
   "/questions/:questionId/answer",
   authenticate,
-  authorize("SELLER"),
   validate({
     params: questionValidation.questionIdSchema,
     body: questionValidation.answerQuestionSchema,

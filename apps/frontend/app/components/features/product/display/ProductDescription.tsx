@@ -63,12 +63,12 @@ const ProductDescription = ({
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-5 text-2xl">
-          <Info className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+          <Info className="text-muted-foreground h-5 w-5" />
           Mô tả sản phẩm
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div key={"original"} className="space-y-2">
+        <div className="space-y-2">
           <div
             className="ProseMirror prose prose-slate dark:prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: initialDescription }}
@@ -96,17 +96,17 @@ const ProductDescription = ({
         {updatedDesc.length > 0 && (
           <Button
             variant="outline"
-            className="w-full cursor-pointer bg-transparent"
+            className="w-full cursor-pointer"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (
               <>
-                <ChevronUp className="mr-2 h-4 w-4" />
+                <ChevronUp className="h-4 w-4" />
                 Thu gọn
               </>
             ) : (
               <>
-                <ChevronDown className="mr-2 h-4 w-4" />
+                <ChevronDown className="h-4 w-4" />
                 Xem thêm
               </>
             )}

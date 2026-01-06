@@ -1,256 +1,156 @@
-import type { ProductDetails, User } from "@repo/shared-types";
-import {
-  Heart,
-  Star,
-  ShoppingCart,
-  Clock,
-  Calendar,
-  Pencil,
-} from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import type { ProductDetails } from "@repo/shared-types";
+import { ShoppingCart, Clock, Calendar } from "lucide-react";
 import { Link } from "react-router";
 
-import { AutoBidDialog, BuyNowDialog } from "@/components/features/bidding";
-import { Button } from "@/components/ui/button";
+import { UserAvatar, RatingBadge } from "@/components/common";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
-import { ACCOUNT_ROUTES, SELLER_ROUTES } from "@/constants/routes";
-import { useWatchlist } from "@/contexts/watchlist-provider";
+import { APP_ROUTES } from "@/constants/routes";
 import useCountdown from "@/hooks/useCountdown";
-import { api } from "@/lib/api-layer";
-import { getErrorMessage, showError } from "@/lib/handlers/error";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
 interface ProductInfoProps {
   product: ProductDetails;
-  isLoggedIn: boolean;
-  isSeller: boolean;
-  userId?: string;
   className?: string;
 }
 
 const RELATIVE_TIME_THRESHOLD_MS = 3 * TIME.DAY;
 
-const ProductInfo = ({
-  product,
-  isLoggedIn,
-  isSeller,
-  userId,
-  className,
-}: ProductInfoProps) => {
-  const {
-    toggleWatchlist,
-    isInWatchlist,
-    isLoading: watchlistLoading,
-  } = useWatchlist();
-
-  const [userData, setUserData] = useState<User>();
-
-  // Memoize để tránh re-compute liên tục
-  const isProductInWatchlist = useMemo(
-    () => isInWatchlist(product.id),
-    [isInWatchlist, product.id]
-  );
-
+const ProductInfo = ({ product, className }: ProductInfoProps) => {
   const endDateTime = new Date(product.endTime);
-  const isAuctionEnded = new Date() > endDateTime;
 
   let timeDisplay = useCountdown(endDateTime, false);
-  if (
-    endDateTime.getTime() - new Date().getTime() >=
-    RELATIVE_TIME_THRESHOLD_MS
-  ) {
+  const usingRelativeTime =
+    endDateTime.getTime() - new Date().getTime() < RELATIVE_TIME_THRESHOLD_MS;
+  if (!usingRelativeTime) {
     timeDisplay = {
       text: formatDate(endDateTime),
       isUrgent: false,
     };
   }
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchUserData = async () => {
-      if (!isMounted || !isLoggedIn) return;
-
-      try {
-        const result = await api.users.getProfile();
-
-        if (!result.success) {
-          throw new Error(
-            result.error?.message || "Không thể tải dữ liệu người dùng"
-          );
-        }
-
-        if (isMounted && result.data) {
-          setUserData(result.data);
-        }
-      } catch (error) {
-        if (isMounted) {
-          const errorMessage = getErrorMessage(
-            error,
-            "Có lỗi khi tải dữ liệu người dùng"
-          );
-          showError(error, errorMessage);
-        }
-      }
-    };
-
-    fetchUserData();
-    return () => {
-      isMounted = false;
-    };
-  }, [isLoggedIn]);
-
-  const handleToggleWatchlist = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    await toggleWatchlist(product.id);
-  };
-
   return (
     <div className={cn("space-y-6", className)}>
-      <div>
-        <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
-          {product.name}
-        </h1>
+      <h1 className="text-foreground mb-6 text-3xl font-bold">
+        {product.name}
+      </h1>
 
-        {/* Current Price */}
-        <div className="mb-4">
-          <p className="text-muted-foreground mb-1 text-sm font-medium uppercase">
-            Giá hiện tại
-          </p>
-          <p className="text-accent text-4xl font-bold">
-            {formatPrice(Number(product.currentPrice ?? product.startPrice))}
-          </p>
-        </div>
-
-        {/* Buy Now Price */}
-        {product.buyNowPrice && (
-          <div className="text-muted-foreground mb-4 flex items-center gap-2 text-lg">
-            <ShoppingCart className="h-5 w-5" />
-            <span className="font-bold">
-              Mua ngay:{" "}
-              <span className="text-red-500">
-                {formatPrice(Number(product.buyNowPrice))}
-              </span>
-            </span>
-          </div>
-        )}
-
-        {/* Time Left */}
-        <div
-          className={`mb-4 flex items-center gap-2 ${
-            timeDisplay.isUrgent
-              ? "font-bold text-red-600"
-              : "text-muted-foreground"
-          }`}
-        >
-          <Clock className="h-5 w-5" />
-          <span className={"text-lg font-semibold"}>
-            Kết thúc đấu giá: {timeDisplay.text}
-          </span>
-        </div>
-        <div className="text-muted-foreground mb-6 flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          <span className="text-lg font-semibold">
-            Ngày đăng: {formatDate(new Date(product.createdAt))}
-          </span>
-        </div>
-      </div>
-
-      {/* Seller Info */}
-      <Card className="bg-slate-50 dark:bg-slate-800">
+      {/* Current Price Card */}
+      <Card>
         <CardContent>
-          <div className="flex items-start justify-between">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground mb-1 text-sm">Người bán</p>
-              <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                {product.sellerName}
+              <p className="text-muted-foreground mb-2 text-sm font-medium tracking-wide uppercase">
+                Giá hiện tại
               </p>
-              <div className="mt-2 flex items-center gap-1">
-                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                <span className="text-lg font-semibold text-amber-500">
-                  {product.sellerRatingScore * 100}%
-                </span>
-                <span className="text-muted-foreground ml-1 text-sm">
-                  ({product.sellerRatingCount} đánh giá)
-                </span>
+              <p className="text-primary text-4xl font-bold">
+                {formatPrice(
+                  Number(product.currentPrice ?? product.startPrice)
+                )}
+              </p>
+            </div>
+            {product.buyNowPrice && (
+              <div className="text-right">
+                <p className="text-muted-foreground mb-2 text-sm font-medium tracking-wide uppercase">
+                  Mua ngay
+                </p>
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="text-destructive h-5 w-5" />
+                  <span className="text-destructive text-2xl font-bold">
+                    {formatPrice(Number(product.buyNowPrice))}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Auction Info Card */}
+      <Card>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Time Left */}
+            <div className="bg-muted/50 flex items-center gap-3 rounded-lg p-3">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  timeDisplay.isUrgent ? "bg-destructive" : "bg-primary"
+                }`}
+              >
+                <Clock className="size-5 text-white" />
+              </div>
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  Kết thúc đấu giá lúc
+                </p>
+                <p
+                  className={`text-lg font-semibold ${
+                    timeDisplay.isUrgent
+                      ? "text-destructive"
+                      : "text-foreground"
+                  }`}
+                >
+                  {timeDisplay.text}{" "}
+                  {usingRelativeTime && (
+                    <span className="text-muted-foreground text-sm">{`(${formatDate(endDateTime)})`}</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Creation Date */}
+            <div className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
+              <div className="bg-secondary flex h-10 w-10 items-center justify-center rounded-full">
+                <Calendar className="text-secondary-foreground h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-muted-foreground text-sm font-medium">
+                  Đăng bán lúc
+                </p>
+                <p className="text-foreground text-lg font-semibold">
+                  {formatDate(new Date(product.createdAt))}
+                </p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
-      {product.orderId && (isSeller || userId === product.winnerId) ? (
-        <div className="flex gap-3">
-          {/* Complete Order */}
-          <Button
-            size="lg"
-            variant="default"
-            className="flex h-14 flex-1 items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
-            asChild
-          >
-            <Link
-              to={
-                isSeller
-                  ? SELLER_ROUTES.ORDER(product.orderId)
-                  : ACCOUNT_ROUTES.ORDER(product.orderId)
-              }
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Hoàn tất đơn hàng
-            </Link>
-          </Button>
-        </div>
-      ) : isSeller ? (
-        <div className="flex gap-3">
-          {/* Edit Product */}
-          <Button
-            size="lg"
-            variant="default"
-            className="flex h-14 flex-1 items-center gap-2 bg-slate-900 text-lg font-semibold text-white hover:bg-slate-800"
-            asChild
-          >
-            <Link to={SELLER_ROUTES.PRODUCT(product.id)}>
-              <Pencil className="h-4 w-4" />
-              Chỉnh sửa sản phẩm
-            </Link>
-          </Button>
-        </div>
-      ) : isLoggedIn && !isAuctionEnded ? (
-        <div className="flex gap-3">
-          {/* Bid Button with Dialog */}
-          <AutoBidDialog
-            product={product}
-            userRating={userData?.ratingScore ? userData?.ratingScore * 100 : 0}
-          />
+      {/* Seller Info */}
+      <Card>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground mb-3 text-sm font-medium tracking-wide uppercase">
+                Người bán
+              </p>
+              <div className="flex items-center gap-3">
+                <UserAvatar
+                  name={product.sellerName}
+                  imageUrl={product.sellerAvatarUrl}
+                />
+                <p className="text-foreground text-xl font-bold">
+                  {product.sellerId === null ? (
+                    "Người dùng đã xóa"
+                  ) : (
+                    <Link
+                      to={APP_ROUTES.PROFILE(product.sellerId)}
+                      className="hover:underline"
+                    >
+                      {product.sellerName}
+                    </Link>
+                  )}
+                </p>
+              </div>
+            </div>
 
-          {/* Buy Now Button with Dialog */}
-          {product.buyNowPrice && <BuyNowDialog product={product} />}
-
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-accent text-accent hover:bg-accent h-14 w-14 cursor-pointer bg-transparent p-0"
-            onClick={handleToggleWatchlist}
-            disabled={watchlistLoading}
-          >
-            <Heart
-              className={`h-6 w-6 transition-colors ${isProductInWatchlist && "fill-red-500 text-red-500"}`}
+            <RatingBadge
+              score={product.sellerRatingScore}
+              count={product.sellerRatingCount}
             />
-          </Button>
-        </div>
-      ) : (
-        !isAuctionEnded && (
-          <div className="text-muted-foreground py-5 text-center font-semibold">
-            Đăng nhập để tham gia đấu giá sản phẩm này
           </div>
-        )
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
