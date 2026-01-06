@@ -104,19 +104,18 @@ const AutoBidDialog = ({
           <DialogHeader>
             <DialogTitle className="text-lg">{product.name}</DialogTitle>
             <DialogDescription className="text-base">
-              <div>
-                Giá hiện tại:{" "}
-                <span className="text-foreground text-lg font-bold">
-                  {formatPrice(currentPrice)}
-                </span>
-              </div>
+              Giá hiện tại:{" "}
+              <span className="text-foreground text-lg font-bold">
+                {formatPrice(currentPrice)}
+              </span>
               {product.buyNowPrice && (
-                <div>
+                <>
+                  <br />
                   Giá mua ngay:{" "}
                   <span className="text-foreground text-lg font-bold">
                     {formatPrice(Number(product.buyNowPrice))}
                   </span>
-                </div>
+                </>
               )}
             </DialogDescription>
           </DialogHeader>
