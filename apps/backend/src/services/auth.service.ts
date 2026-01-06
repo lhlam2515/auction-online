@@ -1,9 +1,9 @@
 import type { UserAuthData, UserRole } from "@repo/shared-types";
-import { eq, like, sql } from "drizzle-orm";
+import { and, eq, like, sql } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { supabase, supabaseAdmin } from "@/config/supabase";
-import { passwordResetTokens, users } from "@/models";
+import { passwordResetTokens, users, products } from "@/models";
 import { otpService } from "@/services";
 import {
   BadRequestError,
@@ -15,25 +15,44 @@ import {
 import { generateResetToken, getResetTokenExpiry } from "@/utils/jwt";
 
 export class AuthService {
-  async getAuthData(userId: string) {
+  async getAuthData(userId: string): Promise<UserAuthData> {
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
+      columns: {
+        birthDate: false,
+        address: false,
+        ratingScore: false,
+        ratingCount: false,
+        createdAt: false,
+        updatedAt: false,
+      },
     });
 
     if (!user) {
       throw new NotFoundError("User not found");
     }
 
+    // Check if user has any products (for seller access control)
+    let hasActiveProducts = false;
+    if (user.role === "SELLER") {
+      const productCount = await db.query.products.findFirst({
+        where: and(
+          eq(products.sellerId, userId),
+          eq(products.status, "ACTIVE")
+        ),
+        columns: { id: true },
+      });
+      hasActiveProducts = !!productCount;
+    }
+
     return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role as UserRole,
+      ...user,
       avatarUrl: user.avatarUrl || "",
-      accountStatus: user.accountStatus,
-      sellerExpireDate: user.sellerExpireDate?.toISOString() || null,
-    } as UserAuthData;
+      sellerExpireDate: user.sellerExpireDate
+        ? user.sellerExpireDate.toISOString()
+        : null,
+      hasActiveProducts,
+    };
   }
 
   async register(
@@ -217,6 +236,16 @@ export class AuthService {
         );
       }
 
+      // Check if user has any products (for seller access control)
+      let hasProducts = false;
+      if (existingUser.role === "SELLER") {
+        const productCount = await db.query.products.findFirst({
+          where: eq(products.sellerId, existingUser.id),
+          columns: { id: true },
+        });
+        hasProducts = !!productCount;
+      }
+
       return {
         user: {
           id: existingUser.id,
@@ -228,6 +257,7 @@ export class AuthService {
           accountStatus: existingUser.accountStatus,
           sellerExpireDate:
             existingUser.sellerExpireDate?.toISOString() || null,
+          hasProducts,
         },
         accessToken: authData.session.access_token || "",
         refreshToken: authData.session.refresh_token || "",
