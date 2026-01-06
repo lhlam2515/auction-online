@@ -228,14 +228,17 @@ export class AuthService {
     }
   }
 
-  async logout(userId: string) {
+  async logout(accessToken: string) {
     try {
       // Hành động này sẽ vô hiệu hóa Refresh Token hiện tại và các token liên quan.
       // scope: 'global' sẽ đăng xuất user khỏi TẤT CẢ các thiết bị (An toàn nhất)
-      const { error } = await supabaseAdmin.auth.admin.signOut(userId);
+      const { error } = await supabaseAdmin.auth.admin.signOut(
+        accessToken,
+        "global"
+      );
 
       if (error) {
-        logger.error(`Logout failed for user ${userId}:`, error.message);
+        logger.error(`Logout failed:`, error);
       }
 
       return { message: "Đăng xuất thành công" };
@@ -272,14 +275,19 @@ export class AuthService {
       });
 
       if (!userStatus) {
-        // User bị xóa khỏi DB nhưng vẫn còn bên Supabase Auth -> Force Logout
-        await supabaseAdmin.auth.admin.signOut(data.user.id);
+        // User bị xóa khỏi DB nhưng vẫn còn bên Supabase Auth
+        // -> Xóa luôn user khỏi Supabase Auth để dọn dẹp dữ liệu rác
+        await supabaseAdmin.auth.admin.deleteUser(data.user.id);
         throw new UnauthorizedError("Tài khoản không tồn tại.");
       }
 
       if (userStatus.accountStatus === "BANNED") {
         // User bị cấm -> Thu hồi ngay token vừa cấp -> Chặn truy cập
-        await supabaseAdmin.auth.admin.signOut(data.user.id);
+        // Sử dụng access token vừa refresh để signOut
+        await supabaseAdmin.auth.admin.signOut(
+          data.session.access_token,
+          "global"
+        );
         throw new UnauthorizedError("Tài khoản của bạn đã bị vô hiệu hóa.");
       }
 
@@ -439,8 +447,8 @@ export class AuthService {
         }
       });
 
-      // Thu hồi tất cả phiên đăng nhập hiện tại của user để bảo mật
-      await supabaseAdmin.auth.admin.signOut(user.id);
+      // Sau khi đổi mật khẩu, Supabase tự động vô hiệu hóa các session cũ
+      // User cần đăng nhập lại với mật khẩu mới
 
       return {
         message: "Đổi mật khẩu thành công. Hãy đăng nhập bằng mật khẩu mới.",
