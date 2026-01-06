@@ -1,9 +1,11 @@
 import { randomUUID } from "crypto";
 import path from "path";
 
-import { UploadImagesResponse } from "@repo/shared-types";
+import type { UploadImagesResponse } from "@repo/shared-types";
+import { index } from "drizzle-orm/gel-core";
 
-import { supabase, supabaseAdmin } from "@/config/supabase";
+import logger from "@/config/logger";
+import { supabaseAdmin } from "@/config/supabase";
 import { BadRequestError } from "@/utils/errors";
 
 export class UploadService {
@@ -41,73 +43,94 @@ export class UploadService {
       throw new BadRequestError("Invalid path prefix");
     }
 
-    const uploadPromises = files.map(async (file, index) => {
-      const fileExt = path.extname(file.originalname).toLowerCase();
+    // Track uploaded file paths for rollback
+    const uploadedPaths: string[] = [];
 
-      let fileName;
-      if (customName) {
-        // If customName is provided, use it.
-        // If multiple files, append index to ensure uniqueness,
-        // unless it's a single file then keep it clean.
-        fileName =
-          files.length > 1
-            ? `${customName}-${index}${fileExt}`
-            : `${customName}${fileExt}`;
-      } else {
-        fileName = `${randomUUID()}${fileExt}`;
-      }
+    try {
+      // Upload files sequentially to track progress for rollback
+      const urls: string[] = [];
 
-      const filePath = `${pathPrefix}/${fileName}`;
+      for (const file of files) {
+        const fileExt = path.extname(file.originalname).toLowerCase();
 
-      // Nếu dùng customName (Avatar), thực hiện xóa file cũ trước (nếu có)
-      // Theo yêu cầu: Xóa tất cả ảnh cũ (kể cả cùng extension) để đảm bảo không bị cache hoặc lỗi không update nội dung
-      if (customName) {
-        const extensions = [".jpg", ".jpeg", ".png", ".webp"];
-        // Xóa hết các file có tên customName với mọi extension
-        const filesRemove = extensions.map(
-          (ext) => `${pathPrefix}/${customName}${ext}`
-        );
+        let fileName;
+        if (customName) {
+          // If customName is provided, use it.
+          // If multiple files, append index to ensure uniqueness,
+          // unless it's a single file then keep it clean.
+          fileName =
+            files.length > 1
+              ? `${customName}-${index}${fileExt}`
+              : `${customName}${fileExt}`;
+        } else {
+          fileName = `${randomUUID()}${fileExt}`;
+        }
 
-        if (filesRemove.length > 0) {
-          await supabaseAdmin.storage.from("images").remove(filesRemove);
+        const filePath = `${pathPrefix}/${fileName}`;
+
+        // If using customName, remove existing files with that name (all extensions)
+        if (customName) {
+          const extensions = [".jpg", ".jpeg", ".png", ".webp"];
+          const filesRemove = extensions.map(
+            (ext) => `${pathPrefix}/${customName}${ext}`
+          );
+          if (filesRemove.length > 0) {
+            await supabaseAdmin.storage.from("images").remove(filesRemove);
+          }
+        }
+
+        // Use supabaseAdmin to bypass RLS policies
+        const cacheControl = customName ? "0" : "3600"; // No cache for custom names
+        const { error } = await supabaseAdmin.storage
+          .from("images")
+          .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            cacheControl: cacheControl,
+            upsert: true,
+          });
+
+        if (error) {
+          logger.error(`Failed to upload file ${file.originalname}`, error);
+          throw error;
+        }
+
+        // Track uploaded file for potential rollback
+        uploadedPaths.push(filePath);
+
+        // Get public URL
+        const { data: urlData } = supabaseAdmin.storage
+          .from("images")
+          .getPublicUrl(filePath);
+
+        // Append timestamp to URL to prevent caching if customName is used
+        if (customName) {
+          urls.push(`${urlData.publicUrl}?v=${Date.now()}`);
+        } else {
+          urls.push(urlData.publicUrl);
         }
       }
 
-      // Use supabaseAdmin to bypass RLS policies
-      // If customName is used (like avatar), set cacheControl to '0' (no-cache) to ensure updates are seen immediately.
-      const cacheControl = customName ? "0" : "3600";
-
-      const { data, error } = await supabaseAdmin.storage
-        .from("images")
-        .upload(filePath, file.buffer, {
-          contentType: file.mimetype,
-          cacheControl: cacheControl,
-          upsert: true,
-        });
-
-      if (error) {
-        throw new BadRequestError(
-          `Failed to upload ${file.originalname}: ${error.message}`
-        );
-      }
-
-      // Get public URL
-      const { data: urlData } = supabaseAdmin.storage
-        .from("images")
-        .getPublicUrl(filePath);
-
-      // Append timestamp to prevent browser caching only for custom named files (which are likely overwritten)
-      if (customName) {
-        return `${urlData.publicUrl}?v=${Date.now()}`;
-      }
-
-      return urlData.publicUrl;
-    });
-
-    try {
-      const urls = await Promise.all(uploadPromises);
       return { urls };
     } catch (error) {
+      // Rollback: Delete all successfully uploaded files
+      if (uploadedPaths.length > 0) {
+        logger.warn(
+          `Rolling back ${uploadedPaths.length} uploaded files due to error`
+        );
+
+        const { error: deleteError } = await supabaseAdmin.storage
+          .from("images")
+          .remove(uploadedPaths);
+
+        if (deleteError) {
+          // Log deletion failure but don't throw - original error is more important
+          logger.error(
+            `Failed to rollback uploaded files: ${deleteError.message}`,
+            deleteError
+          );
+        }
+      }
+
       throw new BadRequestError(
         `Failed to upload images: ${error instanceof Error ? error.message : String(error)}`
       );

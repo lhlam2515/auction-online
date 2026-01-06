@@ -33,7 +33,6 @@ const upload = multer({
 router.get(
   "/watch-list-by-card",
   authenticate,
-  authorize("BIDDER", "SELLER"),
   productController.getWatchListByCard
 );
 

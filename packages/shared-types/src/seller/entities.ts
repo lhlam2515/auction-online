@@ -31,6 +31,6 @@ export interface SellerUpgradeRequest {
 export interface SellerStats {
   totalActiveProducts: number;
   totalSoldProducts: number;
-  totalRevenue: string; // Decimal as string
+  totalRevenue: number; // In smallest currency unit
   successRate: number; // Success rate as decimal (0-1)
 }

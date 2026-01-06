@@ -44,7 +44,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   messagesReceived: many(chatMessages, { relationName: "receiver" }),
 
   // User product questions
-  productQuestions: many(productQuestions, { relationName: "questioner" }),
+  productQuestions: many(productQuestions, { relationName: "asker" }),
 
   // User answered questions
   answeredQuestions: many(productQuestions, { relationName: "answerer" }),
@@ -261,13 +261,13 @@ export const productQuestionsRelations = relations(
       references: [products.id],
     }),
 
-    user: one(users, {
+    asker: one(users, {
       fields: [productQuestions.userId],
       references: [users.id],
-      relationName: "questioner",
+      relationName: "asker",
     }),
 
-    answeredBy: one(users, {
+    answerer: one(users, {
       fields: [productQuestions.answeredBy],
       references: [users.id],
       relationName: "answerer",

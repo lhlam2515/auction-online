@@ -1,4 +1,7 @@
-import { createClient, SupabaseClientOptions } from "@supabase/supabase-js";
+import {
+  createClient,
+  type SupabaseClientOptions,
+} from "@supabase/supabase-js";
 import { config } from "dotenv";
 
 config({ path: ".env" });
@@ -30,6 +33,9 @@ export const supabase = createClient(
   supabaseAnonKey,
   clientOptions
 );
+
+export const getCloneClient = () =>
+  createClient(supabaseUrl, supabaseAnonKey, clientOptions);
 
 /**
  * 2. SUPABASE ADMIN (SERVICE ROLE KEY)

@@ -1,7 +1,8 @@
 import type {
   CreateRatingRequest,
-  Rating,
-  RatingSummary,
+  GetRatingsParams,
+  PaginatedResponse,
+  RatingWithUsers,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -20,18 +21,16 @@ export const createRating = asyncHandler(
 );
 
 export const getRatingHistory = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { userId } = req.params;
-    const { page, limit, sortBy, sortOrder } = req.query as never;
+    const query = res.locals.query as GetRatingsParams;
 
-    const result = await ratingService.getByUser(userId, {
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 20,
-      sortBy: sortBy as string,
-      sortOrder: sortOrder as "asc" | "desc",
-    });
+    const result = await ratingService.getByUser(userId, query);
 
-    return ResponseHandler.sendSuccess(res, result);
+    return ResponseHandler.sendSuccess<PaginatedResponse<RatingWithUsers>>(
+      res,
+      result
+    );
   }
 );
 

@@ -64,14 +64,23 @@ export const login = asyncHandler(
 
 export const logout = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const user = req.user!;
+    const accessToken = req.cookies["accessToken"];
 
-    const result = await authService.logout(user.id);
+    // Nếu có access token, gọi Supabase admin.signOut để vô hiệu hóa token
+    if (accessToken) {
+      const result = await authService.logout(accessToken);
 
+      res.clearCookie("accessToken", { path: "/api/v1" });
+      res.clearCookie("refreshToken", { path: "/api/v1/auth" });
+
+      return ResponseHandler.sendSuccess(res, null, 200, result.message);
+    }
+
+    // Nếu không có token, vẫn clear cookies (client-side logout)
     res.clearCookie("accessToken", { path: "/api/v1" });
     res.clearCookie("refreshToken", { path: "/api/v1/auth" });
 
-    return ResponseHandler.sendSuccess(res, null, 200, result.message);
+    return ResponseHandler.sendSuccess(res, null, 200, "Đăng xuất thành công.");
   }
 );
 

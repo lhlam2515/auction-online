@@ -7,7 +7,7 @@ export interface ProductCore {
   id: string;
   name: string;
   slug: string; // SEO-friendly URL
-  sellerId: string;
+  sellerId: string | null; // Seller can be null if user deleted
   categoryId: string;
   freeToBid: boolean;
   startPrice: string; // Decimal as string
@@ -35,7 +35,7 @@ export interface Product extends ProductCore {
  */
 export interface ProductListing extends Product {
   categoryName: string;
-  sellerName: string;
+  sellerName: string | null;
   sellerAvatarUrl: string | null;
   currentWinnerName: string | null; // masked name of highest bidder
   bidCount: number;

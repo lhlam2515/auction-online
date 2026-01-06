@@ -9,6 +9,7 @@ import type {
   OrderFeedbackRequest,
   MarkPaidRequest,
   PaginatedResponse,
+  RatingScore,
   RatingWithUsers,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
@@ -20,22 +21,6 @@ import { orderService } from "@/services/order.service";
 import { ForbiddenError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
-
-export const createOrder = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { productId, winnerId, sellerId, finalPrice } = req.body;
-
-    const order = await orderService.createFromAuction(
-      productId,
-      winnerId,
-      sellerId,
-      finalPrice,
-      true // buyNow flag
-    );
-
-    return ResponseHandler.sendCreated<Order>(res, order);
-  }
-);
 
 export const getMyOrders = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
@@ -208,7 +193,7 @@ export const editFeedback = asyncHandler(
     const updatedFeedback = await ratingService.updateFeedback(
       orderId,
       userId,
-      rating,
+      rating as RatingScore,
       comment
     );
 
