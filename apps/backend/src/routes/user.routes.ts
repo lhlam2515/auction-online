@@ -1,9 +1,11 @@
 import { Router } from "express";
 
+import * as analyticsController from "@/controllers/analytics.controller";
 import * as userController from "@/controllers/user.controller";
 import { authenticate, authorize } from "@/middlewares/auth";
 import { uploadMiddleware } from "@/middlewares/upload";
 import { validate } from "@/middlewares/validate";
+import * as analyticsValidation from "@/validations/analytics.validation";
 import * as userValidation from "@/validations/user.validation";
 
 const router = Router();
@@ -98,6 +100,19 @@ router.get(
  * @access  Private
  */
 router.get("/stats", userController.getBidderStats);
+
+/**
+ * @route   GET /api/users/analytics/spending
+ * @desc    Get bidder spending analytics for charts
+ * @access  Private (Bidder)
+ * @query   period - Time period: 7d, 30d, or 12m (default: 30d)
+ */
+router.get(
+  "/analytics/spending",
+  authorize("BIDDER"),
+  validate({ query: analyticsValidation.analyticsPeriodSchema }),
+  analyticsController.getBidderSpending
+);
 
 /**
  * @route   POST /api/users/upgrade-request
