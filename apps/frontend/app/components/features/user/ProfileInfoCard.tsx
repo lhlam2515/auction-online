@@ -8,6 +8,7 @@ import {
   Store,
 } from "lucide-react";
 
+import { RoleBadge, UserAvatar } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -49,18 +50,12 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex flex-col items-center justify-center space-y-3">
-          <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-dashed border-gray-200 p-1">
-            {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile.fullName}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-100">
-                <UserIcon className="h-10 w-10 text-gray-400" />
-              </div>
-            )}
+          <div className="h-24 w-24 rounded-full border-2 border-dashed border-gray-200 p-1">
+            <UserAvatar
+              imageUrl={profile.avatarUrl}
+              name={profile.fullName}
+              className="h-full w-full"
+            />
           </div>
           <div className="text-center">
             <h3 className="text-xl font-bold text-gray-900">
@@ -68,9 +63,7 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
             </h3>
             <p className="text-sm text-gray-500">@{profile.username}</p>
           </div>
-          <Badge variant="secondary" className="px-3 py-1">
-            {profile.role}
-          </Badge>
+          <RoleBadge role={profile.role} className="px-3 py-1" />
         </div>
 
         <Separator />

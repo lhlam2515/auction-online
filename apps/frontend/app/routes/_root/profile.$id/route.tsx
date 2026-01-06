@@ -1,8 +1,4 @@
-import type {
-  PublicProfile,
-  RatingWithUsers,
-  UserRatingSummary,
-} from "@repo/shared-types";
+import type { PublicProfile, RatingWithUsers } from "@repo/shared-types";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -31,10 +27,6 @@ export default function PublicProfilePage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<PublicProfile>();
-  const [ratingSummary, setRatingSummary] = useState<UserRatingSummary>({
-    totalRatings: 0,
-    averageRating: 0,
-  });
   const [ratings, setRatings] = useState<RatingWithUsers[]>([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -55,9 +47,8 @@ export default function PublicProfilePage() {
       try {
         setIsLoading(true);
 
-        const [profileRes, summaryRes, ratingsRes] = await Promise.all([
+        const [profileRes, ratingsRes] = await Promise.all([
           api.users.getPublicProfile(id),
-          api.users.getRatingSummary(id),
           api.ratings.getByUser(id, {
             limit,
             page,
@@ -69,10 +60,6 @@ export default function PublicProfilePage() {
             setProfile(profileRes.data);
           } else {
             toast.error(profileRes.error?.message || "User not found");
-          }
-
-          if (summaryRes.success && summaryRes.data) {
-            setRatingSummary(summaryRes.data);
           }
 
           if (ratingsRes.success) {
@@ -145,7 +132,13 @@ export default function PublicProfilePage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
         {/* Left Sidebar - Profile Info */}
         <div className="md:col-span-4 lg:col-span-3">
-          <ProfileInfoCard profile={profile} summary={ratingSummary} />
+          <ProfileInfoCard
+            profile={profile}
+            summary={{
+              averageRating: profile.ratingScore,
+              totalRatings: profile.ratingCount,
+            }}
+          />
         </div>
 
         {/* Right Content - Ratings List */}
