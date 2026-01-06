@@ -208,7 +208,6 @@ export class BidService {
           bidderId,
           product.sellerId,
           amount,
-          true, // isBuyNow = true
           tx
         );
       }

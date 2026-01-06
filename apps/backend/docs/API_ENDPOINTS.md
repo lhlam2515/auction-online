@@ -115,7 +115,6 @@
 
 | Method | Endpoint                           | Role    | Mô tả                            |
 | ------ | ---------------------------------- | ------- | -------------------------------- |
-| POST   | /api/v1/orders                     | WIN     | Tạo đơn hàng (Instant Buy Now)   |
 | GET    | /api/v1/orders                     | U       | Danh sách đơn hàng của mình      |
 | GET    | /api/v1/orders/:id                 | U       | Chi tiết đơn hàng                |
 | POST   | /api/v1/orders/:id/shipping        | WIN     | Buyer cập nhật địa chỉ giao hàng |

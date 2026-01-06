@@ -115,7 +115,6 @@ class AuctionService {
         topBid.userId,
         product.sellerId,
         finalPrice,
-        false,
         tx
       );
 

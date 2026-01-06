@@ -21,22 +21,6 @@ import { ForbiddenError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
 
-export const createOrder = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { productId, winnerId, sellerId, finalPrice } = req.body;
-
-    const order = await orderService.createFromAuction(
-      productId,
-      winnerId,
-      sellerId,
-      finalPrice,
-      true // buyNow flag
-    );
-
-    return ResponseHandler.sendCreated<Order>(res, order);
-  }
-);
-
 export const getMyOrders = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const query = res.locals.query as GetOrdersParams;

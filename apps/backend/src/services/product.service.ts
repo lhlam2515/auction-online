@@ -773,7 +773,6 @@ export class ProductService {
         buyerId,
         product.sellerId!, // Safe because we checked above
         buyNowPrice,
-        true, // isBuyNow = true
         tx
       );
 
