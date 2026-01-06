@@ -314,4 +314,22 @@ router.delete(
   adminController.deleteCategory
 );
 
+/**
+ * @route   GET /api/admin/auction-settings
+ * @desc    Get auction settings
+ * @access  Private (Admin)
+ */
+router.get("/auction-settings", adminController.getAuctionSettings);
+
+/**
+ * @route   PUT /api/admin/auction-settings
+ * @desc    Update auction settings
+ * @access  Private (Admin)
+ */
+router.put(
+  "/auction-settings",
+  validate({ body: adminValidation.updateAuctionSettingsSchema }),
+  adminController.updateAuctionSettings
+);
+
 export default router;

@@ -191,3 +191,14 @@ export interface AdminAnalytics {
   operations: Operations;
   engagement: Engagement;
 }
+
+/**
+ * Auction settings entity
+ */
+export interface AuctionSettings {
+  id: string;
+  extendThresholdMinutes: number;
+  extendDurationMinutes: number;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}

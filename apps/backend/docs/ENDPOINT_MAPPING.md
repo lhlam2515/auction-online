@@ -132,28 +132,30 @@ Mapping giữa các endpoint trong FULL_API_ENDPOINTS.md và các file implement
 
 ## ✅ 10. Admin Management
 
-| Endpoint                                     | Route File      | Controller                                | Validation                                      |
-| -------------------------------------------- | --------------- | ----------------------------------------- | ----------------------------------------------- |
-| GET /api/v1/admin/stats                      | admin.routes.ts | admin.controller.ts → getDashboardStats   | -                                               |
-| GET /api/v1/admin/users                      | admin.routes.ts | admin.controller.ts → getUsers            | admin.validation.ts → getUsersSchema            |
-| GET /api/v1/admin/users/:id                  | admin.routes.ts | admin.controller.ts → getUserById         | admin.validation.ts → userIdSchema              |
-| PATCH /api/v1/admin/users/:id                | admin.routes.ts | admin.controller.ts → updateUserInfo      | admin.validation.ts → updateUserInfoSchema      |
-| PATCH /api/v1/admin/users/:id/account-status | admin.routes.ts | admin.controller.ts → updateAccountStatus | admin.validation.ts → updateAccountStatusSchema |
-| PATCH /api/v1/admin/users/:id/role           | admin.routes.ts | admin.controller.ts → updateUserRole      | admin.validation.ts → updateUserRoleSchema      |
-| PATCH /api/v1/admin/users/:id/ban            | admin.routes.ts | admin.controller.ts → toggleBanUser       | admin.validation.ts → banUserSchema             |
-| POST /api/v1/admin/users/:id/reset-password  | admin.routes.ts | admin.controller.ts → resetUserPassword   | admin.validation.ts → resetUserPasswordSchema   |
-| DELETE /api/v1/admin/users/:id               | admin.routes.ts | admin.controller.ts → deleteUser          | admin.validation.ts → deleteUserSchema          |
-| GET /api/v1/admin/upgrades                   | admin.routes.ts | admin.controller.ts → getUpgradeRequests  | admin.validation.ts → getUpgradesSchema         |
-| POST /api/v1/admin/upgrades/:id/approve      | admin.routes.ts | admin.controller.ts → approveUpgrade      | admin.validation.ts → processUpgradeSchema      |
-| POST /api/v1/admin/upgrades/:id/reject       | admin.routes.ts | admin.controller.ts → rejectUpgrade       | admin.validation.ts → processUpgradeSchema      |
-| GET /api/v1/admin/products                   | admin.routes.ts | admin.controller.ts → getAllProducts      | admin.validation.ts → getProductsSchema         |
-| GET /api/v1/admin/products/pending           | admin.routes.ts | admin.controller.ts → getPendingProducts  | admin.validation.ts → paginationSchema          |
-| PUT /api/v1/admin/products/:id/approve       | admin.routes.ts | admin.controller.ts → approveProduct      | admin.validation.ts → productIdSchema           |
-| PUT /api/v1/admin/products/:id/reject        | admin.routes.ts | admin.controller.ts → rejectProduct       | admin.validation.ts → rejectProductSchema       |
-| POST /api/v1/admin/products/:id/suspend      | admin.routes.ts | admin.controller.ts → suspendProduct      | admin.validation.ts → suspendProductSchema      |
-| POST /api/v1/admin/categories                | admin.routes.ts | admin.controller.ts → createCategory      | admin.validation.ts → createCategorySchema      |
-| PUT /api/v1/admin/categories/:id             | admin.routes.ts | admin.controller.ts → updateCategory      | admin.validation.ts → updateCategorySchema      |
-| DELETE /api/v1/admin/categories/:id          | admin.routes.ts | admin.controller.ts → deleteCategory      | admin.validation.ts → categoryIdSchema          |
+| Endpoint                                     | Route File      | Controller                                  | Validation                                        |
+| -------------------------------------------- | --------------- | ------------------------------------------- | ------------------------------------------------- |
+| GET /api/v1/admin/stats                      | admin.routes.ts | admin.controller.ts → getDashboardStats     | -                                                 |
+| GET /api/v1/admin/users                      | admin.routes.ts | admin.controller.ts → getUsers              | admin.validation.ts → getUsersSchema              |
+| GET /api/v1/admin/users/:id                  | admin.routes.ts | admin.controller.ts → getUserById           | admin.validation.ts → userIdSchema                |
+| PATCH /api/v1/admin/users/:id                | admin.routes.ts | admin.controller.ts → updateUserInfo        | admin.validation.ts → updateUserInfoSchema        |
+| PATCH /api/v1/admin/users/:id/account-status | admin.routes.ts | admin.controller.ts → updateAccountStatus   | admin.validation.ts → updateAccountStatusSchema   |
+| PATCH /api/v1/admin/users/:id/role           | admin.routes.ts | admin.controller.ts → updateUserRole        | admin.validation.ts → updateUserRoleSchema        |
+| PATCH /api/v1/admin/users/:id/ban            | admin.routes.ts | admin.controller.ts → toggleBanUser         | admin.validation.ts → banUserSchema               |
+| POST /api/v1/admin/users/:id/reset-password  | admin.routes.ts | admin.controller.ts → resetUserPassword     | admin.validation.ts → resetUserPasswordSchema     |
+| DELETE /api/v1/admin/users/:id               | admin.routes.ts | admin.controller.ts → deleteUser            | admin.validation.ts → deleteUserSchema            |
+| GET /api/v1/admin/upgrades                   | admin.routes.ts | admin.controller.ts → getUpgradeRequests    | admin.validation.ts → getUpgradesSchema           |
+| POST /api/v1/admin/upgrades/:id/approve      | admin.routes.ts | admin.controller.ts → approveUpgrade        | admin.validation.ts → processUpgradeSchema        |
+| POST /api/v1/admin/upgrades/:id/reject       | admin.routes.ts | admin.controller.ts → rejectUpgrade         | admin.validation.ts → processUpgradeSchema        |
+| GET /api/v1/admin/products                   | admin.routes.ts | admin.controller.ts → getAllProducts        | admin.validation.ts → getProductsSchema           |
+| GET /api/v1/admin/products/pending           | admin.routes.ts | admin.controller.ts → getPendingProducts    | admin.validation.ts → paginationSchema            |
+| PUT /api/v1/admin/products/:id/approve       | admin.routes.ts | admin.controller.ts → approveProduct        | admin.validation.ts → productIdSchema             |
+| PUT /api/v1/admin/products/:id/reject        | admin.routes.ts | admin.controller.ts → rejectProduct         | admin.validation.ts → rejectProductSchema         |
+| POST /api/v1/admin/products/:id/suspend      | admin.routes.ts | admin.controller.ts → suspendProduct        | admin.validation.ts → suspendProductSchema        |
+| POST /api/v1/admin/categories                | admin.routes.ts | admin.controller.ts → createCategory        | admin.validation.ts → createCategorySchema        |
+| PUT /api/v1/admin/categories/:id             | admin.routes.ts | admin.controller.ts → updateCategory        | admin.validation.ts → updateCategorySchema        |
+| DELETE /api/v1/admin/categories/:id          | admin.routes.ts | admin.controller.ts → deleteCategory        | admin.validation.ts → categoryIdSchema            |
+| GET /api/v1/admin/auction-settings           | admin.routes.ts | admin.controller.ts → getAuctionSettings    | -                                                 |
+| PUT /api/v1/admin/auction-settings           | admin.routes.ts | admin.controller.ts → updateAuctionSettings | admin.validation.ts → updateAuctionSettingsSchema |
 
 ---
 
