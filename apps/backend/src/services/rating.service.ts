@@ -1,15 +1,70 @@
 import type { Rating, RatingScore, RatingWithUsers } from "@repo/shared-types";
-import { eq, and, or, sql } from "drizzle-orm";
+import { eq, and, or, sql, count } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, ratings, users } from "@/models";
 import { NotFoundError, BadRequestError, ForbiddenError } from "@/utils/errors";
+import { toPaginated } from "@/utils/pagination";
 
 type DbTransaction =
   | typeof db
   | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export class RatingService {
+  async getByUser(
+    userId: string,
+    params: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+    }
+  ) {
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = params;
+    const offset = (page - 1) * limit;
+
+    const [items, totalResult] = await Promise.all([
+      db.query.ratings.findMany({
+        where: eq(ratings.receiverId, userId),
+        with: {
+          sender: {
+            columns: {
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+        orderBy: (rating, { asc, desc }) => [
+          sortOrder === "asc" ? asc(rating.createdAt) : desc(rating.createdAt),
+        ],
+        limit,
+        offset,
+      }),
+      db
+        .select({ count: count() })
+        .from(ratings)
+        .where(eq(ratings.receiverId, userId)),
+    ]);
+
+    const total = totalResult[0]?.count || 0;
+
+    return toPaginated(
+      items.map((item) => ({
+        ...item,
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.updatedAt.toISOString(),
+      })) as RatingWithUsers[],
+      page,
+      limit,
+      total
+    );
+  }
+
   async createFeedback(
     orderId: string,
     userId: string,

@@ -88,8 +88,11 @@ export default function PublicProfilePage({
         <div className="md:col-span-8 lg:col-span-9">
           <Card className="h-full border-none bg-transparent shadow-none">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Lịch sử đánh giá</h2>
+              <h2 className="text-2xl font-bold">
+                Lịch sử đánh giá ({ratings.length})
+              </h2>
             </div>
+            {/* Filter buttons could go here */}
 
             <div className="space-y-4">
               {ratings.length > 0 ? (
