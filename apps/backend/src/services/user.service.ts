@@ -7,8 +7,19 @@ import type {
   PaginatedResponse,
   UpdateUserInfoRequest,
   User,
+  PublicProfile,
 } from "@repo/shared-types";
-import { eq, and, or, ilike, count, gte, desc, asc, sql } from "drizzle-orm";
+import {
+  eq,
+  and,
+  or,
+  count,
+  gte,
+  desc,
+  asc,
+  sql,
+  countDistinct,
+} from "drizzle-orm";
 import type { PostgresError } from "postgres";
 
 import { db } from "@/config/database";
@@ -22,7 +33,6 @@ import {
   products,
   orders,
   autoBids,
-  ratings,
 } from "@/models";
 import { emailService } from "@/services";
 import { NotFoundError, BadRequestError, ConflictError } from "@/utils/errors";
@@ -36,31 +46,46 @@ export class UserService {
 
     if (!result) throw new NotFoundError("Không tìm thấy người dùng");
 
-    // Calculate additional stats
-    // 1. Total products as Seller (created products)
-    const [sellerStats] = await db
-      .select({ count: count() })
-      .from(products)
-      .where(eq(products.sellerId, userId));
-
-    // 2. Total products participated as Bidder (unique products bid on)
-    // Using simple count for now, distinct product count would be better but requires more complex query
-    // This counts total bids
-    // To count unique products:
-    const bidderStats = await db.query.bids.findMany({
-      where: eq(bids.userId, userId),
-      columns: {
-        productId: true,
-      },
-    });
-    const uniqueBiddedProducts = new Set(bidderStats.map((b) => b.productId))
-      .size;
-
     return {
       ...result,
+      createdAt: result.createdAt.toISOString(),
+      updatedAt: result.updatedAt.toISOString(),
+    };
+  }
+
+  async getPublicProfile(userId: string): Promise<PublicProfile> {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: {
+        address: false,
+        birthDate: false,
+        accountStatus: false,
+        sellerExpireDate: false,
+        updatedAt: false,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundError("Không tìm thấy người dùng");
+    }
+
+    const [totalAuctionProducts, totalBiddingProducts] = await Promise.all([
+      db
+        .select({ count: count() })
+        .from(products)
+        .where(eq(products.sellerId, userId)),
+      db
+        .select({ count: countDistinct(bids.productId) })
+        .from(bids)
+        .where(eq(bids.userId, userId)),
+    ]);
+
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
       stats: {
-        totalAuctionProducts: sellerStats?.count || 0,
-        totalBiddingProducts: uniqueBiddedProducts || 0,
+        totalAuctionProducts: totalAuctionProducts[0]?.count || 0,
+        totalBiddingProducts: totalBiddingProducts[0]?.count || 0,
       },
     };
   }

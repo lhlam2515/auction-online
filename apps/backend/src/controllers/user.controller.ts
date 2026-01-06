@@ -63,7 +63,7 @@ export const getPublicProfile = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: publicId } = req.params;
 
-    const publicProfile = await userService.getById(publicId);
+    const publicProfile = await userService.getPublicProfile(publicId);
 
     return ResponseHandler.sendSuccess<PublicProfile>(res, publicProfile);
   }
