@@ -1,7 +1,7 @@
 import type { ProductDetails } from "@repo/shared-types";
-import { Star, ShoppingCart, Clock, Calendar } from "lucide-react";
+import { ShoppingCart, Clock, Calendar } from "lucide-react";
 
-import { UserAvatar } from "@/components/common";
+import { UserAvatar, RatingBadge } from "@/components/common";
 import { Card, CardContent } from "@/components/ui/card";
 import { TIME } from "@/constants/api";
 import useCountdown from "@/hooks/useCountdown";
@@ -133,15 +133,10 @@ const ProductInfo = ({ product, className }: ProductInfoProps) => {
               </div>
             </div>
 
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-2 dark:bg-amber-950">
-              <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-              <span className="text-lg font-bold text-amber-500 dark:text-amber-500">
-                {(product.sellerRatingScore * 100).toFixed(0)}%
-              </span>
-              <span className="text-muted-foreground text-sm">
-                ({product.sellerRatingCount} đánh giá)
-              </span>
-            </div>
+            <RatingBadge
+              score={product.sellerRatingScore}
+              count={product.sellerRatingCount}
+            />
           </div>
         </CardContent>
       </Card>

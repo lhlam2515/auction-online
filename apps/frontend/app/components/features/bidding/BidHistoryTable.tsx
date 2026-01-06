@@ -1,7 +1,8 @@
 import type { BidWithUser, ProductDetails } from "@repo/shared-types";
-import { Star, ChevronDown, ChevronUp, Gavel } from "lucide-react";
+import { ChevronDown, ChevronUp, Gavel } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import { RatingBadge } from "@/components/common";
 import { KickBidderDialog } from "@/components/features/seller";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -148,12 +149,7 @@ const BidHistoryTable = ({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                          <span className="font-medium text-amber-500">
-                            {bid.ratingScore * 100}%
-                          </span>
-                        </div>
+                        <RatingBadge score={bid.ratingScore} />
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {formatPrice(Number(bid.amount))}
