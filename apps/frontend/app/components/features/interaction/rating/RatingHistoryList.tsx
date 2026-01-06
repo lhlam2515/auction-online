@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface RatingHistoryListProps {
   ratings: RatingWithUsers[];
@@ -105,7 +106,10 @@ function RatingItem({ rating }: { rating: RatingWithUsers }) {
           {/* Rating badge */}
           <Badge
             variant={isPositive ? "default" : "destructive"}
-            className="flex items-center gap-1"
+            className={cn(
+              "flex items-center gap-1",
+              isPositive && "bg-green-600 text-green-50"
+            )}
           >
             {isPositive ? (
               <>
