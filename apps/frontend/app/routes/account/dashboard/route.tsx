@@ -3,17 +3,18 @@ import type {
   RatingSummary,
   RatingWithUsers,
   UserStats,
+  SpendingAnalytics,
 } from "@repo/shared-types";
-import { BarChart3, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { SpendingChart } from "@/components/features/analytics";
 import {
   RatingSummaryCard,
   RatingHistoryList,
 } from "@/components/features/interaction/rating";
 import { UserProfileHeader, UserStatsCards } from "@/components/features/user";
-import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { ERROR_MESSAGES } from "@/constants/api";
 import { useAuth } from "@/contexts/auth-provider";
@@ -39,7 +40,9 @@ export default function AccountDashboardPage() {
   const [userStats, setUserStats] = useState<UserStats>();
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>();
   const [ratingHistory, setRatingHistory] = useState<RatingWithUsers[]>([]);
+  const [spendingData, setSpendingData] = useState<SpendingAnalytics>();
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingChart, setIsLoadingChart] = useState(false);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -47,12 +50,14 @@ export default function AccountDashboardPage() {
 
       try {
         setIsLoading(true);
-        const [userRes, statsRes, summaryRes, historyRes] = await Promise.all([
-          api.users.getProfile(),
-          api.users.getBidderStats(),
-          api.ratings.getSummary(user.id),
-          api.ratings.getByUser(user.id, { page: 1, limit: 10 }),
-        ]);
+        const [userRes, statsRes, summaryRes, historyRes, spendingRes] =
+          await Promise.all([
+            api.users.getProfile(),
+            api.users.getBidderStats(),
+            api.ratings.getSummary(user.id),
+            api.ratings.getByUser(user.id, { page: 1, limit: 10 }),
+            api.users.getBidderSpending("30d"),
+          ]);
 
         if (userRes?.success && userRes.data) {
           setUserData(userRes.data);
@@ -71,6 +76,10 @@ export default function AccountDashboardPage() {
         if (historyRes?.success && historyRes.data) {
           setRatingHistory(historyRes.data.items);
         }
+
+        if (spendingRes?.success && spendingRes.data) {
+          setSpendingData(spendingRes.data);
+        }
       } catch (error) {
         toast.error(ERROR_MESSAGES.SERVER_ERROR);
         console.error("Failed to fetch dashboard data:", error);
@@ -81,6 +90,21 @@ export default function AccountDashboardPage() {
 
     fetchAllData();
   }, [user?.id]);
+
+  const handlePeriodChange = async (period: "7d" | "30d" | "12m") => {
+    try {
+      setIsLoadingChart(true);
+      const response = await api.users.getBidderSpending(period);
+      if (response?.success && response.data) {
+        setSpendingData(response.data);
+      }
+    } catch (error) {
+      toast.error("Không thể tải dữ liệu biểu đồ");
+      console.error("Failed to fetch spending data:", error);
+    } finally {
+      setIsLoadingChart(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -112,13 +136,16 @@ export default function AccountDashboardPage() {
 
       {/* 3. Placeholder for Chart/Recent Activity (Để lấp đầy khoảng trắng dưới cùng) */}
       <section className="grid gap-6 md:grid-cols-7">
-        {/* Vùng này dành cho Biểu đồ doanh thu (chiếm 4 phần) */}
-        <Card className="bg-muted/60 col-span-4 flex min-h-[300px] flex-col items-center justify-center border-dashed">
-          <div className="text-muted-foreground flex flex-col items-center gap-2">
-            <BarChart3 className="h-10 w-10 opacity-20" />
-            <p>Biểu đồ chi tiêu (Coming soon)</p>
-          </div>
-        </Card>
+        {/* Vùng này dành cho Biểu đồ chi tiêu */}
+        <div className="col-span-4">
+          {spendingData && (
+            <SpendingChart
+              data={spendingData}
+              onPeriodChange={handlePeriodChange}
+              isLoading={isLoadingChart}
+            />
+          )}
+        </div>
 
         {/* Vùng này dành cho Rating Summary */}
         <div className="col-span-3">

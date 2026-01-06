@@ -79,6 +79,9 @@ import type {
   RatingWithUsers,
   RatingSummary,
 
+  // Analytics types
+  SpendingAnalytics,
+
   // Admin types
   AdminStats,
   AdminUser,
@@ -273,6 +276,15 @@ export const api = {
      * Get bidder dashboard statistics
      */
     getBidderStats: () => apiCall<UserStats>("GET", "/users/stats"),
+
+    /**
+     * Get bidder spending analytics for charts
+     */
+    getBidderSpending: (period: "7d" | "30d" | "12m" = "30d") =>
+      apiCall<SpendingAnalytics>(
+        "GET",
+        appendQueryParams("/users/analytics/spending", { period })
+      ),
 
     /**
      * Request upgrade to seller account
