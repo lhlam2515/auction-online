@@ -4,6 +4,7 @@ import type {
   Rating,
   RatingScore,
   RatingWithUsers,
+  RatingSummary,
 } from "@repo/shared-types";
 import { eq, and, or, count, sql, asc, desc } from "drizzle-orm";
 
@@ -205,6 +206,33 @@ export class RatingService {
         updatedAt: updatedRating.updatedAt.toISOString(),
       };
     });
+  }
+
+  async getSummary(userId: string): Promise<RatingSummary> {
+    const [stats] = await db
+      .select({
+        positiveCount: sql<number>`cast(count(*) filter (where ${ratings.score} = 1) as int)`,
+        negativeCount: sql<number>`cast(count(*) filter (where ${ratings.score} = -1) as int)`,
+        totalRatings: sql<number>`cast(count(*) as int)`,
+      })
+      .from(ratings)
+      .where(eq(ratings.receiverId, userId));
+
+    const {
+      positiveCount = 0,
+      negativeCount = 0,
+      totalRatings = 0,
+    } = stats || {};
+
+    const positivePercentage =
+      totalRatings > 0 ? (positiveCount / totalRatings) * 100 : 0;
+
+    return {
+      positiveCount,
+      negativeCount,
+      totalRatings,
+      positivePercentage: Math.round(positivePercentage * 100) / 100,
+    };
   }
 
   private async refreshUserRatingStats(userId: string, tx: DbTransaction) {

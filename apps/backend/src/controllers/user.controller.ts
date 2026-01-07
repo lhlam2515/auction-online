@@ -8,6 +8,7 @@ import type {
   UserRatingSummary,
   Product,
   MyAutoBid,
+  UserStats,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -135,6 +136,16 @@ export const getBiddingHistory = asyncHandler(
     const biddingHistory = await userService.getBiddingHistory(userId);
 
     return ResponseHandler.sendSuccess<MyAutoBid[]>(res, biddingHistory);
+  }
+);
+
+export const getBidderStats = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+
+    const stats = await userService.getBidderStats(userId);
+
+    return ResponseHandler.sendSuccess<UserStats>(res, stats);
   }
 );
 

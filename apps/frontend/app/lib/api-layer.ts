@@ -19,6 +19,7 @@ import type {
   PublicProfile,
   UserRatingSummary,
   MyAutoBid,
+  UserStats,
 
   // Product types
   Product,
@@ -77,6 +78,10 @@ import type {
   Rating,
   RatingWithUsers,
   RatingSummary,
+
+  // Analytics types
+  RevenueAnalytics,
+  SpendingAnalytics,
 
   // Admin types
   AdminStats,
@@ -271,6 +276,20 @@ export const api = {
       ),
 
     /**
+     * Get bidder dashboard statistics
+     */
+    getBidderStats: () => apiCall<UserStats>("GET", "/users/stats"),
+
+    /**
+     * Get bidder spending analytics for charts
+     */
+    getBidderSpending: (period: "7d" | "30d" | "12m" = "30d") =>
+      apiCall<SpendingAnalytics>(
+        "GET",
+        appendQueryParams("/users/analytics/spending", { period })
+      ),
+
+    /**
      * Request upgrade to seller account
      */
     requestSellerUpgrade: (data: UpgradeRequestData) =>
@@ -433,6 +452,15 @@ export const api = {
      * Get seller's dashboard statistics
      */
     getStats: () => apiCall<SellerStats>("GET", "/seller/stats"),
+
+    /**
+     * Get seller revenue analytics for charts
+     */
+    getSellerRevenue: (period: "7d" | "30d" | "12m" = "30d") =>
+      apiCall<RevenueAnalytics>(
+        "GET",
+        `/seller/analytics/revenue?period=${period}`
+      ),
   },
 
   /**
