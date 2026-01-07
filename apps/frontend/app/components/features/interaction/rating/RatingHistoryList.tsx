@@ -1,10 +1,7 @@
 import type { RatingWithUsers } from "@repo/shared-types";
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
-import { ThumbsUp, ThumbsDown, MessageSquare, Clock, Star } from "lucide-react";
+import { MessageSquare, Star } from "lucide-react";
 
-import { UserAvatar, AppEmptyState } from "@/components/common";
-import { Badge } from "@/components/ui/badge";
+import { AppEmptyState } from "@/components/common";
 import {
   Card,
   CardContent,
@@ -13,7 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+
+import RatingCard from "./RatingCard";
 
 interface RatingHistoryListProps {
   ratings: RatingWithUsers[];
@@ -67,7 +65,11 @@ const RatingHistoryList = ({
           <div className="space-y-4">
             {ratings.map((rating, index) => (
               <div key={rating.id}>
-                <RatingItem rating={rating} />
+                <RatingCard
+                  rating={rating}
+                  timeFormat="relative"
+                  className="shadow-none"
+                />
                 {index < ratings.length - 1 && <Separator className="mt-4" />}
               </div>
             ))}
@@ -77,66 +79,5 @@ const RatingHistoryList = ({
     </Card>
   );
 };
-
-function RatingItem({ rating }: { rating: RatingWithUsers }) {
-  const isPositive = rating.score === 1;
-  const timeAgo = formatDistanceToNow(new Date(rating.createdAt), {
-    addSuffix: true,
-    locale: vi,
-  });
-
-  return (
-    <div className="flex gap-4">
-      {/* Avatar */}
-      <UserAvatar
-        imageUrl={rating.sender?.avatarUrl || undefined}
-        name={rating.sender?.fullName || "Người dùng đã xóa"}
-      />
-
-      {/* Content */}
-      <div className="flex-1 space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="font-semibold">
-              {rating.sender?.fullName || "Người dùng đã xóa"}
-            </p>
-            <div className="text-muted-foreground flex items-center gap-2 text-xs">
-              <Clock className="h-3 w-3" />
-              <span>{timeAgo}</span>
-            </div>
-          </div>
-
-          {/* Rating badge */}
-          <Badge
-            variant={isPositive ? "default" : "destructive"}
-            className={cn(
-              "flex items-center gap-1",
-              isPositive && "bg-emerald-600 px-2 text-white"
-            )}
-          >
-            {isPositive ? (
-              <>
-                <ThumbsUp className="h-3 w-3" />
-                Tích cực
-              </>
-            ) : (
-              <>
-                <ThumbsDown className="h-3 w-3" />
-                Tiêu cực
-              </>
-            )}
-          </Badge>
-        </div>
-
-        {/* Comment */}
-        {rating.comment && (
-          <div className="bg-muted rounded-lg p-3">
-            <p className="text-sm leading-relaxed">{rating.comment}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default RatingHistoryList;
