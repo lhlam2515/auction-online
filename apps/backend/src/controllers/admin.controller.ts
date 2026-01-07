@@ -1,10 +1,6 @@
 import type {
   AdminStats,
   AdminAnalytics,
-  CategoryInsights,
-  AuctionHealth,
-  Operations,
-  Engagement,
   GetUsersParams,
   GetUpgradeRequestsParams,
   BanUserRequest,
@@ -141,7 +137,7 @@ export const deleteUser = asyncHandler(
 );
 
 export const getUpgradeRequests = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const params = req.query as unknown as GetUpgradeRequestsParams;
     const result = await adminService.getUpgradeRequests(params);
     return ResponseHandler.sendSuccess(res, result);
@@ -149,7 +145,7 @@ export const getUpgradeRequests = asyncHandler(
 );
 
 export const approveUpgrade = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id } = req.params;
     const adminId = req.user!.id;
     const { adminNote } = req.body as { adminNote?: string };
@@ -161,7 +157,7 @@ export const approveUpgrade = asyncHandler(
 );
 
 export const rejectUpgrade = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id } = req.params;
     const adminId = req.user!.id;
     const { adminNote } = req.body as { adminNote?: string };
@@ -173,7 +169,7 @@ export const rejectUpgrade = asyncHandler(
 );
 
 export const getAllProducts = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const query = res.locals.query as AdminGetProductsParams;
     const products = await productService.getProductsAdmin(query);
     return ResponseHandler.sendSuccess<PaginatedResponse<ProductDetails>>(
@@ -253,34 +249,6 @@ export const getFullAnalytics = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const analytics = await adminService.getFullAnalytics();
     return ResponseHandler.sendSuccess<AdminAnalytics>(res, analytics);
-  }
-);
-
-export const getCategoryInsights = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const insights = await adminService.getCategoryInsights();
-    return ResponseHandler.sendSuccess<CategoryInsights>(res, insights);
-  }
-);
-
-export const getAuctionHealth = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const health = await adminService.getAuctionHealth();
-    return ResponseHandler.sendSuccess<AuctionHealth>(res, health);
-  }
-);
-
-export const getOperationsMetrics = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const operations = await adminService.getOperationsMetrics();
-    return ResponseHandler.sendSuccess<Operations>(res, operations);
-  }
-);
-
-export const getEngagementMetrics = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const engagement = await adminService.getEngagementMetrics();
-    return ResponseHandler.sendSuccess<Engagement>(res, engagement);
   }
 );
 
