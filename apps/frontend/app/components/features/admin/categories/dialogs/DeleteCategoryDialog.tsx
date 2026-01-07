@@ -1,3 +1,4 @@
+import { DialogDescription } from "@radix-ui/react-dialog";
 import type { CategoryTree } from "@repo/shared-types";
 import { AlertTriangle, Trash } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -45,12 +46,13 @@ const DeleteCategoryDialog = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-destructive flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
+            <Trash className="h-5 w-5" />
             Xác nhận xóa danh mục
           </DialogTitle>
-          <p>
-            Bạn có chắc chắn muốn xóa danh mục <b>{category.name}</b>?
-          </p>
+          <DialogDescription>
+            Bạn có chắc chắn muốn xóa danh mục{" "}
+            <span className="font-bold">{category.name}</span>?
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">

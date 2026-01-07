@@ -141,7 +141,12 @@ const UpdateAccountStatusForm = ({
 
       <div className="flex justify-end gap-2">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="cursor-pointer"
+          >
             Hủy
           </Button>
         )}
@@ -175,11 +180,10 @@ const UpdateAccountStatusForm = ({
               </p>
               <div className="space-y-2 rounded-md bg-gray-50 p-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <strong>Từ:</strong>{" "}
-                  <AccountStatusBadge status={user.accountStatus} />
+                  <b>Từ:</b> <AccountStatusBadge status={user.accountStatus} />
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <strong>Sang:</strong>{" "}
+                  <b>Sang:</b>{" "}
                   <AccountStatusBadge status={form.watch("accountStatus")} />
                 </div>
               </div>
@@ -192,7 +196,7 @@ const UpdateAccountStatusForm = ({
             </div>
           }
           variant={
-            form.watch("accountStatus") === "BANNED" ? "destructive" : "default"
+            form.watch("accountStatus") === "BANNED" ? "danger" : "default"
           }
           confirmLabel="Xác nhận"
           confirmIcon={Shield}

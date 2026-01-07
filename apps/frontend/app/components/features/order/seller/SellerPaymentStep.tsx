@@ -161,12 +161,12 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
                       Hủy giao dịch
                     </Button>
                   }
-                  variant="destructive"
+                  variant="danger"
                   title="Hủy giao dịch"
                   description={
                     <>
                       Bạn có chắc chắn muốn hủy đơn hàng này không?
-                      <span className="block font-semibold">
+                      <span className="block font-bold">
                         Lý do: Người mua chậm thanh toán quá 24 giờ.
                       </span>
                       Hành động này không thể hoàn tác.

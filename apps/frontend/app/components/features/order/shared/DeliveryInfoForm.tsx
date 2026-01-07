@@ -204,6 +204,7 @@ const DeliveryInfoForm = <T extends FieldValues>({
               chuyển.
             </>
           }
+          variant="success"
           confirmLabel="Xác nhận bàn giao"
           onConfirm={handleConfirmSubmit}
           isConfirming={isSubmitting}

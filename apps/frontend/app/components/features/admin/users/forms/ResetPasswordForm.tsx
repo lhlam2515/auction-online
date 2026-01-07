@@ -204,6 +204,7 @@ const ResetPasswordForm = ({
           variant="outline"
           onClick={handleCancel}
           disabled={isConfirming}
+          className="cursor-pointer"
         >
           Hủy
         </Button>
@@ -226,17 +227,17 @@ const ResetPasswordForm = ({
                 Bạn có chắc chắn muốn đặt lại mật khẩu? Người dùng sẽ cần đăng
                 nhập bằng mật khẩu mới.
               </p>
-              <div className="space-y-2 rounded-md border border-yellow-200 bg-yellow-50 p-3">
-                <p className="text-sm font-medium text-yellow-900">
-                  ⚠️ Mật khẩu mới sẽ được gửi cho người dùng qua email
+              <div className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3">
+                <p className="text-sm font-medium text-amber-600">
+                  Mật khẩu mới sẽ được gửi cho người dùng qua email
                 </p>
-                <p className="text-xs text-yellow-800">
+                <p className="text-sm text-amber-600">
                   Đảm bảo rằng email của họ vẫn hoạt động bình thường.
                 </p>
               </div>
             </div>
           }
-          variant="destructive"
+          variant="danger"
           confirmLabel="Xác nhận đặt lại"
           confirmIcon={Key}
           onConfirm={handleConfirmSubmit}

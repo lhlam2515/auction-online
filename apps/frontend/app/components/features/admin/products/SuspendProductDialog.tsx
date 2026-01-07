@@ -41,7 +41,7 @@ const SuspendProductDialog = ({
         <Button
           variant="outline"
           size="sm"
-          className="cursor-pointer text-red-600 hover:bg-red-600"
+          className="text-destructive hover:bg-destructive cursor-pointer"
         >
           <Trash2 className="h-4 w-4" />
           Gỡ bỏ

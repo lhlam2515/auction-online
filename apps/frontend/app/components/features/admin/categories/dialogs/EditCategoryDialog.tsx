@@ -77,14 +77,15 @@ const EditCategoryDialog = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
             Chỉnh sửa danh mục
           </DialogTitle>
           <DialogDescription>
-            Chỉnh sửa tên danh mục <b>{category.name}</b>
+            Chỉnh sửa tên danh mục{" "}
+            <span className="font-bold">{category.name}</span>
           </DialogDescription>
         </DialogHeader>
 

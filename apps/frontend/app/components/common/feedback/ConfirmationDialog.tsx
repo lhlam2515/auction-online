@@ -15,14 +15,14 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
-type ConfirmationVariant = "default" | "success" | "destructive" | "warning";
+type ConfirmationVariant = "default" | "success" | "danger" | "warning";
 
 interface ConfirmationDialogProps {
   // Trigger element
   trigger: ReactNode;
 
   // Dialog content
-  title: string;
+  title: string | ReactNode;
   description: string | ReactNode;
   variant?: ConfirmationVariant;
 
@@ -55,8 +55,8 @@ const variantConfig: Record<
     confirmButtonClass: "bg-emerald-500 text-emerald-50 hover:bg-emerald-700",
     loadingText: "Đang xử lý...",
   },
-  destructive: {
-    confirmButtonClass: "",
+  danger: {
+    confirmButtonClass: "bg-red-500 text-red-50 hover:bg-red-700",
     loadingText: "Đang xử lý...",
   },
   warning: {
@@ -96,9 +96,9 @@ const ConfirmationDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         {children}
@@ -112,11 +112,7 @@ const ConfirmationDialog = ({
             {cancelLabel}
           </Button>
           <Button
-            variant={variant === "destructive" ? "destructive" : "default"}
-            className={cn(
-              "cursor-pointer",
-              variant !== "destructive" && config.confirmButtonClass
-            )}
+            className={cn("cursor-pointer", config.confirmButtonClass)}
             onClick={handleConfirm}
             disabled={isConfirming}
           >

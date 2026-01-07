@@ -171,6 +171,7 @@ const UpdateUserRoleForm = ({
             variant="outline"
             onClick={onCancel}
             disabled={form.formState.isSubmitting}
+            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -202,7 +203,6 @@ const UpdateUserRoleForm = ({
             user.role,
             watchedRole
           )}
-          variant="warning"
           confirmLabel="Xác nhận thay đổi"
           cancelLabel="Hủy"
           onConfirm={handleConfirmSubmit}

@@ -8,7 +8,6 @@ import { AlertSection } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -70,6 +69,12 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
     }
   };
 
+  const handleClose = () => {
+    if (!isProcessing) {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -83,9 +88,9 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
+          <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
             Xác nhận mua ngay
           </DialogTitle>
@@ -118,15 +123,14 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
 
           {/* Action Buttons */}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button
-                variant="outline"
-                disabled={isProcessing}
-                className="cursor-pointer"
-              >
-                Hủy
-              </Button>
-            </DialogClose>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={isProcessing}
+              className="cursor-pointer"
+            >
+              Hủy
+            </Button>
 
             <Button
               variant="destructive"

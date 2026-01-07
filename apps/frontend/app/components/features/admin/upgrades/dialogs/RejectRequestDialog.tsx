@@ -51,16 +51,16 @@ export function RejectRequestDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="text-destructive h-6 w-6" />
-            <DialogTitle>Từ chối yêu cầu nâng cấp</DialogTitle>
-          </div>
+          <DialogTitle className="text-destructive flex items-center gap-2">
+            <ShieldAlert className="h-5 w-5" />
+            Từ chối yêu cầu nâng cấp
+          </DialogTitle>
           <DialogDescription>
             Vui lòng nhập lý do từ chối yêu cầu của{" "}
-            <span className="font-semibold">{request.userName}</span>. Người
-            dùng sẽ nhận được thông báo về lý do từ chối.
+            <span className="font-bold">{request.userName}</span>. Người dùng sẽ
+            nhận được thông báo về lý do từ chối.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -79,6 +79,7 @@ export function RejectRequestDialog({
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isProcessing}
+            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -86,6 +87,7 @@ export function RejectRequestDialog({
             variant="destructive"
             onClick={handleConfirm}
             disabled={isProcessing}
+            className="cursor-pointer"
           >
             {isProcessing ? "Đang xử lý..." : "Từ chối"}
           </Button>

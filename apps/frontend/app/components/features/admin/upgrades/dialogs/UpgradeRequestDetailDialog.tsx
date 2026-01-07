@@ -73,12 +73,10 @@ export function UpgradeRequestDetailDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <Shield className="text-primary h-6 w-6" />
-            <DialogTitle className="text-xl">
-              Chi tiết yêu cầu nâng cấp
-            </DialogTitle>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Chi tiết yêu cầu nâng cấp
+          </DialogTitle>
           <DialogDescription>
             Xem xét thông tin chi tiết và lý do nâng cấp tài khoản lên Seller.
           </DialogDescription>
@@ -149,7 +147,7 @@ export function UpgradeRequestDetailDialog({
             <div className="bg-card text-card-foreground rounded-md border shadow-sm">
               <ScrollArea className="h-[120px] w-full rounded-md p-4">
                 <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap italic">
-                  "{request.reason || "Không có lý do cụ thể."}"
+                  {request.reason || "Không có lý do cụ thể."}
                 </p>
               </ScrollArea>
             </div>

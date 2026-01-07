@@ -262,6 +262,7 @@ const BanUserForm = ({
           variant="outline"
           onClick={onCancel}
           disabled={isConfirming}
+          className="cursor-pointer"
         >
           Hủy
         </Button>
@@ -297,19 +298,19 @@ const BanUserForm = ({
                   : "Bạn có chắc chắn muốn GỠ CẤM người dùng này? Họ sẽ có thể đăng nhập trở lại."}
               </p>
               {isBanned && form.watch("reason") && (
-                <div className="rounded-md bg-gray-50 p-3">
-                  <p className="text-sm">
-                    <strong>Lý do:</strong> {form.watch("reason")}
-                  </p>
-                  <p className="text-sm">
-                    <strong>Thời gian:</strong>{" "}
+                <ul className="bg-muted space-y-2 rounded-md p-3 text-sm">
+                  <li>
+                    <b>Lý do:</b> {form.watch("reason")}
+                  </li>
+                  <li>
+                    <b>Thời gian:</b>{" "}
                     {duration ? `${duration} ngày` : "Vĩnh viễn"}
-                  </p>
-                </div>
+                  </li>
+                </ul>
               )}
             </div>
           }
-          variant={isBanned ? "destructive" : "default"}
+          variant={isBanned ? "danger" : "default"}
           confirmLabel={isBanned ? "Xác nhận cấm" : "Xác nhận gỡ cấm"}
           confirmIcon={isBanned ? Ban : ShieldAlert}
           onConfirm={handleConfirmSubmit}

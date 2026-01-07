@@ -111,16 +111,16 @@ const KickBidderDialog = ({
           Chặn
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Xác nhận chặn người đặt giá</DialogTitle>
-          <DialogDescription className="text-accent">
-            <p>
-              Bạn có chắc chắn muốn chặn{" "}
-              <span className="font-medium">{bidderName}</span> khỏi phiên đấu
-              giá?
-            </p>
-            <p>Hành động này không thể hoàn tác.</p>
+          <DialogTitle className="text-destructive flex items-center gap-2">
+            <UserMinus className="h-5 w-5" />
+            Xác nhận chặn người đặt giá
+          </DialogTitle>
+          <DialogDescription>
+            Bạn có chắc chắn muốn chặn{" "}
+            <span className="font-bold">{bidderName}</span> khỏi phiên đấu giá?
+            Hành động này không thể hoàn tác.
           </DialogDescription>
         </DialogHeader>
 
