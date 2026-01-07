@@ -93,6 +93,9 @@ export const ADMIN_ROUTES = {
 
   // Upgrade requests
   UPGRADES: "/admin/upgrades",
+
+  // Settings
+  SETTINGS: "/admin/settings",
 } as const;
 
 // ==========================================

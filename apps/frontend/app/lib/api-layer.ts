@@ -90,6 +90,8 @@ import type {
   UpdateUserRoleRequest,
   CreateUserRequest,
   DeleteUserRequest,
+  UpdateAuctionSettingsRequest,
+  AuctionSettings,
   UpgradeRequest,
   AdminProduct,
   AdminAnalytics,
@@ -901,6 +903,22 @@ export const api = {
           "DELETE",
           `/admin/categories/${categoryId}`
         ),
+    },
+
+    /**
+     * Auction Settings Management
+     */
+    auctionSettings: {
+      /**
+       * Get auction settings
+       */
+      get: () => apiCall<AuctionSettings>("GET", "/admin/auction-settings"),
+
+      /**
+       * Update auction settings
+       */
+      update: (data: UpdateAuctionSettingsRequest) =>
+        apiCall<AuctionSettings>("PUT", "/admin/auction-settings", data),
     },
   },
 };

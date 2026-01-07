@@ -19,6 +19,7 @@ import type {
   GetUpgradeRequestsParams,
   PaginatedResponse,
   AdminUpgradeRequest,
+  AuctionSettings,
 } from "@repo/shared-types";
 import {
   count,
@@ -46,6 +47,7 @@ import {
   orderPayments,
   categories,
   bids,
+  auctionSettings,
 } from "@/models";
 
 export class AdminService {
@@ -561,6 +563,57 @@ export class AdminService {
         adminNote: reason,
       })
       .where(eq(upgradeRequests.id, id));
+  }
+
+  async updateAuctionSettings(data: {
+    extendThresholdMinutes: number;
+    extendDurationMinutes: number;
+  }): Promise<AuctionSettings> {
+    // Check if settings exist
+    const existingSettings = await db.select().from(auctionSettings).limit(1);
+
+    if (existingSettings.length > 0) {
+      // Update existing settings
+      const [updated] = await db
+        .update(auctionSettings)
+        .set({
+          extendThresholdMinutes: data.extendThresholdMinutes,
+          extendDurationMinutes: data.extendDurationMinutes,
+          updatedAt: new Date(),
+        })
+        .where(eq(auctionSettings.id, existingSettings[0].id))
+        .returning();
+
+      return updated;
+    } else {
+      // Create new settings
+      const [created] = await db
+        .insert(auctionSettings)
+        .values({
+          extendThresholdMinutes: data.extendThresholdMinutes,
+          extendDurationMinutes: data.extendDurationMinutes,
+        })
+        .returning();
+
+      return created;
+    }
+  }
+
+  async getAuctionSettings(): Promise<AuctionSettings> {
+    const settings = await db.select().from(auctionSettings).limit(1);
+
+    if (settings.length === 0) {
+      // Return default settings if none exist
+      return {
+        id: "",
+        extendThresholdMinutes: 5,
+        extendDurationMinutes: 10,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+
+    return settings[0];
   }
 }
 

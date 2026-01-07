@@ -168,3 +168,5 @@
 | PUT    | /api/v1/admin/products/:id/approve     | ADM  | Duyệt SP                                           |
 | PUT    | /api/v1/admin/products/:id/reject      | ADM  | Từ chối SP                                         |
 | POST   | /api/v1/admin/products/:id/suspend     | ADM  | Gỡ SP đang active                                  |
+| GET    | /api/v1/admin/auction-settings         | ADM  | Lấy cài đặt đấu giá                                |
+| PUT    | /api/v1/admin/auction-settings         | ADM  | Cập nhật cài đặt đấu giá                           |
