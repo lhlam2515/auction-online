@@ -195,7 +195,7 @@ const ProductImageGallery = ({
               <Button
                 variant="secondary"
                 size="icon"
-                className="absolute top-1/2 left-4 z-10 h-10 w-10 -translate-y-1/2 cursor-pointer rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+                className="absolute top-1/2 left-4 z-10 h-10 w-10 -translate-y-1/2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
                 onClick={() => carouselApi?.scrollPrev()}
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -205,7 +205,7 @@ const ProductImageGallery = ({
               <Button
                 variant="secondary"
                 size="icon"
-                className="absolute top-1/2 right-4 z-10 h-10 w-10 -translate-y-1/2 cursor-pointer rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+                className="absolute top-1/2 right-4 z-10 h-10 w-10 -translate-y-1/2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
                 onClick={() => carouselApi?.scrollNext()}
               >
                 <ChevronRight className="h-5 w-5" />

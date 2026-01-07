@@ -32,20 +32,17 @@ const UpgradeRequestManager = ({
     <div className="flex flex-col items-end">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 cursor-pointer p-0">
-            <span className="sr-only">Mở menu</span>
+          <Button variant="ghost" size="icon-sm">
             <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">Mở menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[200px]">
           <DropdownMenuLabel>Hành động</DropdownMenuLabel>
           <UpgradeRequestDetailDialog
             trigger={
-              <DropdownMenuItem
-                onSelect={(e) => e.preventDefault()}
-                className="cursor-pointer"
-              >
-                <Eye className="mr-2 h-4 w-4" />
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <Eye className="mr-1 h-4 w-4" />
                 Xem chi tiết
               </DropdownMenuItem>
             }
@@ -58,9 +55,9 @@ const UpgradeRequestManager = ({
                 trigger={
                   <DropdownMenuItem
                     onSelect={(e) => e.preventDefault()}
-                    className="cursor-pointer text-emerald-600 focus:bg-emerald-500/10 focus:text-emerald-700"
+                    className="text-emerald-600 focus:bg-emerald-500/10 focus:text-emerald-700"
                   >
-                    <Check className="mr-2 h-4 w-4" />
+                    <Check className="mr-1 h-4 w-4" />
                     Chấp nhận
                   </DropdownMenuItem>
                 }
@@ -71,9 +68,9 @@ const UpgradeRequestManager = ({
                 trigger={
                   <DropdownMenuItem
                     onSelect={(e) => e.preventDefault()}
-                    className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                   >
-                    <X className="mr-2 h-4 w-4" />
+                    <X className="mr-1 h-4 w-4" />
                     Từ chối
                   </DropdownMenuItem>
                 }

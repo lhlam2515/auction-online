@@ -112,7 +112,7 @@ const ImageUploadFields = <T extends FieldValues>({
                     <Button
                       variant="destructive"
                       onClick={() => onImageRemove(image.id, field.onChange)}
-                      className="absolute top-2 right-2 cursor-pointer rounded-full opacity-0 transition-all duration-200 group-hover:opacity-100"
+                      className="absolute top-2 right-2 rounded-full opacity-0 transition-all duration-200 group-hover:opacity-100"
                     >
                       <Trash2 className="size-4" />
                     </Button>

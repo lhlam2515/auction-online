@@ -114,11 +114,11 @@ const OrderSummaryCard = ({
             </div>
           </div>
           <Button
-            className="w-full cursor-pointer"
             size="lg"
+            className="w-full"
             onClick={() => setIsChatOpen(true)}
           >
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle className="mr-1 h-4 w-4" />
             Chat với {isSeller ? "người mua" : "người bán"}
           </Button>
         </CardContent>

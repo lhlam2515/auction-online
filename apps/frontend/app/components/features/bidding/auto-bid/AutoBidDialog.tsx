@@ -96,10 +96,10 @@ const AutoBidDialog = ({
           {trigger || (
             <Button
               size="lg"
-              className="h-14 flex-1 cursor-pointer text-lg font-semibold"
+              className="h-14 flex-1 text-lg font-semibold"
               disabled={disabled}
             >
-              <Gavel className="size-6" />
+              <Gavel className="mr-1 size-5" />
               Đặt giá
             </Button>
           )}

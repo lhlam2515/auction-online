@@ -273,7 +273,6 @@ export default function SearchBrowsePage() {
                   <Button
                     variant="default"
                     onClick={() => onCategoryChange("")}
-                    className="cursor-pointer"
                   >
                     <XCircle className="mr-1 h-4 w-4" />
                     Xóa tất cả bộ lọc

@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import {
   createCategorySchema,
   type CreateCategoryFormData,
@@ -157,15 +158,14 @@ const AddCategoryDialog = ({
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={isSubmitting}
-                className="cursor-pointer"
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting || !form.formState.isValid}
-                className="cursor-pointer"
               >
+                {isSubmitting && <Spinner className="mr-1 h-4 w-4" />}
                 {isSubmitting ? "Đang thêm..." : "Thêm danh mục"}
               </Button>
             </DialogFooter>

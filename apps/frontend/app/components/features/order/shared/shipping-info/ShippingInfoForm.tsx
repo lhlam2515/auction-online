@@ -143,7 +143,6 @@ const ShippingInfoForm = <T extends FieldValues>({
           <Button
             type="button"
             variant="outline"
-            className="ml-2"
             onClick={onCancel}
             disabled={isSubmitting}
           >
@@ -155,12 +154,11 @@ const ShippingInfoForm = <T extends FieldValues>({
           trigger={
             <Button
               variant="default"
-              className="cursor-pointer"
               onClick={async () => {
                 await form.trigger();
               }}
             >
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle2 className="mr-1 h-4 w-4" />
               Lưu thay đổi
             </Button>
           }

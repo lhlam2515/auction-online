@@ -131,7 +131,7 @@ const MyBidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
           icon={<EmptyIcon />}
           action={
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button asChild className="cursor-pointer">
+              <Button asChild>
                 <Link to={APP_ROUTES.SEARCH}>
                   <Search className="mr-1 h-4 w-4" />
                   Khám phá sản phẩm
@@ -257,17 +257,17 @@ const WonBidRow = ({
             <Link to={ACCOUNT_ROUTES.ORDER(order.id)}>
               {order.status === "PENDING" ? (
                 <>
-                  <CreditCard className="h-4 w-4" />
+                  <CreditCard className="mr-1 h-4 w-4" />
                   <span>Thanh toán</span>
                 </>
               ) : order.status === "COMPLETED" ? (
                 <>
-                  <Star className="h-4 w-4" />
+                  <Star className="mr-1 h-4 w-4" />
                   <span>Đánh giá</span>
                 </>
               ) : (
                 <>
-                  <Eye className="h-4 w-4" />
+                  <Eye className="mr-1 h-4 w-4" />
                   <span>Theo dõi</span>
                 </>
               )}

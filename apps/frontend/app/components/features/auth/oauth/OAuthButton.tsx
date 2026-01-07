@@ -48,7 +48,7 @@ const OAuthButton = ({ provider, disabled }: OAuthButtonProps) => {
         <img
           src="/icons/google.svg"
           alt="Google"
-          className="h-5 w-5"
+          className="mr-1 h-5 w-5"
           width={20}
           height={20}
         />
@@ -61,7 +61,7 @@ const OAuthButton = ({ provider, disabled }: OAuthButtonProps) => {
         <img
           src="/icons/facebook.svg"
           alt="Facebook"
-          className="h-5 w-5"
+          className="mr-1 h-5 w-5"
           width={20}
           height={20}
         />
@@ -75,12 +75,12 @@ const OAuthButton = ({ provider, disabled }: OAuthButtonProps) => {
     <Button
       type="button"
       variant="secondary"
-      className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-3 text-xl"
+      className="flex min-h-12 w-full items-center justify-center gap-0 text-xl"
       onClick={handleOAuthSignIn}
       disabled={disabled || isLoading}
     >
       {!isLoading && config.icon}
-      {isLoading && <Spinner />}
+      {isLoading && <Spinner className="mr-2 h-5 w-5" />}
       {isLoading ? `Đang kết nối với ${config.provider}...` : config.label}
     </Button>
   );

@@ -151,10 +151,10 @@ const VerifyOTPForm = <T extends FieldValues>(props: VerifyOTPFormProps<T>) => {
 
       <Button
         type="submit"
-        className="min-h-12 w-full cursor-pointer text-xl"
+        className="min-h-12 w-full text-xl"
         disabled={isSubmitting}
       >
-        {isSubmitting && <Spinner />}
+        {isSubmitting && <Spinner className="mr-2 h-5 w-5" />}
         {isSubmitting
           ? `Đang ${getButtonText().toLowerCase()}...`
           : getButtonText()}

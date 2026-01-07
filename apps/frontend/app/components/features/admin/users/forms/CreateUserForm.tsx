@@ -4,6 +4,7 @@ import { FormProvider, type UseFormReturn } from "react-hook-form";
 
 import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 import CreateUserFormFields from "./CreateUserFormFields";
 
@@ -71,7 +72,6 @@ const CreateUserForm = ({
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting || isConfirming}
-            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -80,13 +80,15 @@ const CreateUserForm = ({
               <Button
                 type="button"
                 disabled={isSubmitting || !isFormValid || isConfirming}
-                className="cursor-pointer gap-2"
               >
                 {isConfirming ? (
-                  <>Đang tạo...</>
+                  <>
+                    <Spinner className="mr-1 h-4 w-4" />
+                    Đang tạo...
+                  </>
                 ) : (
                   <>
-                    <UserPlus className="h-4 w-4" />
+                    <UserPlus className="mr-1 h-4 w-4" />
                     Tạo tài khoản
                   </>
                 )}

@@ -73,10 +73,7 @@ export default function RatingHistoryPanel({
             }
             action={
               filter !== "all" && (
-                <Button
-                  onClick={() => onFilterChange("all")}
-                  className="cursor-pointer"
-                >
+                <Button onClick={() => onFilterChange("all")}>
                   <XCircle className="mr-1 h-4 w-4" />
                   Xóa bộ lọc
                 </Button>

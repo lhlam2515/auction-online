@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 type DeleteCategoryDialogProps = {
   trigger: ReactNode;
@@ -86,7 +87,6 @@ const DeleteCategoryDialog = ({
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isDeleting}
-            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -94,13 +94,15 @@ const DeleteCategoryDialog = ({
             variant="destructive"
             onClick={handleDelete}
             disabled={hasChildren || isDeleting}
-            className="cursor-pointer gap-2"
           >
             {isDeleting ? (
-              "Đang xóa..."
+              <>
+                <Spinner className="mr-1 h-4 w-4" />
+                Đang xóa...
+              </>
             ) : (
               <>
-                <Trash className="h-4 w-4" />
+                <Trash className="mr-1 h-4 w-4" />
                 Xóa danh mục
               </>
             )}

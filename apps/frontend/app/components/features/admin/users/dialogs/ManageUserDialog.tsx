@@ -51,7 +51,7 @@ const ManageUserDialog = ({
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline">
-            <UserCog className="h-4 w-4" />
+            <UserCog className="mr-1 h-4 w-4" />
             Quản lý người dùng
           </Button>
         )}

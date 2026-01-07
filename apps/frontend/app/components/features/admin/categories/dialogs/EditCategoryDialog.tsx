@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import {
   updateCategorySchema,
   type UpdateCategoryFormData,
@@ -116,7 +117,6 @@ const EditCategoryDialog = ({
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={isSubmitting}
-                className="cursor-pointer"
               >
                 Hủy
               </Button>
@@ -127,8 +127,8 @@ const EditCategoryDialog = ({
                   !form.formState.isValid ||
                   form.watch("name") === category.name
                 }
-                className="cursor-pointer"
               >
+                {isSubmitting && <Spinner className="mr-1 h-4 w-4" />}
                 {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
               </Button>
             </DialogFooter>

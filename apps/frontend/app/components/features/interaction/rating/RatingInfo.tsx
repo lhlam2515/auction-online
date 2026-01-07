@@ -67,12 +67,12 @@ const RatingInfo = ({
         )}
         {isEditable && feedbackState && !isEditing ? (
           <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
-            <Edit2 className="h-4 w-4" />
+            <Edit2 className="mr-1 h-4 w-4" />
             Chỉnh sửa
           </Button>
         ) : isEditing && feedbackState ? (
           <div className="flex items-center gap-2">
-            <Edit3 className="h-4 w-4" /> Đang chỉnh sửa
+            <Edit3 className="mr-1 h-4 w-4" /> Đang chỉnh sửa
           </div>
         ) : null}
       </div>

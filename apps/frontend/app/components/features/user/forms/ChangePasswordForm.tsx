@@ -137,10 +137,10 @@ const ChangePasswordForm = <T extends FieldValues>({
 
       <Button
         type="submit"
-        className="min-h-12 w-full cursor-pointer text-xl"
+        className="min-h-12 w-full text-xl"
         disabled={form.formState.isSubmitting}
       >
-        {form.formState.isSubmitting && <Spinner />}
+        {form.formState.isSubmitting && <Spinner className="mr-1 size-5" />}
         {form.formState.isSubmitting ? "Đang đổi mật khẩu" : "Đổi mật khẩu"}
       </Button>
     </form>

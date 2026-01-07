@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
@@ -264,7 +265,6 @@ const BanUserForm = ({
           variant="outline"
           onClick={onCancel}
           disabled={isConfirming}
-          className="cursor-pointer"
         >
           Hủy
         </Button>
@@ -274,16 +274,23 @@ const BanUserForm = ({
               type="button"
               disabled={!isFormValid || isSubmitting || isConfirming}
               variant={isBanned ? "destructive" : "default"}
-              className="cursor-pointer"
             >
               {isBanned ? (
                 <>
-                  <Ban className="h-4 w-4" />
+                  {isConfirming ? (
+                    <Spinner className="mr-1 h-4 w-4" />
+                  ) : (
+                    <Ban className="mr-1 h-4 w-4" />
+                  )}
                   {isConfirming ? "Đang xử lý..." : "Xác nhận cấm"}
                 </>
               ) : (
                 <>
-                  <ShieldAlert className="h-4 w-4" />
+                  {isConfirming ? (
+                    <Spinner className="mr-1 h-4 w-4" />
+                  ) : (
+                    <ShieldAlert className="mr-1 h-4 w-4" />
+                  )}
                   {isConfirming ? "Đang xử lý..." : "Xác nhận gỡ cấm"}
                 </>
               )}

@@ -13,6 +13,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 type ResetPasswordFormData = {
@@ -112,7 +113,7 @@ const ResetPasswordForm = ({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -157,7 +158,7 @@ const ResetPasswordForm = ({
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -206,7 +207,6 @@ const ResetPasswordForm = ({
           variant="outline"
           onClick={handleCancel}
           disabled={isConfirming}
-          className="cursor-pointer"
         >
           Hủy
         </Button>
@@ -216,9 +216,12 @@ const ResetPasswordForm = ({
               type="button"
               disabled={!allRequirementsMet || isSubmitting || isConfirming}
               variant="destructive"
-              className="cursor-pointer"
             >
-              <Key className="h-4 w-4" />
+              {isConfirming ? (
+                <Spinner className="mr-1 h-4 w-4" />
+              ) : (
+                <Key className="mr-1 h-4 w-4" />
+              )}
               {isConfirming ? "Đang xử lý..." : "Đặt lại mật khẩu"}
             </Button>
           }

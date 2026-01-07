@@ -178,12 +178,7 @@ const UpdateUserInfoForm = ({
 
       <div className="flex justify-end gap-2">
         {onCancel && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="cursor-pointer"
-          >
+          <Button type="button" variant="outline" onClick={onCancel}>
             Hủy
           </Button>
         )}
@@ -192,9 +187,8 @@ const UpdateUserInfoForm = ({
             <Button
               type="button"
               disabled={!form.formState.isValid || isConfirming}
-              className="cursor-pointer"
             >
-              <Save className="h-4 w-4" />
+              <Save className="mr-1 h-4 w-4" />
               Lưu thay đổi
             </Button>
           }

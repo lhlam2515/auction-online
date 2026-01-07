@@ -107,7 +107,7 @@ const AdminProductSearchBar = ({
         <div className="min-w-[180px]">
           <label className="text-sm font-medium">Trạng thái</label>
           <Select value={statusFilter} onValueChange={onStatusChange}>
-            <SelectTrigger className="cursor-pointer">
+            <SelectTrigger>
               <SelectValue placeholder="Chọn trạng thái" />
             </SelectTrigger>
             <SelectContent>
@@ -124,7 +124,7 @@ const AdminProductSearchBar = ({
         <div className="min-w-[180px]">
           <label className="text-sm font-medium">Danh mục</label>
           <Select value={categoryFilter} onValueChange={onCategoryChange}>
-            <SelectTrigger className="cursor-pointer">
+            <SelectTrigger>
               <SelectValue placeholder="Chọn danh mục" />
             </SelectTrigger>
             <SelectContent>
@@ -141,8 +141,8 @@ const AdminProductSearchBar = ({
         </div>
 
         {/* Search Button */}
-        <Button onClick={handleSearchClick} className="cursor-pointer">
-          <Search className="mr-2 h-4 w-4" />
+        <Button onClick={handleSearchClick}>
+          <Search className="mr-1 h-4 w-4" />
           Tìm kiếm
         </Button>
       </div>

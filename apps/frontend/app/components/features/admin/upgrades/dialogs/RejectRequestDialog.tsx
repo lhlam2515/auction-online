@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 
 interface RejectRequestDialogProps {
@@ -79,7 +80,6 @@ export function RejectRequestDialog({
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isProcessing}
-            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -87,8 +87,8 @@ export function RejectRequestDialog({
             variant="destructive"
             onClick={handleConfirm}
             disabled={isProcessing}
-            className="cursor-pointer"
           >
+            {isProcessing && <Spinner className="mr-1 h-4 w-4" />}
             {isProcessing ? "Đang xử lý..." : "Từ chối"}
           </Button>
         </DialogFooter>

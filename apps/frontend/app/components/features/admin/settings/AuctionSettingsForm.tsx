@@ -166,16 +166,15 @@ export const AuctionSettingsForm = ({
               <Button
                 type="submit"
                 disabled={isSubmitting || !form.formState.isDirty}
-                className="cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
-                    <Spinner />
+                    <Spinner className="mr-1 h-4 w-4" />
                     Đang lưu...
                   </>
                 ) : (
                   <>
-                    <Save />
+                    <Save className="mr-1 h-4 w-4" />
                     Lưu cài đặt
                   </>
                 )}

@@ -124,8 +124,8 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
         <div className="flex justify-end gap-3 pt-4">
           <ConfirmationDialog
             trigger={
-              <Button variant="default" className="cursor-pointer">
-                <Package className="h-4 w-4" />
+              <Button variant="default">
+                <Package className="mr-1 h-4 w-4" />
                 Xác nhận đã nhận hàng
               </Button>
             }

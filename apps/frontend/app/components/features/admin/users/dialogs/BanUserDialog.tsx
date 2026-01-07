@@ -77,7 +77,7 @@ const BanUserDialog = ({
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline">
-            <Ban className="mr-2 h-4 w-4" />
+            <Ban className="mr-1 h-4 w-4" />
             Quản lý trạng thái Ban
           </Button>
         )}

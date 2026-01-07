@@ -104,7 +104,7 @@ const AdminUserSearchBar = ({
           <div className="min-w-[180px]">
             <label className="text-sm font-medium">Vai trò</label>
             <Select value={roleFilter} onValueChange={onRoleChange}>
-              <SelectTrigger className="cursor-pointer">
+              <SelectTrigger>
                 <SelectValue placeholder="Chọn vai trò" />
               </SelectTrigger>
               <SelectContent>
@@ -121,7 +121,7 @@ const AdminUserSearchBar = ({
           <div className="min-w-[180px]">
             <label className="text-sm font-medium">Trạng thái</label>
             <Select value={statusFilter} onValueChange={onStatusChange}>
-              <SelectTrigger className="cursor-pointer">
+              <SelectTrigger>
                 <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
               <SelectContent>
@@ -141,7 +141,7 @@ const AdminUserSearchBar = ({
           <div className="min-w-[180px]">
             <label className="text-sm font-medium">Sắp xếp theo</label>
             <Select value={sortBy} onValueChange={onSortByChange}>
-              <SelectTrigger className="cursor-pointer">
+              <SelectTrigger>
                 <SelectValue placeholder="Chọn trường" />
               </SelectTrigger>
               <SelectContent>
@@ -158,7 +158,7 @@ const AdminUserSearchBar = ({
           <div className="min-w-[180px]">
             <label className="text-sm font-medium">Thứ tự</label>
             <Select value={sortOrder} onValueChange={onSortOrderChange}>
-              <SelectTrigger className="cursor-pointer">
+              <SelectTrigger>
                 <SelectValue placeholder="Chọn thứ tự" />
               </SelectTrigger>
               <SelectContent>
@@ -174,8 +174,8 @@ const AdminUserSearchBar = ({
           <div className="flex-1" />
 
           {/* Search Button */}
-          <Button onClick={handleSearchClick} className="cursor-pointer">
-            <Search className="mr-2 h-4 w-4" />
+          <Button onClick={handleSearchClick}>
+            <Search className="mr-1 h-4 w-4" />
             Tìm kiếm
           </Button>
         </div>

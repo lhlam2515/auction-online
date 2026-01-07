@@ -49,7 +49,7 @@ const AdminUserTable = ({
         icon={<User />}
         action={
           onRefresh && (
-            <Button onClick={onRefresh} className="cursor-pointer">
+            <Button onClick={onRefresh}>
               <RefreshCcw className="mr-1 h-4 w-4" />
               Tải lại dữ liệu
             </Button>

@@ -42,7 +42,7 @@ export default function UnauthorizedPage() {
         <CardContent className="flex flex-row justify-center">
           <Button asChild>
             <Link to={APP_ROUTES.HOME}>
-              <Home />
+              <Home className="mr-1 h-4 w-4" />
               Về Trang Chủ
             </Link>
           </Button>

@@ -161,17 +161,12 @@ const ProductFormFields = <T extends FieldValues>({
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="cursor-pointer"
               disabled={isSubmitting || uploadingImages}
             >
               Hủy
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || uploadingImages}
-              className="cursor-pointer"
-            >
-              {isSubmitting && <Spinner />}
+            <Button type="submit" disabled={isSubmitting || uploadingImages}>
+              {isSubmitting && <Spinner className="mr-1 h-4 w-4" />}
               {isSubmitting ? "Đang tạo..." : "Tạo sản phẩm"}
             </Button>
           </div>

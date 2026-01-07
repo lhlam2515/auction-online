@@ -73,7 +73,6 @@ export function SellerRoute({
 
           <div className="flex flex-col gap-4">
             <Button
-              size="lg"
               onClick={() => {
                 navigate(ACCOUNT_ROUTES.UPGRADE);
               }}

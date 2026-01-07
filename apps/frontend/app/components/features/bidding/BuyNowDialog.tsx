@@ -81,9 +81,9 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
         <Button
           size="lg"
           variant="secondary"
-          className="h-14 flex-1 cursor-pointer text-lg font-semibold"
+          className="h-14 flex-1 text-lg font-semibold"
         >
-          <ShoppingCart className="size-6" />
+          <ShoppingCart className="mr-1 size-5" />
           Mua ngay
         </Button>
       </DialogTrigger>
@@ -127,7 +127,6 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
               variant="outline"
               onClick={handleClose}
               disabled={isProcessing}
-              className="cursor-pointer"
             >
               Hủy
             </Button>
@@ -136,16 +135,15 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
               variant="destructive"
               onClick={handleBuyNow}
               disabled={isProcessing}
-              className="cursor-pointer"
             >
               {isProcessing ? (
                 <>
-                  <Spinner className="h-4 w-4" />
+                  <Spinner className="mr-1 h-4 w-4" />
                   Đang xử lý...
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="h-4 w-4" />
+                  <ShoppingCart className="mr-1 h-4 w-4" />
                   Mua ngay
                 </>
               )}

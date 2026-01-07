@@ -53,7 +53,7 @@ const TimeSettingsFields = <T extends FieldValues>({
                     id={field.name}
                     variant="outline"
                     className={cn(
-                      "min-h-12 w-full cursor-pointer justify-start pl-3 text-left font-normal",
+                      "min-h-12 w-full justify-start pl-3 text-left font-normal",
                       !field.value && "text-muted-foreground"
                     )}
                   >

@@ -37,7 +37,7 @@ const SellerProductTable = ({
       render: (product: ProductListing) => (
         <Button variant="default" size="sm" asChild>
           <Link to={SELLER_ROUTES.PRODUCT(product.id)}>
-            <Edit className="mr-2 h-4 w-4" />
+            <Edit className="mr-1 h-4 w-4" />
             Chỉnh sửa
           </Link>
         </Button>

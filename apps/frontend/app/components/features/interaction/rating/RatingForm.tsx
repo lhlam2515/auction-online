@@ -186,7 +186,7 @@ const RatingForm = <T extends FieldValues>({
           </Button>
         )}
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting && <Spinner />}
+          {form.formState.isSubmitting && <Spinner className="mr-1 h-4 w-4" />}
           {form.formState.isSubmitting
             ? "Đang gửi..."
             : isEditing

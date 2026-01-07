@@ -42,13 +42,13 @@ export default function NotFoundPage() {
         <CardContent className="flex flex-row justify-center gap-3">
           <Button asChild variant="default">
             <Link to={APP_ROUTES.HOME}>
-              <Home />
+              <Home className="mr-1 h-4 w-4" />
               Về Trang Chủ
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link to={APP_ROUTES.SEARCH}>
-              <Search />
+              <Search className="mr-1 h-4 w-4" />
               Tìm Kiếm
             </Link>
           </Button>

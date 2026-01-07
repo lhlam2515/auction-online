@@ -124,7 +124,7 @@ export default function UserAvatarUploader({
         size="sm"
         onClick={handleFileSelect}
       >
-        <Camera className="mr-2 h-4 w-4" />
+        <Camera className="mr-1 h-4 w-4" />
         Thay Đổi Ảnh
       </Button>
 

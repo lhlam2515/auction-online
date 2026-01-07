@@ -105,16 +105,11 @@ const UpdateDescForm = ({ productId, onSuccess }: UpdateDescFormProps) => {
           variant="outline"
           onClick={clearForm}
           disabled={isSubmitting}
-          className="cursor-pointer"
         >
           Xóa
         </Button>
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="cursor-pointer"
-        >
-          {isSubmitting && <Spinner />}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Spinner className="mr-1 h-4 w-4" />}
           {isSubmitting ? "Đang cập nhật..." : "Cập nhật mô tả"}
         </Button>
       </div>

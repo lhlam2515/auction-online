@@ -79,7 +79,7 @@ const ProductActionButtons = ({
                   : ACCOUNT_ROUTES.ORDER(product.orderId)
               }
             >
-              <ShoppingCart className="size-6" />
+              <ShoppingCart className="mr-1 size-5" />
               Xem đơn hàng
             </Link>
           </Button>
@@ -96,7 +96,7 @@ const ProductActionButtons = ({
             asChild
           >
             <Link to={SELLER_ROUTES.PRODUCT(product.id)}>
-              <Edit className="size-6" />
+              <Edit className="mr-1 size-5" />
               Cập nhật mô tả
             </Link>
           </Button>
@@ -128,7 +128,7 @@ const ProductActionButtons = ({
               disabled={watchlistLoading}
             >
               <Heart
-                className={`h-6 w-6 transition-colors ${
+                className={`h-5 w-5 transition-colors ${
                   isProductInWatchlist && "fill-destructive text-destructive"
                 }`}
               />

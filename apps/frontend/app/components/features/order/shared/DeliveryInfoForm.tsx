@@ -184,12 +184,11 @@ const DeliveryInfoForm = <T extends FieldValues>({
           trigger={
             <Button
               variant="default"
-              className="cursor-pointer"
               onClick={async () => {
                 await form.trigger();
               }}
             >
-              <Truck className="h-4 w-4" />
+              <Truck className="mr-1 h-4 w-4" />
               Xác nhận bàn giao hàng
             </Button>
           }

@@ -62,7 +62,7 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
             <RoleGuard key={item.url} roles={item.roles}>
               <DropdownMenuItem asChild>
                 <Link to={item.url}>
-                  <Icon className="size-4" />
+                  <Icon className="mr-1 size-4" />
                   <span>{item.title}</span>
                 </Link>
               </DropdownMenuItem>
@@ -72,7 +72,7 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
 
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout} variant="destructive">
-          <LogOut className="size-4" />
+          <LogOut className="mr-1 size-4" />
           Đăng xuất
         </DropdownMenuItem>
       </DropdownMenuContent>

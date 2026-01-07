@@ -1,5 +1,5 @@
 import type { ChatMessage, OrderWithDetails } from "@repo/shared-types";
-import { X, Send, Minimize2, Loader2, MessageCircle } from "lucide-react";
+import { X, Send, Minimize2, MessageCircle } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/contexts/auth-provider";
 import { api } from "@/lib/api-layer";
 import { getErrorMessage } from "@/lib/handlers/error";
@@ -211,20 +212,10 @@ const PrivateChatWindow = ({
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="icon" onClick={onClose}>
             <Minimize2 className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -236,7 +227,7 @@ const PrivateChatWindow = ({
         >
           {isLoading && messages.length === 0 ? (
             <div className="flex justify-center py-10">
-              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+              <Spinner className="text-muted-foreground h-6 w-6" />
             </div>
           ) : messages.length === 0 ? (
             <div className="text-muted-foreground flex h-full flex-col items-center justify-center p-4 text-center">
@@ -299,9 +290,9 @@ const PrivateChatWindow = ({
             disabled={isSending || !newMessage.trim()}
           >
             {isSending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Spinner className="mr-1 h-4 w-4" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="mr-1 h-4 w-4" />
             )}
           </Button>
         </form>

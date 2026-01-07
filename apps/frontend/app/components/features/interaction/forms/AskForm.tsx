@@ -55,7 +55,7 @@ const AskForm = ({ onSubmit }: AskFormProps) => {
                   disabled={
                     !field.value?.trim() || questionForm.formState.isSubmitting
                   }
-                  className="cursor-pointer self-end"
+                  className="self-end"
                   size="icon"
                 >
                   <Send className="size-4" />

@@ -128,7 +128,6 @@ const BidHistoryTable = ({
                       .getElementById("bidding-section")
                       ?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="cursor-pointer"
                 >
                   Đặt giá ngay
                 </Button>
@@ -207,17 +206,17 @@ const BidHistoryTable = ({
             {bids.length > 5 && (
               <Button
                 variant="outline"
-                className="w-full cursor-pointer"
+                className="w-full"
                 onClick={() => setShowAll(!showAll)}
               >
                 {showAll ? (
                   <>
-                    <ChevronUp className="h-4 w-4" />
+                    <ChevronUp className="mr-1 h-4 w-4" />
                     Thu gọn
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="mr-1 h-4 w-4" />
                     Xem thêm ({bids.length - 5} lượt đặt giá)
                   </>
                 )}

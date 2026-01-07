@@ -156,8 +156,8 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
               <div className="flex justify-end gap-3 pt-4">
                 <ConfirmationDialog
                   trigger={
-                    <Button variant="destructive" className="cursor-pointer">
-                      <XCircle className="h-4 w-4" />
+                    <Button variant="destructive">
+                      <XCircle className="mr-1 h-4 w-4" />
                       Hủy giao dịch
                     </Button>
                   }
@@ -184,8 +184,8 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
           <div className="flex justify-end gap-3 pt-4">
             <ConfirmationDialog
               trigger={
-                <Button variant="default" className="cursor-pointer">
-                  <CheckCircle2 className="h-4 w-4" />
+                <Button variant="default">
+                  <CheckCircle2 className="mr-1 h-4 w-4" />
                   Xác nhận đã nhận thanh toán
                 </Button>
               }

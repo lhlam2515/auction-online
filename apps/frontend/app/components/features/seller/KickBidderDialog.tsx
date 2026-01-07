@@ -105,9 +105,9 @@ const KickBidderDialog = ({
         <Button
           size="sm"
           variant="outline"
-          className="text-destructive hover:bg-destructive cursor-pointer"
+          className="text-destructive hover:bg-destructive"
         >
-          <UserMinus className="h-4 w-4" />
+          <UserMinus className="mr-1 h-4 w-4" />
           Chặn
         </Button>
       </DialogTrigger>
@@ -152,28 +152,22 @@ const KickBidderDialog = ({
         </Form>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isKicking}
-            className="cursor-pointer"
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isKicking}>
             Hủy
           </Button>
           <Button
             variant="destructive"
             onClick={form.handleSubmit(handleKickBidder)}
             disabled={isKicking || !form.formState.isValid}
-            className="cursor-pointer"
           >
             {isKicking ? (
               <>
-                <Spinner />
+                <Spinner className="mr-1 h-4 w-4" />
                 Đang xử lý...
               </>
             ) : (
               <>
-                <UserMinus />
+                <UserMinus className="mr-1 h-4 w-4" />
                 Chặn
               </>
             )}

@@ -107,23 +107,22 @@ const ConfirmationDialog = ({
             variant="outline"
             onClick={handleCancel}
             disabled={isConfirming}
-            className="cursor-pointer"
           >
             {cancelLabel}
           </Button>
           <Button
-            className={cn("cursor-pointer", config.confirmButtonClass)}
+            className={config.confirmButtonClass}
             onClick={handleConfirm}
             disabled={isConfirming}
           >
             {isConfirming ? (
               <>
-                <Spinner className="h-4 w-4" />
+                <Spinner className="mr-1 h-4 w-4" />
                 {config.loadingText}
               </>
             ) : (
               <>
-                {ConfirmIcon && <ConfirmIcon className="h-4 w-4" />}
+                {ConfirmIcon && <ConfirmIcon className="mr-1 h-4 w-4" />}
                 {confirmLabel}
               </>
             )}
