@@ -125,7 +125,7 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
           <ConfirmationDialog
             trigger={
               <Button variant="default">
-                <Package className="mr-1 h-4 w-4" />
+                <Package className="h-4 w-4" />
                 Xác nhận đã nhận hàng
               </Button>
             }

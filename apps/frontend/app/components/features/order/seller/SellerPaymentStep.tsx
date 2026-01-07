@@ -157,7 +157,7 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
             <ConfirmationDialog
               trigger={
                 <Button variant="default">
-                  <CheckCircle2 className="mr-1 h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4" />
                   Xác nhận đã nhận thanh toán
                 </Button>
               }
@@ -199,7 +199,7 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
                 <ConfirmationDialog
                   trigger={
                     <Button variant="destructive">
-                      <XCircle className="mr-1 h-4 w-4" />
+                      <XCircle className="h-4 w-4" />
                       Hủy giao dịch
                     </Button>
                   }
