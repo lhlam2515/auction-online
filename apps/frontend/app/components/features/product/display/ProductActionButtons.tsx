@@ -31,7 +31,7 @@ const ProductActionButtons = ({
   } = useWatchlist();
 
   const isSeller = user?.id === product.sellerId;
-  const isBidder = user?.role === "BIDDER";
+  const canBid = user && !isSeller && user.role !== "ADMIN";
 
   // Memoize để tránh re-compute liên tục
   const isProductInWatchlist = useMemo(
@@ -64,7 +64,7 @@ const ProductActionButtons = ({
   return (
     <>
       {/* Complete Order - Product has been won and order created */}
-      {product.orderId && (isSeller || isBidder) && (
+      {product.orderId && (isSeller || product.winnerId === user?.id) && (
         <div className="flex gap-3">
           <Button
             size="lg"
@@ -74,7 +74,7 @@ const ProductActionButtons = ({
           >
             <Link
               to={
-                user?.role === "SELLER"
+                isSeller
                   ? SELLER_ROUTES.ORDER(product.orderId)
                   : ACCOUNT_ROUTES.ORDER(product.orderId)
               }
@@ -104,7 +104,7 @@ const ProductActionButtons = ({
       )}
 
       {/* Logged in users can bid/buy (if auction not ended) */}
-      {!product.orderId && !isEnded && !isSeller && isBidder && (
+      {!product.orderId && !isEnded && canBid && (
         <RoleGuard fallback={loginPrompt}>
           <div className="flex gap-3">
             {/* Bid Button with Dialog */}
