@@ -12,6 +12,11 @@ const router = Router();
 // All routes require Seller authentication
 router.use(authenticate, authorize("SELLER"));
 
+/**
+ * @route   GET /api/seller/stats
+ * @desc    Get seller dashboard statistics
+ * @access  Private (Seller)
+ */
 router.get("/stats", sellerController.getStats);
 
 /**

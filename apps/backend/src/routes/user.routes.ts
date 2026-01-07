@@ -109,7 +109,6 @@ router.get("/stats", userController.getBidderStats);
  */
 router.get(
   "/analytics/spending",
-  authorize("BIDDER"),
   validate({ query: analyticsValidation.analyticsPeriodSchema }),
   analyticsController.getBidderSpending
 );
