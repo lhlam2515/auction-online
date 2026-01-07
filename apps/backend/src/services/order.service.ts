@@ -5,7 +5,7 @@ import type {
   ShippingProvider,
 } from "@repo/shared-types";
 import { Decimal } from "decimal.js";
-import { eq, and, sql, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, sql, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, orderPayments } from "@/models";
@@ -195,6 +195,7 @@ export class OrderService {
     buyerId: string,
     paymentMethod: PaymentMethod,
     amount: string,
+    paymentProofUrl: string,
     transactionId?: string
   ) {
     return await db.transaction(async (tx) => {
@@ -227,24 +228,23 @@ export class OrderService {
         );
       }
 
-      // Create payment record
+      // Create payment record with proof URL - status remains PENDING until seller confirms
       const [payment] = await tx
         .insert(orderPayments)
         .values({
           orderId,
           method: paymentMethod as PaymentMethod,
           amount: amount.toString(),
-          status: "SUCCESS",
-          paidAt: new Date(),
+          status: "PENDING", // Changed from SUCCESS to PENDING
+          paymentProofUrl, // Add the proof URL
           transactionRef: transactionId,
         })
         .returning();
 
-      // Update order status to PAID
+      // Order status remains PENDING until seller confirms payment
       const [updatedOrder] = await tx
         .update(orders)
         .set({
-          status: "PAID",
           updatedAt: new Date(),
         })
         .where(and(eq(orders.id, orderId), eq(orders.status, "PENDING")))
@@ -252,7 +252,7 @@ export class OrderService {
 
       if (!updatedOrder) {
         throw new BadRequestError(
-          "Không thể cập nhật trạng thái đơn hàng trong quá trình thanh toán"
+          "Không thể cập nhật đơn hàng trong quá trình tải lên minh chứng thanh toán"
         );
       }
 
@@ -262,9 +262,48 @@ export class OrderService {
 
   async confirmPayment(orderId: string, sellerId: string) {
     return await db.transaction(async (tx) => {
+      // First check if order exists and has payment proof
+      const orderWithPayment = await tx.query.orders.findFirst({
+        where: and(
+          eq(orders.id, orderId),
+          eq(orders.sellerId, sellerId),
+          eq(orders.status, "PENDING")
+        ),
+        with: {
+          payment: true,
+        },
+      });
+
+      if (!orderWithPayment) {
+        throw new NotFoundError(
+          "Không tìm thấy đơn hàng hoặc bạn không có quyền"
+        );
+      }
+
+      if (!orderWithPayment.payment?.paymentProofUrl) {
+        throw new BadRequestError(
+          "Người mua chưa upload minh chứng thanh toán"
+        );
+      }
+
+      if (orderWithPayment.sellerConfirmedAt) {
+        throw new BadRequestError("Thanh toán đã được xác nhận trước đó");
+      }
+
+      // Update payment status to SUCCESS and set paidAt
+      await tx
+        .update(orderPayments)
+        .set({
+          status: "SUCCESS",
+          paidAt: new Date(),
+        })
+        .where(eq(orderPayments.orderId, orderId));
+
+      // Update order status to PAID and set seller confirmation
       const [updatedOrder] = await tx
         .update(orders)
         .set({
+          status: "PAID",
           sellerConfirmedAt: new Date(),
           updatedAt: new Date(),
         })
@@ -272,7 +311,7 @@ export class OrderService {
           and(
             eq(orders.id, orderId),
             eq(orders.sellerId, sellerId),
-            eq(orders.status, "PAID"),
+            eq(orders.status, "PENDING"),
             isNull(orders.sellerConfirmedAt) // Chỉ confirm nếu chưa confirm trước đó
           )
         )
@@ -283,7 +322,7 @@ export class OrderService {
           orderId,
           sellerId,
           "sellerId",
-          ["PAID"],
+          ["PENDING"],
           tx
         );
         throw new BadRequestError(

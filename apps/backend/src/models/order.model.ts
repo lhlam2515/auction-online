@@ -94,6 +94,7 @@ export const orderPayments = pgTable(
     status: paymentStatusEnum("status").notNull().default("PENDING"),
     paidAt: t.timestamp("paid_at", { withTimezone: true }),
     transactionRef: t.text("transaction_ref"),
+    paymentProofUrl: t.text("payment_proof_url"),
     refundedAt: t.timestamp("refunded_at", { withTimezone: true }),
     refundAmount: t.numeric("refund_amount", { precision: 15, scale: 2 }),
 

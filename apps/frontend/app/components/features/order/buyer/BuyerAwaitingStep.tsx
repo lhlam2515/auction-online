@@ -18,8 +18,8 @@ interface BuyerAwaitingStepProps {
 }
 
 const BuyerAwaitingStep = ({ order }: BuyerAwaitingStepProps) => {
-  const paidAt = order.payment?.paidAt
-    ? new Date(order.payment.paidAt)
+  const paymentProofUploadedAt = order.payment?.createdAt
+    ? new Date(order.payment.createdAt)
     : new Date();
 
   return (
@@ -47,8 +47,8 @@ const BuyerAwaitingStep = ({ order }: BuyerAwaitingStepProps) => {
           <div>
             <OrderTimelineItem
               icon={CheckCircle2}
-              title="Thanh toán thành công"
-              description={formatDate(paidAt) || "Đã xác nhận"}
+              title="Tải lên ảnh minh chứng thanh toán"
+              description={formatDate(paymentProofUploadedAt) || "Đã tải lên"}
               status="completed"
             />
 
@@ -62,7 +62,7 @@ const BuyerAwaitingStep = ({ order }: BuyerAwaitingStepProps) => {
               description={
                 order.sellerConfirmedAt
                   ? formatDate(order.sellerConfirmedAt)
-                  : "Đang chờ..."
+                  : "Đang kiểm tra minh chứng..."
               }
               status={order.sellerConfirmedAt ? "completed" : "active"}
             />

@@ -158,7 +158,8 @@ const DeliveryInfoForm = <T extends FieldValues>({
                 htmlFor="trackingNumber"
                 className="text-base font-semibold"
               >
-                {formatFieldName(field.name)} *
+                {formatFieldName(field.name)}{" "}
+                <span className="text-red-500">*</span>
               </FieldLabel>
               <Input
                 {...field}

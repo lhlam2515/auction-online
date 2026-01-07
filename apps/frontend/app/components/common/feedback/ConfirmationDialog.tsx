@@ -52,11 +52,11 @@ const variantConfig: Record<
     loadingText: "Đang xử lý...",
   },
   success: {
-    confirmButtonClass: "bg-emerald-500 text-emerald-50 hover:bg-emerald-700",
+    confirmButtonClass: "",
     loadingText: "Đang xử lý...",
   },
   danger: {
-    confirmButtonClass: "bg-red-500 text-red-50 hover:bg-red-700",
+    confirmButtonClass: "",
     loadingText: "Đang xử lý...",
   },
   warning: {
@@ -111,6 +111,7 @@ const ConfirmationDialog = ({
             {cancelLabel}
           </Button>
           <Button
+            variant={variant === "danger" ? "destructive" : "default"}
             className={config.confirmButtonClass}
             onClick={handleConfirm}
             disabled={isConfirming}

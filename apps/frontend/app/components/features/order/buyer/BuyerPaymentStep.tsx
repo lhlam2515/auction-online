@@ -14,8 +14,13 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api-layer";
+import { getErrorMessage, showError } from "@/lib/handlers/error";
 
-import { PaymentMethodOption, ShippingInfo } from "../shared";
+import {
+  PaymentMethodOption,
+  PaymentProofUpload,
+  ShippingInfo,
+} from "../shared";
 
 interface BuyerPaymentStepProps {
   order: OrderWithDetails;
@@ -26,16 +31,36 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("BANK_TRANSFER");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [shippingInfo, setShippingInfo] = useState({
+    address: order.shippingAddress || "",
+    phone: order.phoneNumber || "",
+  });
 
   const handleProcessPayment = async () => {
+    // Validate shipping info first
+    if (!shippingInfo.address || !shippingInfo.phone) {
+      toast.error(
+        "Vui lòng cập nhật đầy đủ địa chỉ giao hàng và số điện thoại trước khi tải lên minh chứng thanh toán"
+      );
+      return;
+    }
+
+    if (!paymentProofFile) {
+      toast.error("Vui lòng tải lên ảnh minh chứng thanh toán");
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      const response = await api.orders.markPaid(order.id, {
-        paymentMethod: paymentMethod,
-        transactionId: `TXN-${Date.now()}`,
-        amount: order.totalAmount,
-      });
+      const formData = new FormData();
+      formData.append("paymentMethod", paymentMethod);
+      formData.append("amount", order.totalAmount);
+      formData.append("transactionId", `TXN-${Date.now()}`);
+      formData.append("paymentProof", paymentProofFile);
+
+      const response = await api.orders.markPaid(order.id, formData);
 
       if (!response.success) {
         throw new Error(
@@ -43,15 +68,17 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
         );
       }
 
-      toast.success("Xác nhận thanh toán thành công");
+      toast.success("Tải lên ảnh minh chứng thanh toán thành công");
 
       // Refresh order data
       const { order: updatedOrder, payment } = response.data;
       onSuccess?.({ ...order, ...updatedOrder, payment } as OrderWithDetails);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Lỗi xác nhận thanh toán"
+      const errorMessage = getErrorMessage(
+        error,
+        "Lỗi tải lên ảnh minh chứng thanh toán"
       );
+      showError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -60,6 +87,9 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
   const handleConfirmPayment = () => {
     handleProcessPayment();
   };
+
+  // Check if shipping info is complete
+  const isShippingInfoComplete = !!(shippingInfo.address && shippingInfo.phone);
 
   return (
     <Card>
@@ -73,7 +103,7 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
         <AlertSection
           variant="info"
           icon={CreditCard}
-          description="Sau khi thanh toán, người bán sẽ xác nhận và gửi hàng trong vòng 24-48 giờ."
+          description="Sau khi tải lên ảnh minh chứng, người bán sẽ kiểm tra và xác nhận thanh toán. Đơn hàng sẽ được gửi trong vòng 24-48 giờ sau khi xác nhận."
         />
 
         {/* Payment Method Selection */}
@@ -105,30 +135,54 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
           </div>
         </div>
 
+        {/* Payment Proof Upload */}
+        {isShippingInfoComplete ? (
+          <PaymentProofUpload
+            onFileSelect={setPaymentProofFile}
+            selectedFile={paymentProofFile}
+            isUploading={isProcessing}
+          />
+        ) : (
+          <AlertSection
+            variant="warning"
+            title="Cần hoàn thành thông tin giao hàng"
+            description="Vui lòng cập nhật đầy đủ địa chỉ giao hàng và số điện thoại trước khi tải lên ảnh minh chứng thanh toán."
+          />
+        )}
+
         {/* Shipping Address */}
         <ShippingInfo
           orderId={order.id}
           shippingAddress={
-            order.shippingAddress ||
+            shippingInfo.address ||
             order.winner?.address ||
             "Địa chỉ không khả dụng"
           }
-          phoneNumber={order.phoneNumber || ""}
+          phoneNumber={shippingInfo.phone}
+          onUpdate={(data) => {
+            setShippingInfo({
+              address: data.shippingAddress,
+              phone: data.phoneNumber,
+            });
+          }}
         />
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
           <ConfirmationDialog
             trigger={
-              <Button variant="default">
-                <CreditCard className="mr-1 h-4 w-4" />
-                Xác nhận thanh toán
+              <Button
+                variant="default"
+                disabled={!paymentProofFile || !isShippingInfoComplete}
+              >
+                <CreditCard className="h-4 w-4" />
+                Tải ảnh minh chứng thanh toán
               </Button>
             }
             variant="success"
-            title="Xác nhận thanh toán"
-            description="Bạn có chắc muốn xác nhận thanh toán cho đơn hàng này không? Sau khi xác nhận, bạn không thể thay đổi phương thức thanh toán."
-            confirmLabel="Xác nhận thanh toán"
+            title="Xác nhận ảnh minh chứng"
+            description="Bạn có chắc muốn tải lên ảnh minh chứng thanh toán này không? Người bán sẽ kiểm tra và xác nhận thanh toán dựa trên ảnh này."
+            confirmLabel="Tải ảnh minh chứng"
             onConfirm={handleConfirmPayment}
             isConfirming={isProcessing}
           />
