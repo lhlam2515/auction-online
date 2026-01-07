@@ -129,7 +129,7 @@
   }
 
   .error-message {
-    @apply text-destructive border-destructive/50 bg-destructive/10 rounded-lg border p-4 text-sm;
+    @apply bg-destructive/10 border-destructive/20 text-destructive rounded-md border p-3 text-sm;
   }
 
   /* TipTap Editor Styles */

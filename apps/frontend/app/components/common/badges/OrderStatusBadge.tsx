@@ -57,13 +57,15 @@ const OrderStatusBadge = ({
       className={cn(
         sizeClasses[size],
         {
-          "border-amber-300 bg-amber-50 text-amber-600": status === "PENDING",
-          "border-emerald-300 bg-emerald-50 text-emerald-600":
+          "border-amber-500/20 bg-amber-500/10 text-amber-600":
+            status === "PENDING",
+          "border-emerald-500/20 bg-emerald-500/10 text-emerald-600":
             status === "PAID",
-          "border-purple-300 bg-purple-50 text-purple-600":
-            status === "SHIPPED",
-          "bg-emerald-600 text-emerald-50": status === "COMPLETED",
-          "border-red-300 bg-red-50 text-red-600": status === "CANCELLED",
+          "border-primary/20 bg-primary/10 text-primary": status === "SHIPPED",
+          "border-transparent bg-emerald-600 text-white":
+            status === "COMPLETED",
+          "border-destructive/20 bg-destructive/10 text-destructive":
+            status === "CANCELLED",
         },
         className
       )}

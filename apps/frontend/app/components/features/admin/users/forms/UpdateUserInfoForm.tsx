@@ -108,7 +108,7 @@ const UpdateUserInfoForm = ({
                 htmlFor={field.name}
                 className="text-sm font-semibold"
               >
-                Họ và tên <span className="text-red-500">*</span>
+                Họ và tên <span className="text-destructive">*</span>
               </FieldLabel>
               <Input
                 {...field}

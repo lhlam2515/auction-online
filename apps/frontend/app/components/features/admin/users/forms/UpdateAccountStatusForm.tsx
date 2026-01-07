@@ -107,7 +107,7 @@ const UpdateAccountStatusForm = ({
             className="flex w-full flex-col gap-2"
           >
             <FieldLabel htmlFor={field.name} className="text-sm font-semibold">
-              Trạng thái tài khoản <span className="text-red-500">*</span>
+              Trạng thái tài khoản <span className="text-destructive">*</span>
             </FieldLabel>
             <Select value={field.value} onValueChange={field.onChange}>
               <SelectTrigger

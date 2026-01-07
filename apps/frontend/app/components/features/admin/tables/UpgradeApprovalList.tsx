@@ -14,7 +14,9 @@ const UpgradeApprovalList = (props: UpgradeApprovalListProps) => {
   return (
     <div className={props.className}>
       {/* Implement logic for UpgradeApprovalList here */}
-      <p className="text-gray-500 italic">Component: UpgradeApprovalList</p>
+      <p className="text-muted-foreground italic">
+        Component: UpgradeApprovalList
+      </p>
     </div>
   );
 };

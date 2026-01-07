@@ -25,31 +25,31 @@ const AdminStatsCards = ({ stats, className }: AdminStatsCardsProps) => {
         value={stats.totalUsers.toLocaleString()}
         icon={<Users className="h-5 w-5" />}
         iconColor="text-blue-600"
-        bgColor="bg-blue-50"
+        bgColor="bg-blue-500/10"
         description="Người dùng đã đăng ký"
       />
       <StatsCard
         title="Đấu giá đang hoạt động"
         value={stats.totalActiveAuctions.toLocaleString()}
         icon={<Gavel className="h-5 w-5" />}
-        iconColor="text-green-600"
-        bgColor="bg-green-50"
+        iconColor="text-emerald-600"
+        bgColor="bg-emerald-500/10"
         description="Phiên đấu giá đang diễn ra"
       />
       <StatsCard
         title="Yêu cầu nâng cấp"
         value={stats.totalPendingUpgrades.toLocaleString()}
         icon={<UserPlus className="h-5 w-5" />}
-        iconColor="text-orange-600"
-        bgColor="bg-orange-50"
+        iconColor="text-amber-600"
+        bgColor="bg-amber-500/10"
         description="Đang chờ xử lý"
       />
       <StatsCard
         title="Giá trị giao dịch"
         value={formatPrice(stats.totalTransactionValue)}
         icon={<DollarSign className="h-5 w-5" />}
-        iconColor="text-purple-600"
-        bgColor="bg-purple-50"
+        iconColor="text-primary"
+        bgColor="bg-primary/10"
         description="Tổng GMV từ đơn hàng hoàn tất"
       />
     </div>

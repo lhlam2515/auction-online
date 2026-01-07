@@ -132,7 +132,7 @@ const KickBidderDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Lý do chặn <span className="text-red-500">*</span>
+                    Lý do chặn <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input

@@ -113,7 +113,7 @@ const AddCategoryDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Tên danh mục <span className="text-red-500">*</span>
+                    Tên danh mục <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Nhập tên danh mục..." />

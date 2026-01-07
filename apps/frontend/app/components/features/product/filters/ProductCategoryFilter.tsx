@@ -99,8 +99,8 @@ export const ProductCategoryFilterSkeleton = ({
         {Array.from({ length: 3 }, (_, index) => (
           <div key={`skeleton-category-${index}`} className="space-y-1">
             <div className="flex h-8 w-full items-center px-2">
-              <div className="mr-2 h-4 w-4 rounded bg-gray-300" />
-              <div className="h-4 w-24 rounded bg-gray-300" />
+              <div className="bg-muted mr-2 h-4 w-4 rounded" />
+              <div className="bg-muted h-4 w-24 rounded" />
             </div>
           </div>
         ))}

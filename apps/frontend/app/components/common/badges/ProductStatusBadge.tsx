@@ -11,34 +11,34 @@ type ProductStatusBadgeProps = {
 const ProductStatusBadge = ({ status, className }: ProductStatusBadgeProps) => {
   const statusConfig = {
     ACTIVE: {
-      variant: "secondary" as const,
+      variant: "outline" as const,
       label: "Đang đấu giá",
-      className: "bg-emerald-100 text-emerald-800",
+      className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600",
     },
     SOLD: {
-      variant: "secondary" as const,
+      variant: "outline" as const,
       label: "Đã bán",
-      className: "bg-blue-100 text-blue-800",
+      className: "border-primary/20 bg-primary/10 text-primary",
     },
     NO_SALE: {
-      variant: "secondary" as const,
+      variant: "outline" as const,
       label: "Không bán được",
-      className: "bg-yellow-100 text-yellow-800",
+      className: "border-amber-500/20 bg-amber-500/10 text-amber-600",
     },
     CANCELLED: {
-      variant: "secondary" as const,
+      variant: "outline" as const,
       label: "Đã hủy",
-      className: "bg-red-100 text-red-800",
+      className: "border-destructive/20 bg-destructive/10 text-destructive",
     },
     SUSPENDED: {
-      variant: "secondary" as const,
+      variant: "outline" as const,
       label: "Đã gỡ bỏ",
-      className: "bg-orange-100 text-orange-800",
+      className: "border-destructive/20 bg-destructive/10 text-destructive",
     },
     PENDING: {
-      variant: "secondary" as const,
+      variant: "outline" as const,
       label: "Chờ duyệt",
-      className: "bg-gray-100 text-gray-800",
+      className: "border-amber-500/20 bg-amber-500/10 text-amber-600",
     },
   };
 

@@ -97,7 +97,7 @@ const ResetPasswordForm = ({
                 htmlFor={field.name}
                 className="text-sm font-semibold"
               >
-                Mật khẩu mới <span className="text-red-500">*</span>
+                Mật khẩu mới <span className="text-destructive">*</span>
               </FieldLabel>
               <div className="relative">
                 <Input
@@ -112,7 +112,7 @@ const ResetPasswordForm = ({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -142,7 +142,7 @@ const ResetPasswordForm = ({
                 htmlFor={field.name}
                 className="text-sm font-semibold"
               >
-                Xác nhận mật khẩu <span className="text-red-500">*</span>
+                Xác nhận mật khẩu <span className="text-destructive">*</span>
               </FieldLabel>
               <div className="relative">
                 <Input
@@ -157,7 +157,7 @@ const ResetPasswordForm = ({
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -172,21 +172,23 @@ const ResetPasswordForm = ({
         />
 
         {newPassword.length > 0 && (
-          <div className="rounded-md border border-gray-200 bg-gray-50 p-4">
-            <p className="mb-3 text-sm font-medium text-gray-700">
+          <div className="bg-muted/50 rounded-md border p-4">
+            <p className="text-muted-foreground mb-3 text-sm font-medium">
               Yêu cầu mật khẩu:
             </p>
             <div className="space-y-2">
               {passwordRequirements.map((requirement, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm">
                   {requirement.met ? (
-                    <Check className="h-4 w-4 shrink-0 text-green-600" />
+                    <Check className="h-4 w-4 shrink-0 text-emerald-600" />
                   ) : (
-                    <X className="h-4 w-4 shrink-0 text-red-500" />
+                    <X className="text-destructive h-4 w-4 shrink-0" />
                   )}
                   <span
                     className={cn(
-                      requirement.met ? "text-green-700" : "text-gray-600"
+                      requirement.met
+                        ? "text-emerald-700"
+                        : "text-muted-foreground"
                     )}
                   >
                     {requirement.label}

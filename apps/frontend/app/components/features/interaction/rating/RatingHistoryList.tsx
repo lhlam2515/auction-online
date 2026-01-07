@@ -108,7 +108,7 @@ function RatingItem({ rating }: { rating: RatingWithUsers }) {
             variant={isPositive ? "default" : "destructive"}
             className={cn(
               "flex items-center gap-1",
-              isPositive && "bg-green-600 text-green-50"
+              isPositive && "bg-emerald-600 px-2 text-white"
             )}
           >
             {isPositive ? (

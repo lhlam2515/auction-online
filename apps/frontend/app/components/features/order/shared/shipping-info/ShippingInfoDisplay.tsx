@@ -19,7 +19,7 @@ const ShippingInfoDisplay = ({
         <div className="flex items-start gap-3">
           <MapPin
             className={cn("mt-0.5 h-5 w-5", {
-              "text-green-600": shippingAddress,
+              "text-emerald-600": shippingAddress,
               "text-amber-600": !shippingAddress,
             })}
           />
@@ -42,8 +42,8 @@ const ShippingInfoDisplay = ({
         <div className="flex items-start gap-3">
           <Phone
             className={cn("mt-0.5 h-5 w-5", {
-              "text-green-600": phoneNumber,
-              "text-amber-500": !phoneNumber,
+              "text-emerald-600": phoneNumber,
+              "text-amber-600": !phoneNumber,
             })}
           />
           <div className="flex-1">

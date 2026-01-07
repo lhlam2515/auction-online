@@ -14,7 +14,7 @@ const UserBanTable = (props: UserBanTableProps) => {
   return (
     <div className={props.className}>
       {/* Implement logic for UserBanTable here */}
-      <p className="text-gray-500 italic">Component: UserBanTable</p>
+      <p className="text-muted-foreground italic">Component: UserBanTable</p>
     </div>
   );
 };

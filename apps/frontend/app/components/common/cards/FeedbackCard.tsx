@@ -18,8 +18,8 @@ const FeedbackCard = ({ feedback, title, isSent }: FeedbackCardProps) => {
   return (
     <Card
       className={cn("gap-2", {
-        "border-emerald-300 bg-emerald-50": isPositive && !isSent,
-        "border-red-300 bg-red-50": !isPositive && !isSent,
+        "border-emerald-500/20 bg-emerald-500/10": isPositive && !isSent,
+        "border-destructive/20 bg-destructive/10": !isPositive && !isSent,
       })}
     >
       <CardHeader>
@@ -29,8 +29,8 @@ const FeedbackCard = ({ feedback, title, isSent }: FeedbackCardProps) => {
             className={cn(
               "flex items-center gap-1.5",
               isPositive
-                ? "border-emerald-300 bg-emerald-50 text-emerald-600"
-                : "border-red-300 bg-red-50 text-red-600"
+                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
+                : "border-destructive/20 bg-destructive/10 text-destructive"
             )}
           >
             {isPositive ? (

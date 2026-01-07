@@ -15,17 +15,17 @@ const statusConfig = {
   ACTIVE: {
     label: "Hoạt động",
     icon: CheckCircle,
-    className: "border-green-300 bg-green-50 text-green-600",
+    className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600",
   },
   PENDING_VERIFICATION: {
     label: "Chờ xác thực",
     icon: Clock,
-    className: "border-amber-300 bg-amber-50 text-amber-600",
+    className: "border-amber-500/20 bg-amber-500/10 text-amber-600",
   },
   BANNED: {
     label: "Bị cấm",
     icon: Ban,
-    className: "border-red-300 bg-red-50 text-red-600",
+    className: "border-destructive/20 bg-destructive/10 text-destructive",
   },
 };
 
@@ -38,7 +38,7 @@ const AccountStatusBadge = ({ status, className }: AccountStatusBadgeProps) => {
       <Badge
         variant="outline"
         className={cn(
-          "gap-1 border-gray-300 bg-gray-50 px-2 py-0.5 text-gray-600",
+          "border-border bg-muted/50 text-muted-foreground gap-1 px-2 py-0.5",
           className
         )}
       >

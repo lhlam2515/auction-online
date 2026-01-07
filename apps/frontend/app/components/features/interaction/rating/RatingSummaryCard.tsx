@@ -39,7 +39,7 @@ const RatingSummaryCard = ({ summary, className }: RatingSummaryCardProps) => {
             <span className="text-muted-foreground text-sm">
               Tỉ lệ đánh giá tích cực
             </span>
-            <span className="text-lg font-bold text-green-600 dark:text-green-400">
+            <span className="text-lg font-bold text-emerald-600">
               {positivePercentage.toFixed(1)}%
             </span>
           </div>
@@ -49,9 +49,9 @@ const RatingSummaryCard = ({ summary, className }: RatingSummaryCardProps) => {
         {/* Positive vs Negative counts */}
         <div className="grid grid-cols-2 gap-4 pt-2">
           <div className="bg-muted/50 flex flex-col items-center gap-2 rounded-lg p-3">
-            <ThumbsUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <ThumbsUp className="h-5 w-5 text-emerald-600" />
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-2xl font-bold text-emerald-600">
                 {positiveCount}
               </p>
               <p className="text-muted-foreground text-xs">Tích cực</p>
@@ -59,9 +59,9 @@ const RatingSummaryCard = ({ summary, className }: RatingSummaryCardProps) => {
           </div>
 
           <div className="bg-muted/50 flex flex-col items-center gap-2 rounded-lg p-3">
-            <ThumbsDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <ThumbsDown className="text-destructive h-5 w-5" />
             <div className="text-center">
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+              <p className="text-destructive text-2xl font-bold">
                 {negativeCount}
               </p>
               <p className="text-muted-foreground text-xs">Tiêu cực</p>

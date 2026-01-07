@@ -23,7 +23,7 @@ const chartConfig = {
   },
   completedCount: {
     label: "Đã hoàn thành",
-    color: "var(--color-red-500)",
+    color: "var(--color-blue-500)",
   },
 } satisfies ChartConfig;
 

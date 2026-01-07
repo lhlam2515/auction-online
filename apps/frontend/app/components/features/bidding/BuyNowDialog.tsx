@@ -108,7 +108,7 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
               <span className="text-muted-foreground text-sm font-medium">
                 Giá mua ngay:
               </span>
-              <p className="text-xl font-bold text-red-600">
+              <p className="text-destructive text-xl font-bold">
                 {formatPrice(Number(product.buyNowPrice))}
               </p>
             </div>

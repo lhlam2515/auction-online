@@ -29,7 +29,7 @@ const chartConfig = {
   },
   poor: {
     label: "Kém (<70%)",
-    color: "var(--color-red-500)",
+    color: "var(--color-destructive)",
   },
   noRating: {
     label: "Chưa có đánh giá",

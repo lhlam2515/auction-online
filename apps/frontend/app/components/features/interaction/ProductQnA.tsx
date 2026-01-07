@@ -180,14 +180,14 @@ const ProductQnA = ({
                         <span className="text-foreground font-semibold">
                           {q.answererName!}
                         </span>
-                        <Badge variant="default" className="bg-green-600">
+                        <Badge variant="default" className="bg-emerald-500">
                           Người bán
                         </Badge>
                         <span className="text-muted-foreground text-xs">
                           {formatDate(q.answeredAt!)}
                         </span>
                       </div>
-                      <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950">
+                      <div className="rounded-lg bg-emerald-500/10 p-3 dark:bg-emerald-500/20">
                         <p className="text-sm">{q.answerContent}</p>
                       </div>
                     </div>

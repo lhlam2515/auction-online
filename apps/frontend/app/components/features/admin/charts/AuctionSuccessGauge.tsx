@@ -77,13 +77,13 @@ export function AuctionSuccessGauge({ stats }: Props) {
         </div>
         <div className="space-y-1">
           <p className="text-muted-foreground">Thành công</p>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-2xl font-bold text-emerald-600">
             {stats.successfulAuctions}
           </p>
         </div>
         <div className="space-y-1">
           <p className="text-muted-foreground">Thất bại</p>
-          <p className="text-2xl font-bold text-red-600">
+          <p className="text-destructive text-2xl font-bold">
             {stats.failedAuctions}
           </p>
         </div>

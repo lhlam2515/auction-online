@@ -42,11 +42,23 @@ export function UpgradeRequestTable({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "APPROVED":
-        return <Badge className="bg-green-500">Đã duyệt</Badge>;
+        return (
+          <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-600">
+            Đã duyệt
+          </Badge>
+        );
       case "REJECTED":
-        return <Badge variant="destructive">Đã từ chối</Badge>;
+        return (
+          <Badge className="border-destructive/20 bg-destructive/10 text-destructive">
+            Đã từ chối
+          </Badge>
+        );
       case "PENDING":
-        return <Badge variant="secondary">Chờ duyệt</Badge>;
+        return (
+          <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-600">
+            Chờ duyệt
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -123,7 +135,7 @@ export function UpgradeRequestTable({
                             trigger={
                               <DropdownMenuItem
                                 onSelect={(e) => e.preventDefault()}
-                                className="text-green-600 focus:bg-green-50 focus:text-green-700"
+                                className="text-emerald-600 focus:bg-emerald-500/10 focus:text-emerald-700"
                               >
                                 <Check className="mr-2 h-4 w-4" />
                                 Chấp nhận
@@ -136,7 +148,7 @@ export function UpgradeRequestTable({
                             trigger={
                               <DropdownMenuItem
                                 onSelect={(e) => e.preventDefault()}
-                                className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                               >
                                 <X className="mr-2 h-4 w-4" />
                                 Từ chối

@@ -76,7 +76,7 @@ const BanUserForm = ({
           render={({ field }) => (
             <Field className="flex w-full flex-col gap-3">
               <FieldLabel className="text-sm font-semibold">
-                Hành động <span className="text-red-500">*</span>
+                Hành động <span className="text-destructive">*</span>
               </FieldLabel>
               <RadioGroup
                 value={field.value ? "ban" : "unban"}
@@ -105,10 +105,12 @@ const BanUserForm = ({
                         : "cursor-pointer"
                     )}
                   >
-                    <Ban className="h-4 w-4 text-red-600" />
+                    <Ban className="text-destructive h-4 w-4" />
                     <span>Cấm người dùng (Ban)</span>
                     {currentStatus === "BANNED" && (
-                      <span className="text-xs text-gray-500">(Đã bị cấm)</span>
+                      <span className="text-muted-foreground text-xs">
+                        (Đã bị cấm)
+                      </span>
                     )}
                   </label>
                 </div>
@@ -133,10 +135,10 @@ const BanUserForm = ({
                         : "cursor-pointer"
                     )}
                   >
-                    <ShieldAlert className="h-4 w-4 text-green-600" />
+                    <ShieldAlert className="h-4 w-4 text-emerald-600" />
                     <span>Gỡ cấm người dùng (Unban)</span>
                     {currentStatus !== "BANNED" && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-muted-foreground text-xs">
                         (Chưa bị cấm)
                       </span>
                     )}
@@ -178,7 +180,7 @@ const BanUserForm = ({
                   htmlFor={field.name}
                   className="text-sm font-semibold"
                 >
-                  Lý do cấm <span className="text-red-500">*</span>
+                  Lý do cấm <span className="text-destructive">*</span>
                 </FieldLabel>
                 <Textarea
                   {...field}
@@ -196,8 +198,8 @@ const BanUserForm = ({
                     className={cn(
                       "font-medium",
                       (field.value?.length || 0) < 10
-                        ? "text-red-500"
-                        : "text-green-600"
+                        ? "text-destructive"
+                        : "text-emerald-600"
                     )}
                   >
                     {field.value?.length || 0}/10
@@ -238,7 +240,7 @@ const BanUserForm = ({
                 />
                 <FieldDescription className="text-muted-foreground text-xs">
                   {duration === 0 || duration === undefined ? (
-                    <span className="font-medium text-red-600">
+                    <span className="text-destructive font-medium">
                       0 ngày = cấm vĩnh viễn
                     </span>
                   ) : (

@@ -83,7 +83,7 @@ const UpdateDescForm = ({ productId, onSuccess }: UpdateDescFormProps) => {
                 htmlFor={field.name}
                 className="text-lg font-semibold"
               >
-                Cập nhật mô tả <span className="text-red-500">*</span>
+                Cập nhật mô tả <span className="text-destructive">*</span>
               </FieldLabel>
               <RichTextEditor
                 ref={editorRef}

@@ -17,7 +17,7 @@ interface Props {
 const chartConfig = {
   totalBidders: {
     label: "Tổng bidder",
-    color: "var(--color-slate-500)",
+    color: "var(--muted-foreground)",
   },
   requestsSent: {
     label: "Đã gửi yêu cầu",
@@ -33,7 +33,7 @@ const chartConfig = {
   },
   requestsRejected: {
     label: "Bị từ chối",
-    color: "var(--color-red-500)",
+    color: "var(--color-destructive)",
   },
 } satisfies ChartConfig;
 

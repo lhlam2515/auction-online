@@ -83,7 +83,7 @@ const ProductCard = ({
     >
       <Card className="group relative mx-auto overflow-hidden border py-0 transition-all duration-300 hover:shadow-lg">
         {/* 1. Phần Ảnh & Badge */}
-        <div className="relative overflow-hidden bg-gray-100">
+        <div className="bg-muted/50 relative overflow-hidden">
           <img
             src={mainImageUrl ?? "/placeholder.png"}
             alt={name}
@@ -93,7 +93,7 @@ const ProductCard = ({
           {/* Badge góc trái */}
           <div className="absolute top-3 left-3 flex gap-2">
             {isNew && (
-              <Badge variant="default" className="bg-green-400">
+              <Badge variant="default" className="bg-emerald-600">
                 New
               </Badge>
             )}
@@ -105,11 +105,11 @@ const ProductCard = ({
               <Button
                 size="icon"
                 variant="outline"
-                className="text-accent absolute top-3 right-3 rounded-full border-0 shadow-sm backdrop-blur-sm"
+                className="absolute top-3 right-3 rounded-full border-0 shadow-sm backdrop-blur-sm"
                 onClick={handleToggleWatchlist}
               >
                 <Heart
-                  className={`h-5 w-5 transition-colors ${isProductInWatchlist && "fill-red-500 text-red-500"}`}
+                  className={`h-5 w-5 transition-colors ${isProductInWatchlist && "fill-destructive text-destructive"}`}
                 />
               </Button>
             </RoleGuard>
@@ -119,14 +119,14 @@ const ProductCard = ({
         {/* 2. Phần Nội dung chính */}
         <CardContent className="flex flex-1 flex-col gap-3">
           {/* Tên sản phẩm */}
-          <h3 className="line-clamp-2 h-12 text-lg leading-tight font-semibold text-gray-900">
+          <h3 className="text-foreground line-clamp-2 h-12 text-lg leading-tight font-semibold">
             {name}
           </h3>
 
           {/* Khu vực Giá & Thời gian */}
           <div className="space-y-1">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-xs font-medium text-gray-500 uppercase">
+              <span className="text-muted-foreground text-xs font-medium uppercase">
                 Giá hiện tại
               </span>
               {/* Thời gian còn lại */}
@@ -139,23 +139,23 @@ const ProductCard = ({
             </div>
 
             {/* Giá tiền - Font to để handle số tiền lớn */}
-            <div className="text-card-foreground text-2xl font-bold tracking-tight">
+            <div className="text-foreground text-2xl font-bold tracking-tight">
               {formatPrice(Number(currentPrice ?? "0"))}
             </div>
 
             {/* Thông tin phụ: Số lượt bid & Giá mua ngay */}
-            <div className="mt-1 flex items-center justify-between text-sm text-gray-600">
+            <div className="text-muted-foreground mt-1 flex items-center justify-between text-sm">
               <div className="flex items-center">
-                <Gavel className="mr-1.5 h-4 w-4 text-gray-400" />
+                <Gavel className="text-muted-foreground/60 mr-1.5 h-4 w-4" />
                 <span>{bidCount} lượt</span>
               </div>
 
               {buyNowPrice && (
-                <div className="flex items-center text-gray-500">
-                  <ShoppingCart className="mr-1.5 h-4 w-4 text-gray-400" />
+                <div className="text-muted-foreground flex items-center">
+                  <ShoppingCart className="text-muted-foreground/60 mr-1.5 h-4 w-4" />
                   <span className="text-xs font-bold">
                     Mua ngay:{" "}
-                    <span className="text-red-500">
+                    <span className="text-destructive">
                       {formatPrice(Number(buyNowPrice))}
                     </span>
                   </span>
@@ -165,17 +165,17 @@ const ProductCard = ({
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t bg-gray-50 px-4 text-xs text-gray-500 [.border-t]:py-3">
+        <CardFooter className="bg-muted/30 text-muted-foreground flex items-center justify-between border-t px-4 text-xs [.border-t]:py-3">
           <div className="flex items-center gap-2">
             {/* Avatar */}
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+            <div className="bg-primary/10 text-primary flex h-6 w-6 items-center justify-center rounded-full">
               <User size={14} />
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-gray-400 uppercase">
+              <p className="text-muted-foreground/70 text-[10px] font-semibold uppercase">
                 Người giữ giá
               </p>
-              <p className="font-medium text-gray-700">
+              <p className="text-foreground/90 font-medium">
                 {currentWinnerName || "Chưa có"}
               </p>
             </div>
@@ -184,10 +184,10 @@ const ProductCard = ({
           <div className="flex items-center gap-2">
             <Calendar className="mr-1 h-3 w-3" />
             <div>
-              <p className="text-[10px] font-semibold text-gray-400 uppercase">
+              <p className="text-muted-foreground/70 text-[10px] font-semibold uppercase">
                 Ngày bắt đầu
               </p>
-              <p className="font-medium text-gray-700">
+              <p className="text-foreground/90 font-medium">
                 {startDateTime.toLocaleDateString("vi-VN", {
                   day: "2-digit",
                   month: "2-digit",
@@ -215,50 +215,50 @@ export const ProductCardSkeleton = ({ className }: { className?: string }) => {
     >
       <Card className="relative mx-auto animate-pulse gap-3 overflow-hidden border py-0">
         {/* Phần ảnh skeleton */}
-        <div className="relative overflow-hidden bg-gray-200">
-          <div className="aspect-square h-full w-full bg-gray-300" />
+        <div className="bg-muted/50 relative overflow-hidden">
+          <div className="bg-muted aspect-square h-full w-full" />
 
           {/* Skeleton button */}
-          <div className="absolute top-3 right-3 h-10 w-10 rounded-full bg-gray-300" />
+          <div className="bg-muted absolute top-3 right-3 h-10 w-10 rounded-full" />
         </div>
 
         {/* Nội dung skeleton */}
         <CardContent className="flex flex-1 flex-col gap-3">
           {/* Tên sản phẩm skeleton */}
           <div className="space-y-2">
-            <div className="h-5 w-3/4 rounded bg-gray-300" />
-            <div className="h-5 w-1/2 rounded bg-gray-300" />
+            <div className="bg-muted h-5 w-3/4 rounded" />
+            <div className="bg-muted h-5 w-1/2 rounded" />
           </div>
 
           {/* Giá và thời gian skeleton */}
           <div className="flex items-center justify-between">
-            <div className="h-3 w-20 rounded bg-gray-300" />
-            <div className="h-4 w-16 rounded bg-gray-300" />
+            <div className="bg-muted h-3 w-20 rounded" />
+            <div className="bg-muted h-4 w-16 rounded" />
           </div>
 
           {/* Giá tiền skeleton */}
-          <div className="h-8 w-32 rounded bg-gray-300" />
+          <div className="bg-muted h-8 w-32 rounded" />
 
           {/* Thông tin phụ skeleton */}
           <div className="flex justify-between">
-            <div className="h-4 w-16 rounded bg-gray-300" />
-            <div className="h-4 w-24 rounded bg-gray-300" />
+            <div className="bg-muted h-4 w-16 rounded" />
+            <div className="bg-muted h-4 w-24 rounded" />
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t bg-gray-50 px-4 [.border-t]:py-3">
+        <CardFooter className="bg-muted/30 flex items-center justify-between border-t px-4 [.border-t]:py-3">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-gray-300" />
+            <div className="bg-muted h-6 w-6 rounded-full" />
             <div className="space-y-1">
-              <div className="h-2 w-16 rounded bg-gray-300" />
-              <div className="h-3 w-12 rounded bg-gray-300" />
+              <div className="bg-muted h-2 w-16 rounded" />
+              <div className="bg-muted h-3 w-12 rounded" />
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-gray-300" />
+            <div className="bg-muted h-3 w-3 rounded" />
             <div className="space-y-1">
-              <div className="h-2 w-16 rounded bg-gray-300" />
-              <div className="h-3 w-20 rounded bg-gray-300" />
+              <div className="bg-muted h-2 w-16 rounded" />
+              <div className="bg-muted h-3 w-20 rounded" />
             </div>
           </div>
         </CardFooter>

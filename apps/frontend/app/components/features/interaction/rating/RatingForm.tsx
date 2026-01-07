@@ -107,9 +107,9 @@ const RatingForm = <T extends FieldValues>({
                   variant={field.value === 1 ? "default" : "outline"}
                   size="lg"
                   className={cn("h-24 flex-col gap-2", {
-                    "bg-emerald-600 text-emerald-50 hover:bg-emerald-300 hover:text-emerald-600":
+                    "bg-emerald-500 text-white hover:bg-emerald-600":
                       field.value === 1,
-                    "border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-600":
+                    "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20":
                       field.value !== 1,
                   })}
                   onClick={() => field.onChange(1)}
@@ -123,9 +123,9 @@ const RatingForm = <T extends FieldValues>({
                   variant={field.value === -1 ? "default" : "outline"}
                   size="lg"
                   className={cn("h-24 flex-col gap-2", {
-                    "bg-red-600 text-red-50 hover:bg-red-300 hover:text-red-600":
+                    "bg-destructive text-destructive-foreground hover:bg-destructive/90":
                       field.value === -1,
-                    "border-red-300 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-600":
+                    "border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20":
                       field.value !== -1,
                   })}
                   onClick={() => field.onChange(-1)}

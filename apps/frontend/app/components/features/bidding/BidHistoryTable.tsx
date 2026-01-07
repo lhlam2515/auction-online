@@ -136,7 +136,9 @@ const BidHistoryTable = ({
                     <TableRow
                       key={bid.id}
                       className={
-                        index === 0 ? "bg-green-50 dark:bg-green-950" : ""
+                        index === 0
+                          ? "bg-emerald-500/10 dark:bg-emerald-500/20"
+                          : ""
                       }
                     >
                       <TableCell>{formatDate(bidDateTime)}</TableCell>
@@ -153,7 +155,7 @@ const BidHistoryTable = ({
                             bid.userName
                           )}
                           {index === 0 && (
-                            <Badge className="bg-green-600">
+                            <Badge className="bg-emerald-500">
                               Người thắng hiện tại
                             </Badge>
                           )}

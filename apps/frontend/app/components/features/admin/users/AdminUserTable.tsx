@@ -110,7 +110,7 @@ const AdminUserTable = ({
                 {/* Rating */}
                 <TableCell>
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                     <span className="font-medium">
                       {(user.ratingScore * 100).toFixed(1)}%
                     </span>

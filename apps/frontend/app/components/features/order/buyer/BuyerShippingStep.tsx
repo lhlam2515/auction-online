@@ -86,18 +86,20 @@ const BuyerShippingStep = ({ order, onSuccess }: BuyerShippingStepProps) => {
             description={
               <>
                 <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-slate-600" />
-                  <span className="text-sm text-slate-600">
+                  <Building2 className="text-muted-foreground h-4 w-4" />
+                  <span className="text-muted-foreground text-sm">
                     Đơn vị vận chuyển:
                   </span>
-                  <span className="text-sm font-medium text-slate-900">
+                  <span className="text-sm font-medium">
                     {getShippingProviderName(order.shippingProvider)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-slate-600" />
-                  <span className="text-sm text-slate-600">Mã vận đơn:</span>
-                  <span className="font-mono text-sm font-medium text-slate-900">
+                  <Package className="text-muted-foreground h-4 w-4" />
+                  <span className="text-muted-foreground text-sm">
+                    Mã vận đơn:
+                  </span>
+                  <span className="font-mono text-sm font-medium">
                     {order.trackingNumber}
                   </span>
                 </div>

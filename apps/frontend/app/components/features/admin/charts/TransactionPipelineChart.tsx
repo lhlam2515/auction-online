@@ -107,11 +107,15 @@ export function TransactionPipelineChart({ data }: Props) {
         </div>
         <div className="bg-muted/50 rounded-lg border p-3 text-center">
           <p className="text-muted-foreground">Hoàn thành</p>
-          <p className="text-2xl font-bold text-green-600">{data.completed}</p>
+          <p className="text-2xl font-bold text-emerald-600">
+            {data.completed}
+          </p>
         </div>
         <div className="bg-muted/50 rounded-lg border p-3 text-center">
           <p className="text-muted-foreground">Đã hủy</p>
-          <p className="text-2xl font-bold text-red-600">{data.cancelled}</p>
+          <p className="text-destructive text-2xl font-bold">
+            {data.cancelled}
+          </p>
         </div>
       </div>
     </div>

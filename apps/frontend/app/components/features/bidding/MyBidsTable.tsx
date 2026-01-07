@@ -262,7 +262,7 @@ const WonBidRow = ({
             size="sm"
             className={cn(
               order.status === "PENDING" &&
-                "bg-emerald-500 text-emerald-50 hover:bg-emerald-700 hover:text-emerald-50"
+                "bg-emerald-600 text-white shadow-sm transition-all hover:bg-emerald-700"
             )}
             asChild
           >
@@ -312,7 +312,7 @@ const LostBidRow = ({ bid }: { bid: MyAutoBid }) => {
       <TableCell>
         <Badge
           variant="outline"
-          className="border-red-300 bg-red-50 text-red-600"
+          className="bg-destructive/10 border-destructive/20 text-destructive"
         >
           <XCircle className="mr-1 h-3 w-3" />
           Đã thua

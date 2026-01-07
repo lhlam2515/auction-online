@@ -107,7 +107,7 @@ export default function UserAvatarUploader({
 
       {/* Avatar display with fallback to user initials */}
       {isLoading ? (
-        <Skeleton className="h-36 w-36 rounded-full bg-gray-300" />
+        <Skeleton className="bg-muted h-36 w-36 rounded-full" />
       ) : (
         <UserAvatar
           name={userData?.fullName || "User"}
@@ -119,8 +119,8 @@ export default function UserAvatarUploader({
 
       {/* Button to trigger file selection */}
       <Button
-        className="bg-slate-900 text-white hover:bg-slate-500"
-        variant="outline"
+        className="bg-primary text-primary-foreground hover:opacity-90"
+        variant="default"
         size="sm"
         onClick={handleFileSelect}
       >

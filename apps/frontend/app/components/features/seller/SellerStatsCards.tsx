@@ -17,31 +17,31 @@ const SellerStatsCards = ({ stats, className }: SellerStatsCardsProps) => {
         value={stats.totalActiveProducts}
         icon={<Package className="h-5 w-5" />}
         iconColor="text-blue-600"
-        bgColor="bg-blue-50"
+        bgColor="bg-blue-500/10"
         description="Sản phẩm đang được đấu giá"
       />
       <StatsCard
         title="Đã bán thành công"
         value={stats.totalSoldProducts}
         icon={<ShoppingCart className="h-5 w-5" />}
-        iconColor="text-green-600"
-        bgColor="bg-green-50"
+        iconColor="text-emerald-600"
+        bgColor="bg-emerald-500/10"
         description="Đơn hàng đã hoàn tất"
       />
       <StatsCard
         title="Tổng doanh thu"
         value={formatPrice(parseInt(stats.totalRevenue, 10))}
         icon={<DollarSign className="h-5 w-5" />}
-        iconColor="text-purple-600"
-        bgColor="bg-purple-50"
+        iconColor="text-primary"
+        bgColor="bg-primary/10"
         description="Thực nhận sau phí"
       />
       <StatsCard
         title="Tỷ lệ thành công"
         value={`${Math.round(stats.successRate * 100)}%`}
         icon={<TrendingUp className="h-5 w-5" />}
-        iconColor="text-orange-600"
-        bgColor="bg-orange-50"
+        iconColor="text-amber-600"
+        bgColor="bg-amber-500/10"
         description="Hiệu suất bán hàng"
       />
     </div>

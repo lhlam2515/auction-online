@@ -24,10 +24,11 @@ const contactLinks = [
 ];
 
 const Footer = () => {
-  const linkClassName = "text-slate-300 transition-colors hover:text-white";
+  const linkClassName =
+    "text-muted-foreground transition-colors hover:text-foreground";
 
   return (
-    <footer className="mt-auto w-full bg-slate-900 text-white">
+    <footer className="bg-muted/40 text-foreground mt-auto w-full border-t">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* About */}
@@ -78,23 +79,23 @@ const Footer = () => {
               Kết nối với chúng tôi
             </h3>
             <address className="not-italic">
-              <p className="mb-4 text-sm text-slate-300">
+              <p className="text-muted-foreground mb-4 text-sm">
                 Hotline:{" "}
-                <span className="font-semibold text-white">1900 1234</span>
+                <span className="text-foreground font-semibold">1900 1234</span>
               </p>
-              <p className="mb-4 text-sm text-slate-300">
+              <p className="text-muted-foreground mb-4 text-sm">
                 Email: support@onlineauction.vn
               </p>
-              <p className="text-sm text-slate-300">
+              <p className="text-muted-foreground text-sm">
                 Thời gian: 8:00 - 22:00 (Hằng ngày)
               </p>
             </address>
           </div>
         </div>
 
-        <Separator className="my-6 bg-slate-700" />
+        <Separator className="my-6" />
 
-        <div className="text-center text-sm text-slate-400">
+        <div className="text-muted-foreground text-center text-sm">
           <p>
             &copy; {new Date().getFullYear()} Online Auction. All rights
             reserved. | Sàn đấu giá trực tuyến uy tín hàng đầu Việt Nam
