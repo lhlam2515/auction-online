@@ -41,7 +41,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ThemeProvider defaultTheme="light" storageKey="auction-ui-theme">
           {/* Global layout wrapper with common elements */}
           <div id="root">{children}</div>
-          <Toaster />
+          <Toaster richColors />
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
