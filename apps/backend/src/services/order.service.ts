@@ -5,7 +5,7 @@ import type {
   ShippingProvider,
 } from "@repo/shared-types";
 import { Decimal } from "decimal.js";
-import { eq, and, sql, isNotNull } from "drizzle-orm";
+import { eq, and, sql, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/config/database";
 import { orders, orderPayments } from "@/models";
@@ -307,8 +307,28 @@ export class OrderService {
           sellerConfirmedAt: new Date(),
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, orderId))
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.sellerId, sellerId),
+            eq(orders.status, "PAID"),
+            isNull(orders.sellerConfirmedAt) // Chỉ confirm nếu chưa confirm trước đó
+          )
+        )
         .returning();
+
+      if (!updatedOrder) {
+        await this.handleUpdateError(
+          orderId,
+          sellerId,
+          "sellerId",
+          ["PAID"],
+          tx
+        );
+        throw new BadRequestError(
+          "Thanh toán đã được xác nhận trước đó hoặc ở trạng thái không hợp lệ"
+        );
+      }
 
       return updatedOrder;
     });
