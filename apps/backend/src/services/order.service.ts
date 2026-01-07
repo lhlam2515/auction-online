@@ -311,7 +311,7 @@ export class OrderService {
           and(
             eq(orders.id, orderId),
             eq(orders.sellerId, sellerId),
-            eq(orders.status, "PAID"),
+            eq(orders.status, "PENDING"),
             isNull(orders.sellerConfirmedAt) // Chỉ confirm nếu chưa confirm trước đó
           )
         )
@@ -322,7 +322,7 @@ export class OrderService {
           orderId,
           sellerId,
           "sellerId",
-          ["PAID"],
+          ["PENDING"],
           tx
         );
         throw new BadRequestError(
