@@ -1,5 +1,6 @@
 import type { UserAuthData } from "@repo/shared-types";
 import { PanelLeftOpen, PanelLeftClose, X } from "lucide-react";
+import { Link } from "react-router";
 
 import { UserAvatar } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { APP_ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 interface NavProfileProps {
@@ -33,9 +35,10 @@ export const NavProfile = ({
       )}
     >
       <div className="flex min-w-0 items-center overflow-hidden transition-all duration-300">
-        <div
+        <Link
+          to={user ? APP_ROUTES.PROFILE(user.id) : "#"}
           className={cn(
-            "flex items-center transition-all duration-300",
+            "flex items-center transition-all duration-300 hover:opacity-80 active:scale-95",
             isCollapsed ? "justify-center" : "gap-3"
           )}
         >
@@ -72,7 +75,7 @@ export const NavProfile = ({
               {user?.email}
             </span>
           </div>
-        </div>
+        </Link>
       </div>
 
       <Button
