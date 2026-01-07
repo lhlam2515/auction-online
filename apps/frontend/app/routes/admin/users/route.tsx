@@ -194,7 +194,7 @@ export default function ManageUsersPage() {
 
           {/* Users Table */}
           {errorUsers ? (
-            <p className="text-center text-red-600">{errorUsers}</p>
+            <p className="text-destructive text-center">{errorUsers}</p>
           ) : (
             <AdminUserTable
               users={users}

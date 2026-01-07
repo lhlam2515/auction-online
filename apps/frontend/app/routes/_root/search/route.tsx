@@ -206,7 +206,9 @@ export default function SearchBrowsePage() {
           {/* Category Tree */}
           {loadingCategories && <ProductCategoryFilterSkeleton />}
           {errorCategories && (
-            <p className="my-8 text-center text-red-600">{errorCategories}</p>
+            <p className="text-destructive my-8 text-center">
+              {errorCategories}
+            </p>
           )}
           {!loadingCategories && !errorCategories && (
             <ProductCategoryFilter
@@ -254,7 +256,7 @@ export default function SearchBrowsePage() {
             <ProductGrid products={products} loading={true} />
           )}
           {errorProducts && (
-            <p className="my-8 text-center text-red-600">{errorProducts}</p>
+            <p className="text-destructive my-8 text-center">{errorProducts}</p>
           )}
           {!loadingProducts && !errorProducts && products.length === 0 && (
             <p className="text-center">Không có sản phẩm hợp với yêu cầu.</p>
