@@ -2,11 +2,10 @@ import type { User } from "@repo/shared-types";
 import { Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/common";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api-layer";
-import { getErrorMessage, showError } from "@/lib/handlers/error";
-import logger from "@/lib/logger";
+import { Skeleton } from "@/components/ui/skeleton";
+import { showError } from "@/lib/handlers/error";
 
 /**
  * Props for the UserAvatarUploader component
@@ -16,6 +15,8 @@ interface UserAvatarUploaderProps {
   userData?: User;
   /** Callback function called when new file is selected */
   onFileSelect?: (file: File) => void;
+  /** Loading state to indicate if profile data is being fetched */
+  isLoading?: boolean;
 }
 
 /**
@@ -33,8 +34,11 @@ interface UserAvatarUploaderProps {
 export default function UserAvatarUploader({
   userData,
   onFileSelect,
+  isLoading = false,
 }: UserAvatarUploaderProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    userData?.avatarUrl || null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Clean up preview URL when component unmounts or previewUrl changes
@@ -87,13 +91,6 @@ export default function UserAvatarUploader({
     }
   };
 
-  // Reset preview when userData changes (e.g., after successful upload)
-  useEffect(() => {
-    if (userData?.avatarUrl) {
-      setPreviewUrl(null);
-    }
-  }, [userData?.avatarUrl]);
-
   const currentAvatarUrl = previewUrl || userData?.avatarUrl;
 
   return (
@@ -109,26 +106,16 @@ export default function UserAvatarUploader({
       </div>
 
       {/* Avatar display with fallback to user initials */}
-      <Avatar className="h-36 w-36">
-        {currentAvatarUrl ? (
-          <AvatarImage
-            src={currentAvatarUrl}
-            alt={userData?.fullName || "User Avatar"}
-            className="object-cover"
-            width={144}
-            height={144}
-          />
-        ) : (
-          <AvatarFallback>
-            {userData?.fullName
-              .split(" ")
-              .map((n: string) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2)}
-          </AvatarFallback>
-        )}
-      </Avatar>
+      {isLoading ? (
+        <Skeleton className="h-36 w-36 rounded-full bg-gray-300" />
+      ) : (
+        <UserAvatar
+          name={userData?.fullName || "User"}
+          imageUrl={currentAvatarUrl}
+          className="h-36 w-36"
+          fallbackClassName="text-4xl"
+        />
+      )}
 
       {/* Button to trigger file selection */}
       <Button

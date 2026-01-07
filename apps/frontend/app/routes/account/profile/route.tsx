@@ -151,6 +151,7 @@ export default function UserProfilePage() {
           <UserAvatarUploader
             userData={userData}
             onFileSelect={setSelectedAvatarFile}
+            isLoading={isLoadingProfile}
           />
         </CardContent>
       </Card>
