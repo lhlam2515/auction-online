@@ -29,34 +29,6 @@ router.get("/stats", adminController.getDashboardStats);
 router.get("/analytics", adminController.getFullAnalytics);
 
 /**
- * @route   GET /api/admin/analytics/categories
- * @desc    Get category insights (GMV by category, top categories)
- * @access  Private (Admin)
- */
-router.get("/analytics/categories", adminController.getCategoryInsights);
-
-/**
- * @route   GET /api/admin/analytics/auction-health
- * @desc    Get auction health metrics (success rate, bid density)
- * @access  Private (Admin)
- */
-router.get("/analytics/auction-health", adminController.getAuctionHealth);
-
-/**
- * @route   GET /api/admin/analytics/operations
- * @desc    Get operations metrics (seller funnel, transaction pipeline)
- * @access  Private (Admin)
- */
-router.get("/analytics/operations", adminController.getOperationsMetrics);
-
-/**
- * @route   GET /api/admin/analytics/engagement
- * @desc    Get engagement metrics (reputation distribution, bidding activity)
- * @access  Private (Admin)
- */
-router.get("/analytics/engagement", adminController.getEngagementMetrics);
-
-/**
  * User Management
  */
 

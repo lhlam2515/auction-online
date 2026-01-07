@@ -18,8 +18,6 @@ import {
   products,
   orders,
   orderPayments,
-  categories,
-  bids,
   auctionSettings,
 } from "@/models";
 
