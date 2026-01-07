@@ -15,6 +15,7 @@ type ShippingInfoProps = {
   shippingAddress: string;
   phoneNumber: string;
   isEditable?: boolean;
+  onUpdate?: (data: { shippingAddress: string; phoneNumber: string }) => void;
 };
 
 const ShippingInfo = ({
@@ -22,6 +23,7 @@ const ShippingInfo = ({
   shippingAddress,
   phoneNumber,
   isEditable = true,
+  onUpdate,
 }: ShippingInfoProps) => {
   const [shippingAddressState, setShippingAddressState] =
     React.useState(shippingAddress);
@@ -72,6 +74,10 @@ const ShippingInfo = ({
               setShippingAddressState(data.shippingAddress);
               setPhoneNumberState(data.phoneNumber);
               setIsEditing(false);
+              onUpdate?.({
+                shippingAddress: data.shippingAddress,
+                phoneNumber: data.phoneNumber,
+              });
             }}
             onCancel={() => setIsEditing(false)}
           />

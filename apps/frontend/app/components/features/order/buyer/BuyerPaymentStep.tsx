@@ -32,8 +32,20 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
     useState<PaymentMethod>("BANK_TRANSFER");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [shippingInfo, setShippingInfo] = useState({
+    address: order.shippingAddress || "",
+    phone: order.phoneNumber || "",
+  });
 
   const handleProcessPayment = async () => {
+    // Validate shipping info first
+    if (!shippingInfo.address || !shippingInfo.phone) {
+      toast.error(
+        "Vui lòng cập nhật đầy đủ địa chỉ giao hàng và số điện thoại trước khi tải lên minh chứng thanh toán"
+      );
+      return;
+    }
+
     if (!paymentProofFile) {
       toast.error("Vui lòng tải lên ảnh minh chứng thanh toán");
       return;
@@ -75,6 +87,9 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
   const handleConfirmPayment = () => {
     handleProcessPayment();
   };
+
+  // Check if shipping info is complete
+  const isShippingInfoComplete = !!(shippingInfo.address && shippingInfo.phone);
 
   return (
     <Card>
@@ -121,28 +136,45 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
         </div>
 
         {/* Payment Proof Upload */}
-        <PaymentProofUpload
-          onFileSelect={setPaymentProofFile}
-          selectedFile={paymentProofFile}
-          isUploading={isProcessing}
-        />
+        {isShippingInfoComplete ? (
+          <PaymentProofUpload
+            onFileSelect={setPaymentProofFile}
+            selectedFile={paymentProofFile}
+            isUploading={isProcessing}
+          />
+        ) : (
+          <AlertSection
+            variant="warning"
+            title="Cần hoàn thành thông tin giao hàng"
+            description="Vui lòng cập nhật đầy đủ địa chỉ giao hàng và số điện thoại trước khi tải lên ảnh minh chứng thanh toán."
+          />
+        )}
 
         {/* Shipping Address */}
         <ShippingInfo
           orderId={order.id}
           shippingAddress={
-            order.shippingAddress ||
+            shippingInfo.address ||
             order.winner?.address ||
             "Địa chỉ không khả dụng"
           }
-          phoneNumber={order.phoneNumber || ""}
+          phoneNumber={shippingInfo.phone}
+          onUpdate={(data) => {
+            setShippingInfo({
+              address: data.shippingAddress,
+              phone: data.phoneNumber,
+            });
+          }}
         />
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
           <ConfirmationDialog
             trigger={
-              <Button variant="default" disabled={!paymentProofFile}>
+              <Button
+                variant="default"
+                disabled={!paymentProofFile || !isShippingInfoComplete}
+              >
                 <CreditCard className="h-4 w-4" />
                 Tải ảnh minh chứng thanh toán
               </Button>
