@@ -13,6 +13,7 @@ import {
   Users,
   ShieldCheck,
   Tags,
+  Settings,
 } from "lucide-react";
 
 import { ACCOUNT_ROUTES, ADMIN_ROUTES, SELLER_ROUTES } from "./routes";
@@ -145,6 +146,13 @@ export const SIDEBAR_ITEMS: MenuItem[] = [
     title: "Yêu cầu nâng cấp",
     url: ADMIN_ROUTES.UPGRADES,
     icon: ShieldCheck,
+    roles: ["ADMIN"],
+    section: "admin",
+  },
+  {
+    title: "Cài đặt hệ thống",
+    url: ADMIN_ROUTES.SETTINGS,
+    icon: Settings,
     roles: ["ADMIN"],
     section: "admin",
   },

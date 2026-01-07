@@ -12,15 +12,14 @@ import type {
   UpdateUserInfoRequest,
   UpdateAccountStatusRequest,
   UpdateUserRoleRequest,
-  UpgradeRequest,
-  ProcessUpgradeRequest,
   AdminGetProductsParams,
   RejectProductRequest,
-  SuspendProductRequest,
   CreateCategoryRequest,
   UpdateCategoryRequest,
   CreateUserRequest,
   DeleteUserRequest,
+  UpdateAuctionSettingsRequest,
+  AuctionSettings,
   Category,
   PaginatedResponse,
   ProductDetails,
@@ -282,5 +281,20 @@ export const getEngagementMetrics = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const engagement = await adminService.getEngagementMetrics();
     return ResponseHandler.sendSuccess<Engagement>(res, engagement);
+  }
+);
+
+export const updateAuctionSettings = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const data = req.body as UpdateAuctionSettingsRequest;
+    const settings = await adminService.updateAuctionSettings(data);
+    return ResponseHandler.sendSuccess<AuctionSettings>(res, settings);
+  }
+);
+
+export const getAuctionSettings = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const settings = await adminService.getAuctionSettings();
+    return ResponseHandler.sendSuccess<AuctionSettings>(res, settings);
   }
 );

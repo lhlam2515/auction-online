@@ -51,6 +51,7 @@ export default [
       route("users", "routes/admin/users/route.tsx"),
       route("products", "routes/admin/products/route.tsx"),
       route("upgrades", "routes/admin/upgrades/route.tsx"),
+      route("settings", "routes/admin/settings/route.tsx"),
     ]),
 
     // 6. Catch-all 404 route (must be last)

@@ -142,3 +142,16 @@ export const deleteUserSchema = z.object({
     .min(10, { message: "Reason must be at least 10 characters" })
     .optional(),
 });
+
+export const updateAuctionSettingsSchema = z.object({
+  extendThresholdMinutes: z
+    .number()
+    .int()
+    .min(1, { message: "Extend threshold must be at least 1 minute" })
+    .max(30, { message: "Extend threshold cannot exceed 30 minutes" }),
+  extendDurationMinutes: z
+    .number()
+    .int()
+    .min(1, { message: "Extend duration must be at least 1 minute" })
+    .max(60, { message: "Extend duration cannot exceed 60 minutes" }),
+});

@@ -121,3 +121,12 @@ export interface CreateUserRequest {
 export interface DeleteUserRequest {
   reason?: string;
 }
+
+/**
+ * Update auction settings request (Admin)
+ * Backend validation: admin.validation.ts → updateAuctionSettingsSchema
+ */
+export interface UpdateAuctionSettingsRequest {
+  extendThresholdMinutes: number;
+  extendDurationMinutes: number;
+}
