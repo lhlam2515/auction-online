@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
-import { RatingHistoryPanel } from "@/components/features/interaction";
+import { RatingHistoryPanel } from "@/components/features/interaction/rating";
 import { ProfileInfoCard } from "@/components/features/user";
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api-layer";
@@ -132,13 +132,7 @@ export default function PublicProfilePage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
         {/* Left Sidebar - Profile Info */}
         <div className="md:col-span-4 lg:col-span-3">
-          <ProfileInfoCard
-            profile={profile}
-            summary={{
-              averageRating: profile.ratingScore,
-              totalRatings: profile.ratingCount,
-            }}
-          />
+          <ProfileInfoCard profile={profile} />
         </div>
 
         {/* Right Content - Ratings List */}

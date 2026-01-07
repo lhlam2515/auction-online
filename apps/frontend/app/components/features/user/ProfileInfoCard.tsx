@@ -1,37 +1,23 @@
 import type { PublicProfile } from "@repo/shared-types";
-import {
-  Calendar,
-  Shield,
-  Star,
-  User as UserIcon,
-  Gavel,
-  Store,
-} from "lucide-react";
+import { Calendar, Star, User as UserIcon, Gavel, Store } from "lucide-react";
 
 import { UserAvatar } from "@/components/common";
 import { RoleBadge } from "@/components/common/badges";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 interface ProfileInfoCardProps {
   profile: PublicProfile;
-  summary: {
-    positivePercentage?: number;
-    totalRatings?: number;
-    averageRating?: number;
-  };
+  className?: string;
 }
 
-const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
-  const joinDate = new Date(profile.createdAt).toLocaleDateString("vi-VN");
-  const ratingScore = profile.ratingScore ?? summary.averageRating ?? 0;
-  const ratingCount = profile.ratingCount ?? summary.totalRatings ?? 0;
-
-  // Rating is calculated as Average (-1 to 1) from 1 (Like) and -1 (Dislike)
-  // Convert to Percentage (0-100%)
-  const percentScore = ratingCount > 0 ? ((ratingScore + 1) / 2) * 100 : 0;
+const ProfileInfoCard = ({ profile }: ProfileInfoCardProps) => {
+  const joinDate = formatDate(profile.createdAt, true);
+  const ratingScore = profile.ratingScore ?? 0;
+  const ratingCount = profile.ratingCount ?? 0;
+  const percentScore = ratingScore * 100;
 
   // Logic from OrderSummaryCard for badge color
   let badgeColor = "bg-destructive/10 text-destructive border-destructive/20";
@@ -61,7 +47,7 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
             <h3 className="text-xl font-bold">{profile.fullName}</h3>
             <p className="text-muted-foreground text-sm">@{profile.username}</p>
           </div>
-          <RoleBadge role={profile.role} className="px-3 py-1" />
+          <RoleBadge role={profile.role} className="px-2 py-1" />
         </div>
 
         <Separator />
@@ -88,20 +74,11 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
             <span className="text-sm font-medium">{joinDate}</span>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Shield className="h-4 w-4" /> Trạng thái
-            </span>
-            <span className="flex items-center gap-1 text-sm font-medium text-emerald-600">
-              Verified
-            </span>
-          </div>
-
           <Separator />
 
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Store className="h-4 w-4" /> Sản phẩm bán
+              <Store className="h-4 w-4" /> Sản phẩm đã bán
             </span>
             <span className="text-sm font-medium">
               {profile.stats?.totalAuctionProducts || 0}
