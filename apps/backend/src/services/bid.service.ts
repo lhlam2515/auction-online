@@ -206,7 +206,8 @@ export class BidService {
           currentPrice: amount.toString(),
           winnerId: bidderId,
           status: newStatus as ProductStatus, // ACTIVE hoặc SOLD
-          updatedAt: new Date(),
+          endTime: now,
+          updatedAt: now,
         })
         .where(eq(products.id, productId))
         .returning();
