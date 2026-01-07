@@ -27,11 +27,7 @@ const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 cursor-pointer p-0"
-        >
+        <Button variant="ghost" size="icon-sm">
           <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">Mở menu</span>
         </Button>
@@ -41,11 +37,8 @@ const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
         <ViewUserDialog
           userId={user.id}
           trigger={
-            <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
-              className="cursor-pointer"
-            >
-              <Eye className="h-4 w-4" />
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Eye className="mr-1 h-4 w-4" />
               Xem chi tiết
             </DropdownMenuItem>
           }
@@ -56,11 +49,8 @@ const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
           userId={user.id}
           onSuccess={onRefresh}
           trigger={
-            <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
-              className="cursor-pointer"
-            >
-              <UserCog className="h-4 w-4" />
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <UserCog className="mr-1 h-4 w-4" />
               Cập nhật thông tin
             </DropdownMenuItem>
           }
@@ -73,11 +63,8 @@ const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
           userEmail={user.email}
           onSuccess={onRefresh}
           trigger={
-            <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
-              className="cursor-pointer"
-            >
-              <Key className="h-4 w-4" />
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Key className="mr-1 h-4 w-4" />
               Đặt lại mật khẩu
             </DropdownMenuItem>
           }
@@ -93,12 +80,11 @@ const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
           trigger={
             <DropdownMenuItem
               onSelect={(e) => e.preventDefault()}
-              className="cursor-pointer"
               variant={
                 user.accountStatus === "BANNED" ? "default" : "destructive"
               }
             >
-              <Ban className="h-4 w-4" />
+              <Ban className="mr-1 h-4 w-4" />
               {user.accountStatus === "BANNED" ? "Gỡ cấm" : "Cấm người dùng"}
             </DropdownMenuItem>
           }
@@ -116,10 +102,9 @@ const AdminUserManager = ({ user, onRefresh }: AdminUserManagerProps) => {
           trigger={
             <DropdownMenuItem
               onSelect={(e) => e.preventDefault()}
-              className="cursor-pointer"
               variant="destructive"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="mr-1 h-4 w-4" />
               Xóa người dùng
             </DropdownMenuItem>
           }

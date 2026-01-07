@@ -107,7 +107,7 @@ const UpdateAccountStatusForm = ({
             className="flex w-full flex-col gap-2"
           >
             <FieldLabel htmlFor={field.name} className="text-sm font-semibold">
-              Trạng thái tài khoản <span className="text-red-500">*</span>
+              Trạng thái tài khoản <span className="text-destructive">*</span>
             </FieldLabel>
             <Select value={field.value} onValueChange={field.onChange}>
               <SelectTrigger
@@ -150,14 +150,13 @@ const UpdateAccountStatusForm = ({
             <Button
               type="button"
               disabled={!form.formState.isValid || isConfirming}
-              className="cursor-pointer"
               variant={
                 form.watch("accountStatus") === "BANNED"
                   ? "destructive"
                   : "default"
               }
             >
-              <Shield className="h-4 w-4" />
+              <Shield className="mr-1 h-4 w-4" />
               Cập nhật trạng thái
             </Button>
           }
@@ -175,11 +174,10 @@ const UpdateAccountStatusForm = ({
               </p>
               <div className="space-y-2 rounded-md bg-gray-50 p-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <strong>Từ:</strong>{" "}
-                  <AccountStatusBadge status={user.accountStatus} />
+                  <b>Từ:</b> <AccountStatusBadge status={user.accountStatus} />
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <strong>Sang:</strong>{" "}
+                  <b>Sang:</b>{" "}
                   <AccountStatusBadge status={form.watch("accountStatus")} />
                 </div>
               </div>
@@ -192,7 +190,7 @@ const UpdateAccountStatusForm = ({
             </div>
           }
           variant={
-            form.watch("accountStatus") === "BANNED" ? "destructive" : "default"
+            form.watch("accountStatus") === "BANNED" ? "danger" : "default"
           }
           confirmLabel="Xác nhận"
           confirmIcon={Shield}

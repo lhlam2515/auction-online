@@ -162,7 +162,6 @@ const AutoBidForm = ({
           variant="outline"
           onClick={onCancel}
           disabled={isConfirming}
-          className="cursor-pointer"
         >
           Hủy
         </Button>
@@ -173,7 +172,6 @@ const AutoBidForm = ({
               type="button"
               variant="default"
               disabled={!isFormValid || isConfirming}
-              className="cursor-pointer"
             >
               {isUpdating ? "Cập nhật giá" : "Đặt giá"}
             </Button>

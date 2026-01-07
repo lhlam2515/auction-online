@@ -86,7 +86,7 @@ const AdminProductTable = ({
 
   const emptyMessage = loading
     ? "Đang tải dữ liệu..."
-    : "Không có sản phẩm nào";
+    : "Không có sản phẩm nào để hiển thị";
 
   return (
     <ProductTable<ProductDetails>
@@ -94,9 +94,7 @@ const AdminProductTable = ({
       columns={columns}
       actions={actions}
       emptyMessage={emptyMessage}
-      emptyIcon={
-        <Package className="text-muted-foreground mx-auto h-10 w-10 opacity-50" />
-      }
+      emptyIcon={<Package />}
       className={className}
     />
   );

@@ -41,7 +41,7 @@ const CreateProductButton = ({
       onClick={handleClick}
       disabled={isDisabled}
     >
-      <PlusCircle className="mr-2 h-4 w-4" />
+      <PlusCircle className="mr-1 h-4 w-4" />
       Tạo Sản Phẩm
     </Button>
   );

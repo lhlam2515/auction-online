@@ -47,7 +47,7 @@ const ImageUploadFields = <T extends FieldValues>({
               className="mb-2 block text-base font-semibold"
             >
               Chọn ảnh (tối thiểu 4 ảnh, tối đa 10 ảnh){" "}
-              <span className="text-red-500">*</span>
+              <span className="text-destructive">*</span>
             </FieldLabel>
             <FieldDescription>
               Chọn ảnh đại diện trước, rồi chọn các ảnh còn lại sau. Ảnh sẽ được
@@ -97,7 +97,7 @@ const ImageUploadFields = <T extends FieldValues>({
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
                 {selectedImages.map((image, index) => (
                   <div key={image.id} className="group relative">
-                    <div className="aspect-square overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
+                    <div className="border-border bg-muted/30 aspect-square overflow-hidden rounded-lg border-2">
                       <img
                         src={image.previewUrl}
                         alt={`Product image ${index + 1}`}
@@ -112,7 +112,7 @@ const ImageUploadFields = <T extends FieldValues>({
                     <Button
                       variant="destructive"
                       onClick={() => onImageRemove(image.id, field.onChange)}
-                      className="absolute top-2 right-2 cursor-pointer rounded-full opacity-0 transition-all duration-200 group-hover:opacity-100"
+                      className="absolute top-2 right-2 rounded-full opacity-0 transition-all duration-200 group-hover:opacity-100"
                     >
                       <Trash2 className="size-4" />
                     </Button>

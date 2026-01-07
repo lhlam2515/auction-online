@@ -199,7 +199,7 @@ export default function ManageAllProductsPage() {
               <span className="ml-2">Đang tải danh mục...</span>
             </div>
           ) : errorCategories ? (
-            <p className="text-center text-red-600">{errorCategories}</p>
+            <p className="text-destructive text-center">{errorCategories}</p>
           ) : (
             <AdminProductSearchBar
               searchQuery={q}
@@ -215,7 +215,7 @@ export default function ManageAllProductsPage() {
 
           {/* Products Table */}
           {errorProducts ? (
-            <p className="text-center text-red-600">{errorProducts}</p>
+            <p className="text-destructive text-center">{errorProducts}</p>
           ) : (
             <AdminProductTable
               products={products}

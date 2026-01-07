@@ -14,7 +14,9 @@ const ProductTakedownTable = (props: ProductTakedownTableProps) => {
   return (
     <div className={props.className}>
       {/* Implement logic for ProductTakedownTable here */}
-      <p className="text-gray-500 italic">Component: ProductTakedownTable</p>
+      <p className="text-muted-foreground italic">
+        Component: ProductTakedownTable
+      </p>
     </div>
   );
 };

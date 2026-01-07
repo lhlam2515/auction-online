@@ -4,10 +4,11 @@ import type {
   ProductSortOption,
   SearchProductsParams,
 } from "@repo/shared-types";
+import { Search, XCircle } from "lucide-react";
 import React from "react";
 import { useSearchParams } from "react-router";
 
-import { PaginationBar } from "@/components/common";
+import { AppEmptyState, PaginationBar } from "@/components/common";
 import { ProductGrid } from "@/components/features/product/display";
 import {
   ProductCategoryFilter,
@@ -15,6 +16,7 @@ import {
   ProductPriceFilter,
   ProductSortControl,
 } from "@/components/features/product/filters";
+import { Button } from "@/components/ui/button";
 import { DELAYS } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 import { debounce } from "@/lib/utils";
@@ -206,7 +208,9 @@ export default function SearchBrowsePage() {
           {/* Category Tree */}
           {loadingCategories && <ProductCategoryFilterSkeleton />}
           {errorCategories && (
-            <p className="my-8 text-center text-red-600">{errorCategories}</p>
+            <p className="text-destructive my-8 text-center">
+              {errorCategories}
+            </p>
           )}
           {!loadingCategories && !errorCategories && (
             <ProductCategoryFilter
@@ -254,10 +258,28 @@ export default function SearchBrowsePage() {
             <ProductGrid products={products} loading={true} />
           )}
           {errorProducts && (
-            <p className="my-8 text-center text-red-600">{errorProducts}</p>
+            <p className="text-destructive my-8 text-center">{errorProducts}</p>
           )}
           {!loadingProducts && !errorProducts && products.length === 0 && (
-            <p className="text-center">Không có sản phẩm hợp với yêu cầu.</p>
+            <AppEmptyState
+              icon={<Search />}
+              title="Không tìm thấy sản phẩm"
+              description="Rất tiếc, chúng tôi không tìm thấy sản phẩm nào khớp với tìm kiếm của bạn."
+              action={
+                (categoryId ||
+                  query ||
+                  priceRange[0] !== DEFAULT_MIN_PRICE ||
+                  priceRange[1] !== DEFAULT_MAX_PRICE) && (
+                  <Button
+                    variant="default"
+                    onClick={() => onCategoryChange("")}
+                  >
+                    <XCircle className="mr-1 h-4 w-4" />
+                    Xóa tất cả bộ lọc
+                  </Button>
+                )
+              }
+            />
           )}
           {!loadingProducts && !errorProducts && products.length > 0 && (
             <ProductGrid products={products} loading={false} />

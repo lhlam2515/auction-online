@@ -29,7 +29,7 @@ const RatingCard = ({ rating }: RatingCardProps) => {
     <Card
       className={cn(
         "border-l-4",
-        isPositive ? "border-l-green-600" : "border-l-red-600"
+        isPositive ? "border-l-emerald-600" : "border-l-destructive"
       )}
     >
       <CardContent className="px-4 py-2.5">
@@ -43,8 +43,8 @@ const RatingCard = ({ rating }: RatingCardProps) => {
                   className="h-10 w-10 rounded-full object-cover transition-opacity hover:opacity-80"
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200">
-                  <UserIcon className="h-6 w-6 text-gray-400" />
+                <div className="bg-muted hover:bg-muted/80 flex h-10 w-10 items-center justify-center rounded-full transition-colors">
+                  <UserIcon className="text-muted-foreground h-6 w-6" />
                 </div>
               )}
             </Link>
@@ -64,9 +64,7 @@ const RatingCard = ({ rating }: RatingCardProps) => {
                   variant={isPositive ? "default" : "destructive"}
                   className={cn(
                     "flex items-center gap-1 px-2 py-0.5 text-[10px]",
-                    isPositive
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-red-600 hover:bg-red-700"
+                    isPositive && "bg-emerald-600 hover:bg-emerald-700"
                   )}
                 >
                   {isPositive ? (
@@ -79,7 +77,7 @@ const RatingCard = ({ rating }: RatingCardProps) => {
               </div>
               <span className="text-muted-foreground text-xs">{date}</span>
             </div>
-            <p className="mt-1 text-sm text-gray-700">
+            <p className="mt-1 text-sm font-medium">
               {r.comment || "Không có nhận xét"}
             </p>
           </div>

@@ -34,12 +34,12 @@ const PaymentInfoDisplay = ({ payment }: { payment: OrderPayment }) => {
           <span className="text-muted-foreground text-sm">Trạng thái</span>
           <Badge
             variant="outline"
-            className={cn("px-2 py-1 text-xs font-semibold", {
-              "border-amber-300 bg-amber-50 text-amber-600":
+            className={cn("px-2 py-0.5 text-xs font-semibold", {
+              "border-amber-500/20 bg-amber-500/10 text-amber-600":
                 payment.status === "PENDING",
-              "border-emerald-300 bg-emerald-50 text-emerald-600":
+              "border-emerald-500/20 bg-emerald-500/10 text-emerald-600":
                 payment.status === "SUCCESS",
-              "border-red-300 bg-red-50 text-red-600":
+              "bg-destructive/10 border-destructive/20 text-destructive":
                 payment.status === "FAILED",
             })}
           >

@@ -52,8 +52,8 @@ const CreateUserDialog = ({ trigger, onSuccess }: CreateUserDialogProps) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2">
-            <UserPlus className="h-4 w-4" />
+          <Button>
+            <UserPlus className="mr-1 h-4 w-4" />
             Tạo tài khoản mới
           </Button>
         )}

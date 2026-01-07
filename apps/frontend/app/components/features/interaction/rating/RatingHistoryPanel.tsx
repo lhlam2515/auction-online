@@ -1,8 +1,8 @@
 import type { RatingWithUsers } from "@repo/shared-types";
-import { Package } from "lucide-react";
+import { Star, XCircle } from "lucide-react";
 
-import { PaginationBar } from "@/components/common";
-import { Card } from "@/components/ui/card";
+import { AppEmptyState, PaginationBar } from "@/components/common";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -33,7 +33,7 @@ export default function RatingHistoryPanel({
   onFilterChange,
 }: RatingHistoryPanelProps) {
   return (
-    <Card className="h-full border-none bg-transparent shadow-none">
+    <div className="flex flex-col gap-6">
       <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-bold">
           Lịch sử đánh giá ({total || ratings.length})
@@ -59,12 +59,27 @@ export default function RatingHistoryPanel({
             <RatingCard key={rating.id} rating={rating} />
           ))
         ) : (
-          <div className="text-muted-foreground rounded-lg border border-dashed bg-white py-10 text-center">
-            <Package className="mx-auto mb-2 h-10 w-10 opacity-50" />
-            {filter === "all"
-              ? "Chưa có đánh giá nào"
-              : `Chưa có đánh giá ${filter === "positive" ? "tích cực" : "tiêu cực"} nào`}
-          </div>
+          <AppEmptyState
+            icon={<Star />}
+            title={
+              filter === "all"
+                ? "Chưa có đánh giá nào"
+                : "Không tìm thấy đánh giá"
+            }
+            description={
+              filter === "all"
+                ? "Người dùng này chưa nhận được bất kỳ đánh giá nào."
+                : `Không có đánh giá ${filter === "positive" ? "tích cực" : "tiêu cực"} nào phù hợp.`
+            }
+            action={
+              filter !== "all" && (
+                <Button onClick={() => onFilterChange("all")}>
+                  <XCircle className="mr-1 h-4 w-4" />
+                  Xóa bộ lọc
+                </Button>
+              )
+            }
+          />
         )}
       </div>
 
@@ -77,6 +92,6 @@ export default function RatingHistoryPanel({
           />
         </div>
       )}
-    </Card>
+    </div>
   );
 }

@@ -29,7 +29,10 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          className="hover:bg-primary/10 hover:text-primary flex items-center gap-2 transition-all duration-300"
+        >
           <UserAvatar
             name={user.fullName}
             imageUrl={user.avatarUrl}
@@ -59,7 +62,7 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
             <RoleGuard key={item.url} roles={item.roles}>
               <DropdownMenuItem asChild>
                 <Link to={item.url}>
-                  <Icon className="size-4" />
+                  <Icon className="mr-1 size-4" />
                   <span>{item.title}</span>
                 </Link>
               </DropdownMenuItem>
@@ -69,7 +72,7 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
 
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout} variant="destructive">
-          <LogOut className="size-4" />
+          <LogOut className="mr-1 size-4" />
           Đăng xuất
         </DropdownMenuItem>
       </DropdownMenuContent>

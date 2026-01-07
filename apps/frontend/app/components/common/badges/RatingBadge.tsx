@@ -14,14 +14,16 @@ const RatingBadge = ({ score, count, className }: RatingBadgeProps) => {
 
   return (
     <Badge
-      variant="secondary"
+      variant="outline"
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border border-yellow-100 bg-yellow-50 px-2 py-1",
+        "inline-flex items-center gap-2 rounded-full border-amber-500/20 bg-amber-500/10 px-2 py-1",
         className
       )}
     >
-      <Star className="fill-yellow-400 text-yellow-400" />
-      <span className="text-accent text-sm font-semibold">{percentage}%</span>
+      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+      <span className="text-sm font-semibold text-amber-600">
+        {percentage}%
+      </span>
       {count !== undefined && (
         <span className="text-muted-foreground text-sm">
           ({count} đánh giá)

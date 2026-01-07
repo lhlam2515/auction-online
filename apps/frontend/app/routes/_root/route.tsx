@@ -46,13 +46,13 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center bg-slate-50">
+    <div className="bg-muted flex min-h-screen w-full flex-col items-center">
       <section className="w-full bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 py-16 text-white">
         <div className="container mx-auto px-4 text-center">
           <h1 className="mb-4 text-4xl font-bold md:text-5xl">
             Chào mừng đến với Online Auction
           </h1>
-          <p className="mb-6 text-lg text-slate-300 md:text-xl">
+          <p className="text-muted-foreground mb-6 text-lg md:text-xl">
             Khám phá những sản phẩm hot nhất đang được săn đón
           </p>
           <Button size="lg" asChild>
@@ -61,11 +61,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {error && <p className="my-8 text-center text-red-600">{error}</p>}
+      {error && <p className="text-destructive my-8 text-center">{error}</p>}
       {(loading || topListing) && (
         <section className="container">
           <div className="py-12">
-            <h2 className="mb-1 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+            <h2 className="text-foreground mb-1 text-center text-2xl font-bold md:text-3xl">
               Sắp Kết Thúc
             </h2>
             <p className="text-muted-foreground text-center">
@@ -78,7 +78,7 @@ export default function HomePage() {
             />
           </div>
           <div className="py-12">
-            <h2 className="mb-1 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+            <h2 className="text-foreground mb-1 text-center text-2xl font-bold md:text-3xl">
               Đấu Giá Sôi Động
             </h2>
             <p className="text-muted-foreground text-center">
@@ -91,7 +91,7 @@ export default function HomePage() {
             />
           </div>
           <div className="py-12">
-            <h2 className="mb-1 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+            <h2 className="text-foreground mb-1 text-center text-2xl font-bold md:text-3xl">
               Giá Cao Nhất
             </h2>
             <p className="text-muted-foreground text-center">

@@ -28,27 +28,27 @@ const variantConfig: Record<
 > = {
   info: {
     icon: Info,
-    containerClass: "border-blue-300 bg-blue-50 text-blue-600",
+    containerClass: "border-blue-500/20 bg-blue-500/10 text-blue-600",
     iconClass: "text-blue-600",
     descriptionClass: "text-blue-600",
   },
   success: {
     icon: CheckCircle2,
-    containerClass: "border-emerald-300 bg-emerald-50 text-emerald-600",
+    containerClass: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600",
     iconClass: "text-emerald-600",
     descriptionClass: "text-emerald-600",
   },
   warning: {
     icon: AlertTriangle,
-    containerClass: "border-amber-300 bg-amber-50 text-amber-600",
+    containerClass: "border-amber-500/20 bg-amber-500/10 text-amber-600",
     iconClass: "text-amber-600",
     descriptionClass: "text-amber-600",
   },
   destructive: {
     icon: XCircle,
-    containerClass: "border-red-300 bg-red-50 text-red-600",
-    iconClass: "text-red-600",
-    descriptionClass: "text-red-600",
+    containerClass: "border-destructive/20 bg-destructive/10 text-destructive",
+    iconClass: "text-destructive",
+    descriptionClass: "text-destructive",
   },
 };
 

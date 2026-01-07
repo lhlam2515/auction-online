@@ -51,7 +51,7 @@ const ManageUserDialog = ({
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline">
-            <UserCog className="h-4 w-4" />
+            <UserCog className="mr-1 h-4 w-4" />
             Quản lý người dùng
           </Button>
         )}
@@ -78,11 +78,11 @@ const ManageUserDialog = ({
           </div>
         ) : error ? (
           <div className="flex min-h-[300px] items-center justify-center">
-            <p className="text-center text-red-600">{error}</p>
+            <p className="text-destructive text-center">{error}</p>
           </div>
         ) : user ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-4 rounded-md bg-gray-50 p-4">
+            <div className="bg-muted flex items-center gap-4 rounded-md p-4">
               <UserAvatar
                 name={user.fullName}
                 imageUrl={user.avatarUrl}

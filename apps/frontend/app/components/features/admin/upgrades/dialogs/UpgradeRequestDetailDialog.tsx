@@ -40,27 +40,27 @@ export function UpgradeRequestDetailDialog({
         return {
           label: "Đã duyệt",
           className:
-            "bg-green-100 text-green-700 hover:bg-green-100 border-green-200",
+            "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/15 border-emerald-500/20",
           icon: <CheckCircle2 className="mr-1 h-3.5 w-3.5" />,
         };
       case "REJECTED":
         return {
           label: "Đã từ chối",
-          className: "bg-red-100 text-red-700 hover:bg-red-100 border-red-200",
+          className:
+            "bg-destructive/10 text-destructive hover:bg-destructive/15 border-destructive/20",
           icon: <XCircle className="mr-1 h-3.5 w-3.5" />,
         };
       case "PENDING":
         return {
           label: "Chờ duyệt",
           className:
-            "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200",
+            "bg-amber-500/10 text-amber-600 hover:bg-amber-500/15 border-amber-500/20",
           icon: <Clock className="mr-1 h-3.5 w-3.5" />,
         };
       default:
         return {
           label: status,
-          className:
-            "bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200",
+          className: "bg-muted text-muted-foreground border-border",
           icon: <AlertCircle className="mr-1 h-3.5 w-3.5" />,
         };
     }
@@ -73,12 +73,10 @@ export function UpgradeRequestDetailDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <Shield className="text-primary h-6 w-6" />
-            <DialogTitle className="text-xl">
-              Chi tiết yêu cầu nâng cấp
-            </DialogTitle>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Chi tiết yêu cầu nâng cấp
+          </DialogTitle>
           <DialogDescription>
             Xem xét thông tin chi tiết và lý do nâng cấp tài khoản lên Seller.
           </DialogDescription>
@@ -149,7 +147,7 @@ export function UpgradeRequestDetailDialog({
             <div className="bg-card text-card-foreground rounded-md border shadow-sm">
               <ScrollArea className="h-[120px] w-full rounded-md p-4">
                 <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap italic">
-                  "{request.reason || "Không có lý do cụ thể."}"
+                  {request.reason || "Không có lý do cụ thể."}
                 </p>
               </ScrollArea>
             </div>
@@ -160,14 +158,14 @@ export function UpgradeRequestDetailDialog({
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 {request.status === "APPROVED" ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 ) : (
                   <AlertCircle className="text-destructive h-4 w-4" />
                 )}
                 <h4
                   className={`text-sm font-semibold ${
                     request.status === "APPROVED"
-                      ? "text-green-700"
+                      ? "text-emerald-700"
                       : "text-destructive"
                   }`}
                 >

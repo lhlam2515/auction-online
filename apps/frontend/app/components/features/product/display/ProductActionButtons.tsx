@@ -66,7 +66,7 @@ const ProductActionButtons = ({
                   : ACCOUNT_ROUTES.ORDER(product.orderId)
               }
             >
-              <ShoppingCart className="size-6" />
+              <ShoppingCart className="mr-1 size-5" />
               Xem đơn hàng
             </Link>
           </Button>
@@ -83,7 +83,7 @@ const ProductActionButtons = ({
             asChild
           >
             <Link to={SELLER_ROUTES.PRODUCT(product.id)}>
-              <Edit className="size-6" />
+              <Edit className="mr-1 size-5" />
               Cập nhật mô tả
             </Link>
           </Button>
@@ -107,7 +107,7 @@ const ProductActionButtons = ({
           <Button
             size="lg"
             variant="secondary"
-            className="group h-14 w-14 cursor-pointer"
+            className="group h-14 w-14"
             onClick={handleToggleWatchlist}
             disabled={watchlistLoading}
           >

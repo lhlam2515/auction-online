@@ -109,7 +109,7 @@ const UpdateUserRoleForm = ({
             className="flex w-full flex-col gap-2"
           >
             <FieldLabel htmlFor={field.name} className="text-sm font-semibold">
-              Thay đổi vai trò <span className="text-red-500">*</span>
+              Thay đổi vai trò <span className="text-destructive">*</span>
             </FieldLabel>
             <Select
               value={field.value}
@@ -202,7 +202,6 @@ const UpdateUserRoleForm = ({
             user.role,
             watchedRole
           )}
-          variant="warning"
           confirmLabel="Xác nhận thay đổi"
           cancelLabel="Hủy"
           onConfirm={handleConfirmSubmit}

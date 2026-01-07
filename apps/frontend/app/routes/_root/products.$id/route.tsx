@@ -176,7 +176,10 @@ export default function ProductDetailPage() {
       {!loading && product && (
         <div className="container mx-auto space-y-10 px-4 py-6">
           {/* Top Section */}
-          <section className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+          <section
+            id="bidding-section"
+            className="grid grid-cols-1 gap-8 lg:grid-cols-5"
+          >
             <ProductImageGallery productId={id!} className="lg:col-span-2" />
 
             <div className="space-y-6 lg:col-span-3">

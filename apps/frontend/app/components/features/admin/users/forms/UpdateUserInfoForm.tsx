@@ -108,7 +108,7 @@ const UpdateUserInfoForm = ({
                 htmlFor={field.name}
                 className="text-sm font-semibold"
               >
-                Họ và tên <span className="text-red-500">*</span>
+                Họ và tên <span className="text-destructive">*</span>
               </FieldLabel>
               <Input
                 {...field}
@@ -187,9 +187,8 @@ const UpdateUserInfoForm = ({
             <Button
               type="button"
               disabled={!form.formState.isValid || isConfirming}
-              className="cursor-pointer"
             >
-              <Save className="h-4 w-4" />
+              <Save className="mr-1 h-4 w-4" />
               Lưu thay đổi
             </Button>
           }
@@ -197,21 +196,19 @@ const UpdateUserInfoForm = ({
           description={
             <div className="space-y-2">
               <p>Bạn có chắc chắn muốn cập nhật thông tin người dùng này?</p>
-              <div className="mt-2 space-y-1 rounded-md bg-gray-50 p-3 text-sm">
-                <p>
-                  <strong>Họ tên:</strong> {form.watch("fullName")}
-                </p>
-                <p>
-                  <strong>Địa chỉ:</strong> {form.watch("address") || "(Trống)"}
-                </p>
-                <p>
-                  <strong>Ngày sinh:</strong>{" "}
-                  {form.watch("birthDate") || "(Trống)"}
-                </p>
-              </div>
+              <ul className="bg-muted space-y-2 rounded-md p-3 text-sm">
+                <li>
+                  <b>Họ tên:</b> {form.watch("fullName")}
+                </li>
+                <li>
+                  <b>Địa chỉ:</b> {form.watch("address") || "(Trống)"}
+                </li>
+                <li>
+                  <b>Ngày sinh:</b> {form.watch("birthDate") || "(Trống)"}
+                </li>
+              </ul>
             </div>
           }
-          variant="default"
           confirmLabel="Xác nhận"
           confirmIcon={Save}
           onConfirm={handleConfirmSubmit}

@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 
 interface RejectRequestDialogProps {
@@ -51,16 +52,16 @@ export function RejectRequestDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="text-destructive h-6 w-6" />
-            <DialogTitle>Từ chối yêu cầu nâng cấp</DialogTitle>
-          </div>
+          <DialogTitle className="text-destructive flex items-center gap-2">
+            <ShieldAlert className="h-5 w-5" />
+            Từ chối yêu cầu nâng cấp
+          </DialogTitle>
           <DialogDescription>
             Vui lòng nhập lý do từ chối yêu cầu của{" "}
-            <span className="font-semibold">{request.userName}</span>. Người
-            dùng sẽ nhận được thông báo về lý do từ chối.
+            <span className="font-bold">{request.userName}</span>. Người dùng sẽ
+            nhận được thông báo về lý do từ chối.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -87,6 +88,7 @@ export function RejectRequestDialog({
             onClick={handleConfirm}
             disabled={isProcessing}
           >
+            {isProcessing && <Spinner className="mr-1 h-4 w-4" />}
             {isProcessing ? "Đang xử lý..." : "Từ chối"}
           </Button>
         </DialogFooter>

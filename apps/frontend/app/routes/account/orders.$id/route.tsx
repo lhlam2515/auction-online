@@ -161,7 +161,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-slate-600">Không tìm thấy đơn hàng</p>
+        <p className="text-muted-foreground">Không tìm thấy đơn hàng</p>
       </div>
     );
   }

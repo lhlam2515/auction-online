@@ -61,7 +61,7 @@ const Navbar = () => {
                 <RoleGuard roles={["BIDDER", "SELLER"]}>
                   <Button asChild variant="ghost">
                     <Link to={ACCOUNT_ROUTES.WATCHLIST}>
-                      <Heart className="h-6 w-6" />
+                      <Heart className="mr-1 h-6 w-6" />
                       Danh sách theo dõi
                     </Link>
                   </Button>

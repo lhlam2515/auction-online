@@ -1,5 +1,5 @@
 import type { OrderWithDetails } from "@repo/shared-types";
-import { Eye, Star } from "lucide-react";
+import { Eye, Star, LayoutDashboard } from "lucide-react";
 import { Link } from "react-router";
 
 import {
@@ -21,7 +21,7 @@ const SellerOrderTable = ({ orders, className }: SellerOrderTableProps) => {
       render: (order: OrderWithDetails) => (
         <Button variant="default" size="sm" asChild>
           <Link to={SELLER_ROUTES.ORDER(order.id)}>
-            <Eye className="h-4 w-4" />
+            <Eye className="mr-1 h-4 w-4" />
             Theo dõi
           </Link>
         </Button>
@@ -33,7 +33,7 @@ const SellerOrderTable = ({ orders, className }: SellerOrderTableProps) => {
       render: (order: OrderWithDetails) => (
         <Button variant="default" size="sm" asChild>
           <Link to={SELLER_ROUTES.ORDER(order.id)}>
-            <Star className="h-4 w-4" />
+            <Star className="mr-1 h-4 w-4" />
             Đánh giá
           </Link>
         </Button>
@@ -47,6 +47,14 @@ const SellerOrderTable = ({ orders, className }: SellerOrderTableProps) => {
       orders={orders}
       actions={actions}
       emptyMessage="Chưa có đơn hàng nào được tạo."
+      emptyAction={
+        <Button asChild variant="default">
+          <Link to={SELLER_ROUTES.DASHBOARD}>
+            <LayoutDashboard className="mr-1 h-4 w-4" />
+            Về Dashboard
+          </Link>
+        </Button>
+      }
       className={className}
     />
   );

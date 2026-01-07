@@ -55,7 +55,7 @@ const CategoryNode = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 cursor-pointer p-0"
+          className="h-6 w-6 p-0"
           onClick={() => setIsExpanded(!isExpanded)}
           disabled={!hasChildren}
         >
@@ -87,22 +87,16 @@ const CategoryNode = ({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 cursor-pointer p-0"
-            >
+            <Button variant="ghost" size="icon-sm">
               <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Mở menu danh mục</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <EditCategoryDialog
               trigger={
-                <DropdownMenuItem
-                  onSelect={(e) => e.preventDefault()}
-                  className="cursor-pointer"
-                >
-                  <Edit className="h-4 w-4" />
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Edit className="mr-1 h-4 w-4" />
                   Chỉnh sửa
                 </DropdownMenuItem>
               }
@@ -115,10 +109,9 @@ const CategoryNode = ({
                 trigger={
                   <DropdownMenuItem
                     onSelect={(e) => e.preventDefault()}
-                    className="cursor-pointer"
                     variant="destructive"
                   >
-                    <Trash className="h-4 w-4" />
+                    <Trash className="mr-1 h-4 w-4" />
                     Xóa
                   </DropdownMenuItem>
                 }

@@ -2,6 +2,7 @@ import type { ProductListing, ProductDetails } from "@repo/shared-types";
 import { Package, Gavel, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { AppEmptyState } from "@/components/common";
 import { ProductStatusBadge } from "@/components/common/badges";
 import {
   Table,
@@ -43,6 +44,7 @@ type ProductTableProps<T extends ProductTableData = ProductTableData> = {
   actions?: ProductTableAction<T>[];
   emptyMessage?: string;
   emptyIcon?: ReactNode;
+  emptyAction?: ReactNode;
   displayMode?: "active" | "ended" | "all";
   className?: string;
   onRowClick?: (product: T) => void;
@@ -113,6 +115,7 @@ const ProductTable = <T extends ProductTableData = ProductTableData>({
   actions,
   emptyMessage = "Danh sách sản phẩm sẽ hiển thị ở đây",
   emptyIcon,
+  emptyAction,
   displayMode = "all",
   className,
   onRowClick,
@@ -171,19 +174,12 @@ const ProductTable = <T extends ProductTableData = ProductTableData>({
 
   if (!products || products.length === 0) {
     return (
-      <div
-        className={cn(
-          "bg-muted/60 flex min-h-[200px] items-center justify-center rounded-lg border border-dashed",
-          className
-        )}
-      >
-        <div className="text-center">
-          {emptyIcon || (
-            <Package className="text-muted-foreground mx-auto h-10 w-10 opacity-50" />
-          )}
-          <p className="text-muted-foreground mt-2">{emptyMessage}</p>
-        </div>
-      </div>
+      <AppEmptyState
+        title={emptyMessage}
+        icon={emptyIcon || <Package />}
+        action={emptyAction}
+        className={className}
+      />
     );
   }
 

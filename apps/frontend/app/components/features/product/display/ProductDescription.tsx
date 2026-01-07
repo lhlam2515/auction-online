@@ -96,17 +96,17 @@ const ProductDescription = ({
         {updatedDesc.length > 0 && (
           <Button
             variant="outline"
-            className="w-full cursor-pointer"
+            className="w-full"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (
               <>
-                <ChevronUp className="h-4 w-4" />
+                <ChevronUp className="mr-1 h-4 w-4" />
                 Thu gọn
               </>
             ) : (
               <>
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="mr-1 h-4 w-4" />
                 Xem thêm
               </>
             )}

@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import {
   createCategorySchema,
   type CreateCategoryFormData,
@@ -91,7 +92,7 @@ const AddCategoryDialog = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
@@ -113,7 +114,7 @@ const AddCategoryDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Tên danh mục <span className="text-red-500">*</span>
+                    Tên danh mục <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Nhập tên danh mục..." />
@@ -157,15 +158,14 @@ const AddCategoryDialog = ({
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={isSubmitting}
-                className="cursor-pointer"
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting || !form.formState.isValid}
-                className="cursor-pointer"
               >
+                {isSubmitting && <Spinner className="mr-1 h-4 w-4" />}
                 {isSubmitting ? "Đang thêm..." : "Thêm danh mục"}
               </Button>
             </DialogFooter>

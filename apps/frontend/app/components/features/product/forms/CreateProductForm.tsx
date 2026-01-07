@@ -78,8 +78,8 @@ const CreateProductForm = <T extends FieldValues>(
         noValidate
       >
         {errors.root && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-            <p className="text-red-800">{errors.root.message}</p>
+          <div className="border-destructive/30 bg-destructive/10 rounded-lg border p-4">
+            <p className="text-destructive">{errors.root.message}</p>
           </div>
         )}
 

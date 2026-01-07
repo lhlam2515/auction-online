@@ -12,19 +12,11 @@ import {
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
-import { PaginationBar } from "@/components/common";
+import { PaginationBar, AppEmptyState } from "@/components/common";
 import { OrderStatusBadge } from "@/components/common/badges";
 import { ProductCell } from "@/components/features/product/display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -133,19 +125,15 @@ const MyBidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
 
     return (
       <TabsContent value={config.tabValue} className="space-y-4">
-        <Empty className="from-muted/60 to-background h-full border bg-linear-to-b from-30%">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <EmptyIcon />
-            </EmptyMedia>
-            <EmptyTitle>{config.emptyTitle}</EmptyTitle>
-            <EmptyDescription>{config.emptyDescription}</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
+        <AppEmptyState
+          title={config.emptyTitle}
+          description={config.emptyDescription}
+          icon={<EmptyIcon />}
+          action={
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button asChild variant="default">
+              <Button asChild>
                 <Link to={APP_ROUTES.SEARCH}>
-                  <Search className="h-4 w-4" />
+                  <Search className="mr-1 h-4 w-4" />
                   Khám phá sản phẩm
                 </Link>
               </Button>
@@ -153,8 +141,8 @@ const MyBidsTable = ({ variant, bids, orders = [] }: BidsTableProps) => {
                 <Link to={APP_ROUTES.HOME}>Về trang chủ</Link>
               </Button>
             </div>
-          </EmptyContent>
-        </Empty>
+          }
+        />
       </TabsContent>
     );
   }
@@ -262,24 +250,24 @@ const WonBidRow = ({
             size="sm"
             className={cn(
               order.status === "PENDING" &&
-                "bg-emerald-500 text-emerald-50 hover:bg-emerald-700 hover:text-emerald-50"
+                "bg-emerald-600 text-white shadow-sm transition-all hover:bg-emerald-700"
             )}
             asChild
           >
             <Link to={ACCOUNT_ROUTES.ORDER(order.id)}>
               {order.status === "PENDING" ? (
                 <>
-                  <CreditCard className="h-4 w-4" />
+                  <CreditCard className="mr-1 h-4 w-4" />
                   <span>Thanh toán</span>
                 </>
               ) : order.status === "COMPLETED" ? (
                 <>
-                  <Star className="h-4 w-4" />
+                  <Star className="mr-1 h-4 w-4" />
                   <span>Đánh giá</span>
                 </>
               ) : (
                 <>
-                  <Eye className="h-4 w-4" />
+                  <Eye className="mr-1 h-4 w-4" />
                   <span>Theo dõi</span>
                 </>
               )}
@@ -312,7 +300,7 @@ const LostBidRow = ({ bid }: { bid: MyAutoBid }) => {
       <TableCell>
         <Badge
           variant="outline"
-          className="border-red-300 bg-red-50 text-red-600"
+          className="bg-destructive/10 border-destructive/20 text-destructive"
         >
           <XCircle className="mr-1 h-3 w-3" />
           Đã thua

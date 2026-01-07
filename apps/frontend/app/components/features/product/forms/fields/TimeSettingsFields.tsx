@@ -45,7 +45,7 @@ const TimeSettingsFields = <T extends FieldValues>({
                 htmlFor={field.name}
                 className="text-base font-semibold"
               >
-                Thời gian kết thúc <span className="text-red-500">*</span>
+                Thời gian kết thúc <span className="text-destructive">*</span>
               </FieldLabel>
               <Popover>
                 <PopoverTrigger asChild>
@@ -53,7 +53,7 @@ const TimeSettingsFields = <T extends FieldValues>({
                     id={field.name}
                     variant="outline"
                     className={cn(
-                      "min-h-12 w-full cursor-pointer justify-start pl-3 text-left font-normal",
+                      "min-h-12 w-full justify-start pl-3 text-left font-normal",
                       !field.value && "text-muted-foreground"
                     )}
                   >
@@ -120,7 +120,7 @@ const TimeSettingsFields = <T extends FieldValues>({
               data-invalid={fieldState.invalid}
               className="flex w-full flex-col gap-2"
             >
-              <div className="flex flex-row items-start space-y-0 space-x-3 rounded-md bg-green-50 p-4">
+              <div className="flex flex-row items-start space-y-0 space-x-3 rounded-md bg-emerald-500/10 p-4">
                 <Checkbox
                   id={field.name}
                   checked={field.value as boolean}

@@ -34,11 +34,11 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
   const percentScore = ratingCount > 0 ? ((ratingScore + 1) / 2) * 100 : 0;
 
   // Logic from OrderSummaryCard for badge color
-  let badgeColor = "border-red-500 bg-red-50 text-red-600";
+  let badgeColor = "bg-destructive/10 text-destructive border-destructive/20";
   if (percentScore >= 80) {
-    badgeColor = "border-green-300 bg-green-50 text-green-600";
+    badgeColor = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
   } else if (percentScore >= 50) {
-    badgeColor = "border-amber-300 bg-amber-50 text-amber-600";
+    badgeColor = "bg-amber-500/10 text-amber-600 border-amber-500/20";
   }
 
   return (
@@ -58,10 +58,8 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
             fallbackClassName="text-3xl"
           />
           <div className="text-center">
-            <h3 className="text-xl font-bold text-gray-900">
-              {profile.fullName}
-            </h3>
-            <p className="text-sm text-gray-500">@{profile.username}</p>
+            <h3 className="text-xl font-bold">{profile.fullName}</h3>
+            <p className="text-muted-foreground text-sm">@{profile.username}</p>
           </div>
           <RoleBadge role={profile.role} className="px-3 py-1" />
         </div>
@@ -94,7 +92,7 @@ const ProfileInfoCard = ({ profile, summary }: ProfileInfoCardProps) => {
             <span className="text-muted-foreground flex items-center gap-2 text-sm">
               <Shield className="h-4 w-4" /> Trạng thái
             </span>
-            <span className="flex items-center gap-1 text-sm font-medium text-green-600">
+            <span className="flex items-center gap-1 text-sm font-medium text-emerald-600">
               Verified
             </span>
           </div>

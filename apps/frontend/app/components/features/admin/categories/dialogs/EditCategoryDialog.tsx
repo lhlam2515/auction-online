@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import {
   updateCategorySchema,
   type UpdateCategoryFormData,
@@ -77,14 +78,15 @@ const EditCategoryDialog = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
             Chỉnh sửa danh mục
           </DialogTitle>
           <DialogDescription>
-            Chỉnh sửa tên danh mục <b>{category.name}</b>
+            Chỉnh sửa tên danh mục{" "}
+            <span className="font-bold">{category.name}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -99,7 +101,7 @@ const EditCategoryDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Tên danh mục <span className="text-red-500">*</span>
+                    Tên danh mục <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Nhập tên danh mục..." />
@@ -115,7 +117,6 @@ const EditCategoryDialog = ({
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={isSubmitting}
-                className="cursor-pointer"
               >
                 Hủy
               </Button>
@@ -126,8 +127,8 @@ const EditCategoryDialog = ({
                   !form.formState.isValid ||
                   form.watch("name") === category.name
                 }
-                className="cursor-pointer"
               >
+                {isSubmitting && <Spinner className="mr-1 h-4 w-4" />}
                 {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
               </Button>
             </DialogFooter>

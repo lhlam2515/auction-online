@@ -67,6 +67,7 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
           categories={categories}
           value={selectedCategoryId}
           onChange={setSelectedCategoryId}
+          className="bg-background text-muted-foreground rounded-r-none"
         />
       </InputGroupAddon>
 

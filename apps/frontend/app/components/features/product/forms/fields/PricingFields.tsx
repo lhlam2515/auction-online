@@ -33,7 +33,7 @@ const PricingFields = <T extends FieldValues>({
                 htmlFor={field.name}
                 className="text-base font-semibold"
               >
-                Giá khởi điểm (VND) <span className="text-red-500">*</span>
+                Giá khởi điểm (VND) <span className="text-destructive">*</span>
               </FieldLabel>
               <Input
                 {...field}
@@ -69,7 +69,7 @@ const PricingFields = <T extends FieldValues>({
                 htmlFor={field.name}
                 className="text-base font-semibold"
               >
-                Bước giá (VND) <span className="text-red-500">*</span>
+                Bước giá (VND) <span className="text-destructive">*</span>
               </FieldLabel>
               <Input
                 {...field}
@@ -143,7 +143,7 @@ const PricingFields = <T extends FieldValues>({
             data-invalid={fieldState.invalid}
             className="flex w-full flex-col gap-2"
           >
-            <div className="flex flex-row items-start space-y-0 space-x-3 rounded-md bg-blue-50 p-4">
+            <div className="bg-primary/5 flex flex-row items-start space-y-0 space-x-3 rounded-md p-4">
               <Checkbox
                 id={field.name}
                 checked={field.value as boolean}

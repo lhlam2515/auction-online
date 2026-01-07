@@ -23,9 +23,9 @@ const OrderStepper = ({ currentStep, steps }: OrderStepperProps) => {
   return (
     <div className="relative mb-6 flex items-center justify-between">
       {/* Progress Line */}
-      <div className="absolute top-5 right-0 left-0 z-0 h-1 bg-slate-200">
+      <div className="bg-muted absolute top-5 right-0 left-0 z-0 h-1">
         <div
-          className="h-full bg-emerald-600 transition-all duration-500"
+          className="h-full bg-emerald-500 transition-all duration-500"
           style={{
             width: `${progressPercentage}%`,
           }}
@@ -46,7 +46,7 @@ const OrderStepper = ({ currentStep, steps }: OrderStepperProps) => {
               className={cn(
                 "mb-2 flex h-10 w-10 items-center justify-center rounded-full transition-colors",
                 isCompleted
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-emerald-500 text-white"
                   : isActive
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground"

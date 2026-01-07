@@ -120,8 +120,8 @@ const BuyerPaymentStep = ({ order, onSuccess }: BuyerPaymentStepProps) => {
         <div className="flex justify-end gap-3 pt-4">
           <ConfirmationDialog
             trigger={
-              <Button variant="default" className="cursor-pointer">
-                <CreditCard className="h-4 w-4" />
+              <Button variant="default">
+                <CreditCard className="mr-1 h-4 w-4" />
                 Xác nhận thanh toán
               </Button>
             }

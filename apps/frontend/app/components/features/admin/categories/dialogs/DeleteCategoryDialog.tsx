@@ -1,3 +1,4 @@
+import { DialogDescription } from "@radix-ui/react-dialog";
 import type { CategoryTree } from "@repo/shared-types";
 import { AlertTriangle, Trash } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -12,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 type DeleteCategoryDialogProps = {
   trigger: ReactNode;
@@ -45,12 +47,13 @@ const DeleteCategoryDialog = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-destructive flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
+            <Trash className="h-5 w-5" />
             Xác nhận xóa danh mục
           </DialogTitle>
-          <p>
-            Bạn có chắc chắn muốn xóa danh mục <b>{category.name}</b>?
-          </p>
+          <DialogDescription>
+            Bạn có chắc chắn muốn xóa danh mục{" "}
+            <span className="font-bold">{category.name}</span>?
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
@@ -84,7 +87,6 @@ const DeleteCategoryDialog = ({
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isDeleting}
-            className="cursor-pointer"
           >
             Hủy
           </Button>
@@ -92,13 +94,15 @@ const DeleteCategoryDialog = ({
             variant="destructive"
             onClick={handleDelete}
             disabled={hasChildren || isDeleting}
-            className="cursor-pointer gap-2"
           >
             {isDeleting ? (
-              "Đang xóa..."
+              <>
+                <Spinner className="mr-1 h-4 w-4" />
+                Đang xóa...
+              </>
             ) : (
               <>
-                <Trash className="h-4 w-4" />
+                <Trash className="mr-1 h-4 w-4" />
                 Xóa danh mục
               </>
             )}

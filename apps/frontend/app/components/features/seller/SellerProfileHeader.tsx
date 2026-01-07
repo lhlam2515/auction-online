@@ -37,7 +37,7 @@ const SellerProfileHeader = ({ user, className }: SellerProfileHeaderProps) => {
       {isTemporary && (
         <Badge
           variant="outline"
-          className="gap-1 border-blue-300 bg-blue-50 text-blue-600"
+          className="bg-primary/10 border-primary/20 text-primary gap-1"
         >
           Người bán tạm thời
         </Badge>
@@ -50,7 +50,7 @@ const SellerProfileHeader = ({ user, className }: SellerProfileHeaderProps) => {
       {shouldShowWarning && !isExpired && (
         <Badge
           variant="outline"
-          className="gap-1 border-amber-300 bg-amber-50 text-amber-600"
+          className="gap-1 border-amber-500/20 bg-amber-500/10 text-amber-600"
         >
           Sắp hết hạn
         </Badge>
@@ -67,14 +67,14 @@ const SellerProfileHeader = ({ user, className }: SellerProfileHeaderProps) => {
 
       <div className="w-full space-y-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="flex items-center gap-2 text-slate-500">
+          <span className="text-muted-foreground flex items-center gap-2">
             <Clock className="h-4 w-4" /> Hiệu lực
           </span>
           <span
             className={cn(
               "font-medium",
               isExpired
-                ? "text-red-600"
+                ? "text-destructive"
                 : shouldShowWarning
                   ? "text-amber-600"
                   : "text-emerald-600"

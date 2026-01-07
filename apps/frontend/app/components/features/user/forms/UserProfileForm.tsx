@@ -161,11 +161,7 @@ const UserProfileForm = <T extends FieldValues>({
         ))}
       </FieldGroup>
 
-      <Button
-        type="submit"
-        className="cursor-pointer"
-        disabled={form.formState.isSubmitting}
-      >
+      <Button type="submit" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting && <Spinner />}
         {form.formState.isSubmitting ? "Đang lưu..." : "Lưu Thay Đổi"}
       </Button>

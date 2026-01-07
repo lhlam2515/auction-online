@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -25,18 +23,19 @@ const UserAvatar = ({
 
   return (
     <Avatar className={cn("relative", className)}>
-      {imageUrl ? (
-        <AvatarImage src={imageUrl} alt={name} className="object-cover" />
-      ) : (
-        <AvatarFallback
-          className={cn(
-            "bg-primary/10 text-primary font-bold tracking-wider",
-            fallbackClassName
-          )}
-        >
-          {initials}
-        </AvatarFallback>
-      )}
+      <AvatarImage
+        src={imageUrl || undefined}
+        alt={name}
+        className="object-cover"
+      />
+      <AvatarFallback
+        className={cn(
+          "bg-primary/10 text-primary font-bold tracking-wider",
+          fallbackClassName
+        )}
+      >
+        {initials}
+      </AvatarFallback>
     </Avatar>
   );
 };

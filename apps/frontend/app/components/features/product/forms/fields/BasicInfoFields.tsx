@@ -61,7 +61,7 @@ const BasicInfoFields = <T extends FieldValues>({
                 htmlFor={field.name}
                 className="text-base font-semibold"
               >
-                Tên sản phẩm <span className="text-red-500">*</span>
+                Tên sản phẩm <span className="text-destructive">*</span>
               </FieldLabel>
               <Input
                 {...field}
@@ -88,7 +88,7 @@ const BasicInfoFields = <T extends FieldValues>({
                 htmlFor={field.name}
                 className="text-base font-semibold"
               >
-                Danh mục <span className="text-red-500">*</span>
+                Danh mục <span className="text-destructive">*</span>
               </FieldLabel>
               <Select
                 {...field}
@@ -121,7 +121,7 @@ const BasicInfoFields = <T extends FieldValues>({
               htmlFor={field.name}
               className="text-base font-semibold"
             >
-              Mô tả sản phẩm <span className="text-red-500">*</span>
+              Mô tả sản phẩm <span className="text-destructive">*</span>
             </FieldLabel>
             <RichTextEditor
               content={field.value as string}

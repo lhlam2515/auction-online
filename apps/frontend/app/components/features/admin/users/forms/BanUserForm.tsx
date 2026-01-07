@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +77,7 @@ const BanUserForm = ({
           render={({ field }) => (
             <Field className="flex w-full flex-col gap-3">
               <FieldLabel className="text-sm font-semibold">
-                Hành động <span className="text-red-500">*</span>
+                Hành động <span className="text-destructive">*</span>
               </FieldLabel>
               <RadioGroup
                 value={field.value ? "ban" : "unban"}
@@ -105,10 +106,12 @@ const BanUserForm = ({
                         : "cursor-pointer"
                     )}
                   >
-                    <Ban className="h-4 w-4 text-red-600" />
+                    <Ban className="text-destructive h-4 w-4" />
                     <span>Cấm người dùng (Ban)</span>
                     {currentStatus === "BANNED" && (
-                      <span className="text-xs text-gray-500">(Đã bị cấm)</span>
+                      <span className="text-muted-foreground text-xs">
+                        (Đã bị cấm)
+                      </span>
                     )}
                   </label>
                 </div>
@@ -133,10 +136,10 @@ const BanUserForm = ({
                         : "cursor-pointer"
                     )}
                   >
-                    <ShieldAlert className="h-4 w-4 text-green-600" />
+                    <ShieldAlert className="h-4 w-4 text-emerald-600" />
                     <span>Gỡ cấm người dùng (Unban)</span>
                     {currentStatus !== "BANNED" && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-muted-foreground text-xs">
                         (Chưa bị cấm)
                       </span>
                     )}
@@ -178,7 +181,7 @@ const BanUserForm = ({
                   htmlFor={field.name}
                   className="text-sm font-semibold"
                 >
-                  Lý do cấm <span className="text-red-500">*</span>
+                  Lý do cấm <span className="text-destructive">*</span>
                 </FieldLabel>
                 <Textarea
                   {...field}
@@ -196,8 +199,8 @@ const BanUserForm = ({
                     className={cn(
                       "font-medium",
                       (field.value?.length || 0) < 10
-                        ? "text-red-500"
-                        : "text-green-600"
+                        ? "text-destructive"
+                        : "text-emerald-600"
                     )}
                   >
                     {field.value?.length || 0}/10
@@ -238,7 +241,7 @@ const BanUserForm = ({
                 />
                 <FieldDescription className="text-muted-foreground text-xs">
                   {duration === 0 || duration === undefined ? (
-                    <span className="font-medium text-red-600">
+                    <span className="text-destructive font-medium">
                       0 ngày = cấm vĩnh viễn
                     </span>
                   ) : (
@@ -271,16 +274,23 @@ const BanUserForm = ({
               type="button"
               disabled={!isFormValid || isSubmitting || isConfirming}
               variant={isBanned ? "destructive" : "default"}
-              className="cursor-pointer"
             >
               {isBanned ? (
                 <>
-                  <Ban className="h-4 w-4" />
+                  {isConfirming ? (
+                    <Spinner className="mr-1 h-4 w-4" />
+                  ) : (
+                    <Ban className="mr-1 h-4 w-4" />
+                  )}
                   {isConfirming ? "Đang xử lý..." : "Xác nhận cấm"}
                 </>
               ) : (
                 <>
-                  <ShieldAlert className="h-4 w-4" />
+                  {isConfirming ? (
+                    <Spinner className="mr-1 h-4 w-4" />
+                  ) : (
+                    <ShieldAlert className="mr-1 h-4 w-4" />
+                  )}
                   {isConfirming ? "Đang xử lý..." : "Xác nhận gỡ cấm"}
                 </>
               )}
@@ -297,19 +307,19 @@ const BanUserForm = ({
                   : "Bạn có chắc chắn muốn GỠ CẤM người dùng này? Họ sẽ có thể đăng nhập trở lại."}
               </p>
               {isBanned && form.watch("reason") && (
-                <div className="rounded-md bg-gray-50 p-3">
-                  <p className="text-sm">
-                    <strong>Lý do:</strong> {form.watch("reason")}
-                  </p>
-                  <p className="text-sm">
-                    <strong>Thời gian:</strong>{" "}
+                <ul className="bg-muted space-y-2 rounded-md p-3 text-sm">
+                  <li>
+                    <b>Lý do:</b> {form.watch("reason")}
+                  </li>
+                  <li>
+                    <b>Thời gian:</b>{" "}
                     {duration ? `${duration} ngày` : "Vĩnh viễn"}
-                  </p>
-                </div>
+                  </li>
+                </ul>
               )}
             </div>
           }
-          variant={isBanned ? "destructive" : "default"}
+          variant={isBanned ? "danger" : "default"}
           confirmLabel={isBanned ? "Xác nhận cấm" : "Xác nhận gỡ cấm"}
           confirmIcon={isBanned ? Ban : ShieldAlert}
           onConfirm={handleConfirmSubmit}

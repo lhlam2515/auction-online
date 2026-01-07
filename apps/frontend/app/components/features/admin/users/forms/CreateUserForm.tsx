@@ -4,6 +4,7 @@ import { FormProvider, type UseFormReturn } from "react-hook-form";
 
 import { AlertSection, ConfirmationDialog } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 import CreateUserFormFields from "./CreateUserFormFields";
 
@@ -79,13 +80,15 @@ const CreateUserForm = ({
               <Button
                 type="button"
                 disabled={isSubmitting || !isFormValid || isConfirming}
-                className="cursor-pointer gap-2"
               >
                 {isConfirming ? (
-                  <>Đang tạo...</>
+                  <>
+                    <Spinner className="mr-1 h-4 w-4" />
+                    Đang tạo...
+                  </>
                 ) : (
                   <>
-                    <UserPlus className="h-4 w-4" />
+                    <UserPlus className="mr-1 h-4 w-4" />
                     Tạo tài khoản
                   </>
                 )}
@@ -97,21 +100,21 @@ const CreateUserForm = ({
                 <p>
                   Bạn có chắc chắn muốn tạo tài khoản mới với thông tin sau?
                 </p>
-                <div className="space-y-2 rounded-md bg-gray-50 p-3 text-sm">
+                <div className="bg-muted space-y-2 rounded-md p-3 text-sm">
                   <p>
-                    <strong>Email:</strong> {defaultValues.email}
+                    <b>Email:</b> {defaultValues.email}
                   </p>
                   <p>
-                    <strong>Tên đăng nhập:</strong> {defaultValues.username}
+                    <b>Tên đăng nhập:</b> {defaultValues.username}
                   </p>
                   <p>
-                    <strong>Họ và tên:</strong> {defaultValues.fullName}
+                    <b>Họ và tên:</b> {defaultValues.fullName}
                   </p>
                   <p>
-                    <strong>Vai trò:</strong> {defaultValues.role}
+                    <b>Vai trò:</b> {defaultValues.role}
                   </p>
                 </div>
-                <p className="text-muted-foreground text-xs italic">
+                <p className="text-muted-foreground italics text-sm">
                   Thông tin đăng nhập sẽ được gửi đến email của người dùng.
                 </p>
               </div>

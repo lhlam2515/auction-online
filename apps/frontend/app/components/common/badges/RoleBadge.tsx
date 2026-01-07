@@ -15,17 +15,17 @@ const roleConfig = {
   BIDDER: {
     label: "Bidder",
     icon: Gavel,
-    className: "border-green-300 bg-green-50 text-green-600",
+    className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600",
   },
   SELLER: {
     label: "Seller",
     icon: ShieldCheck,
-    className: "border-blue-300 bg-blue-50 text-blue-600",
+    className: "border-blue-500/20 bg-blue-500/10 text-blue-600",
   },
   ADMIN: {
     label: "Admin",
     icon: Shield,
-    className: "border-purple-300 bg-purple-50 text-purple-600",
+    className: "border-primary/20 bg-primary/10 text-primary",
   },
 };
 
@@ -38,7 +38,7 @@ const RoleBadge = ({ role, className }: RoleBadgeProps) => {
       <Badge
         variant="outline"
         className={cn(
-          "gap-1 border-gray-300 bg-gray-50 px-2 py-0.5 text-gray-600",
+          "border-muted-foreground/20 bg-muted text-muted-foreground gap-1 px-2 py-0.5",
           className
         )}
       >

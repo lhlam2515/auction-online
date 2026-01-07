@@ -182,7 +182,7 @@ const ForgotPasswordForm = <T extends FieldValues>({
           className="min-h-12 w-full text-xl"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting && <Spinner />}
+          {form.formState.isSubmitting && <Spinner className="mr-2 h-5 w-5" />}
           {form.formState.isSubmitting ? loadingText : buttonText}
         </Button>
       </form>

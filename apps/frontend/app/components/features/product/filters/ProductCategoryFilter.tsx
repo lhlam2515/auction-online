@@ -24,10 +24,11 @@ const ProductCategoryFilter = ({
       </CardHeader>
       <CardContent className="space-y-2">
         <Button
-          variant="ghost"
-          className={cn("h-8 w-full justify-start px-2 font-medium", {
-            "bg-accent text-accent-foreground dark:bg-accent/50": value === "",
-          })}
+          variant="outline"
+          className={cn(
+            "h-8 w-full justify-start border-none px-2 font-medium shadow-none",
+            { "bg-primary text-primary-foreground": value === "" }
+          )}
           onClick={() => handleCategoryChange && handleCategoryChange("")}
         >
           Tất cả sản phẩm
@@ -35,11 +36,11 @@ const ProductCategoryFilter = ({
         {categoryTrees.map((category) => (
           <div key={category.id} className="space-y-1">
             <Button
-              variant="ghost"
-              className={cn("h-8 w-full justify-start px-2 font-medium", {
-                "bg-accent text-accent-foreground dark:bg-accent/50":
-                  value === category.id,
-              })}
+              variant="outline"
+              className={cn(
+                "h-8 w-full justify-start border-none px-2 font-medium shadow-none",
+                { "bg-primary text-primary-foreground": value === category.id }
+              )}
               onClick={() =>
                 handleCategoryChange && handleCategoryChange(category.id)
               }
@@ -53,10 +54,8 @@ const ProductCategoryFilter = ({
                   key={child.id}
                   variant="ghost"
                   className={cn(
-                    "hover:text-muted text-muted-foreground h-8 w-full justify-start px-2 text-sm",
-                    {
-                      "bg-accent dark:bg-accent text-muted": value === child.id,
-                    }
+                    "text-muted-foreground h-8 w-full justify-start px-2 text-sm",
+                    { "bg-primary/10 text-primary": value === child.id }
                   )}
                   onClick={() =>
                     handleCategoryChange && handleCategoryChange(child.id)
@@ -91,8 +90,8 @@ export const ProductCategoryFilterSkeleton = ({
         {Array.from({ length: 3 }, (_, index) => (
           <div key={`skeleton-category-${index}`} className="space-y-1">
             <div className="flex h-8 w-full items-center px-2">
-              <div className="mr-2 h-4 w-4 rounded bg-gray-300" />
-              <div className="h-4 w-24 rounded bg-gray-300" />
+              <div className="bg-muted mr-2 h-4 w-4 rounded" />
+              <div className="bg-muted h-4 w-24 rounded" />
             </div>
           </div>
         ))}

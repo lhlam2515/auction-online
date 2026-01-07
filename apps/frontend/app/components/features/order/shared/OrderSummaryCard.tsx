@@ -37,8 +37,8 @@ const OrderSummaryCard = ({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gray-100">
-                <Package className="h-16 w-16 text-gray-400" />
+              <div className="bg-muted/50 flex h-full w-full items-center justify-center">
+                <Package className="text-muted-foreground h-16 w-16" />
               </div>
             )}
           </div>
@@ -84,12 +84,12 @@ const OrderSummaryCard = ({
                         (isSeller
                           ? order.winner!.ratingScore
                           : order.seller!.ratingScore) >= 0.8
-                          ? "border-green-300 bg-green-50"
+                          ? "border-emerald-500/20 bg-emerald-500/10"
                           : (isSeller
                                 ? order.winner!.ratingScore
                                 : order.seller!.ratingScore) >= 0.5
-                            ? "border-amber-300 bg-amber-50"
-                            : "border-red-500 bg-red-50"
+                            ? "border-amber-500/20 bg-amber-500/10"
+                            : "border-destructive/20 bg-destructive/10"
                       }
                     />
                   </div>
@@ -114,11 +114,11 @@ const OrderSummaryCard = ({
             </div>
           </div>
           <Button
-            className="w-full cursor-pointer"
             size="lg"
+            className="w-full"
             onClick={() => setIsChatOpen(true)}
           >
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle className="mr-1 h-4 w-4" />
             Chat với {isSeller ? "người mua" : "người bán"}
           </Button>
         </CardContent>

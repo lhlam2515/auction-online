@@ -1,9 +1,9 @@
 import type { RatingWithUsers } from "@repo/shared-types";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import { ThumbsUp, ThumbsDown, MessageSquare, Clock } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, Clock, Star } from "lucide-react";
 
-import { UserAvatar } from "@/components/common";
+import { UserAvatar, AppEmptyState } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -57,9 +57,12 @@ const RatingHistoryList = ({
       </CardHeader>
       <CardContent>
         {ratings.length === 0 ? (
-          <div className="text-muted-foreground py-8 text-center text-sm">
-            Chưa có đánh giá nào
-          </div>
+          <AppEmptyState
+            icon={<Star />}
+            title="Chưa có đánh giá nào"
+            description="Lịch sử đánh giá của người dùng này hiện đang trống."
+            className="min-h-[200px]"
+          />
         ) : (
           <div className="space-y-4">
             {ratings.map((rating, index) => (
@@ -108,7 +111,7 @@ function RatingItem({ rating }: { rating: RatingWithUsers }) {
             variant={isPositive ? "default" : "destructive"}
             className={cn(
               "flex items-center gap-1",
-              isPositive && "bg-green-600 text-green-50"
+              isPositive && "bg-emerald-600 px-2 text-white"
             )}
           >
             {isPositive ? (

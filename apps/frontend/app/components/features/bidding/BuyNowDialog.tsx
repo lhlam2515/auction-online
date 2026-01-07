@@ -8,7 +8,6 @@ import { AlertSection } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -70,22 +69,28 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
     }
   };
 
+  const handleClose = () => {
+    if (!isProcessing) {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           size="lg"
           variant="secondary"
-          className="h-14 flex-1 cursor-pointer text-lg font-semibold"
+          className="h-14 flex-1 text-lg font-semibold"
         >
-          <ShoppingCart className="size-6" />
+          <ShoppingCart className="mr-1 size-5" />
           Mua ngay
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
+          <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
             Xác nhận mua ngay
           </DialogTitle>
@@ -103,7 +108,7 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
               <span className="text-muted-foreground text-sm font-medium">
                 Giá mua ngay:
               </span>
-              <p className="text-xl font-bold text-red-600">
+              <p className="text-destructive text-xl font-bold">
                 {formatPrice(Number(product.buyNowPrice))}
               </p>
             </div>
@@ -118,30 +123,27 @@ const BuyNowDialog = ({ product }: BuyNowDialogProps) => {
 
           {/* Action Buttons */}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button
-                variant="outline"
-                disabled={isProcessing}
-                className="cursor-pointer"
-              >
-                Hủy
-              </Button>
-            </DialogClose>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={isProcessing}
+            >
+              Hủy
+            </Button>
 
             <Button
               variant="destructive"
               onClick={handleBuyNow}
               disabled={isProcessing}
-              className="cursor-pointer"
             >
               {isProcessing ? (
                 <>
-                  <Spinner className="h-4 w-4" />
+                  <Spinner className="mr-1 h-4 w-4" />
                   Đang xử lý...
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="h-4 w-4" />
+                  <ShoppingCart className="mr-1 h-4 w-4" />
                   Mua ngay
                 </>
               )}

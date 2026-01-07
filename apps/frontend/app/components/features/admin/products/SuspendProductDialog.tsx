@@ -14,6 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 type SuspendProductDialogProps = {
   product: ProductDetails;
@@ -41,9 +42,9 @@ const SuspendProductDialog = ({
         <Button
           variant="outline"
           size="sm"
-          className="cursor-pointer text-red-600 hover:bg-red-600"
+          className="text-destructive hover:bg-destructive"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="mr-1 h-4 w-4" />
           Gỡ bỏ
         </Button>
       </AlertDialogTrigger>
@@ -69,20 +70,17 @@ const SuspendProductDialog = ({
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSuspending} className="cursor-pointer">
-            Hủy
-          </AlertDialogCancel>
+          <AlertDialogCancel disabled={isSuspending}>Hủy</AlertDialogCancel>
           <Button variant="destructive" asChild>
-            <AlertDialogAction
-              onClick={handleSuspend}
-              disabled={isSuspending}
-              className="cursor-pointer"
-            >
+            <AlertDialogAction onClick={handleSuspend} disabled={isSuspending}>
               {isSuspending ? (
-                "Đang gỡ bỏ..."
+                <>
+                  <Spinner className="mr-1 h-4 w-4" />
+                  Đang gỡ bỏ...
+                </>
               ) : (
                 <>
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Trash2 className="mr-1 h-4 w-4" />
                   Gỡ bỏ sản phẩm
                 </>
               )}

@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Gavel } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
 
+import { AppEmptyState } from "@/components/common";
 import { RatingBadge } from "@/components/common/badges";
 import { KickBidderDialog } from "@/components/features/seller";
 import { Badge } from "@/components/ui/badge";
@@ -110,10 +111,29 @@ const BidHistoryTable = ({
             Đang tải lịch sử đấu giá...
           </div>
         ) : bids.length === 0 ? (
-          <div className="text-muted-foreground py-8 text-center">
-            <Gavel className="mx-auto mb-2 h-12 w-12 opacity-50" />
-            <p>Chưa có lượt đấu giá nào</p>
-          </div>
+          <AppEmptyState
+            title="Chưa có lượt đấu giá nào"
+            description={
+              isSeller
+                ? "Bạn chưa có lượt đấu giá nào"
+                : "Hãy là người đầu tiên đặt giá cho sản phẩm này!"
+            }
+            icon={<Gavel />}
+            action={
+              !isSeller &&
+              product.status === "ACTIVE" && (
+                <Button
+                  onClick={() => {
+                    document
+                      .getElementById("bidding-section")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Đặt giá ngay
+                </Button>
+              )
+            }
+          />
         ) : (
           <div className="rounded-md border">
             <Table>
@@ -136,7 +156,9 @@ const BidHistoryTable = ({
                     <TableRow
                       key={bid.id}
                       className={
-                        index === 0 ? "bg-green-50 dark:bg-green-950" : ""
+                        index === 0
+                          ? "bg-emerald-500/10 dark:bg-emerald-500/20"
+                          : ""
                       }
                     >
                       <TableCell>{formatDate(bidDateTime)}</TableCell>
@@ -153,7 +175,7 @@ const BidHistoryTable = ({
                             bid.userName
                           )}
                           {index === 0 && (
-                            <Badge className="bg-green-600">
+                            <Badge className="bg-emerald-500">
                               Người thắng hiện tại
                             </Badge>
                           )}
@@ -184,17 +206,17 @@ const BidHistoryTable = ({
             {bids.length > 5 && (
               <Button
                 variant="outline"
-                className="w-full cursor-pointer"
+                className="w-full"
                 onClick={() => setShowAll(!showAll)}
               >
                 {showAll ? (
                   <>
-                    <ChevronUp className="h-4 w-4" />
+                    <ChevronUp className="mr-1 h-4 w-4" />
                     Thu gọn
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="mr-1 h-4 w-4" />
                     Xem thêm ({bids.length - 5} lượt đặt giá)
                   </>
                 )}

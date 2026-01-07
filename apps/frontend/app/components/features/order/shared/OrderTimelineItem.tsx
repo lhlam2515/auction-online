@@ -16,21 +16,21 @@ const OrderTimelineItem = ({
   status,
 }: OrderTimelineItemProps) => {
   const iconClasses = {
-    completed: "bg-emerald-600",
-    active: "bg-slate-900 animate-pulse",
-    pending: "bg-slate-200",
+    completed: "bg-emerald-500",
+    active: "bg-primary animate-pulse",
+    pending: "bg-muted",
   };
 
   const textClasses = {
-    completed: "text-slate-900",
-    active: "text-slate-900",
-    pending: "text-slate-400",
+    completed: "text-foreground",
+    active: "text-foreground",
+    pending: "text-muted-foreground",
   };
 
   const lineClasses = {
-    completed: "bg-emerald-600",
-    active: "bg-slate-200",
-    pending: "bg-slate-200",
+    completed: "bg-emerald-500",
+    active: "bg-muted",
+    pending: "bg-muted",
   };
 
   return (
@@ -44,7 +44,7 @@ const OrderTimelineItem = ({
         >
           <Icon
             className={cn("h-4 w-4", {
-              "text-slate-400": status === "pending",
+              "text-muted-foreground": status === "pending",
               "text-white": status !== "pending",
             })}
           />

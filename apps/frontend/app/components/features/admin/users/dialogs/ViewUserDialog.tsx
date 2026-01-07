@@ -58,7 +58,7 @@ const ViewUserDialog = ({ userId, trigger }: ViewUserDialogProps) => {
           </div>
         ) : error ? (
           <div className="flex min-h-[300px] items-center justify-center">
-            <p className="text-center text-red-600">{error}</p>
+            <p className="text-destructive text-center">{error}</p>
           </div>
         ) : user ? (
           <div className="space-y-6">
@@ -142,7 +142,7 @@ const ViewUserDialog = ({ userId, trigger }: ViewUserDialogProps) => {
               </h4>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
                   <span className="text-2xl font-bold">
                     {(user.ratingScore * 100).toFixed(1)}%
                   </span>

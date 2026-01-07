@@ -28,7 +28,7 @@ const ProfileHeader = ({
   return (
     <Card
       className={cn(
-        "overflow-hidden border-none bg-linear-to-r from-slate-50 to-white shadow-sm",
+        "from-muted/50 to-background overflow-hidden border-none bg-linear-to-r shadow-sm",
         className
       )}
     >
@@ -39,19 +39,21 @@ const ProfileHeader = ({
             <UserAvatar
               name={user.fullName}
               imageUrl={user.avatarUrl}
-              className="h-26 w-26 border-2 border-white shadow-sm"
+              className="border-background h-26 w-26 border-2 shadow-sm"
               fallbackClassName="text-3xl"
             />
 
             <div className="mt-1 space-y-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-2xl font-bold tracking-tight text-slate-900">
+                <h3 className="text-foreground text-2xl font-bold tracking-tight">
                   {user.fullName}
                 </h3>
                 {badges}
               </div>
 
-              <p className="font-medium text-slate-500">@{user.username}</p>
+              <p className="text-muted-foreground font-medium">
+                @{user.username}
+              </p>
 
               <RatingBadge score={user.ratingScore} count={user.ratingCount} />
             </div>

@@ -1,9 +1,13 @@
 import type { ProductListing } from "@repo/shared-types";
+import { Heart, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
 
-import { PaginationBar } from "@/components/common";
+import { AppEmptyState, PaginationBar } from "@/components/common";
+import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { APP_ROUTES } from "@/constants/routes";
 
 import ProductCard from "./ProductCard";
 
@@ -43,11 +47,19 @@ const ProductWatchlist = ({ watchlist, loading }: ProductWatchlistProps) => {
           </div>
 
           {watchlist.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-muted-foreground">
-                Chưa có sản phẩm yêu thích nào
-              </p>
-            </div>
+            <AppEmptyState
+              icon={<Heart />}
+              title="Danh sách theo dõi trống"
+              description="Bạn chưa thêm sản phẩm nào vào danh sách theo dõi."
+              action={
+                <Button asChild variant="default">
+                  <Link to={APP_ROUTES.SEARCH}>
+                    <Search className="mr-1 h-4 w-4" />
+                    Tìm kiếm sản phẩm
+                  </Link>
+                </Button>
+              }
+            />
           )}
 
           <div className="mt-6">

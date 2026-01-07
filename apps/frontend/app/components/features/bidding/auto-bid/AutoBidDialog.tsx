@@ -96,10 +96,10 @@ const AutoBidDialog = ({
           {trigger || (
             <Button
               size="lg"
-              className="h-14 flex-1 cursor-pointer text-lg font-semibold"
+              className="h-14 flex-1 text-lg font-semibold"
               disabled={disabled}
             >
-              <Gavel className="size-6" />
+              <Gavel className="mr-1 size-5" />
               Đặt giá
             </Button>
           )}
@@ -107,17 +107,20 @@ const AutoBidDialog = ({
 
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-lg">{product.name}</DialogTitle>
-            <DialogDescription className="text-base">
+            <DialogTitle className="flex items-center gap-2">
+              <Gavel className="h-5 w-5" />
+              {product.name}
+            </DialogTitle>
+            <DialogDescription>
               Giá hiện tại:{" "}
-              <span className="text-foreground text-lg font-bold">
+              <span className="text-lg font-bold">
                 {formatPrice(currentPrice)}
               </span>
               {product.buyNowPrice && (
                 <>
                   <br />
                   Giá mua ngay:{" "}
-                  <span className="text-foreground text-lg font-bold">
+                  <span className="font-bold">
                     {formatPrice(Number(product.buyNowPrice))}
                   </span>
                 </>

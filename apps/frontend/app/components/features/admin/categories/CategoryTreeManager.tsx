@@ -133,8 +133,8 @@ const CategoryTreeManager = ({ className }: CategoryTreeManagerProps) => {
         </div>
         <AddCategoryDialog
           trigger={
-            <Button className="cursor-pointer">
-              <Plus className="h-4 w-4" />
+            <Button>
+              <Plus className="mr-1 h-4 w-4" />
               Thêm danh mục
             </Button>
           }

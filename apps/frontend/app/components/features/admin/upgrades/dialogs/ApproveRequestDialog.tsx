@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 
 interface ApproveRequestDialogProps {
@@ -51,20 +52,17 @@ export function ApproveRequestDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-green-600" />
-            <DialogTitle>Xác nhận phê duyệt</DialogTitle>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            Xác nhận phê duyệt
+          </DialogTitle>
           <DialogDescription>
             Bạn có chắc chắn muốn chấp nhận yêu cầu nâng cấp tài khoản của người
-            dùng{" "}
-            <span className="text-foreground font-semibold">
-              {request.userName}
-            </span>{" "}
-            lên Seller không? Hành động này sẽ cấp quyền đăng bán sản phẩm cho
-            người dùng.
+            dùng <span className="font-bold">{request.userName}</span> lên
+            Seller không? Hành động này sẽ cấp quyền đăng bán sản phẩm cho người
+            dùng.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -87,6 +85,7 @@ export function ApproveRequestDialog({
             Hủy bỏ
           </Button>
           <Button onClick={handleConfirm} disabled={isProcessing}>
+            {isProcessing && <Spinner className="mr-1 h-4 w-4" />}
             {isProcessing ? "Đang xử lý..." : "Xác nhận"}
           </Button>
         </DialogFooter>

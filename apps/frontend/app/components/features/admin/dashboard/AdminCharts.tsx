@@ -14,7 +14,7 @@ const AdminCharts = (props: AdminChartsProps) => {
   return (
     <div className={props.className}>
       {/* Implement logic for AdminCharts here */}
-      <p className="text-gray-500 italic">Component: AdminCharts</p>
+      <p className="text-muted-foreground italic">Component: AdminCharts</p>
     </div>
   );
 };

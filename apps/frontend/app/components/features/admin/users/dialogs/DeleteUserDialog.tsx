@@ -109,8 +109,8 @@ const DeleteUserDialog = ({
             Xóa người dùng
           </DialogTitle>
           <DialogDescription>
-            Bạn đang thực hiện xóa người dùng <strong>{userName}</strong> (
-            {userEmail})
+            Bạn đang thực hiện xóa người dùng{" "}
+            <span className="font-bold">{userName}</span> ({userEmail})
           </DialogDescription>
         </DialogHeader>
 
@@ -178,33 +178,31 @@ const DeleteUserDialog = ({
           <ConfirmationDialog
             trigger={
               <Button variant="destructive" disabled={!isReasonValid}>
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="mr-1 h-4 w-4" />
                 Xóa người dùng
               </Button>
             }
-            variant="destructive"
+            variant="danger"
             title="Xác nhận xóa người dùng"
             description={
               <div className="space-y-3">
-                <p className="font-semibold">
-                  Bạn có chắc chắn muốn xóa người dùng này?
-                </p>
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <strong>Tên:</strong> {userName}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {userEmail}
-                  </p>
-                  <p>
-                    <strong>Vai trò:</strong> {getRoleLabel()}
-                  </p>
+                <p>Bạn có chắc chắn muốn xóa người dùng này?</p>
+                <ul className="bg-muted space-y-2 rounded-md p-3 text-sm">
+                  <li>
+                    <b>Tên:</b> {userName}
+                  </li>
+                  <li>
+                    <b>Email:</b> {userEmail}
+                  </li>
+                  <li>
+                    <b>Vai trò:</b> {getRoleLabel()}
+                  </li>
                   {reason.trim() && (
-                    <p>
-                      <strong>Lý do:</strong> {reason.trim()}
-                    </p>
+                    <li>
+                      <b>Lý do:</b> {reason.trim()}
+                    </li>
                   )}
-                </div>
+                </ul>
                 <p className="text-destructive font-semibold">
                   Hành động này không thể hoàn tác!
                 </p>

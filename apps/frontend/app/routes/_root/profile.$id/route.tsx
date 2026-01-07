@@ -121,7 +121,7 @@ export default function PublicProfilePage() {
 
   if (!profile) {
     return (
-      <div className="container mx-auto py-8 text-center text-red-500">
+      <div className="text-destructive container mx-auto py-8 text-center">
         Không tìm thấy thông tin người dùng
       </div>
     );

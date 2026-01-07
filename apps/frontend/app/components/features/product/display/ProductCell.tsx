@@ -22,8 +22,8 @@ const ProductCell = ({ productId, name, imageUrl }: ProductCellProps) => {
           className="h-10 w-10 rounded object-cover"
         />
       ) : (
-        <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-200">
-          <Package className="h-5 w-5 text-gray-400" />
+        <div className="bg-muted flex h-10 w-10 items-center justify-center rounded">
+          <Package className="text-muted-foreground h-5 w-5" />
         </div>
       )}
       <div>

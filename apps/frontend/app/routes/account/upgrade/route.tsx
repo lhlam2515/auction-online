@@ -1,7 +1,7 @@
-import { Store, CheckCircle, AlertCircle, AlertTriangle } from "lucide-react";
+import { Store, CheckCircle, AlertTriangle } from "lucide-react";
 
+import { AlertSection } from "@/components/common/feedback";
 import { UpgradeRequestForm } from "@/components/features/user/forms";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -52,17 +52,17 @@ export default function UpgradeToSellerPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert className="border-blue-300 bg-blue-50 text-blue-600">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertTitle className="font-semibold">
-                Sẵn Sàng Trở Thành Người Bán?
-              </AlertTitle>
-              <AlertDescription className="text-blue-600">
-                Nâng cấp tài khoản của bạn để bắt đầu bán hàng trên nền tảng đấu
-                giá của chúng tôi. Quá trình này rất đơn giản và nhanh chóng!
-              </AlertDescription>
-            </Alert>
-
+            <AlertSection
+              variant="info"
+              title="Lợi Ích Khi Trở Thành Người Bán"
+              description={
+                <span>
+                  Bằng cách trở thành người bán, bạn sẽ có thể đăng và quản lý
+                  sản phẩm đấu giá, tiếp cận với hàng ngàn người mua tiềm năng,
+                  và tận hưởng các công cụ hỗ trợ bán hàng chuyên nghiệp.
+                </span>
+              }
+            />
             <UpgradeRequestForm
               schema={upgradeRequestSchema}
               defaultValues={{
@@ -77,14 +77,14 @@ export default function UpgradeToSellerPage() {
     );
   }
 
-  // Render seller hết hạn
+  // Render seller đã hết hạn: form gia hạn
   if (isExpired) {
     return (
       <div className="space-y-6">
-        <Card className="border-amber-300">
+        <Card className="border-amber-500/20">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
                 <Store className="h-5 w-5 text-amber-600" />
               </div>
               <div>
@@ -101,40 +101,29 @@ export default function UpgradeToSellerPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert className="border-amber-300 bg-amber-50 text-amber-600">
-              <AlertTriangle className="h-4 w-4 text-amber-600" />
-              <AlertTitle className="font-semibold">
-                Quyền Bán Hàng Đã Hết Hạn
-              </AlertTitle>
-              <AlertDescription className="text-amber-600">
-                Vui lòng gia hạn quyền bán hàng để có thể đăng sản phẩm mới. Các
-                sản phẩm đã bắt đầu đấu giá sẽ tiếp tục bình thường.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-3 rounded-lg border border-amber-300 bg-white p-4">
-              <h4 className="mb-2 font-semibold text-neutral-900">
-                Trạng Thái Của Bạn:
-              </h4>
-              <ul className="text-card-foreground space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-green-600" />
-                  <span>
-                    Sản phẩm đã bắt đầu đấu giá sẽ tiếp tục hoạt động bình
-                    thường
-                  </span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-red-600" />
-                  <span>Không thể đăng sản phẩm mới cho đến khi gia hạn</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-amber-600" />
-                  <span>Vẫn có thể quản lý sản phẩm hiện có</span>
-                </li>
-              </ul>
-            </div>
-
+            <AlertSection
+              variant="warning"
+              icon={AlertTriangle}
+              title="Quyền Bán Hàng Đã Hết Hạn"
+              description={
+                <span>
+                  Tài khoản người bán của bạn đã hết hạn vào ngày{" "}
+                  {expireDate ? formatDate(expireDate) : "không xác định"}. Bạn
+                  cần gia hạn để tiếp tục đăng sản phẩm mới.
+                </span>
+              }
+            />
+            <AlertSection
+              variant="info"
+              title="Trạng Thái Tài Khoản Người Bán Của Bạn"
+              description={
+                <span>
+                  Mặc dù quyền bán hàng của bạn đã hết hạn, bạn vẫn có thể quản
+                  lý các sản phẩm hiện có. Tuy nhiên, bạn sẽ không thể đăng sản
+                  phẩm mới cho đến khi gia hạn.
+                </span>
+              }
+            />
             <UpgradeRequestForm
               schema={upgradeRequestSchema}
               defaultValues={{
@@ -151,17 +140,17 @@ export default function UpgradeToSellerPage() {
 
   // Render seller hoạt động bình thường
   return (
-    <Card className="border-emerald-300 bg-emerald-50">
+    <Card className="border border-emerald-500/20 bg-emerald-500/10">
       <CardHeader>
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
             <CheckCircle className="h-6 w-6 text-emerald-600" />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-2xl text-emerald-900">
+            <CardTitle className="text-2xl text-emerald-600">
               Bạn Đã Là Người Bán
             </CardTitle>
-            <CardDescription className="text-base text-emerald-800">
+            <CardDescription className="text-muted-foreground text-base">
               {daysRemaining === null
                 ? "Tài khoản của bạn có quyền bán hàng vô hạn"
                 : `Hết hạn vào ${formatDate(expireDate!)} (${daysRemaining} ngày còn lại)`}
@@ -170,33 +159,17 @@ export default function UpgradeToSellerPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-card-foreground">
-          Chúc mừng! Bạn giờ có thể bán hàng trên nền tảng đấu giá của chúng
-          tôi.
-        </p>
-        <div className="space-y-2 rounded-lg border border-emerald-300 bg-white p-4">
-          <h4 className="text-card-foreground font-semibold">
-            Các Tính Năng Bạn Có Thể Sử Dụng:
-          </h4>
-          <ul className="text-card-foreground space-y-2 text-sm">
-            <li className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-600" />
-              Đăng và quản lý sản phẩm đấu giá
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-600" />
-              Xem lịch sử giao dịch và doanh thu
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-600" />
-              Nhận thông báo từ những người mua
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-600" />
-              Xây dựng danh tiếng bán hàng của bạn
-            </li>
-          </ul>
-        </div>
+        <AlertSection
+          variant="success"
+          title="Chúc Mừng! Bạn Đã Có Thể Bán Hàng Trên Nền Tảng Của Chúng Tôi"
+          description={
+            <span>
+              Cảm ơn bạn đã trở thành người bán trên nền tảng đấu giá của chúng
+              tôi. Hãy bắt đầu đăng sản phẩm và phát triển cửa hàng của bạn ngay
+              hôm nay!
+            </span>
+          }
+        />
       </CardContent>
     </Card>
   );

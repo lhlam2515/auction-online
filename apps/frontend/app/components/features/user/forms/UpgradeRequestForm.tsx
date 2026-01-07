@@ -180,7 +180,7 @@ const UpgradeRequestForm = <T extends FieldValues>({
         className="min-h-12 w-full cursor-pointer text-xl"
         disabled={form.formState.isSubmitting}
       >
-        {form.formState.isSubmitting && <Spinner />}
+        {form.formState.isSubmitting && <Spinner className="mr-1 size-5" />}
         {form.formState.isSubmitting ? "Đang gửi yêu cầu" : "Gửi yêu cầu"}
       </Button>
     </form>
