@@ -35,6 +35,7 @@ import {
   categories,
   orders,
   productImages,
+  productQuestions,
   products,
   productUpdates,
   users,
@@ -654,16 +655,17 @@ export class ProductService {
   /**
    * Cập nhật mô tả sản phẩm (thêm vào history)
    * Sử dụng transaction để đảm bảo consistency
+   * Gửi email thông báo cho những người dùng liên quan (bidders và watchers)
    */
   async updateDescription(
     productId: string,
     sellerId: string,
     description: string
   ): Promise<UpdateDescriptionResponse> {
-    return await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       const product = await tx.query.products.findFirst({
         where: eq(products.id, productId),
-        columns: { id: true, sellerId: true },
+        columns: { id: true, sellerId: true, name: true },
       });
 
       if (!product) {
@@ -683,8 +685,60 @@ export class ProductService {
         })
         .returning();
 
-      return updatedContent;
+      return {
+        updatedContent,
+        productName: product.name,
+      };
     });
+
+    // Gửi email thông báo sau khi transaction thành công
+    const [bidders, watchers, askers] = await Promise.all([
+      this.getBidders(productId),
+      db.query.watchLists.findMany({
+        where: eq(watchLists.productId, productId),
+        with: { user: true },
+      }),
+      db.query.productQuestions.findMany({
+        where: eq(productQuestions.productId, productId),
+        with: { asker: true },
+      }),
+    ]);
+
+    // Tập hợp email của người dùng liên quan (không gửi cho chính seller)
+    const emailSet = new Set<string>();
+
+    bidders.forEach((bidder) => {
+      if (bidder.id !== sellerId) {
+        emailSet.add(bidder.email);
+      }
+    });
+
+    watchers.forEach((watcher) => {
+      if (watcher.user && watcher.userId !== sellerId) {
+        emailSet.add(watcher.user.email);
+      }
+    });
+
+    askers.forEach((question) => {
+      if (question.asker && question.asker.id !== sellerId) {
+        emailSet.add(question.asker.email);
+      }
+    });
+
+    const emails = Array.from(emailSet);
+
+    // Gửi email nếu có người dùng liên quan
+    if (emails.length > 0) {
+      const productLink = this.buildProductLink(productId);
+      await emailService.notifyProductDescriptionUpdate(
+        emails,
+        result.productName,
+        description,
+        productLink
+      );
+    }
+
+    return result.updatedContent;
   }
 
   /**

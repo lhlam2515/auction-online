@@ -448,7 +448,69 @@ class EmailService {
   }
 
   // ============================================================
-  // GROUP 5: ADMIN USER MANAGEMENT (Quản lý User bởi Admin)
+  // GROUP 5: PRODUCT UPDATES (Cập nhật Sản phẩm)
+  // ============================================================
+
+  /**
+   * Thông báo cho người dùng khi mô tả sản phẩm được cập nhật
+   * Gửi cho: Bidders và Watchers (không gửi cho chính seller)
+   */
+  public notifyProductDescriptionUpdate(
+    emails: string[],
+    productName: string,
+    descriptionUpdate: string,
+    productLink: string
+  ) {
+    if (emails.length === 0) return;
+
+    const descriptionPreview =
+      descriptionUpdate.length > 300
+        ? descriptionUpdate.substring(0, 300) + "..."
+        : descriptionUpdate;
+
+    const htmlBody = `
+      <p>Sản phẩm <strong>${productName}</strong> mà bạn đang theo dõi vừa có cập nhật mô tả mới từ người bán.</p>
+
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 25px 0; text-align: center; color: white;">
+        <p style="margin: 0; font-size: 18px; font-weight: 600;">
+          📝 Thông tin mới đã được thêm vào
+        </p>
+      </div>
+
+      <div style="background: #f8fafc; border-left: 4px solid ${COLORS.primary}; padding: 20px; margin: 25px 0; border-radius: 4px;">
+        <p style="margin: 0 0 10px 0; font-size: 13px; font-weight: 600; color: ${COLORS.primary}; text-transform: uppercase; letter-spacing: 0.5px;">Nội dung cập nhật mới</p>
+        <div style="color: ${COLORS.foreground}; font-size: 15px; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word;">${descriptionPreview}</div>
+        ${descriptionUpdate.length > 300 ? `<p style="margin: 10px 0 0 0; font-size: 13px; color: ${COLORS.mutedFg}; font-style: italic;">... Xem toàn bộ nội dung trên trang sản phẩm</p>` : ""}
+      </div>
+
+      <p style="font-size: 15px; color: ${COLORS.foreground}; line-height: 1.8;">
+        <strong>Tại sao điều này quan trọng?</strong><br/>
+        • Người bán đã cung cấp thêm chi tiết về sản phẩm<br/>
+        • Thông tin mới có thể ảnh hưởng đến quyết định đấu giá của bạn<br/>
+        • Giúp bạn hiểu rõ hơn về sản phẩm trước khi ra giá
+      </p>
+
+      <p style="background: ${COLORS.muted}; padding: 15px; border-radius: 6px; font-size: 14px; color: ${COLORS.mutedFg};">
+        💡 <strong>Gợi ý:</strong> Xem toàn bộ chi tiết trên trang sản phẩm để đảm bảo sản phẩm vẫn phù hợp với nhu cầu của bạn.
+      </p>
+    `;
+
+    const fullHtml = this.getBaseTemplate(
+      "Cập nhật mô tả sản phẩm 📋",
+      htmlBody,
+      { link: productLink, text: "Xem chi tiết đầy đủ" }
+    );
+
+    // Gửi BCC để bảo mật danh sách người nhận
+    this.queueEmail(
+      emails,
+      `[Cập nhật] Mô tả mới cho ${productName}`,
+      fullHtml
+    );
+  }
+
+  // ============================================================
+  // GROUP 6: ADMIN USER MANAGEMENT (Quản lý User bởi Admin)
   // ============================================================
 
   /**
