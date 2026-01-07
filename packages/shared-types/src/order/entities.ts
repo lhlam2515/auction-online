@@ -74,6 +74,7 @@ export interface OrderPayment {
   status: PaymentStatus;
   paidAt: Date | string | null;
   transactionRef: string | null;
+  paymentProofUrl: string | null;
   refundedAt: Date | string | null;
   refundAmount: string | null; // Decimal as string
   createdAt: Date | string;

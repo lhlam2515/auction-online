@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import * as orderController from "@/controllers/order.controller";
 import { authenticate, authorize } from "@/middlewares/auth";
+import { uploadMiddleware } from "@/middlewares/upload";
 import { validate } from "@/middlewares/validate";
 import * as orderValidation from "@/validations/order.validation";
 
@@ -34,11 +35,12 @@ router.get(
 
 /**
  * @route   POST /api/orders/:id/mark-paid
- * @desc    Buyer confirms payment
+ * @desc    Buyer confirms payment with proof image
  * @access  Private (buyer)
  */
 router.post(
   "/:id/mark-paid",
+  uploadMiddleware.single("paymentProof"),
   validate({
     params: orderValidation.orderIdSchema,
     body: orderValidation.markPaidSchema,

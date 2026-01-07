@@ -16,9 +16,9 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { ratingService } from "@/services";
+import { ratingService, uploadService } from "@/services";
 import { orderService } from "@/services/order.service";
-import { ForbiddenError } from "@/utils/errors";
+import { BadRequestError, ForbiddenError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
 
@@ -86,11 +86,25 @@ export const markAsPaid = asyncHandler(
       req.body as MarkPaidRequest;
     const { id: buyerId } = req.user!;
 
+    // Validate that payment proof image is uploaded
+    if (!req.file) {
+      throw new BadRequestError("Vui lòng upload ảnh minh chứng thanh toán");
+    }
+
+    // Upload payment proof image
+    const { urls } = await uploadService.uploadImages(
+      [req.file],
+      "payment-proofs",
+      buyerId
+    );
+    const paymentProofUrl = urls[0];
+
     const result = await orderService.markAsPaid(
       orderId,
       buyerId,
       paymentMethod,
       amount,
+      paymentProofUrl,
       transactionId
     );
 
