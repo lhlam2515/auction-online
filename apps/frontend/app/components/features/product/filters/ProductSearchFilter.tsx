@@ -1,14 +1,13 @@
 import type { CategoryTree } from "@repo/shared-types";
-import { ChevronDown } from "lucide-react";
 import React from "react";
 
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { InputGroupButton } from "@/components/ui/input-group";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 type ProductSearchFilterProps = {
@@ -25,45 +24,28 @@ const ProductSearchFilter = ({
   className,
 }: ProductSearchFilterProps) => {
   const categoryOptions = React.useMemo(
-    () => [
-      { label: "Tất cả danh mục", value: "" },
-      ...categories.map((cat) => ({ label: cat.name, value: cat.id })),
-    ],
+    () => [...categories.map((cat) => ({ label: cat.name, value: cat.id }))],
     [categories]
   );
 
-  const selectedCategory = React.useMemo(
-    () =>
-      categoryOptions.find((cat) => cat.value === value) || categoryOptions[0],
-    [categoryOptions, value]
-  );
-
   const handleCategorySelect = (categoryValue: string) => {
-    onChange?.(categoryValue);
+    onChange?.(categoryValue === "all" ? "" : categoryValue);
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild className={cn("min-w-40", className)}>
-        <InputGroupButton
-          variant="secondary"
-          className="flex h-full cursor-pointer items-center justify-between gap-2 rounded-r-none"
-        >
-          {selectedCategory.label}
-          <ChevronDown className="size-5" />
-        </InputGroupButton>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+    <Select value={value} onValueChange={handleCategorySelect}>
+      <SelectTrigger className={cn("min-w-40", className)}>
+        <SelectValue placeholder="Tất cả danh mục" />
+      </SelectTrigger>
+      <SelectContent align="start">
+        <SelectItem value="default">Tất cả danh mục</SelectItem>
         {categoryOptions.map((category) => (
-          <DropdownMenuItem
-            key={category.value}
-            onClick={() => handleCategorySelect(category.value)}
-          >
+          <SelectItem key={category.value} value={category.value}>
             {category.label}
-          </DropdownMenuItem>
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   );
 };
 

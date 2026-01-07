@@ -21,9 +21,8 @@ export const LogoutButton = ({ onLogout, isCollapsed }: LogoutButtonProps) => {
           variant="ghost"
           onClick={onLogout}
           className={cn(
-            "hover:bg-destructive/10 hover:text-destructive group mt-auto w-full transition-all duration-300",
-            isCollapsed ? "justify-center px-2" : "justify-start gap-3 px-3",
-            "active:scale-95"
+            "hover:bg-destructive/10 hover:text-destructive text-destructive group mt-auto w-full cursor-pointer transition-all duration-300",
+            isCollapsed ? "justify-center px-2" : "justify-start gap-3 px-3"
           )}
         >
           <LogOut className="h-4 w-4 shrink-0 transition-colors" />

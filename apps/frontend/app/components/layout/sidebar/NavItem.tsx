@@ -48,7 +48,7 @@ export const NavItem = ({ item, isCollapsed, onClick }: NavItemProps) => {
         "flex items-center rounded-lg py-2 text-sm transition-all duration-300",
         isActive
           ? "bg-primary/10 text-primary font-medium"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
         isCollapsed ? "justify-center px-2" : "gap-3 px-3"
       )}
     >

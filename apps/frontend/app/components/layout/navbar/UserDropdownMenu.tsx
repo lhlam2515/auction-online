@@ -29,7 +29,10 @@ const UserDropdownMenu = ({ user, onLogout }: UserDropdownMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          className="hover:bg-primary/10 hover:text-primary flex items-center gap-2 transition-all duration-300"
+        >
           <UserAvatar
             name={user.fullName}
             imageUrl={user.avatarUrl}

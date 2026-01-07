@@ -47,11 +47,20 @@ Khi cấu hình `chartConfig` trong `ChartContainer`:
 - **Destructive/Rejected**: `var(--color-red-500)`.
 - **Neutral**: `var(--muted)`.
 
-## 5. Trạng thái Tương tác (Interaction States)
+## 5. Hiệu ứng Hover & Tương tác (Hover & Interaction Effects)
 
-- **Icons phụ**: Sử dụng `text-muted-foreground`.
-- **Nút tương tác phụ** (như ẩn/hiện mật khẩu): `text-muted-foreground hover:text-foreground transition-colors`.
-- **Skeleton (Loading)**: Sử dụng `bg-muted` cho các khối skeleton lớn.
+Để tạo phản hồi thị giác tốt cho người dùng, hãy áp dụng các nguyên tắc sau:
+
+- **Primary Hover (Navigation, Sidebar Items)**: Sử dụng nền mờ kết hợp đổi màu text.
+  - _Pattern_: `hover:bg-primary/10 hover:text-primary transition-all duration-300`.
+- **Secondary Hover (Nút phụ, Dropdown Items)**: Sử dụng màu nền hệ thống.
+  - _Pattern_: `hover:bg-accent hover:text-accent-foreground transition-all`.
+- **Destructive Hover (Nút Xóa, Đăng xuất)**:
+  - _Pattern_: `hover:bg-destructive/10 hover:text-destructive transition-colors`.
+- **Hiệu ứng Thu phóng (Scale)**:
+  - **Hover (Nhấn mạnh nhẹ)**: Sử dụng `hover:scale-105` cho các thành phần như Avatar, Icon quan trọng.
+  - **Active (Phản hồi Click)**: Sử dụng `active:scale-95` cho các nút bấm chính (Toggle Button, FAB).
+- **Trạng thái Loading**: Sử dụng `bg-muted` cho các khối skeleton lớn.
 
 ## 6. Ghi chú chung
 

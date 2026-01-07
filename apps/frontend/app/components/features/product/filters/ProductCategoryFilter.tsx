@@ -24,13 +24,10 @@ const ProductCategoryFilter = ({
       </CardHeader>
       <CardContent className="space-y-2">
         <Button
-          variant="ghost"
+          variant="outline"
           className={cn(
-            "hover:text-primary-foreground hover:bg-primary/50 h-8 w-full justify-start px-2 font-medium",
-            {
-              "bg-primary text-primary-foreground dark:bg-primary/50":
-                value === "",
-            }
+            "h-8 w-full justify-start border-none px-2 font-medium shadow-none",
+            { "bg-primary text-primary-foreground": value === "" }
           )}
           onClick={() => handleCategoryChange && handleCategoryChange("")}
         >
@@ -39,13 +36,10 @@ const ProductCategoryFilter = ({
         {categoryTrees.map((category) => (
           <div key={category.id} className="space-y-1">
             <Button
-              variant="ghost"
+              variant="outline"
               className={cn(
-                "hover:text-primary-foreground hover:bg-primary/70 h-8 w-full justify-start px-2 font-medium",
-                {
-                  "bg-primary text-primary-foreground dark:bg-primary/50":
-                    value === category.id,
-                }
+                "h-8 w-full justify-start border-none px-2 font-medium shadow-none",
+                { "bg-primary text-primary-foreground": value === category.id }
               )}
               onClick={() =>
                 handleCategoryChange && handleCategoryChange(category.id)
@@ -60,11 +54,8 @@ const ProductCategoryFilter = ({
                   key={child.id}
                   variant="ghost"
                   className={cn(
-                    "hover:text-primary-foreground hover:bg-primary/50 text-muted-foreground h-8 w-full justify-start px-2 text-sm",
-                    {
-                      "bg-primary dark:bg-primary text-muted":
-                        value === child.id,
-                    }
+                    "text-muted-foreground h-8 w-full justify-start px-2 text-sm",
+                    { "bg-primary/10 text-primary": value === child.id }
                   )}
                   onClick={() =>
                     handleCategoryChange && handleCategoryChange(child.id)

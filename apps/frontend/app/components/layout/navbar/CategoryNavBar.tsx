@@ -62,7 +62,7 @@ const CategoryNavBar = ({ categories }: CategoryNavBarProps) => {
                               category: child.id,
                             })}
                           >
-                            <span className="text-popover-foreground/70 hover:text-popover-foreground">
+                            <span className="text-muted-foreground hover:text-primary transition-all duration-300">
                               {child.name}
                             </span>
                           </Link>
