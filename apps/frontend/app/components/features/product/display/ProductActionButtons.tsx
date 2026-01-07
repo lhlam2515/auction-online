@@ -31,7 +31,7 @@ const ProductActionButtons = ({
   } = useWatchlist();
 
   const isSeller = user?.id === product.sellerId;
-  const isBidder = user?.role === "BIDDER";
+  const canBid = user && !isSeller && user.role !== "ADMIN";
 
   // Memoize để tránh re-compute liên tục
   const isProductInWatchlist = useMemo(
@@ -48,23 +48,10 @@ const ProductActionButtons = ({
     await toggleWatchlist(product.id);
   };
 
-  const loginPrompt = (
-    <p className="text-muted-foreground py-5 text-center font-semibold">
-      <Link to={AUTH_ROUTES.LOGIN} className="text-primary hover:underline">
-        Đăng nhập
-      </Link>{" "}
-      hoặc{" "}
-      <Link to={AUTH_ROUTES.REGISTER} className="text-primary hover:underline">
-        đăng ký
-      </Link>{" "}
-      để tham gia đấu giá sản phẩm này
-    </p>
-  );
-
   return (
     <>
       {/* Complete Order - Product has been won and order created */}
-      {product.orderId && (isSeller || isBidder) && (
+      {product.orderId && (isSeller || product.winnerId === user?.id) && (
         <div className="flex gap-3">
           <Button
             size="lg"
@@ -74,7 +61,7 @@ const ProductActionButtons = ({
           >
             <Link
               to={
-                user?.role === "SELLER"
+                isSeller
                   ? SELLER_ROUTES.ORDER(product.orderId)
                   : ACCOUNT_ROUTES.ORDER(product.orderId)
               }
@@ -104,37 +91,50 @@ const ProductActionButtons = ({
       )}
 
       {/* Logged in users can bid/buy (if auction not ended) */}
-      {!product.orderId && !isEnded && !isSeller && isBidder && (
-        <RoleGuard fallback={loginPrompt}>
-          <div className="flex gap-3">
-            {/* Bid Button with Dialog */}
-            <AutoBidDialog
-              product={product}
-              userRating={
-                userData?.ratingScore ? userData.ratingScore * 100 : 0
-              }
-              onSuccess={onRefresh}
+      {!product.orderId && !isEnded && canBid && (
+        <div className="flex gap-3">
+          {/* Bid Button with Dialog */}
+          <AutoBidDialog
+            product={product}
+            userRating={userData?.ratingScore ? userData.ratingScore * 100 : 0}
+            onSuccess={onRefresh}
+          />
+
+          {/* Buy Now Button with Dialog */}
+          {product.buyNowPrice && <BuyNowDialog product={product} />}
+
+          {/* Watchlist Button */}
+          <Button
+            size="lg"
+            variant="secondary"
+            className="group h-14 w-14"
+            onClick={handleToggleWatchlist}
+            disabled={watchlistLoading}
+          >
+            <Heart
+              className={`h-6 w-6 transition-colors ${
+                isProductInWatchlist && "fill-destructive text-destructive"
+              }`}
             />
+          </Button>
+        </div>
+      )}
 
-            {/* Buy Now Button with Dialog */}
-            {product.buyNowPrice && <BuyNowDialog product={product} />}
-
-            {/* Watchlist Button */}
-            <Button
-              size="lg"
-              variant="secondary"
-              className="group h-14 w-14 cursor-pointer"
-              onClick={handleToggleWatchlist}
-              disabled={watchlistLoading}
-            >
-              <Heart
-                className={`h-5 w-5 transition-colors ${
-                  isProductInWatchlist && "fill-destructive text-destructive"
-                }`}
-              />
-            </Button>
-          </div>
-        </RoleGuard>
+      {/* Guests see login prompt for bidding */}
+      {!product.orderId && !isEnded && !user && (
+        <p className="text-muted-foreground py-2 text-center font-semibold">
+          <Link to={AUTH_ROUTES.LOGIN} className="text-primary hover:underline">
+            Đăng nhập
+          </Link>{" "}
+          hoặc{" "}
+          <Link
+            to={AUTH_ROUTES.REGISTER}
+            className="text-primary hover:underline"
+          >
+            đăng ký
+          </Link>{" "}
+          để tham gia đấu giá sản phẩm này
+        </p>
       )}
     </>
   );
