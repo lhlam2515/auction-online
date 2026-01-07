@@ -1,86 +1,117 @@
 import type { RatingWithUsers } from "@repo/shared-types";
-import { UserIcon, ThumbsUp, ThumbsDown } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
+import { ThumbsUp, ThumbsDown, Clock } from "lucide-react";
 import { Link } from "react-router";
 
+import { UserAvatar } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { APP_ROUTES } from "@/constants/routes";
+import { cn, formatDate } from "@/lib/utils";
 
-// Local definition to handle type mismatch if shared-types is out of sync
-export interface RatingDisplay extends Omit<RatingWithUsers, "sender"> {
-  sender: {
-    fullName: string;
-    avatarUrl?: string | null;
-  };
+export interface RatingCardProps {
+  rating: RatingWithUsers;
+  isSent?: boolean;
+  title?: string;
+  className?: string;
+  timeFormat?: "relative" | "absolute";
+  variant?: "default" | "bordered";
 }
 
-interface RatingCardProps {
-  rating: RatingWithUsers | RatingDisplay;
-  isPositive?: boolean; // Allow overriding logic
-}
+const RatingCard = ({
+  rating,
+  isSent = false,
+  title,
+  className,
+  timeFormat = "absolute",
+  variant = "default",
+}: RatingCardProps) => {
+  const displayUser = isSent ? rating.receiver : rating.sender;
+  const displayUserId = isSent ? rating.receiverId : rating.senderId;
+  const isPositive = rating.score === 1;
 
-const RatingCard = ({ rating }: RatingCardProps) => {
-  // Cast to any to avoid "Property sender does not exist" if types are mismatched
-  const r = rating as any;
-  const isPositive = r.score === 1; // Assuming 1 is positive, -1 negative based on shared-types
-  const date = new Date(r.createdAt).toLocaleDateString("vi-VN");
+  if (!displayUser || !displayUserId) return null;
+
+  const displayTime =
+    timeFormat === "relative"
+      ? formatDistanceToNow(new Date(rating.createdAt), {
+          addSuffix: true,
+          locale: vi,
+        })
+      : formatDate(new Date(rating.createdAt));
 
   return (
     <Card
       className={cn(
-        "border-l-4",
-        isPositive ? "border-l-emerald-600" : "border-l-destructive"
+        "transition-all duration-300",
+        variant === "bordered" && {
+          "border-l-4 border-l-emerald-500": isPositive,
+          "border-l-destructive border-l-4": !isPositive,
+        },
+        variant === "default" && {
+          "border-emerald-500/10 bg-emerald-500/5": isPositive && !isSent,
+          "bg-destructive/5 border-destructive/10": !isPositive && !isSent,
+        },
+        className
       )}
     >
-      <CardContent className="px-4 py-2.5">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 pt-0.5">
-            <Link to={`/profile/${r.senderId}`} className="block">
-              {r.sender?.avatarUrl ? (
-                <img
-                  src={r.sender.avatarUrl}
-                  alt={r.sender.fullName}
-                  className="h-10 w-10 rounded-full object-cover transition-opacity hover:opacity-80"
-                />
-              ) : (
-                <div className="bg-muted hover:bg-muted/80 flex h-10 w-10 items-center justify-center rounded-full transition-colors">
-                  <UserIcon className="text-muted-foreground h-6 w-6" />
-                </div>
-              )}
-            </Link>
-          </div>
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h4 className="text-sm font-semibold">
-                  <Link
-                    to={`/profile/${r.senderId}`}
-                    className="hover:underline"
-                  >
-                    {r.sender?.fullName || "Người dùng ẩn danh"}
-                  </Link>
-                </h4>
-                <Badge
-                  variant={isPositive ? "default" : "destructive"}
-                  className={cn(
-                    "flex items-center gap-1 px-2 py-0.5 text-[10px]",
-                    isPositive && "bg-emerald-600 hover:bg-emerald-700"
-                  )}
-                >
-                  {isPositive ? (
-                    <ThumbsUp className="h-3 w-3" />
-                  ) : (
-                    <ThumbsDown className="h-3 w-3" />
-                  )}
-                  {isPositive ? "Tích cực" : "Tiêu cực"}
-                </Badge>
+      {title && (
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={cn("flex gap-4", title && "pt-0")}>
+        <Link
+          to={APP_ROUTES.PROFILE(displayUserId)}
+          className="shrink-0 transition-opacity hover:opacity-80"
+        >
+          <UserAvatar
+            name={displayUser.fullName}
+            imageUrl={displayUser.avatarUrl}
+            className="h-10 w-10"
+          />
+        </Link>
+
+        <div className="flex-1 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <Link
+                to={APP_ROUTES.PROFILE(displayUserId)}
+                className="hover:text-primary transition-colors"
+              >
+                <p className="truncate text-sm font-semibold">
+                  {displayUser.fullName}
+                </p>
+              </Link>
+              <div className="text-muted-foreground flex items-center gap-1 text-[11px]">
+                <Clock className="h-3 w-3" />
+                <span>{displayTime}</span>
               </div>
-              <span className="text-muted-foreground text-xs">{date}</span>
             </div>
-            <p className="mt-1 text-sm font-medium">
-              {r.comment || "Không có nhận xét"}
-            </p>
+
+            <Badge
+              className={cn(
+                "flex items-center gap-1.5",
+                isPositive
+                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
+                  : "border-destructive/20 bg-destructive/10 text-destructive"
+              )}
+            >
+              {isPositive ? (
+                <ThumbsUp className="h-4 w-4" />
+              ) : (
+                <ThumbsDown className="h-4 w-4" />
+              )}
+              <span>{isPositive ? "Tích cực" : "Tiêu cực"}</span>
+            </Badge>
           </div>
+
+          {rating.comment && (
+            <div className="bg-muted rounded-lg p-3">
+              <p className="text-sm leading-relaxed">{rating.comment}</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

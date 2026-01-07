@@ -2,9 +2,11 @@ import type { OrderWithDetails, RatingWithUsers } from "@repo/shared-types";
 import { Star } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import { FeedbackCard } from "@/components/common/cards";
 import { AlertSection } from "@/components/common/feedback";
-import { RatingInfo } from "@/components/features/interaction";
+import {
+  RatingCard,
+  RatingInfoDisplay,
+} from "@/components/features/interaction/rating";
 import {
   Card,
   CardContent,
@@ -118,15 +120,16 @@ const OrderRatingStep = ({
           <>
             {/* Display received feedback if exists */}
             {receivedFeedback && (
-              <FeedbackCard
-                feedback={receivedFeedback}
+              <RatingCard
+                rating={receivedFeedback}
                 title={`Đánh giá từ ${isSeller ? "người mua" : "người bán"}`}
+                timeFormat="relative"
                 isSent={false}
               />
             )}
 
             {/* Display sent feedback or rating form */}
-            <RatingInfo
+            <RatingInfoDisplay
               orderId={order.id}
               feedback={sentFeedback}
               title={`Đánh giá của bạn cho ${isSeller ? "người mua" : "người bán"}`}

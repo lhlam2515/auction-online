@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { RatingCard } from "./";
+import RatingCard from "./RatingCard";
 
 interface RatingHistoryPanelProps {
   ratings: RatingWithUsers[];
@@ -56,7 +56,12 @@ export default function RatingHistoryPanel({
       <div className="space-y-4">
         {ratings.length > 0 ? (
           ratings.map((rating) => (
-            <RatingCard key={rating.id} rating={rating} />
+            <RatingCard
+              key={rating.id}
+              rating={rating}
+              variant="bordered"
+              className="bg-card"
+            />
           ))
         ) : (
           <AppEmptyState

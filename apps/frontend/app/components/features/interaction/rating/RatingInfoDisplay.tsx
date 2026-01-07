@@ -3,16 +3,16 @@ import { Edit2, Edit3, Star } from "lucide-react";
 import React from "react";
 import type { z } from "zod";
 
-import { FeedbackCard } from "@/components/common/cards";
 import { AlertSection } from "@/components/common/feedback";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api-layer";
 import { submitFeedbackSchema } from "@/lib/validations/order.validation";
 
+import RatingCard from "./RatingCard";
 import RatingForm from "./RatingForm";
 
-type RatingInfoProps = {
+type RatingInfoDisplayProps = {
   orderId: string;
   feedback: RatingWithUsers | null;
   title: string;
@@ -22,7 +22,7 @@ type RatingInfoProps = {
   onSkip?: () => void;
 };
 
-const RatingInfo = ({
+const RatingInfoDisplay = ({
   orderId,
   feedback,
   title,
@@ -30,7 +30,7 @@ const RatingInfo = ({
   isEditable = true,
   onSuccess,
   onSkip,
-}: RatingInfoProps) => {
+}: RatingInfoDisplayProps) => {
   const [feedbackState, setFeedbackState] =
     React.useState<RatingWithUsers | null>(feedback);
   const [isEditing, setIsEditing] = React.useState(!feedback);
@@ -102,7 +102,7 @@ const RatingInfo = ({
           />
         </>
       ) : feedbackState ? (
-        <FeedbackCard feedback={feedbackState} title={title} isSent={isSent} />
+        <RatingCard rating={feedbackState} title={title} isSent={isSent} />
       ) : (
         <AlertSection
           variant="warning"
@@ -114,4 +114,4 @@ const RatingInfo = ({
   );
 };
 
-export default RatingInfo;
+export default RatingInfoDisplay;
