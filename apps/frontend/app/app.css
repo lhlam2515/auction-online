@@ -121,11 +121,11 @@
 
 @layer components {
   .sidebar-layout {
-    @apply container mt-4 flex items-start gap-4;
+    @apply container mx-auto mt-6 mb-12 flex flex-col px-4 lg:flex-row lg:items-start lg:gap-10 lg:px-0;
   }
 
   .sidebar-layout > .container {
-    @apply mx-auto p-6;
+    @apply flex-1 p-0;
   }
 
   .error-message {
