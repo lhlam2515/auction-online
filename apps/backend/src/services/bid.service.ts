@@ -206,7 +206,6 @@ export class BidService {
           currentPrice: amount.toString(),
           winnerId: bidderId,
           status: newStatus as ProductStatus, // ACTIVE hoặc SOLD
-          endTime: now,
           updatedAt: now,
         })
         .where(eq(products.id, productId))
@@ -220,6 +219,11 @@ export class BidService {
           .where(
             and(eq(autoBids.productId, productId), eq(autoBids.isActive, true))
           );
+
+        await tx
+          .update(products)
+          .set({ endTime: now })
+          .where(eq(products.id, productId));
 
         await orderService.createFromAuction(
           productId,
