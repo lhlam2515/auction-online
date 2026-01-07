@@ -1,0 +1,112 @@
+import type { CategoryTree } from "@repo/shared-types";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+type ProductCategoryFilterProps = {
+  categoryTrees: CategoryTree[];
+  value?: string;
+  handleCategoryChange?: (categoryId: string) => void;
+  className?: string;
+};
+
+const ProductCategoryFilter = ({
+  categoryTrees,
+  value,
+  handleCategoryChange,
+  className,
+}: ProductCategoryFilterProps) => {
+  return (
+    <Card className={cn("gap-0", className)}>
+      <CardHeader>
+        <CardTitle className="text-lg">Danh mục</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Button
+          variant="ghost"
+          className={cn(
+            "hover:text-primary-foreground hover:bg-primary/50 h-8 w-full justify-start px-2 font-medium",
+            {
+              "bg-primary text-primary-foreground dark:bg-primary/50":
+                value === "",
+            }
+          )}
+          onClick={() => handleCategoryChange && handleCategoryChange("")}
+        >
+          Tất cả sản phẩm
+        </Button>
+        {categoryTrees.map((category) => (
+          <div key={category.id} className="space-y-1">
+            <Button
+              variant="ghost"
+              className={cn(
+                "hover:text-primary-foreground hover:bg-primary/70 h-8 w-full justify-start px-2 font-medium",
+                {
+                  "bg-primary text-primary-foreground dark:bg-primary/50":
+                    value === category.id,
+                }
+              )}
+              onClick={() =>
+                handleCategoryChange && handleCategoryChange(category.id)
+              }
+            >
+              {category.name}
+            </Button>
+
+            <div className="ml-6 space-y-1">
+              {category.children.map((child) => (
+                <Button
+                  key={child.id}
+                  variant="ghost"
+                  className={cn(
+                    "hover:text-primary-foreground hover:bg-primary/50 text-muted-foreground h-8 w-full justify-start px-2 text-sm",
+                    {
+                      "bg-primary dark:bg-primary text-muted":
+                        value === child.id,
+                    }
+                  )}
+                  onClick={() =>
+                    handleCategoryChange && handleCategoryChange(child.id)
+                  }
+                >
+                  {child.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * ProductCategoryFilterSkeleton - Loading state cho ProductCategoryFilter
+ */
+export const ProductCategoryFilterSkeleton = ({
+  className,
+}: {
+  className?: string;
+}) => {
+  return (
+    <Card className={cn("animate-pulse gap-3", className)}>
+      <CardHeader>
+        <CardTitle className="text-lg">Danh mục</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {/* Skeleton cho các category items */}
+        {Array.from({ length: 3 }, (_, index) => (
+          <div key={`skeleton-category-${index}`} className="space-y-1">
+            <div className="flex h-8 w-full items-center px-2">
+              <div className="mr-2 h-4 w-4 rounded bg-gray-300" />
+              <div className="h-4 w-24 rounded bg-gray-300" />
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ProductCategoryFilter;

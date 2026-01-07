@@ -2,6 +2,6 @@
 export type {
   OrderStatus,
   PaymentMethod,
-  ShipmentProvider as ShippingProvider,
+  ShippingProvider,
   PaymentStatus,
 } from "../common/enums";

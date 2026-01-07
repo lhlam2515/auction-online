@@ -30,6 +30,13 @@ export const APP_ROUTES = {
   PRODUCTS: "/products",
   PRODUCT: (id: string | number) => `/products/${id}`,
 
+  // Profile page
+  PROFILE: (id: string) => `/profile/${id}`,
+
+  // Error pages
+  NOT_FOUND: "/not-found",
+  UNAUTHORIZED: "/unauthorized",
+
   // Help & Legal
   HELP: "/help",
   ABOUT: "/about",
@@ -86,6 +93,9 @@ export const ADMIN_ROUTES = {
 
   // Upgrade requests
   UPGRADES: "/admin/upgrades",
+
+  // Settings
+  SETTINGS: "/admin/settings",
 } as const;
 
 // ==========================================

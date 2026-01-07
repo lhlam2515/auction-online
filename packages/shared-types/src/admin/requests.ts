@@ -9,9 +9,10 @@ import type { UpgradeRequestStatus } from "./enums";
  */
 export interface GetUsersParams extends PaginationParams {
   role?: UserRole;
-  isActive?: boolean;
-  search?: string;
-  status?: string;
+  accountStatus?: "PENDING_VERIFICATION" | "ACTIVE" | "BANNED";
+  q?: string;
+  sortBy?: "createdAt" | "fullName" | "email" | "ratingScore";
+  sortOrder?: "asc" | "desc";
 }
 
 /**
@@ -19,9 +20,9 @@ export interface GetUsersParams extends PaginationParams {
  * Backend validation: admin.validation.ts → banUserSchema
  */
 export interface BanUserRequest {
-  reason: string;
-  duration?: number; // days, 0 = permanent
   isBanned: boolean;
+  reason?: string; // Required when banning, min 10 characters
+  duration?: number; // days, 0 = permanent ban
 }
 
 /**
@@ -30,6 +31,32 @@ export interface BanUserRequest {
  */
 export interface ResetUserPasswordRequest {
   newPassword: string;
+}
+
+/**
+ * Update user info request (Admin)
+ * Backend validation: admin.validation.ts → updateUserInfoSchema
+ */
+export interface UpdateUserInfoRequest {
+  fullName?: string;
+  address?: string;
+  birthDate?: string;
+}
+
+/**
+ * Update account status request (Admin)
+ * Backend validation: admin.validation.ts → updateAccountStatusSchema
+ */
+export interface UpdateAccountStatusRequest {
+  accountStatus: "PENDING_VERIFICATION" | "ACTIVE" | "BANNED";
+}
+
+/**
+ * Update user role request (Admin)
+ * Backend validation: admin.validation.ts → updateUserRoleSchema
+ */
+export interface UpdateUserRoleRequest {
+  role: UserRole;
 }
 
 /**
@@ -53,9 +80,8 @@ export interface ProcessUpgradeRequest {
  */
 export interface AdminGetProductsParams extends PaginationParams {
   status?: ProductStatus;
-  search?: string;
-  category?: string;
-  flagged?: boolean;
+  q?: string;
+  categoryId?: string;
 }
 
 /**
@@ -72,4 +98,35 @@ export interface RejectProductRequest {
  */
 export interface SuspendProductRequest {
   reason: string;
+}
+
+/**
+ * Create user request (Admin)
+ * Backend validation: admin.validation.ts → createUserSchema
+ */
+export interface CreateUserRequest {
+  email: string;
+  username: string;
+  fullName: string;
+  password: string;
+  role?: UserRole;
+  address?: string;
+  birthDate?: string;
+}
+
+/**
+ * Delete user request (Admin)
+ * Backend validation: admin.validation.ts → deleteUserSchema
+ */
+export interface DeleteUserRequest {
+  reason?: string;
+}
+
+/**
+ * Update auction settings request (Admin)
+ * Backend validation: admin.validation.ts → updateAuctionSettingsSchema
+ */
+export interface UpdateAuctionSettingsRequest {
+  extendThresholdMinutes: number;
+  extendDurationMinutes: number;
 }

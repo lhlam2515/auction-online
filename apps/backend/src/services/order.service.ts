@@ -2,24 +2,20 @@ import type {
   GetOrdersParams,
   OrderWithDetails,
   PaymentMethod,
+  ShippingProvider,
 } from "@repo/shared-types";
-import { eq, and, sql } from "drizzle-orm";
+import { Decimal } from "decimal.js";
+import { eq, and, sql, isNull, isNotNull } from "drizzle-orm";
 
 import { db } from "@/config/database";
-import {
-  orders,
-  productImages,
-  products,
-  orderPayments,
-  ratings,
-} from "@/models";
+import { orders, orderPayments } from "@/models";
 import { NotFoundError, ForbiddenError, BadRequestError } from "@/utils/errors";
 
-export type ShippingAddress = {
-  street: string;
-  district: string;
-  city: string;
-};
+import { ratingService } from "./rating.service";
+
+type DbTransaction =
+  | typeof db
+  | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export class OrderService {
   async createFromAuction(
@@ -27,113 +23,95 @@ export class OrderService {
     winnerId: string,
     sellerId: string,
     finalPrice: number,
-    buyNow: boolean = false
+    tx: DbTransaction = db
   ) {
-    return await db.transaction(async (tx) => {
-      // Validate product exists and auction has ended
-      const product = await tx.query.products.findFirst({
-        where: eq(products.id, productId),
-      });
-
-      if (!product) {
-        throw new NotFoundError("Product not found");
-      }
-
-      if (!buyNow && product.status !== "SOLD") {
-        throw new BadRequestError("Auction has not ended or no winner");
-      }
-
-      if (!buyNow && product.winnerId !== winnerId) {
-        throw new BadRequestError("Invalid winner for this auction");
-      }
-
-      if (product.sellerId !== sellerId) {
-        throw new BadRequestError("Invalid seller for this product");
-      }
-
-      if (!buyNow && product.endTime > new Date()) {
-        throw new BadRequestError("Auction is still ongoing");
-      }
-
-      if (buyNow && product.buyNowPrice === null) {
-        throw new BadRequestError(
-          "Buy Now option is not available for this product"
-        );
-      }
-
-      // Update product status to SOLD if bought via Buy Now
-      if (buyNow) {
-        await tx
-          .update(products)
-          .set({ status: "SOLD", winnerId: winnerId, endTime: new Date() })
-          .where(eq(products.id, productId));
-      }
-
-      // Generate unique order number
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, "0");
-      const orderNumber = `ORD-${timestamp}-${random}`;
-
-      // Calculate total amount (final price + shipping cost, shipping cost will be updated later)
-      const shippingCost = 0; // Default, will be updated when buyer provides shipping info
-      const totalAmount = finalPrice + shippingCost;
-
-      // Create order record
-      const [newOrder] = await tx
-        .insert(orders)
-        .values({
-          orderNumber,
-          productId,
-          winnerId,
-          sellerId,
-          finalPrice: finalPrice.toString(),
-          shippingCost: shippingCost.toString(),
-          totalAmount: totalAmount.toString(),
-          status: "PENDING",
-          shippingAddress: "", // Will be updated later
-          phoneNumber: "", // Will be updated later
-        })
-        .returning();
-
-      return newOrder;
+    // 1. Kiểm tra xem đơn hàng đã tồn tại chưa (Idempotency Check)
+    const existingOrder = await tx.query.orders.findFirst({
+      where: eq(orders.productId, productId),
+      columns: { id: true },
     });
+
+    if (existingOrder) {
+      // Nếu đã có order, trả về luôn order đó (hoặc throw error tùy logic)
+      // Ở đây ta return để quy trình không bị crash nếu lỡ gọi 2 lần
+      return existingOrder;
+    }
+
+    // 2. Tạo mã đơn hàng duy nhất
+    // Format: ORD-<timestamp>-<random3digits>
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
+    const orderNumber = `ORD-${timestamp}-${random}`;
+
+    // 3. Tính toán chi phí (nếu có)
+    // Ở đây ta giả sử không có phí vận chuyển cho đơn đấu giá
+    // Nếu có thể thêm logic tính phí vận chuyển dựa trên địa chỉ người mua sau này
+    const price = new Decimal(finalPrice);
+    const shippingCost = new Decimal(0);
+    const totalAmount = price.plus(shippingCost);
+
+    // 5. Insert Order
+    const [newOrder] = await tx
+      .insert(orders)
+      .values({
+        orderNumber,
+        productId,
+        winnerId,
+        sellerId,
+        finalPrice: finalPrice.toString(),
+        shippingCost: shippingCost.toString(),
+        totalAmount: totalAmount.toString(),
+        status: "PENDING",
+        shippingAddress: "",
+        phoneNumber: "",
+        createdAt: new Date(),
+      })
+      .returning();
+
+    return newOrder;
   }
 
   async getById(orderId: string) {
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
-      with: { product: true, winner: true, seller: true },
+      with: {
+        product: {
+          columns: { name: true, slug: true },
+          with: {
+            images: {
+              where: (img, { eq }) => eq(img.isMain, true),
+              limit: 1,
+              columns: { imageUrl: true },
+            },
+          },
+        },
+        winner: {
+          columns: {
+            fullName: true,
+            email: true,
+            address: true,
+            ratingScore: true,
+          },
+        },
+        seller: {
+          columns: {
+            fullName: true,
+            email: true,
+            address: true,
+            ratingScore: true,
+          },
+        },
+        payment: true,
+      },
     });
 
     if (!order) {
-      throw new NotFoundError("Order");
+      throw new NotFoundError("Không tìm thấy đơn hàng");
     }
 
-    const thumbnail = await db.query.productImages.findFirst({
-      where: sql`${productImages.productId} = ${order.product.id} AND ${productImages.isMain} = true`,
-    });
-
-    // Transform to match OrderWithDetails interface
-    const transformedOrder = {
-      ...order,
-      product: {
-        name: order.product.name,
-        slug: order.product.slug,
-        thumbnail: thumbnail ? thumbnail.imageUrl : undefined,
-      },
-      winner: {
-        fullName: order.winner.fullName,
-        email: order.winner.email,
-      },
-      seller: {
-        fullName: order.seller.fullName,
-        email: order.seller.email,
-      },
-    };
-
-    return transformedOrder as OrderWithDetails;
+    return this.transformOrderDetails(order);
   }
 
   async getByUser(
@@ -144,71 +122,70 @@ export class OrderService {
     const { status, page = 1, limit = 20 } = params || {};
     const offset = (page - 1) * limit;
 
-    const statusCondition = status ? eq(orders.status, status) : undefined;
-    const whereCondition =
+    const conditions = [
       role === "BIDDER"
         ? eq(orders.winnerId, userId)
-        : eq(orders.sellerId, userId);
+        : eq(orders.sellerId, userId),
+    ];
+
+    if (status) conditions.push(eq(orders.status, status));
 
     const ordersList = await db.query.orders.findMany({
-      where: and(whereCondition, statusCondition),
-      with: { product: true, winner: true, seller: true, payments: true },
+      where: and(...conditions),
+      with: {
+        product: {
+          columns: { name: true, slug: true },
+          with: {
+            images: {
+              where: (img, { eq }) => eq(img.isMain, true),
+              limit: 1,
+              columns: { imageUrl: true },
+            },
+          },
+        },
+        winner: { columns: { fullName: true } },
+        seller: { columns: { fullName: true } },
+      },
       orderBy: (orders, { desc }) => [desc(orders.createdAt)],
       limit,
       offset,
     });
 
-    // Transform to match OrderWithDetails interface
-    const transformedOrders = ordersList.map((order) => {
-      return {
-        ...order,
-        product: {
-          name: order.product.name,
-          slug: order.product.slug,
-          thumbnail: undefined, // Could fetch thumbnail if needed
-        },
-        winner: {
-          fullName: order.winner.fullName,
-          email: order.winner.email,
-        },
-        seller: {
-          fullName: order.seller.fullName,
-          email: order.seller.email,
-        },
-      };
-    });
-
-    return transformedOrders as OrderWithDetails[];
+    return ordersList.map(this.transformOrderDetails);
   }
 
   async updateShippingInfo(
     orderId: string,
     buyerId: string,
     shippingAddress: string,
-    phoneNumber: string
+    phoneNumber: string,
+    tx: DbTransaction = db
   ) {
-    const order = await this.getById(orderId);
-
-    if (order.winnerId !== buyerId) {
-      throw new ForbiddenError("Not your order");
-    }
-
-    if (order.status !== "PENDING" && order.status !== "PAID") {
-      throw new BadRequestError(
-        "Order status does not allow shipping info update"
-      );
-    }
-
-    // Update order with shipping information
-    const [updatedOrder] = await db
+    const [updatedOrder] = await tx
       .update(orders)
       .set({
         shippingAddress,
         phoneNumber,
         updatedAt: new Date(),
       })
-      .where(eq(orders.id, orderId))
+      .where(
+        and(
+          eq(orders.id, orderId),
+          eq(orders.winnerId, buyerId),
+          sql`${orders.status} IN ('PENDING', 'PAID')`
+        )
+      )
       .returning();
+
+    if (!updatedOrder) {
+      await this.handleUpdateError(
+        orderId,
+        buyerId,
+        "winnerId",
+        ["PENDING", "PAID"],
+        tx
+      );
+    }
 
     return updatedOrder;
   }
@@ -225,28 +202,29 @@ export class OrderService {
         where: eq(orders.id, orderId),
       });
 
-      if (!order) {
-        throw new NotFoundError("Order");
-      }
+      if (!order) throw new NotFoundError("Không tìm thấy đơn hàng");
 
       if (order.winnerId !== buyerId) {
-        throw new ForbiddenError("Not your order");
+        throw new ForbiddenError("Không phải đơn hàng của bạn");
       }
 
       if (order.status !== "PENDING") {
-        throw new BadRequestError("Order is not in pending status");
+        throw new BadRequestError("Đơn hàng không ở trạng thái chờ xử lý");
       }
 
       // Buyer must provide shipping info before payment
       if (!order.shippingAddress || !order.phoneNumber) {
         throw new BadRequestError(
-          "Please provide shipping address and phone number before payment"
+          "Vui lòng cung cấp địa chỉ giao hàng và số điện thoại trước khi thanh toán"
         );
       }
 
-      // Validate payment amount matches order total
-      if (parseFloat(order.totalAmount) !== parseFloat(amount)) {
-        throw new BadRequestError("Payment amount does not match order total");
+      const orderTotal = new Decimal(order.totalAmount);
+      const paidAmount = new Decimal(amount);
+      if (!paidAmount.equals(orderTotal)) {
+        throw new BadRequestError(
+          `Số tiền thanh toán không hợp lệ. Yêu cầu: ${orderTotal.toString()}, Đã cung cấp: ${paidAmount.toString()}`
+        );
       }
 
       // Create payment record
@@ -269,194 +247,207 @@ export class OrderService {
           status: "PAID",
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, orderId))
+        .where(and(eq(orders.id, orderId), eq(orders.status, "PENDING")))
         .returning();
+
+      if (!updatedOrder) {
+        throw new BadRequestError(
+          "Không thể cập nhật trạng thái đơn hàng trong quá trình thanh toán"
+        );
+      }
 
       return { order: updatedOrder, payment };
     });
   }
 
   async confirmPayment(orderId: string, sellerId: string) {
-    const order = await this.getById(orderId);
+    return await db.transaction(async (tx) => {
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          sellerConfirmedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.sellerId, sellerId),
+            eq(orders.status, "PAID"),
+            isNull(orders.sellerConfirmedAt) // Chỉ confirm nếu chưa confirm trước đó
+          )
+        )
+        .returning();
 
-    if (order.sellerId !== sellerId) {
-      throw new ForbiddenError(
-        "Only seller can confirm payment for this order"
-      );
-    }
+      if (!updatedOrder) {
+        await this.handleUpdateError(
+          orderId,
+          sellerId,
+          "sellerId",
+          ["PAID"],
+          tx
+        );
+        throw new BadRequestError(
+          "Thanh toán đã được xác nhận trước đó hoặc ở trạng thái không hợp lệ"
+        );
+      }
 
-    if (order.status !== "PAID") {
-      throw new BadRequestError("Order must be paid before seller can confirm");
-    }
-
-    if (order.sellerConfirmedAt) {
-      throw new BadRequestError("Payment already confirmed by seller");
-    }
-
-    const [updatedOrder] = await db
-      .update(orders)
-      .set({
-        sellerConfirmedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(orders.id, orderId))
-      .returning();
-
-    return updatedOrder;
+      return updatedOrder;
+    });
   }
 
   async shipOrder(
     orderId: string,
     sellerId: string,
     trackingNumber: string,
-    _shippingProvider?: string
+    shippingProvider: ShippingProvider
   ) {
-    const order = await this.getById(orderId);
+    return await db.transaction(async (tx) => {
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          status: "SHIPPED",
+          trackingNumber: trackingNumber,
+          shippingProvider: shippingProvider,
+          shippedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.sellerId, sellerId),
+            eq(orders.status, "PAID")
+          )
+        )
+        .returning();
 
-    if (order.sellerId !== sellerId) {
-      throw new ForbiddenError("Not your order");
-    }
+      if (!updatedOrder) {
+        await this.handleUpdateError(
+          orderId,
+          sellerId,
+          "sellerId",
+          ["PAID"],
+          tx
+        );
+      }
 
-    if (order.status !== "PAID") {
-      throw new BadRequestError("Order must be paid before shipping");
-    }
-
-    // Note: shippingProvider could be stored if we add it to the model
-    // For now, we'll skip it or could add it later
-
-    const [updatedOrder] = await db
-      .update(orders)
-      .set({
-        status: "SHIPPED",
-        trackingNumber: trackingNumber || null,
-        shippedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(orders.id, orderId))
-      .returning();
-
-    return updatedOrder;
+      return updatedOrder;
+    });
   }
 
   async receiveOrder(orderId: string, buyerId: string) {
-    const order = await this.getById(orderId);
+    return await db.transaction(async (tx) => {
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          status: "COMPLETED",
+          receivedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.winnerId, buyerId),
+            eq(orders.status, "SHIPPED"),
+            isNotNull(orders.sellerConfirmedAt) // Seller must confirm payment first
+          )
+        )
+        .returning();
 
-    if (order.winnerId !== buyerId) {
-      throw new ForbiddenError("Not your order");
-    }
+      if (!updatedOrder) {
+        await this.handleUpdateError(
+          orderId,
+          buyerId,
+          "winnerId",
+          ["SHIPPED"],
+          tx
+        );
+      }
 
-    if (order.status !== "SHIPPED") {
-      throw new BadRequestError(
-        "Order must be shipped before confirming receipt"
-      );
-    }
-
-    if (!order.sellerConfirmedAt) {
-      throw new BadRequestError("Seller must confirm payment before shipping");
-    }
-
-    // Update order status to COMPLETED
-    const [updatedOrder] = await db
-      .update(orders)
-      .set({
-        status: "COMPLETED",
-        receivedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(orders.id, orderId))
-      .returning();
-    // TODO: Trigger rating flow - could create rating records or send notifications
-
-    return updatedOrder;
+      return updatedOrder;
+    });
   }
 
   async cancelOrder(orderId: string, userId: string, reason: string) {
-    const order = await this.getById(orderId);
+    return await db.transaction(async (tx) => {
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({
+          status: "CANCELLED",
+          cancelReason: reason,
+          cancelledAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.sellerId, userId),
+            eq(orders.status, "PENDING")
+          )
+        )
+        .returning();
 
-    // Only seller can cancel order
-    if (order.sellerId !== userId) {
-      throw new ForbiddenError("Only seller can cancel this order");
-    }
+      if (!updatedOrder) {
+        await this.handleUpdateError(
+          orderId,
+          userId,
+          "sellerId",
+          ["PENDING"],
+          tx
+        );
+      }
 
-    // Can only cancel if order is still pending
-    if (order.status !== "PENDING") {
-      throw new BadRequestError("Only pending orders can be cancelled");
-    }
+      // Leave negative feedback automatically
+      await ratingService.createFeedback(orderId, userId, -1, reason);
 
-    // Update order status to CANCELLED
-    const [updatedOrder] = await db
-      .update(orders)
-      .set({
-        status: "CANCELLED",
-        cancelReason: reason,
-        cancelledAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(orders.id, orderId))
-      .returning();
-
-    // Leave negative feedback automatically
-    await this.leaveFeedback(orderId, userId, -1, reason);
-
-    return updatedOrder;
+      return updatedOrder;
+    });
   }
 
-  async leaveFeedback(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private transformOrderDetails(order: any): OrderWithDetails {
+    return {
+      ...order,
+      product: order.product
+        ? {
+            name: order.product.name,
+            slug: order.product.slug,
+            thumbnail: order.product.images?.[0]?.imageUrl ?? null,
+          }
+        : null,
+      winner: order.winner ?? null,
+      seller: order.seller ?? null,
+    };
+  }
+
+  private async handleUpdateError(
     orderId: string,
     userId: string,
-    rating: number,
-    comment?: string
+    userField: "winnerId" | "sellerId",
+    expectedStatuses: string[],
+    tx: DbTransaction
   ) {
-    const order = await this.getById(orderId);
-
-    // Check if user is buyer or seller of this order
-    if (order.winnerId !== userId && order.sellerId !== userId) {
-      throw new ForbiddenError(
-        "Not authorized to leave feedback for this order"
-      );
-    }
-
-    // Can only leave feedback for completed or cancelled orders
-    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
-      throw new BadRequestError(
-        "Can only leave feedback for completed or cancelled orders"
-      );
-    }
-
-    // Determine receiver (the other party in the transaction)
-    const receiverId =
-      order.winnerId === userId ? order.sellerId : order.winnerId;
-
-    // Check if user already left feedback for this specific order
-    // Query by checking productId + senderId + correct receiver to ensure it's from this order
-    const existingFeedback = await db.query.ratings.findFirst({
-      where: and(
-        eq(ratings.productId, order.productId),
-        eq(ratings.senderId, userId),
-        eq(ratings.receiverId, receiverId)
-      ),
+    const order = await tx.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+      columns: { winnerId: true, sellerId: true, status: true },
     });
 
-    if (existingFeedback) {
-      throw new BadRequestError("You already left feedback for this order");
+    if (!order) throw new NotFoundError("Không tìm thấy đơn hàng");
+
+    // Check quyền sở hữu
+    if (order[userField] !== userId) {
+      throw new ForbiddenError("Bạn không có quyền cập nhật đơn hàng này");
     }
 
-    // Create rating record
-    const [newRating] = await db
-      .insert(ratings)
-      .values({
-        productId: order.productId,
-        senderId: userId,
-        receiverId,
-        score: rating,
-        comment: comment || null,
-      })
-      .returning();
+    // Check trạng thái
+    if (!expectedStatuses.includes(order.status)) {
+      throw new BadRequestError(
+        `Trạng thái đơn hàng không hợp lệ. Hiện tại: ${order.status}, Yêu cầu: ${expectedStatuses.join(" hoặc ")}`
+      );
+    }
 
-    // TODO: Update user's rating statistics
-    // TODO: Send notification to receiver
-
-    return newRating;
+    throw new BadRequestError(
+      "Không thể cập nhật đơn hàng do trạng thái xung đột"
+    );
   }
 }
 

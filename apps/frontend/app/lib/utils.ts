@@ -22,14 +22,25 @@ export function formatPrice(amount: number, currency = "VND"): string {
 /**
  * Format date for display
  */
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat("vi-VN", {
+export function formatDate(date: string | Date, onlyDate = false): string {
+  const d = new Date(date);
+  const dateStr = d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
     year: "numeric",
-    month: "long",
-    day: "numeric",
+  });
+
+  if (onlyDate) {
+    return dateStr;
+  }
+
+  const timeStr = d.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+    second: "2-digit",
+  });
+
+  return `${timeStr} - ${dateStr}`;
 }
 
 /**

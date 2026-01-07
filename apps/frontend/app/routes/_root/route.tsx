@@ -2,7 +2,7 @@ import type { TopListingResponse } from "@repo/shared-types";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
-import ProductGallery from "@/components/features/product/ProductGallery";
+import { ProductGallery } from "@/components/features/product/display";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
@@ -10,10 +10,14 @@ import logger from "@/lib/logger";
 
 import type { Route } from "./+types/route";
 
+// eslint-disable-next-line no-empty-pattern
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Home Page - Online Auction" },
-    { name: "description", content: "Home Page page for Online Auction App" },
+    { title: "Trang Chủ - Online Auction" },
+    {
+      name: "description",
+      content: "Trang chủ của ứng dụng Đấu Giá Trực Tuyến",
+    },
   ];
 }
 

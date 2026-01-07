@@ -6,13 +6,12 @@ import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { orderService, productService } from "@/services";
-import { BadRequestError } from "@/utils/errors";
+import { orderService, productService, sellerService } from "@/services";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
 
 export const getMyProducts = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const query = res.locals.query as unknown as GetSellerProductsParams;
     // Get seller's products (manage listing)
     const sellerId = req.user!.id;
@@ -37,5 +36,14 @@ export const getSellingOrders = asyncHandler(
     );
 
     ResponseHandler.sendSuccess(res, paginatedOrders);
+  }
+);
+
+export const getStats = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: sellerId } = req.user!;
+
+    const stats = await sellerService.getStats(sellerId);
+    ResponseHandler.sendSuccess(res, stats);
   }
 );

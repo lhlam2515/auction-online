@@ -1,10 +1,12 @@
 import type { UserAuthData, UserRole } from "@repo/shared-types";
-import { eq, like, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/config/database";
+import logger from "@/config/logger";
 import { supabase, supabaseAdmin } from "@/config/supabase";
 import { passwordResetTokens, users } from "@/models";
-import { otpService } from "@/services";
+import { otpService, sellerService } from "@/services";
+import { generateUniqueUsername } from "@/utils";
 import {
   BadRequestError,
   ExternalServiceError,
@@ -15,24 +17,45 @@ import {
 import { generateResetToken, getResetTokenExpiry } from "@/utils/jwt";
 
 export class AuthService {
-  async getAuthData(userId: string) {
-    const user = await db.query.users.findFirst({
+  async getAuthData(userId: string): Promise<UserAuthData> {
+    const userProfile = await db.query.users.findFirst({
       where: eq(users.id, userId),
+      columns: {
+        birthDate: false,
+        address: false,
+        ratingScore: false,
+        ratingCount: false,
+        createdAt: false,
+        updatedAt: false,
+      },
     });
 
-    if (!user) {
-      throw new NotFoundError("User not found");
+    if (!userProfile) {
+      throw new UnauthorizedError("Không tìm thấy thông tin người dùng.");
     }
 
+    if (userProfile.accountStatus === "BANNED") {
+      throw new UnauthorizedError(
+        "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ hỗ trợ."
+      );
+    }
+
+    if (userProfile.accountStatus === "PENDING_VERIFICATION") {
+      throw new UnverifiedEmailError(
+        "Vui lòng xác minh địa chỉ email trước khi đăng nhập."
+      );
+    }
+
+    const isTemporarySeller = await sellerService.isTemporarySeller(userId);
+
     return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role as UserRole,
-      avatarUrl: user.avatarUrl || "",
-      accountStatus: user.accountStatus,
-    } as UserAuthData;
+      ...userProfile,
+      avatarUrl: userProfile.avatarUrl || "",
+      sellerExpireDate: userProfile.sellerExpireDate
+        ? userProfile.sellerExpireDate.toISOString()
+        : null,
+      isTemporarySeller,
+    };
   }
 
   async register(
@@ -41,23 +64,23 @@ export class AuthService {
     fullName: string,
     address: string
   ) {
+    let supabaseUserId: string | null = null;
+
     try {
-      // Check if email already exists in database
       const existingUser = await db.query.users.findFirst({
         where: eq(users.email, email),
+        columns: { id: true, accountStatus: true },
       });
 
       if (
         existingUser &&
         existingUser.accountStatus !== "PENDING_VERIFICATION"
       ) {
-        // Security: Return generic message to prevent email enumeration
         throw new BadRequestError(
           "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại."
         );
       }
 
-      // Create user in Supabase Auth (with email verification enabled)
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
@@ -69,128 +92,86 @@ export class AuthService {
         });
 
       if (authError || !authData.user) {
-        // Security: Return generic message
         throw new BadRequestError(
           "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại."
         );
       }
+      supabaseUserId = authData.user.id; // Lưu ID để rollback
 
-      // Generate unique username
-      let username = email.split("@")[0];
-      const existingUsernames = await db.query.users.findMany({
-        where: sql`${users.username} LIKE ${username} || '%'`,
-      });
-      if (existingUsernames.length > 0) {
-        username = `${username}${existingUsernames.length + 1}`;
-      }
+      await db.transaction(async (tx) => {
+        // Xử lý Username an toàn hơn: Dùng Random suffix thay vì đếm số
+        const username = await generateUniqueUsername(email);
 
-      // Create user profile in database with PENDING_VERIFICATION status
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          id: authData.user.id,
+        await tx.insert(users).values({
+          id: authData.user!.id,
           username,
-          email: authData.user.email!,
+          email: authData.user!.email!,
           fullName,
           address,
-        })
-        .returning();
+          accountStatus: "PENDING_VERIFICATION",
+        });
 
-      if (!newUser) {
-        throw new Error("Failed to create user profile");
-      }
-
-      // Send OTP email using OTP service
-      await otpService.sendOtpEmail(email, "EMAIL_VERIFICATION");
+        await otpService.sendOtpEmail(email, "EMAIL_VERIFICATION");
+      });
 
       return {
-        message: "Đăng ký thành công. Vui lòng xác minh email của bạn.",
+        message: "Đăng ký thành công. Vui lòng kiểm tra email để xác minh.",
       };
     } catch (error) {
-      // Don't reveal if email exists (security best practice)
-      if (error instanceof BadRequestError) {
-        throw error;
+      // Rollback: Xóa user Supabase nếu DB insert thất bại
+      if (supabaseUserId) {
+        await supabaseAdmin.auth.admin.deleteUser(supabaseUserId);
       }
-      throw new BadRequestError(
-        "Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại."
-      );
+
+      if (error instanceof BadRequestError) throw error;
+
+      logger.error("Register Error:", error);
+      throw new BadRequestError("Đăng ký thất bại. Vui lòng thử lại sau.");
     }
   }
 
   async verifyEmail(email: string, otp: string) {
-    try {
-      // Verify OTP using OTP service (for email verification)
-      const verificationResult = await otpService.verifyOtp(
-        email,
-        otp,
-        "EMAIL_VERIFICATION"
-      );
+    const verificationResult = await otpService.verifyOtp(
+      email,
+      otp,
+      "EMAIL_VERIFICATION"
+    );
 
-      if (!verificationResult.isValid || !verificationResult.otpRecordId) {
-        throw new UnauthorizedError("Xác minh OTP thất bại");
-      }
+    if (!verificationResult.isValid || !verificationResult.otpRecordId) {
+      throw new UnauthorizedError("Xác minh OTP thất bại");
+    }
 
-      // Find user in database by email
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, email),
-      });
-
-      if (!user) {
-        throw new NotFoundError("Không tìm thấy người dùng");
-      }
-
-      // Update user's accountStatus to ACTIVE
-      const [updatedUser] = await db
+    await db.transaction(async (tx) => {
+      const [updatedUser] = await tx
         .update(users)
         .set({
           accountStatus: "ACTIVE",
           updatedAt: new Date(),
         })
-        .where(eq(users.id, user.id))
-        .returning();
+        .where(eq(users.email, email))
+        .returning({ id: users.id });
 
       if (!updatedUser) {
-        throw new NotFoundError("User not found");
+        // Trường hợp hy hữu: OTP đúng nhưng User không tồn tại (đã bị xóa?)
+        throw new NotFoundError("Không tìm thấy người dùng để kích hoạt.");
       }
 
-      // Clean up OTP record after successful verification
+      // Cleanup OTP trong cùng transaction
       await otpService.cleanupOtpAfterVerification(
-        verificationResult.otpRecordId
+        verificationResult.otpRecordId!,
+        tx
       );
+    });
 
-      return {
-        message:
-          "Xác minh email thành công. Bạn có thể đăng nhập ngay bây giờ.",
-      };
-    } catch (error) {
-      if (
-        error instanceof UnauthorizedError ||
-        error instanceof NotFoundError
-      ) {
-        throw error;
-      }
-      throw new UnauthorizedError(
-        `Xác minh email thất bại: ${
-          error instanceof Error ? error.message : "Lỗi không xác định"
-        }`
-      );
-    }
+    return {
+      message: "Xác minh email thành công. Bạn có thể đăng nhập ngay bây giờ.",
+    };
   }
 
   async login(email: string, password: string) {
     try {
-      // Find user in database (for status check)
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.email, email),
-      });
-
-      // Check if user exists in database
-      if (!existingUser) {
-        // Security: Return generic message
-        throw new UnauthorizedError("Email hoặc mật khẩu không hợp lệ");
-      }
-
-      // Authenticate with Supabase Auth
+      // 1. SECURITY FIX: Authenticate with Supabase FIRST
+      // Để tránh Timing Attack: Luôn tốn thời gian verify password trước
       const { data: authData, error: authError } =
         await supabase.auth.signInWithPassword({
           email,
@@ -198,77 +179,161 @@ export class AuthService {
         });
 
       if (authError || !authData.user || !authData.session) {
-        // Security: Return generic message
         throw new UnauthorizedError("Email hoặc mật khẩu không hợp lệ");
       }
 
-      // Check if account is BANNED
-      if (existingUser.accountStatus === "BANNED") {
+      // 2. Fetch user profile AFTER authentication
+      // Dùng ID từ Supabase để query (nhanh hơn query bằng email vì là Primary Key)
+      const userProfile = await db.query.users.findFirst({
+        where: eq(users.id, authData.user.id),
+      });
+
+      // Trường hợp hy hữu: Có trên Supabase nhưng không có trong DB local (Lỗi đồng bộ)
+      if (!userProfile) {
+        throw new UnauthorizedError("Không tìm thấy thông tin người dùng.");
+      }
+
+      // 3. Check status checks
+      if (userProfile.accountStatus === "BANNED") {
         throw new UnauthorizedError(
           "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ hỗ trợ."
         );
       }
 
-      // Check if account is PENDING_VERIFICATION
-      if (existingUser.accountStatus === "PENDING_VERIFICATION") {
+      if (userProfile.accountStatus === "PENDING_VERIFICATION") {
         throw new UnverifiedEmailError(
           "Vui lòng xác minh địa chỉ email trước khi đăng nhập."
         );
       }
 
+      const isTemporarySeller = await sellerService.isTemporarySeller(
+        userProfile.id
+      );
+
+      // 4. Prepare UserAuthData response
+      const userData: UserAuthData = {
+        id: userProfile.id,
+        username: userProfile.username,
+        email: userProfile.email,
+        fullName: userProfile.fullName,
+        role: userProfile.role as UserRole, // Cast enum nếu cần
+        avatarUrl: userProfile.avatarUrl || undefined, // Handle null vs undefined
+        accountStatus: userProfile.accountStatus,
+        sellerExpireDate: userProfile.sellerExpireDate?.toISOString() ?? null,
+        isTemporarySeller,
+      };
+
       return {
-        user: {
-          id: existingUser.id,
-          username: existingUser.username,
-          email: existingUser.email,
-          fullName: existingUser.fullName,
-          role: existingUser.role as UserRole,
-          avatarUrl: authData.user.user_metadata?.avatar_url || "",
-          accountStatus: existingUser.accountStatus,
-        },
+        user: userData,
         accessToken: authData.session.access_token || "",
         refreshToken: authData.session.refresh_token || "",
       };
     } catch (error) {
-      if (error instanceof UnauthorizedError) {
+      if (
+        error instanceof UnauthorizedError ||
+        error instanceof UnverifiedEmailError
+      ) {
         throw error;
       }
-      // Security: Return generic message
+
+      logger.error("Login Error:", error);
       throw new UnauthorizedError("Email hoặc mật khẩu không hợp lệ");
     }
   }
 
-  async logout(_userId: string) {
-    // Supabase handles session cleanup on client side
-    // This method can be used for server-side cleanup (audit logs, etc.)
-    return { message: "Đăng xuất thành công" };
+  async logout(accessToken: string) {
+    try {
+      // Hành động này sẽ vô hiệu hóa Refresh Token hiện tại và các token liên quan.
+      // scope: 'global' sẽ đăng xuất user khỏi TẤT CẢ các thiết bị (An toàn nhất)
+      const { error } = await supabaseAdmin.auth.admin.signOut(
+        accessToken,
+        "global"
+      );
+
+      if (error) {
+        logger.error(`Logout failed:`, error);
+      }
+
+      return { message: "Đăng xuất thành công" };
+    } catch (error) {
+      // Không throw error chặn luồng logout của user
+      logger.error("Logout system error:", error);
+      return { message: "Đăng xuất thành công" };
+    }
   }
 
-  async refreshToken(refreshToken: string) {
-    // Refresh access token using refresh token from Supabase
+  async refreshToken(incomingRefreshToken: string) {
+    // 1. Refresh session với Supabase trước
     const { data, error } = await supabase.auth.refreshSession({
-      refresh_token: refreshToken,
+      refresh_token: incomingRefreshToken,
     });
 
     if (error || !data.user || !data.session) {
-      throw new UnauthorizedError("Không thể làm mới token");
+      // Lỗi này thường do Refresh Token hết hạn hoặc đã bị thu hồi (Reuse detection)
+      throw new UnauthorizedError(
+        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+      );
     }
 
-    return {
-      accessToken: data.session.access_token,
-      refreshToken: data.session.refresh_token,
-    };
+    try {
+      // 2. SECURITY CRITICAL: Kiểm tra trạng thái User trong DB
+      // Ngăn chặn trường hợp User đã bị BAN nhưng Refresh Token vẫn còn hạn
+      const userStatus = await db.query.users.findFirst({
+        where: eq(users.id, data.user.id),
+        columns: {
+          id: true,
+          accountStatus: true,
+          role: true,
+        },
+      });
+
+      if (!userStatus) {
+        // User bị xóa khỏi DB nhưng vẫn còn bên Supabase Auth
+        // -> Xóa luôn user khỏi Supabase Auth để dọn dẹp dữ liệu rác
+        await supabaseAdmin.auth.admin.deleteUser(data.user.id);
+        throw new UnauthorizedError("Tài khoản không tồn tại.");
+      }
+
+      if (userStatus.accountStatus === "BANNED") {
+        // User bị cấm -> Thu hồi ngay token vừa cấp -> Chặn truy cập
+        // Sử dụng access token vừa refresh để signOut
+        await supabaseAdmin.auth.admin.signOut(
+          data.session.access_token,
+          "global"
+        );
+        throw new UnauthorizedError("Tài khoản của bạn đã bị vô hiệu hóa.");
+      }
+
+      // 3. (Optional) Update 'Last Active' timestamp
+      // Giúp tracking user online/offline mà không cần socket
+      // Dùng update nhẹ, không cần await để không block response (Fire & Forget)
+      db.update(users)
+        .set({ updatedAt: new Date() })
+        .where(eq(users.id, userStatus.id))
+        .execute()
+        .catch((err) => logger.error("Update last active failed", err));
+
+      return {
+        accessToken: data.session.access_token,
+        refreshToken: data.session.refresh_token,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedError) throw error;
+
+      logger.error("RefreshToken Logic Error:", error);
+      throw new UnauthorizedError("Không thể làm mới phiên đăng nhập.");
+    }
   }
 
   async forgotPassword(email: string) {
     try {
+      // Chỉ lấy status, không select *
       const user = await db.query.users.findFirst({
         where: eq(users.email, email),
+        columns: { id: true, accountStatus: true },
       });
 
-      // Only process if user exists and account is ACTIVE
       if (user && user.accountStatus === "ACTIVE") {
-        // Check for existing valid OTP before sending a new one
         const existingOtp = await otpService.findValidOtp(
           email,
           "PASSWORD_RESET"
@@ -276,13 +341,21 @@ export class AuthService {
         if (!existingOtp) {
           await otpService.sendOtpEmail(email, "PASSWORD_RESET");
         }
+      } else {
+        // FAKE DELAY: Nếu không tìm thấy user, ta vẫn chờ một chút
+        // để kẻ tấn công không đoán được qua thời gian phản hồi.
+        // Thời gian chờ nên tương đương thời gian gửi mail trung bình (vd: 500ms - 1000ms)
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.random() * 500 + 500)
+        );
       }
 
       return {
         message:
           "Nếu email này tồn tại, một OTP đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.",
       };
-    } catch {
+    } catch (error) {
+      logger.error("Forgot Password Error:", error);
       return {
         message:
           "Nếu email này tồn tại, một OTP đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn.",
@@ -291,60 +364,47 @@ export class AuthService {
   }
 
   async verifyResetOtp(email: string, otp: string) {
-    try {
-      const verificationResult = await otpService.verifyOtp(
-        email,
-        otp,
-        "PASSWORD_RESET"
-      );
+    const verificationResult = await otpService.verifyOtp(
+      email,
+      otp,
+      "PASSWORD_RESET"
+    );
 
-      if (!verificationResult.isValid || !verificationResult.otpRecordId) {
-        throw new UnauthorizedError("Xác minh OTP thất bại");
-      }
+    if (!verificationResult.isValid || !verificationResult.otpRecordId) {
+      throw new UnauthorizedError("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+    }
 
-      const user = await db.query.users.findFirst({
+    return await db.transaction(async (tx) => {
+      const user = await tx.query.users.findFirst({
         where: eq(users.email, email),
+        columns: { accountStatus: true },
       });
 
-      if (!user) {
-        throw new NotFoundError("Không tìm thấy người dùng");
-      }
+      if (!user) throw new NotFoundError("Người dùng không tồn tại.");
 
       if (user.accountStatus !== "ACTIVE") {
         throw new BadRequestError(
-          "Đặt lại mật khẩu chỉ được phép cho tài khoản đang hoạt động."
+          "Tài khoản chưa được kích hoạt hoặc đã bị khóa."
         );
       }
 
-      // Generate reset token and store it in database
       const resetToken = generateResetToken();
       const expiresAt = getResetTokenExpiry();
 
-      await db.insert(passwordResetTokens).values({
+      // Xóa các token cũ của email này (nếu có) để tránh rác DB
+      await tx
+        .delete(passwordResetTokens)
+        .where(eq(passwordResetTokens.email, email));
+
+      await tx.insert(passwordResetTokens).values({
         email,
         token: resetToken,
-        otpRecordId: verificationResult.otpRecordId,
+        otpRecordId: verificationResult.otpRecordId!,
         expiresAt,
       });
 
-      return {
-        resetToken,
-        expiresAt,
-      };
-    } catch (error) {
-      if (
-        error instanceof UnauthorizedError ||
-        error instanceof NotFoundError ||
-        error instanceof BadRequestError
-      ) {
-        throw error;
-      }
-      throw new UnauthorizedError(
-        `Xác minh OTP thất bại: ${
-          error instanceof Error ? error.message : "Lỗi không xác định"
-        }`
-      );
-    }
+      return { resetToken, expiresAt };
+    });
   }
 
   async resetPassword(resetToken: string, newPassword: string) {
@@ -354,67 +414,67 @@ export class AuthService {
       });
 
       if (!resetTokenRecord) {
-        throw new UnauthorizedError(
-          "Token đặt lại không hợp lệ hoặc đã hết hạn."
-        );
+        throw new UnauthorizedError("Token không hợp lệ hoặc đã được sử dụng.");
       }
 
-      // Check if reset token is expired
       if (new Date() > resetTokenRecord.expiresAt) {
+        // Token hết hạn -> Xóa luôn cho sạch DB
+        await db
+          .delete(passwordResetTokens)
+          .where(eq(passwordResetTokens.token, resetToken));
         throw new UnauthorizedError(
-          "Token đặt lại đã hết hạn. Vui lòng yêu cầu đặt lại mật khẩu mới."
+          "Token đã hết hạn. Vui lòng thực hiện lại."
         );
       }
 
-      // Find user
       const user = await db.query.users.findFirst({
         where: eq(users.email, resetTokenRecord.email),
+        columns: { id: true, accountStatus: true },
       });
 
-      if (!user) {
-        throw new NotFoundError("Không tìm thấy người dùng");
+      if (!user || user.accountStatus !== "ACTIVE") {
+        throw new BadRequestError("Tài khoản không hợp lệ.");
       }
 
-      if (user.accountStatus !== "ACTIVE") {
-        throw new BadRequestError(
-          "Đặt lại mật khẩu chỉ được phép cho tài khoản đang hoạt động."
-        );
-      }
-
-      // Update password in Supabase Auth (using Admin API)
       const { error: updateError } =
         await supabaseAdmin.auth.admin.updateUserById(user.id, {
           password: newPassword,
         });
 
       if (updateError) {
-        throw new BadRequestError(
-          `Không thể cập nhật mật khẩu: ${updateError.message}`
-        );
+        throw new BadRequestError(`Lỗi hệ thống: ${updateError.message}`);
       }
 
-      // Clean up OTP record after successful password reset
-      await otpService.cleanupOtpAfterVerification(
-        resetTokenRecord.otpRecordId
-      );
+      await db.transaction(async (tx) => {
+        // Xóa Token đặt lại mật khẩu để KHÔNG THỂ DÙNG LẠI (Replay Attack Protection)
+        await tx
+          .delete(passwordResetTokens)
+          .where(eq(passwordResetTokens.token, resetToken));
+
+        // Xóa OTP liên quan (nếu chưa xóa ở bước trước)
+        if (resetTokenRecord.otpRecordId) {
+          await otpService.cleanupOtpAfterVerification(
+            resetTokenRecord.otpRecordId,
+            tx
+          );
+        }
+      });
+
+      // Sau khi đổi mật khẩu, Supabase tự động vô hiệu hóa các session cũ
+      // User cần đăng nhập lại với mật khẩu mới
 
       return {
-        message:
-          "Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập ngay bây giờ.",
+        message: "Đổi mật khẩu thành công. Hãy đăng nhập bằng mật khẩu mới.",
       };
     } catch (error) {
       if (
         error instanceof UnauthorizedError ||
-        error instanceof NotFoundError ||
         error instanceof BadRequestError
-      ) {
+      )
         throw error;
-      }
-      throw new BadRequestError(
-        `Đặt lại mật khẩu thất bại: ${
-          error instanceof Error ? error.message : "Lỗi không xác định"
-        }`
-      );
+
+      logger.error("Reset Password Error:", error);
+      throw new BadRequestError("Đổi mật khẩu thất bại. Vui lòng thử lại.");
     }
   }
 
@@ -422,9 +482,7 @@ export class AuthService {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: {
-          redirectTo,
-        },
+        options: { redirectTo },
       });
 
       if (error || !data.url) {
@@ -433,10 +491,9 @@ export class AuthService {
 
       return { redirectUrl: data.url };
     } catch (error) {
+      logger.error("OAuth Sign-In Error:", error);
       throw new ExternalServiceError(
-        `OAuth sign-in failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+        "Đăng nhập OAuth thất bại. Vui lòng thử lại sau."
       );
     }
   }
@@ -455,65 +512,44 @@ export class AuthService {
         throw new UnauthorizedError("Email người dùng chưa được xác minh");
       }
 
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.email, user.email),
-      });
-
-      // If user does not exist in our database, create a new profile
-      if (!existingUser) {
-        const fullName =
-          user.user_metadata.full_name ||
-          user.user_metadata.display_name ||
-          "Unknown";
-        const address = user.user_metadata.address || "Unknown";
-
-        // Generate unique username
-        let username = user.email!.split("@")[0];
-        const existingUsernames = await db.query.users.findMany({
-          where: like(users.username, `${username}%`),
+      await db.transaction(async (tx) => {
+        const existingUser = await tx.query.users.findFirst({
+          where: eq(users.email, user.email!),
+          columns: { id: true, accountStatus: true },
         });
-        if (existingUsernames.length > 0) {
-          username = `${username}${existingUsernames.length + 1}`;
-        }
 
-        const [newUser] = await db
-          .insert(users)
-          .values({
+        // Nếu user chưa tồn tại, tạo mới
+        if (!existingUser) {
+          const username = await generateUniqueUsername(user.email!);
+
+          await tx.insert(users).values({
             id: user.id,
             username,
             email: user.email!,
-            fullName,
-            address,
+            fullName: user.user_metadata.full_name || "Unknown",
+            address: user.user_metadata.address || "Unknown",
             avatarUrl: user.user_metadata.avatar_url || "",
             accountStatus: "ACTIVE",
-          })
-          .returning();
+          });
+        } else {
+          // Nếu user tồn tại, chỉ cần update avatar/info từ OAuth provider
+          if (existingUser.accountStatus === "BANNED") {
+            throw new UnauthorizedError(
+              "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ hỗ trợ."
+            );
+          }
 
-        if (!newUser) {
-          throw new Error("Tạo hồ sơ người dùng thất bại");
+          // Cập nhật thông tin người dùng từ metadata
+          await tx
+            .update(users)
+            .set({
+              fullName: user.user_metadata.full_name || undefined,
+              avatarUrl: user.user_metadata.avatar_url || "",
+              updatedAt: new Date(),
+            })
+            .where(eq(users.id, existingUser.id));
         }
-      } else {
-        // If user exists but is BANNED, prevent login
-        if (existingUser.accountStatus === "BANNED") {
-          throw new UnauthorizedError(
-            "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ hỗ trợ."
-          );
-        }
-
-        // Update existing user's avatar URL from OAuth provider
-        const [updatedUser] = await db
-          .update(users)
-          .set({
-            avatarUrl: existingUser.avatarUrl || user.user_metadata.avatar_url,
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, existingUser.id))
-          .returning();
-
-        if (!updatedUser) {
-          throw new Error("Cập nhật hồ sơ người dùng thất bại");
-        }
-      }
+      });
 
       return {
         accessToken: session.access_token,
@@ -523,10 +559,9 @@ export class AuthService {
       if (error instanceof UnauthorizedError) {
         throw error;
       }
+      logger.error("OAuth Callback Error:", error);
       throw new ExternalServiceError(
-        `OAuth callback failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+        "Xử lý callback OAuth thất bại. Vui lòng thử lại sau."
       );
     }
   }

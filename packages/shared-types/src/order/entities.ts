@@ -1,3 +1,5 @@
+import { RatingSummary } from "../rating";
+import { PublicProfile } from "../user";
 import type {
   OrderStatus,
   PaymentMethod,
@@ -11,9 +13,9 @@ import type {
 export interface Order {
   id: string;
   orderNumber: string; // Human-readable order number
-  productId: string;
-  winnerId: string;
-  sellerId: string;
+  productId: string | null; // Nullable when product deleted
+  winnerId: string | null; // Nullable when winner deleted
+  sellerId: string | null; // Nullable when seller deleted
   finalPrice: string; // Decimal as string
   shippingCost: string; // Decimal as string
   totalAmount: string; // Decimal as string
@@ -22,6 +24,7 @@ export interface Order {
   // Shipping information
   shippingAddress: string;
   phoneNumber: string;
+  shippingProvider: ShippingProvider | null;
   trackingNumber: string | null;
 
   // Timeline
@@ -37,21 +40,27 @@ export interface Order {
 
 /**
  * Order with related information for display
+ * Note: These fields can be null when related user/product is deleted
  */
 export interface OrderWithDetails extends Order {
   product: {
     name: string;
     slug: string;
     thumbnail?: string;
-  };
+  } | null; // Nullable when product deleted
   winner: {
     fullName: string;
     email: string;
-  };
+    address: string | null;
+    ratingScore: number;
+  } | null; // Nullable when winner deleted
   seller: {
     fullName: string;
     email: string;
-  };
+    address: string | null;
+    ratingScore: number;
+  } | null; // Nullable when seller deleted
+  payment?: OrderPayment;
 }
 
 /**

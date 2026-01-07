@@ -44,7 +44,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   messagesReceived: many(chatMessages, { relationName: "receiver" }),
 
   // User product questions
-  productQuestions: many(productQuestions, { relationName: "questioner" }),
+  productQuestions: many(productQuestions, { relationName: "asker" }),
 
   // User answered questions
   answeredQuestions: many(productQuestions, { relationName: "answerer" }),
@@ -214,9 +214,9 @@ export const autoBidsRelations = relations(autoBids, ({ one }) => ({
 
 // Rating Relations
 export const ratingsRelations = relations(ratings, ({ one }) => ({
-  product: one(products, {
-    fields: [ratings.productId],
-    references: [products.id],
+  order: one(orders, {
+    fields: [ratings.orderId],
+    references: [orders.id],
   }),
 
   sender: one(users, {
@@ -234,9 +234,9 @@ export const ratingsRelations = relations(ratings, ({ one }) => ({
 
 // Chat Message Relations
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
-  product: one(products, {
-    fields: [chatMessages.productId],
-    references: [products.id],
+  order: one(orders, {
+    fields: [chatMessages.orderId],
+    references: [orders.id],
   }),
 
   sender: one(users, {
@@ -261,13 +261,13 @@ export const productQuestionsRelations = relations(
       references: [products.id],
     }),
 
-    user: one(users, {
+    asker: one(users, {
       fields: [productQuestions.userId],
       references: [users.id],
-      relationName: "questioner",
+      relationName: "asker",
     }),
 
-    answeredBy: one(users, {
+    answerer: one(users, {
       fields: [productQuestions.answeredBy],
       references: [users.id],
       relationName: "answerer",
@@ -295,7 +295,15 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   }),
 
   // Order payments
-  payments: many(orderPayments),
+  payment: one(orderPayments, {
+    fields: [orders.id],
+    references: [orderPayments.orderId],
+  }),
+
+  // Ratings for this order
+  ratings: many(ratings, {
+    relationName: "order",
+  }),
 }));
 
 // Order Payment Relations

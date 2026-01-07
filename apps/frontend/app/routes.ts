@@ -20,6 +20,9 @@ export default [
     index("routes/_root/route.tsx"), // Homepage
     route("search", "routes/_root/search/route.tsx"),
     route("products/:id", "routes/_root/products.$id/route.tsx"),
+    route("profile/:id", "routes/_root/profile.$id/route.tsx"),
+    route("not-found", "routes/_root/not-found/route.tsx"),
+    route("unauthorized", "routes/_root/unauthorized/route.tsx"),
 
     // 3. Account Group (Layout Sidebar)
     route("account", "routes/account/layout.tsx", [
@@ -48,6 +51,10 @@ export default [
       route("users", "routes/admin/users/route.tsx"),
       route("products", "routes/admin/products/route.tsx"),
       route("upgrades", "routes/admin/upgrades/route.tsx"),
+      route("settings", "routes/admin/settings/route.tsx"),
     ]),
+
+    // 6. Catch-all 404 route (must be last)
+    route("*", "routes/route.tsx"),
   ]),
 ] satisfies RouteConfig;

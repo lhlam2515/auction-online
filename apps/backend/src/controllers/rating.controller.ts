@@ -1,12 +1,15 @@
 import type {
   CreateRatingRequest,
-  Rating,
+  GetRatingsParams,
+  PaginatedResponse,
+  RatingWithUsers,
   RatingSummary,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { ratingService } from "@/services";
 import { NotImplementedError } from "@/utils/errors";
 import { ResponseHandler } from "@/utils/response";
 
@@ -19,15 +22,25 @@ export const createRating = asyncHandler(
 );
 
 export const getRatingHistory = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get user's rating history
-    throw new NotImplementedError("Get rating history not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { userId } = req.params;
+    const query = res.locals.query as GetRatingsParams;
+
+    const result = await ratingService.getByUser(userId, query);
+
+    return ResponseHandler.sendSuccess<PaginatedResponse<RatingWithUsers>>(
+      res,
+      result
+    );
   }
 );
 
 export const getRatingSummary = asyncHandler(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // TODO: Get user's rating summary
-    throw new NotImplementedError("Get rating summary not implemented yet");
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { userId } = req.params;
+
+    const summary = await ratingService.getSummary(userId);
+
+    return ResponseHandler.sendSuccess<RatingSummary>(res, summary);
   }
 );

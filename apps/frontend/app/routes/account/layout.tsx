@@ -1,13 +1,22 @@
 import { Outlet } from "react-router";
 
-import { ProfileSidebar } from "@/components/layout/sidebar";
+import { Sidebar } from "@/components/layout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ADMIN_ROUTES } from "@/constants/routes";
 
+/**
+ * Account Layout
+ * Protected routes for BIDDER and SELLER only
+ * ADMIN users are excluded as they use admin-specific features
+ */
 export default function AccountLayout() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute
+      requiredRole={["BIDDER", "SELLER"]}
+      redirectTo={ADMIN_ROUTES.DASHBOARD}
+    >
       <div className="sidebar-layout">
-        <ProfileSidebar />
+        <Sidebar />
         <div className="container">
           <Outlet />
         </div>

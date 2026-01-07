@@ -2,26 +2,32 @@ import type { RatingScore } from "../common/enums";
 
 /**
  * Rating entity - matches backend ratings table
+ * Note: Ratings are CASCADE deleted when product is deleted (not SET NULL)
  */
 export interface Rating {
   id: string;
-  productId: string;
-  senderId: string;
+  orderId: string; // CASCADE deleted with product
+  senderId: string | null; // Nullable if user deleted (for statistics)
   receiverId: string;
   score: RatingScore; // 1 (positive) or -1 (negative)
-  comment?: string;
+  comment: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 /**
  * Rating with user information for display
+ * Note: Ratings are CASCADE deleted with product, so productName always exists
  */
 export interface RatingWithUsers extends Rating {
-  senderName: string;
-  senderAvatarUrl?: string;
-  receiverName: string;
-  productName: string;
+  sender: {
+    fullName: string;
+    avatarUrl?: string | null;
+  } | null;
+  receiver?: {
+    fullName: string;
+    avatarUrl?: string | null;
+  };
 }
 
 /**

@@ -1,6 +1,7 @@
-import { and, eq, lt, sql } from "drizzle-orm";
+import { and, eq, gt, sql, desc } from "drizzle-orm";
 
 import { db } from "@/config/database";
+import logger from "@/config/logger";
 import { otpVerifications, users } from "@/models";
 import { emailService } from "@/services";
 import { OtpPurpose } from "@/types/model";
@@ -14,18 +15,12 @@ import { generateOtp, getOtpExpiry } from "@/utils/jwt";
 export interface VerifyOtpResult {
   isValid: boolean;
   otpRecordId?: string;
-  errorMessage?: string;
-}
-
-interface CleanupOptions {
-  email?: string;
-  purpose?: OtpPurpose;
-  otpRecordId?: string;
-  expired?: boolean;
-  maxAttemptsExceeded?: boolean;
 }
 
 export class OtpService {
+  private readonly OTP_COOLDOWN_SECONDS = 30;
+  private readonly MAX_ATTEMPTS = 3;
+
   async findValidOtp(
     email: string,
     purpose: OtpPurpose
@@ -34,9 +29,9 @@ export class OtpService {
       where: and(
         eq(otpVerifications.email, email),
         eq(otpVerifications.purpose, purpose),
-        lt(otpVerifications.expiresAt, new Date())
+        gt(otpVerifications.expiresAt, new Date())
       ),
-      orderBy: (table, { desc }) => [desc(table.createdAt)],
+      orderBy: [desc(otpVerifications.createdAt)],
     });
 
     if (otpRecord) {
@@ -52,29 +47,68 @@ export class OtpService {
   async sendOtpEmail(
     email: string,
     purpose: OtpPurpose
-  ): Promise<{ otpCode: string }> {
-    try {
-      // Generate 6-digit OTP code
+  ): Promise<{ otpCode: string; expiresAt: Date }> {
+    // 1. Rate Limiting Check: Kiểm tra OTP gần nhất
+    const lastOtp = await db.query.otpVerifications.findFirst({
+      where: and(
+        eq(otpVerifications.email, email),
+        eq(otpVerifications.purpose, purpose)
+      ),
+      orderBy: [desc(otpVerifications.createdAt)],
+    });
+
+    if (lastOtp) {
+      const now = new Date();
+      const timeDiff = (now.getTime() - lastOtp.createdAt.getTime()) / 1000;
+
+      if (timeDiff < this.OTP_COOLDOWN_SECONDS) {
+        throw new Error(
+          `Vui lòng chờ ${Math.ceil(
+            this.OTP_COOLDOWN_SECONDS - timeDiff
+          )} giây trước khi yêu cầu mã OTP mới.`
+        );
+      }
+    }
+
+    return await db.transaction(async (tx) => {
+      // 2. Cleanup: Vô hiệu hóa tất cả OTP cũ của email+purpose này
+      // Để đảm bảo chỉ có 1 OTP active tại 1 thời điểm
+      await tx
+        .delete(otpVerifications)
+        .where(
+          and(
+            eq(otpVerifications.email, email),
+            eq(otpVerifications.purpose, purpose)
+          )
+        );
+
+      // 3. Generate & Save New OTP
       const otpCode = generateOtp();
       const expiresAt = getOtpExpiry();
 
-      // Store OTP in database
-      await db.insert(otpVerifications).values({
+      await tx.insert(otpVerifications).values({
         email,
         otpCode,
         purpose,
         expiresAt,
+        attempts: 0,
+        createdAt: new Date(), // Đảm bảo có field này để tính cooldown
       });
 
-      // Queue OTP email
-      await emailService.queueOtpEmail(email, otpCode);
+      // 4. Send Email (Side effect - sử dụng queue trong thực tế)
+      // Nếu gửi mail lỗi, transaction sẽ rollback, không lưu OTP rác
+      try {
+        await emailService.sendOtpEmail(email, otpCode, purpose);
+      } catch (err) {
+        // Nếu mail server chết, throw error để rollback DB insert
+        logger.error(
+          `Send OTP email failed for ${email}: ${(err as Error).message}`
+        );
+        throw new Error("Không thể gửi email OTP. Vui lòng thử lại sau.");
+      }
 
-      return { otpCode };
-    } catch (error) {
-      throw new Error(
-        `Failed to send OTP email: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    }
+      return { otpCode, expiresAt };
+    });
   }
 
   async verifyOtp(
@@ -82,189 +116,94 @@ export class OtpService {
     otp: string,
     purpose: OtpPurpose
   ): Promise<VerifyOtpResult> {
-    try {
-      // Find the latest OTP verification record for this email
-      let otpRecord;
+    const otpRecord = await db.query.otpVerifications.findFirst({
+      where: and(
+        eq(otpVerifications.email, email),
+        eq(otpVerifications.purpose, purpose)
+      ),
+      orderBy: [desc(otpVerifications.createdAt)],
+    });
 
-      if (purpose) {
-        // Query with purpose filter
-        const records = await db
-          .select()
-          .from(otpVerifications)
-          .where(
-            and(
-              eq(otpVerifications.email, email),
-              eq(otpVerifications.purpose, purpose)
-            )
-          )
-          .orderBy(sql`${otpVerifications.createdAt} DESC`)
-          .limit(1);
+    if (!otpRecord) {
+      throw new UnauthorizedError("Mã xác thực không tồn tại hoặc đã hết hạn.");
+    }
 
-        otpRecord = records[0];
-      } else {
-        otpRecord = await db.query.otpVerifications.findFirst({
-          where: eq(otpVerifications.email, email),
-          orderBy: (table, { desc }) => [desc(table.createdAt)],
-        });
-      }
-
-      if (!otpRecord) {
-        throw new UnauthorizedError(
-          "No OTP request found for this email. Please request a new OTP."
-        );
-      }
-
-      // Check if OTP has expired
-      if (new Date() > otpRecord.expiresAt) {
-        throw new UnauthorizedError(
-          "OTP has expired. Please request a new OTP."
-        );
-      }
-
-      // Check attempts limit (max 3 attempts)
-      if (otpRecord.attempts >= 3) {
-        throw new UnauthorizedError(
-          "Maximum OTP verification attempts exceeded. Please request a new OTP."
-        );
-      }
-
-      // Validate OTP code
-      if (otpRecord.otpCode !== otp) {
-        // Increment attempts
-        await db
-          .update(otpVerifications)
-          .set({ attempts: sql`${otpVerifications.attempts} + 1` })
-          .where(eq(otpVerifications.id, otpRecord.id));
-
-        throw new UnauthorizedError("Invalid OTP code. Please try again.");
-      }
-
-      // OTP is valid
-      return {
-        isValid: true,
-        otpRecordId: otpRecord.id,
-      };
-    } catch (error) {
-      // Re-throw known errors
-      if (error instanceof UnauthorizedError) {
-        throw error;
-      }
-
-      // Handle unexpected errors
+    if (new Date() > otpRecord.expiresAt) {
       throw new UnauthorizedError(
-        `OTP verification failed: ${error instanceof Error ? error.message : "Unknown error"}`
+        "Mã xác thực đã hết hạn. Vui lòng yêu cầu mã mới."
       );
     }
+
+    if (otpRecord.attempts >= this.MAX_ATTEMPTS) {
+      throw new UnauthorizedError(
+        "Bạn đã nhập sai quá số lần quy định. Vui lòng yêu cầu mã mới."
+      );
+    }
+
+    if (otpRecord.otpCode !== otp) {
+      // ATOMIC UPDATE: Tăng số lần thử ngay lập tức để tránh Race Condition
+      await db
+        .update(otpVerifications)
+        .set({ attempts: sql`${otpVerifications.attempts} + 1` })
+        .where(eq(otpVerifications.id, otpRecord.id));
+
+      throw new UnauthorizedError("Mã xác thực không chính xác.");
+    }
+
+    // Lưu ý: Không xóa OTP ngay tại đây.
+    // Việc xóa sẽ do AuthService thực hiện SAU KHI các logic nghiệp vụ khác thành công.
+    return {
+      isValid: true,
+      otpRecordId: otpRecord.id,
+    };
   }
 
   async resendOtp(email: string, purpose: OtpPurpose = "EMAIL_VERIFICATION") {
-    try {
-      // Check if user exists
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, email),
-      });
+    // 1. Check User Existence & Status
+    // Logic này giữ nguyên vì nó bảo vệ nghiệp vụ đúng đắn
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
+      columns: { accountStatus: true },
+    });
 
-      if (!user) {
-        // Security: Return generic message to prevent email enumeration
-        // For PASSWORD_RESET, we still return success message
-        if (purpose === "PASSWORD_RESET") {
-          return {
-            message:
-              "If this email exists, a password reset OTP has been resent to your email address.",
-          };
-        }
-        throw new NotFoundError("User not found");
-      }
-
-      // Validate account status based on purpose
-      if (purpose === "EMAIL_VERIFICATION") {
-        // For email verification, only allow if account is PENDING_VERIFICATION
-        if (user.accountStatus !== "PENDING_VERIFICATION") {
-          throw new BadRequestError(
-            "Email is already verified or account is in an invalid state."
-          );
-        }
-      } else if (purpose === "PASSWORD_RESET") {
-        // For password reset, only allow if account is ACTIVE
-        if (user.accountStatus !== "ACTIVE") {
-          // Security: Return generic message for non-active accounts
-          return {
-            message:
-              "If this email exists, a password reset OTP has been resent to your email address.",
-          };
-        }
-      }
-
-      // Clean up old OTP records before sending new one (only when resending)
-      await this.cleanupOldOtpsForResend(email, purpose);
-
-      // Send new OTP email using OTP service
-      await this.sendOtpEmail(email, purpose);
-
-      // Return appropriate message based on purpose
+    // Xử lý bảo mật: Chống User Enumeration
+    if (!user) {
       if (purpose === "PASSWORD_RESET") {
-        return {
-          message:
-            "If this email exists, a password reset OTP has been resent to your email address.",
-        };
+        // Fake success message
+        return { message: "Nếu email tồn tại, mã OTP mới đã được gửi." };
       }
+      throw new NotFoundError("Email không tồn tại trong hệ thống.");
+    }
 
-      return { message: "OTP code has been resent to your email address." };
-    } catch (error) {
-      if (error instanceof NotFoundError || error instanceof BadRequestError) {
-        throw error;
-      }
+    if (
+      purpose === "EMAIL_VERIFICATION" &&
+      user.accountStatus !== "PENDING_VERIFICATION"
+    ) {
       throw new BadRequestError(
-        "Failed to resend OTP. Please try again later."
+        "Tài khoản đã được xác minh hoặc đang bị khóa."
       );
     }
+
+    if (purpose === "PASSWORD_RESET" && user.accountStatus !== "ACTIVE") {
+      return { message: "Nếu email tồn tại, mã OTP mới đã được gửi." };
+    }
+
+    await this.sendOtpEmail(email, purpose);
+
+    if (purpose === "PASSWORD_RESET") {
+      return { message: "Nếu email tồn tại, mã OTP mới đã được gửi." };
+    }
+    return { message: "Mã xác thực mới đã được gửi đến email của bạn." };
   }
 
-  private async cleanupOtps(options: CleanupOptions) {
-    if (options.otpRecordId) {
-      await db
-        .delete(otpVerifications)
-        .where(eq(otpVerifications.id, options.otpRecordId));
-      return;
-    }
-
-    const conditions: Array<
-      ReturnType<typeof eq> | ReturnType<typeof lt> | ReturnType<typeof sql>
-    > = [];
-
-    if (options.email) {
-      conditions.push(eq(otpVerifications.email, options.email));
-    }
-
-    if (options.purpose) {
-      conditions.push(eq(otpVerifications.purpose, options.purpose));
-    }
-
-    if (options.expired) {
-      conditions.push(lt(otpVerifications.expiresAt, new Date()));
-    }
-
-    if (options.maxAttemptsExceeded) {
-      conditions.push(sql`${otpVerifications.attempts} >= 3`);
-    }
-
-    if (conditions.length > 0) {
-      await db
-        .delete(otpVerifications)
-        .where(conditions.length === 1 ? conditions[0] : and(...conditions));
-    }
-  }
-
-  async cleanupOldOtpsForResend(email: string, purpose: OtpPurpose) {
-    await this.cleanupOtps({ email, purpose });
-  }
-
-  async cleanupOtpAfterVerification(otpRecordId: string) {
-    await this.cleanupOtps({ otpRecordId });
-  }
-
-  async cleanupExpiredOtps() {
-    await this.cleanupOtps({ expired: true });
+  async cleanupOtpAfterVerification(
+    otpRecordId: string,
+    tx?: Parameters<Parameters<typeof db.transaction>[0]>[0]
+  ) {
+    const executor = tx ?? db;
+    await executor
+      .delete(otpVerifications)
+      .where(eq(otpVerifications.id, otpRecordId));
   }
 }
 

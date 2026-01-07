@@ -2,6 +2,7 @@ import type {
   AskQuestionRequest,
   AnswerQuestionRequest,
   ProductQuestion,
+  ProductQuestionWithUsers,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -14,7 +15,10 @@ export const getPublicQuestions = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get public Q&A for product
     const questions = await questionService.getPublicQuestions(req.params.id);
-    return ResponseHandler.sendSuccess<ProductQuestion[]>(res, questions);
+    return ResponseHandler.sendSuccess<ProductQuestionWithUsers[]>(
+      res,
+      questions
+    );
   }
 );
 

@@ -18,9 +18,12 @@ import type {
   UpgradeRequestData,
   PublicProfile,
   UserRatingSummary,
+  MyAutoBid,
+  UserStats,
 
   // Product types
   Product,
+  ProductDetails,
   ProductListing,
   CreateProductRequest,
   UpdateDescriptionRequest,
@@ -36,6 +39,7 @@ import type {
 
   // Bid types
   Bid,
+  BidWithUser,
   PlaceBidRequest,
   CreateAutoBidRequest,
   UpdateAutoBidRequest,
@@ -44,6 +48,7 @@ import type {
 
   // Question types
   ProductQuestion,
+  ProductQuestionWithUsers,
   AskQuestionRequest,
   AnswerQuestionRequest,
 
@@ -54,6 +59,7 @@ import type {
 
   // Order types
   Order,
+  OrderWithDetails,
   OrderPayment,
   CreateOrderRequest,
   GetOrdersParams,
@@ -65,26 +71,47 @@ import type {
   // Seller types
   GetSellerProductsParams,
   GetSellerOrdersParams,
+  SellerStats,
 
   // Rating types
   CreateRatingRequest,
   Rating,
+  RatingWithUsers,
   RatingSummary,
+
+  // Analytics types
+  RevenueAnalytics,
+  SpendingAnalytics,
 
   // Admin types
   AdminStats,
   AdminUser,
+  AdminUserListItem,
+  GetUsersParams,
   BanUserRequest,
   ResetUserPasswordRequest,
+  UpdateUserInfoRequest,
+  UpdateAccountStatusRequest,
+  UpdateUserRoleRequest,
+  CreateUserRequest,
+  DeleteUserRequest,
+  UpdateAuctionSettingsRequest,
+  AuctionSettings,
   UpgradeRequest,
   AdminProduct,
+  AdminAnalytics,
+  CategoryInsights,
+  AuctionHealth,
+  Operations,
+  Engagement,
 
   // Common types
   ApiResponse,
   PaginatedResponse,
   PaginationParams,
   SearchProductsParams,
-  OrderWithDetails,
+  AdminGetProductsParams,
+  GetRatingsParams,
 } from "@repo/shared-types";
 
 import { apiClient } from "@/lib/handlers/api";
@@ -194,8 +221,17 @@ export const api = {
     /**
      * Update user profile
      */
-    updateProfile: (data: UpdateProfileRequest) =>
-      apiCall<User>("PUT", "/users/profile", data),
+    updateProfile: (data: UpdateProfileRequest | FormData) => {
+      const isFormData = data instanceof FormData;
+      return apiCall<User>(
+        "PUT",
+        "/users/profile",
+        data,
+        isFormData
+          ? { headers: { "Content-Type": "multipart/form-data" } }
+          : undefined
+      );
+    },
 
     /**
      * Change user password
@@ -218,17 +254,14 @@ export const api = {
     /**
      * Get user's watchlist
      */
-    getWatchlist: (params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Product>>(
-        "GET",
-        appendQueryParams("/users/watchlist", paramsToRecord(params))
-      ),
+    getWatchlist: () =>
+      apiCall<Product[]>("GET", appendQueryParams("/users/watchlist")),
 
     /**
      * Add/Remove product from watchlist
      */
     toggleWatchlist: (productId: string) =>
-      apiCall<{ message: string; inWatchlist: boolean }>(
+      apiCall<{ inWatchlist: boolean }>(
         "POST",
         `/users/watchlist/${productId}`
       ),
@@ -237,9 +270,23 @@ export const api = {
      * Get user's bidding history
      */
     getBids: (params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Bid>>(
+      apiCall<MyAutoBid[]>(
         "GET",
         appendQueryParams("/users/bids", paramsToRecord(params))
+      ),
+
+    /**
+     * Get bidder dashboard statistics
+     */
+    getBidderStats: () => apiCall<UserStats>("GET", "/users/stats"),
+
+    /**
+     * Get bidder spending analytics for charts
+     */
+    getBidderSpending: (period: "7d" | "30d" | "12m" = "30d") =>
+      apiCall<SpendingAnalytics>(
+        "GET",
+        appendQueryParams("/users/analytics/spending", { period })
       ),
 
     /**
@@ -297,7 +344,7 @@ export const api = {
      * Get product details
      */
     getById: (productId: string) =>
-      apiCall<Product>("GET", `/products/${productId}`),
+      apiCall<ProductDetails>("GET", `/products/${productId}`),
 
     /**
      * Get related products
@@ -359,6 +406,24 @@ export const api = {
       apiCall<UploadImagesResponse>("POST", "/products/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       }),
+
+    /**
+     * Watch list by card
+     */
+    getWatchListByCard: (params?: SearchProductsParams) =>
+      apiCall<ProductListing[]>(
+        "GET",
+        appendQueryParams(
+          "/products/watch-list-by-card",
+          paramsToRecord(params)
+        )
+      ),
+
+    /**
+     * Buy product instantly at buy-now price
+     */
+    buyNow: (productId: string) =>
+      apiCall<{ newOrderId: string }>("POST", `/products/${productId}/buy-now`),
   },
 
   /**
@@ -378,9 +443,23 @@ export const api = {
      * Get seller's order history
      */
     getOrders: (params?: GetSellerOrdersParams) =>
-      apiCall<PaginatedResponse<Order>>(
+      apiCall<PaginatedResponse<OrderWithDetails>>(
         "GET",
         appendQueryParams("/seller/selling-orders", paramsToRecord(params))
+      ),
+
+    /**
+     * Get seller's dashboard statistics
+     */
+    getStats: () => apiCall<SellerStats>("GET", "/seller/stats"),
+
+    /**
+     * Get seller revenue analytics for charts
+     */
+    getSellerRevenue: (period: "7d" | "30d" | "12m" = "30d") =>
+      apiCall<RevenueAnalytics>(
+        "GET",
+        `/seller/analytics/revenue?period=${period}`
       ),
   },
 
@@ -392,9 +471,24 @@ export const api = {
      * Get bidding history for a product
      */
     getHistory: (productId: string, params?: PaginationParams) =>
-      apiCall<Bid[]>(
+      apiCall<BidWithUser[]>(
         "GET",
         appendQueryParams(`/products/${productId}/bids`, paramsToRecord(params))
+      ),
+
+    /**
+     * Get bidding history of a product for seller
+     */
+    getBiddingHistoryForSeller: (
+      productId: string,
+      params?: PaginationParams
+    ) =>
+      apiCall<BidWithUser[]>(
+        "GET",
+        appendQueryParams(
+          `/products/${productId}/bids/seller`,
+          paramsToRecord(params)
+        )
       ),
 
     /**
@@ -425,13 +519,17 @@ export const api = {
      * Update auto-bid configuration
      */
     updateAutoBid: (autoBidId: string, data: UpdateAutoBidRequest) =>
-      apiCall<{ message: string }>("PUT", `/auto-bid/${autoBidId}`, data),
+      apiCall<{ message: string }>(
+        "PUT",
+        `/products/auto-bid/${autoBidId}`,
+        data
+      ),
 
     /**
      * Delete auto-bid configuration
      */
     deleteAutoBid: (autoBidId: string) =>
-      apiCall<{ message: string }>("DELETE", `/auto-bid/${autoBidId}`),
+      apiCall<{ message: string }>("DELETE", `/products/auto-bid/${autoBidId}`),
   },
 
   /**
@@ -442,7 +540,10 @@ export const api = {
      * Get public Q&A for a product
      */
     getPublic: (productId: string) =>
-      apiCall<ProductQuestion[]>("GET", `/products/${productId}/questions`),
+      apiCall<ProductQuestionWithUsers[]>(
+        "GET",
+        `/products/${productId}/questions`
+      ),
 
     /**
      * Ask a question about a product
@@ -458,7 +559,11 @@ export const api = {
      * Answer a question (Seller only)
      */
     answer: (questionId: string, data: AnswerQuestionRequest) =>
-      apiCall<ProductQuestion>("POST", `/questions/${questionId}/answer`, data),
+      apiCall<ProductQuestion>(
+        "POST",
+        `/products/questions/${questionId}/answer`,
+        data
+      ),
   },
 
   /**
@@ -559,10 +664,22 @@ export const api = {
       apiCall<Order>("POST", `/orders/${orderId}/cancel`, data),
 
     /**
+     * Get order feedbacks
+     */
+    getFeedbacks: (orderId: string) =>
+      apiCall<RatingWithUsers[]>("GET", `/orders/${orderId}/feedback`),
+
+    /**
      * Submit feedback after transaction
      */
     submitFeedback: (orderId: string, data: OrderFeedbackRequest) =>
       apiCall<Rating>("POST", `/orders/${orderId}/feedback`, data),
+
+    /**
+     * Update feedback after transaction
+     */
+    updateFeedback: (orderId: string, data: OrderFeedbackRequest) =>
+      apiCall<Rating>("PUT", `/orders/${orderId}/feedback`, data),
   },
 
   /**
@@ -578,8 +695,8 @@ export const api = {
     /**
      * Get user's rating history
      */
-    getByUser: (userId: string, params?: PaginationParams) =>
-      apiCall<PaginatedResponse<Rating>>(
+    getByUser: (userId: string, params?: GetRatingsParams) =>
+      apiCall<PaginatedResponse<RatingWithUsers>>(
         "GET",
         appendQueryParams(`/ratings/${userId}`, paramsToRecord(params))
       ),
@@ -601,23 +718,80 @@ export const api = {
     getStats: () => apiCall<AdminStats>("GET", "/admin/stats"),
 
     /**
+     * Get comprehensive analytics data for charts and insights
+     */
+    getAnalytics: () => apiCall<AdminAnalytics>("GET", "/admin/analytics"),
+
+    /**
+     * Get category insights (GMV and top categories)
+     */
+    getCategoryInsights: () =>
+      apiCall<CategoryInsights>("GET", "/admin/analytics/categories"),
+
+    /**
+     * Get auction health metrics (success rate, bid density)
+     */
+    getAuctionHealth: () =>
+      apiCall<AuctionHealth>("GET", "/admin/analytics/auction-health"),
+
+    /**
+     * Get operations metrics (seller funnel, transaction pipeline)
+     */
+    getOperationsMetrics: () =>
+      apiCall<Operations>("GET", "/admin/analytics/operations"),
+
+    /**
+     * Get engagement metrics (reputation distribution, bidding activity)
+     */
+    getEngagementMetrics: () =>
+      apiCall<Engagement>("GET", "/admin/analytics/engagement"),
+
+    /**
      * User Management
      */
     users: {
       /**
        * Get all users with filters
        */
-      getAll: (
-        params?: PaginationParams & {
-          status?: string;
-          role?: string;
-          search?: string;
-        }
-      ) =>
-        apiCall<PaginatedResponse<AdminUser>>(
+      getAll: (params?: GetUsersParams) =>
+        apiCall<PaginatedResponse<AdminUserListItem>>(
           "GET",
           appendQueryParams("/admin/users", paramsToRecord(params))
         ),
+
+      /**
+       * Create a new user
+       */
+      create: (data: CreateUserRequest) =>
+        apiCall<AdminUser>("POST", "/admin/users", data),
+
+      /**
+       * Get user by ID
+       */
+      getById: (userId: string) =>
+        apiCall<AdminUser>("GET", `/admin/users/${userId}`),
+
+      /**
+       * Update user information (fullName, address, birthDate)
+       */
+      update: (userId: string, data: UpdateUserInfoRequest) =>
+        apiCall<AdminUser>("PATCH", `/admin/users/${userId}`, data),
+
+      /**
+       * Update account status (PENDING_VERIFICATION, ACTIVE, BANNED)
+       */
+      updateStatus: (userId: string, data: UpdateAccountStatusRequest) =>
+        apiCall<AdminUser>(
+          "PATCH",
+          `/admin/users/${userId}/account-status`,
+          data
+        ),
+
+      /**
+       * Update user role (BIDDER, SELLER, ADMIN)
+       */
+      updateRole: (userId: string, data: UpdateUserRoleRequest) =>
+        apiCall<AdminUser>("PATCH", `/admin/users/${userId}/role`, data),
 
       /**
        * Ban/unban user
@@ -638,6 +812,12 @@ export const api = {
           `/admin/users/${userId}/reset-password`,
           data
         ),
+
+      /**
+       * Delete user with business constraints validation
+       */
+      delete: (userId: string, data?: DeleteUserRequest) =>
+        apiCall<{ message: string }>("DELETE", `/admin/users/${userId}`, data),
     },
 
     /**
@@ -649,7 +829,8 @@ export const api = {
        */
       getAll: (
         params?: PaginationParams & {
-          status?: "pending" | "approved" | "rejected";
+          status?: "PENDING" | "APPROVED" | "REJECTED";
+          search?: string;
         }
       ) =>
         apiCall<PaginatedResponse<UpgradeRequest>>(
@@ -660,16 +841,17 @@ export const api = {
       /**
        * Approve upgrade request
        */
-      approve: (upgradeId: string) =>
+      approve: (upgradeId: string, data?: { adminNote?: string }) =>
         apiCall<{ message: string }>(
           "POST",
-          `/admin/upgrades/${upgradeId}/approve`
+          `/admin/upgrades/${upgradeId}/approve`,
+          data
         ),
 
       /**
        * Reject upgrade request
        */
-      reject: (upgradeId: string, data?: { reason?: string }) =>
+      reject: (upgradeId: string, data?: { adminNote?: string }) =>
         apiCall<{ message: string }>(
           "POST",
           `/admin/upgrades/${upgradeId}/reject`,
@@ -684,14 +866,8 @@ export const api = {
       /**
        * Get all products
        */
-      getAll: (
-        params?: PaginationParams & {
-          status?: string;
-          category?: string;
-          search?: string;
-        }
-      ) =>
-        apiCall<PaginatedResponse<AdminProduct>>(
+      getAll: (params?: AdminGetProductsParams) =>
+        apiCall<PaginatedResponse<ProductDetails>>(
           "GET",
           appendQueryParams("/admin/products", paramsToRecord(params))
         ),
@@ -727,12 +903,8 @@ export const api = {
       /**
        * Suspend active product
        */
-      suspend: (productId: string, data?: { reason?: string }) =>
-        apiCall<{ message: string }>(
-          "POST",
-          `/admin/products/${productId}/suspend`,
-          data
-        ),
+      suspend: (productId: string) =>
+        apiCall<Product>("POST", `/admin/products/${productId}/suspend`),
     },
 
     /**
@@ -742,19 +914,14 @@ export const api = {
       /**
        * Create new category
        */
-      create: (data: {
-        name: string;
-        description?: string;
-        parentId?: string;
-      }) => apiCall<Category>("POST", "/admin/categories", data),
+      create: (data: { name: string; parentId?: string }) =>
+        apiCall<Category>("POST", "/admin/categories", data),
 
       /**
        * Update category
        */
-      update: (
-        categoryId: string,
-        data: { name?: string; description?: string }
-      ) => apiCall<Category>("PUT", `/admin/categories/${categoryId}`, data),
+      update: (categoryId: string, data: { name: string }) =>
+        apiCall<Category>("PUT", `/admin/categories/${categoryId}`, data),
 
       /**
        * Delete category
@@ -764,6 +931,22 @@ export const api = {
           "DELETE",
           `/admin/categories/${categoryId}`
         ),
+    },
+
+    /**
+     * Auction Settings Management
+     */
+    auctionSettings: {
+      /**
+       * Get auction settings
+       */
+      get: () => apiCall<AuctionSettings>("GET", "/admin/auction-settings"),
+
+      /**
+       * Update auction settings
+       */
+      update: (data: UpdateAuctionSettingsRequest) =>
+        apiCall<AuctionSettings>("PUT", "/admin/auction-settings", data),
     },
   },
 };

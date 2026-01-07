@@ -40,8 +40,7 @@ export const products = pgTable(
     id: t.uuid("id").primaryKey().defaultRandom(),
     sellerId: t
       .uuid("seller_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "restrict" }), // Prevent seller deletion
+      .references(() => users.id, { onDelete: "set null" }), // Retain products if user deleted
     categoryId: t
       .uuid("category_id")
       .notNull()
@@ -50,6 +49,7 @@ export const products = pgTable(
     name: t.text("name").notNull(),
     slug: t.text("slug").notNull(), // SEO-friendly URL
     description: t.text("description").notNull(),
+    freeToBid: t.boolean("free_to_bid").notNull().default(true),
 
     // Pricing - optimized with constraints
     startPrice: t.numeric("start_price", { precision: 15, scale: 2 }).notNull(),
@@ -93,6 +93,9 @@ export const products = pgTable(
     index("idx_products_active_ending_soon")
       .on(table.endTime.asc())
       .where(sql`${table.status} = 'ACTIVE'`), // Ending soon auctions
+    index("idx_products_slug").on(table.slug), // Fast lookup by slug
+
+    // Uniqueness constraints
     unique("unique_product_slug").on(table.slug), // SEO URLs
 
     // Business logic constraints
@@ -141,7 +144,7 @@ export const productUpdates = pgTable(
     updatedBy: t
       .uuid("updated_by")
       .notNull()
-      .references(() => users.id, { onDelete: "restrict" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     content: t.text("content").notNull(),
     createdAt: t
       .timestamp("created_at", { withTimezone: true })

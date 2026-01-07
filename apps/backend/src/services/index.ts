@@ -10,3 +10,5 @@ export * from "./chat.service";
 export * from "./question.service";
 export * from "./email.service";
 export * from "./upload.service";
+export * from "./seller.service";
+export * from "./admin.service";

@@ -1,7 +1,9 @@
 import React from "react";
 
-import ForgotPasswordForm from "@/components/features/auth/ForgotPasswordForm";
-import VerifyOTPForm from "@/components/features/auth/VerifyOTPForm";
+import {
+  ForgotPasswordForm,
+  VerifyOTPForm,
+} from "@/components/features/auth/forms";
 import { api } from "@/lib/api-layer";
 import {
   forgotPasswordSchema,
@@ -31,7 +33,7 @@ export default function ForgotPasswordPage() {
       formType="REQUEST_OTP"
       schema={forgotPasswordSchema}
       defaultValues={{ email: "", recaptchaToken: "" }}
-      onSubmit={(data) => api.auth.forgotPassword({ email: data.email })}
+      onSubmit={(data) => api.auth.forgotPassword(data)}
       onSuccess={(data) => {
         setEmail(data.email);
         setSentOTP(true);

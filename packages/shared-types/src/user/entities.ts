@@ -18,13 +18,14 @@ export interface User extends UserCore {
   accountStatus: AccountStatus;
   address: string | null;
   avatarUrl: string | null;
+  birthDate: Date | string | null;
 
   // Credit scoring fields
   ratingScore: number; // 0-5 range
   ratingCount: number;
 
   // Seller-specific
-  sellerExpireDate: Date | null; // ISO timestamp
+  sellerExpireDate: Date | string | null; // ISO timestamp
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -41,6 +42,10 @@ export interface PublicProfile {
   ratingScore: number;
   ratingCount: number;
   createdAt: Date | string;
+  stats?: {
+    totalAuctionProducts: number; // As Seller
+    totalBiddingProducts: number; // As Bidder
+  };
 }
 
 /**
@@ -49,6 +54,16 @@ export interface PublicProfile {
 export interface UserRatingSummary {
   averageRating: number;
   totalRatings: number;
+}
+
+/**
+ * User statistics for dashboard
+ */
+export interface UserStats {
+  totalBidsPlaced: number;
+  totalAuctionsWon: number;
+  totalSpent: number; // In smallest currency unit
+  activeBids: number; // Number of products currently bidding on
 }
 
 /**

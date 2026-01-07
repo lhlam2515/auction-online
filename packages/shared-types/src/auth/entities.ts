@@ -11,6 +11,8 @@ export interface UserAuthData {
   role: UserRole;
   avatarUrl?: string;
   accountStatus: AccountStatus;
+  sellerExpireDate?: string | null; // ISO timestamp for seller expiration
+  isTemporarySeller?: boolean; // Whether user is a temporary seller (expired seller with active products and incomplete orders)
 }
 
 /**

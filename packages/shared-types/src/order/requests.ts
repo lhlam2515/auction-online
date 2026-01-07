@@ -56,5 +56,5 @@ export interface UpdateShippingInfoRequest {
  */
 export interface ShipOrderRequest {
   trackingNumber: string;
-  shippingProvider?: ShippingProvider;
+  shippingProvider: ShippingProvider;
 }

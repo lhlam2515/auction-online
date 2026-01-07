@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { pgTable, check, index, unique } from "drizzle-orm/pg-core";
 
+import { orders } from "./order.model";
 import { products } from "./products.model";
 import { users } from "./users.model";
 
@@ -9,14 +10,13 @@ export const ratings = pgTable(
   "ratings",
   (t) => ({
     id: t.uuid("id").primaryKey().defaultRandom(),
-    productId: t
-      .uuid("product_id")
+    orderId: t
+      .uuid("order_id")
       .notNull()
-      .references(() => products.id, { onDelete: "cascade" }),
+      .references(() => orders.id, { onDelete: "cascade" }),
     senderId: t
       .uuid("sender_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "set null" }), // Set null for statistics
     receiverId: t
       .uuid("receiver_id")
       .notNull()
@@ -36,10 +36,7 @@ export const ratings = pgTable(
   }),
   (table) => [
     // Essential indexes only
-    unique("unique_rating_per_product_sender").on(
-      table.productId,
-      table.senderId
-    ),
+    unique("unique_rating_per_order_sender").on(table.orderId, table.senderId),
     check("valid_rating_score", sql`${table.score} IN (1, -1)`),
     check("different_users", sql`${table.senderId} != ${table.receiverId}`),
   ]
@@ -50,10 +47,10 @@ export const chatMessages = pgTable(
   "chat_messages",
   (t) => ({
     id: t.uuid("id").primaryKey().defaultRandom(),
-    productId: t
-      .uuid("product_id")
+    orderId: t
+      .uuid("order_id")
       .notNull()
-      .references(() => products.id, { onDelete: "cascade" }),
+      .references(() => orders.id, { onDelete: "cascade" }),
     senderId: t
       .uuid("sender_id")
       .notNull()
@@ -100,7 +97,9 @@ export const productQuestions = pgTable(
     questionContent: t.text("question_content").notNull(),
 
     answerContent: t.text("answer_content"),
-    answeredBy: t.uuid("answered_by").references(() => users.id), // Who answered
+    answeredBy: t
+      .uuid("answered_by")
+      .references(() => users.id, { onDelete: "set null" }), // Who answered
     isPublic: t.boolean("is_public").notNull().default(true),
 
     createdAt: t

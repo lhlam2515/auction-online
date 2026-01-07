@@ -1,6 +1,6 @@
 import React from "react";
 
-import VerifyOTPForm from "@/components/features/auth/VerifyOTPForm";
+import { VerifyOTPForm } from "@/components/features/auth/forms";
 import { STORAGE_KEYS } from "@/constants/api";
 import { api } from "@/lib/api-layer";
 import { verifyOtpSchema } from "@/lib/validations/auth.validation";

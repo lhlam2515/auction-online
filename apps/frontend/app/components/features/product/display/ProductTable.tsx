@@ -1,0 +1,245 @@
+import type { ProductListing, ProductDetails } from "@repo/shared-types";
+import { Package, Gavel, Clock } from "lucide-react";
+import type { ReactNode } from "react";
+
+import { ProductStatusBadge } from "@/components/common/badges";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn, formatDate, formatPrice, formatTimeRemaining } from "@/lib/utils";
+
+import ProductCell from "./ProductCell";
+
+// Union type for products that can be displayed in the table
+export type ProductTableData = ProductListing | ProductDetails;
+
+export type ProductTableColumn<T extends ProductTableData = ProductTableData> =
+  {
+    key: string;
+    header: string | ReactNode;
+    render?: (product: T) => ReactNode;
+    className?: string;
+    hidden?: (product: T) => boolean;
+  };
+
+export type ProductTableAction<T extends ProductTableData = ProductTableData> =
+  {
+    key: string;
+    label?: string;
+    icon?: ReactNode;
+    onClick?: (product: T) => void;
+    render?: (product: T) => ReactNode;
+    hidden?: (product: T) => boolean;
+  };
+
+type ProductTableProps<T extends ProductTableData = ProductTableData> = {
+  products: T[];
+  columns?: ProductTableColumn<T>[];
+  actions?: ProductTableAction<T>[];
+  emptyMessage?: string;
+  emptyIcon?: ReactNode;
+  displayMode?: "active" | "ended" | "all";
+  className?: string;
+  onRowClick?: (product: T) => void;
+};
+
+const DEFAULT_COLUMNS: ProductTableColumn<ProductTableData>[] = [
+  {
+    key: "product",
+    header: "Sản phẩm",
+    render: (product) => (
+      <ProductCell
+        productId={product.id}
+        name={product.name}
+        imageUrl={product.mainImageUrl}
+      />
+    ),
+    className: "wrap-break-word whitespace-normal",
+  },
+  {
+    key: "price",
+    header: "Giá hiện tại",
+    render: (product) =>
+      product.currentPrice
+        ? formatPrice(parseInt(product.currentPrice, 10))
+        : "Chưa có giá thầu",
+  },
+  {
+    key: "bidCount",
+    header: (
+      <div className="flex items-center gap-2">
+        <Gavel className="h-4 w-4" />
+        Số lượt bid
+      </div>
+    ),
+    render: (product) => (
+      <div className="flex items-center gap-2">
+        <Gavel className="text-muted-foreground h-4 w-4" />
+        {"bidCount" in product ? product.bidCount : 0}
+      </div>
+    ),
+    hidden: (product) => !("bidCount" in product),
+  },
+  {
+    key: "timeRemaining",
+    header: (
+      <div className="flex items-center gap-2">
+        <Clock className="h-4 w-4" />
+        Thời gian còn lại
+      </div>
+    ),
+    render: (product) => (
+      <div className="flex items-center gap-2">
+        <Clock className="text-muted-foreground h-4 w-4" />
+        {formatTimeRemaining(new Date(product.endTime))}
+      </div>
+    ),
+  },
+  {
+    key: "status",
+    header: "Trạng thái",
+    render: (product) => <ProductStatusBadge status={product.status} />,
+  },
+];
+
+const ProductTable = <T extends ProductTableData = ProductTableData>({
+  products,
+  columns,
+  actions,
+  emptyMessage = "Danh sách sản phẩm sẽ hiển thị ở đây",
+  emptyIcon,
+  displayMode = "all",
+  className,
+  onRowClick,
+}: ProductTableProps<T>) => {
+  let finalColumns = columns || (DEFAULT_COLUMNS as ProductTableColumn<T>[]);
+
+  if (displayMode === "ended") {
+    finalColumns = finalColumns.map((col) => {
+      if (col.key === "timeRemaining") {
+        return {
+          key: "endTime",
+          header: (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Ngày kết thúc
+            </div>
+          ),
+          render: (product) => (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              {formatDate(new Date(product.endTime))}
+            </div>
+          ),
+        };
+      }
+
+      if (col.key === "bidCount") {
+        return {
+          key: "winner",
+          header: (
+            <div className="flex items-center gap-2">
+              <Gavel className="h-4 w-4" />
+              Người thắng cuộc
+            </div>
+          ),
+          render: (product) => {
+            const winnerName =
+              "currentWinnerName" in product ? product.currentWinnerName : null;
+            return winnerName || "Không có";
+          },
+          hidden: (product) => !("currentWinnerName" in product),
+        };
+      }
+
+      return col;
+    });
+  }
+
+  // Filter out hidden columns based on first product
+  if (products && products.length > 0) {
+    const sampleProduct = products[0];
+    finalColumns = finalColumns.filter(
+      (col) => !col.hidden || !col.hidden(sampleProduct as T)
+    );
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <div
+        className={cn(
+          "bg-muted/60 flex min-h-[200px] items-center justify-center rounded-lg border border-dashed",
+          className
+        )}
+      >
+        <div className="text-center">
+          {emptyIcon || (
+            <Package className="text-muted-foreground mx-auto h-10 w-10 opacity-50" />
+          )}
+          <p className="text-muted-foreground mt-2">{emptyMessage}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("rounded-md border", className)}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {finalColumns.map((column) => (
+              <TableHead key={column.key} className={column.className}>
+                {column.header}
+              </TableHead>
+            ))}
+            {actions && actions.length > 0 && <TableHead>Hành động</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products.map((product) => {
+            // Filter columns for each row if needed
+            const visibleColumns = finalColumns.filter(
+              (col) => !col.hidden || !col.hidden(product as T)
+            );
+
+            return (
+              <TableRow
+                key={product.id}
+                onClick={onRowClick ? () => onRowClick(product) : undefined}
+                className={onRowClick ? "cursor-pointer" : undefined}
+              >
+                {visibleColumns.map((column) => (
+                  <TableCell key={column.key} className={column.className}>
+                    {column.render ? column.render(product) : null}
+                  </TableCell>
+                ))}
+                {actions && actions.length > 0 && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {actions
+                        .filter(
+                          (action) => !action.hidden || !action.hidden(product)
+                        )
+                        .map((action) =>
+                          action.render ? (
+                            <div key={action.key}>{action.render(product)}</div>
+                          ) : null
+                        )}
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+export default ProductTable;

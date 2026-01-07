@@ -1,14 +1,9 @@
 import type { CategoryTree } from "@repo/shared-types";
-import { ChevronDown, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import React from "react";
 import { useLocation, useNavigate } from "react-router";
 
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+import { ProductSearchFilter } from "@/components/features/product/filters";
 import {
   InputGroup,
   InputGroupAddon,
@@ -25,20 +20,9 @@ type SearchBarProps = {
 
 const SearchBar = ({ categories = [] }: SearchBarProps) => {
   const [query, setQuery] = React.useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = React.useState("");
   const navigate = useNavigate();
   const location = useLocation();
-
-  const categoryOptions = React.useMemo(
-    () => [
-      { label: "Tất cả danh mục", value: "" },
-      ...categories.map((cat) => ({ label: cat.name, value: cat.id })),
-    ],
-    [categories]
-  );
-  const [selectedCategory, setSelectedCategory] = React.useState<{
-    label: string;
-    value: string;
-  }>(categoryOptions[0]);
 
   // Debounced search navigation
   const debouncedNavigate = React.useMemo(
@@ -47,8 +31,8 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
         if (query.trim()) {
           const params = new URLSearchParams();
           params.set("q", query.trim());
-          if (selectedCategory.value) {
-            params.set("category", selectedCategory.value);
+          if (selectedCategoryId) {
+            params.set("category", selectedCategoryId);
           }
           navigate(
             buildUrlWithParams(
@@ -59,7 +43,7 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
           );
         }
       }, 2000),
-    [query, selectedCategory.value, navigate]
+    [query, selectedCategoryId, navigate]
   );
 
   // Trigger debounced search on query change
@@ -71,36 +55,19 @@ const SearchBar = ({ categories = [] }: SearchBarProps) => {
   React.useEffect(() => {
     if (!location.pathname.startsWith(APP_ROUTES.SEARCH)) {
       setQuery("");
-      setSelectedCategory(categoryOptions[0]);
+      setSelectedCategoryId("");
     }
-  }, [location.pathname, categoryOptions]);
+  }, [location.pathname]);
 
   return (
     <InputGroup className="max-w-xl border-none">
       {/* Category Dropdown */}
       <InputGroupAddon align="inline-start" className="pl-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="min-w-40">
-            <InputGroupButton
-              variant="secondary"
-              className="flex h-full cursor-pointer items-center justify-between gap-2 rounded-r-none"
-            >
-              {selectedCategory.label}
-              <ChevronDown className="size-5" />
-            </InputGroupButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {categoryOptions.map((category) => (
-              <DropdownMenuItem
-                key={category.value}
-                onClick={() => setSelectedCategory(category)}
-                className="hover:text-primary-foreground! hover:bg-primary!"
-              >
-                {category.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ProductSearchFilter
+          categories={categories}
+          value={selectedCategoryId}
+          onChange={setSelectedCategoryId}
+        />
       </InputGroupAddon>
 
       {/* Search Input */}

@@ -7,13 +7,14 @@ import type {
   PublicProfile,
   UserRatingSummary,
   Product,
-  Bid,
+  MyAutoBid,
+  UserStats,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
-import { userService } from "@/services";
+import { userService, uploadService } from "@/services";
 import { ResponseHandler } from "@/utils/response";
 
 export const getProfile = asyncHandler(
@@ -28,13 +29,25 @@ export const getProfile = asyncHandler(
 
 export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { fullName, address, avatarUrl } = req.body as UpdateProfileRequest;
+    const { fullName, address, birthDate } = req.body as UpdateProfileRequest;
     const { id: userId } = req.user!;
+    let avatarUrl = req.body.avatarUrl;
+
+    // Handle avatar upload if file is present
+    if (req.file) {
+      const { urls } = await uploadService.uploadImages(
+        [req.file],
+        "avatars",
+        userId
+      );
+      avatarUrl = urls[0];
+    }
 
     const updatedUser = await userService.updateProfile(
       userId,
       fullName,
       address,
+      birthDate,
       avatarUrl
     );
 
@@ -44,11 +57,11 @@ export const updateProfile = asyncHandler(
 
 export const changePassword = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { id: userId } = req.user!;
+    const { email } = req.user!;
     const { currentPassword, newPassword } = req.body as ChangePasswordRequest;
 
     const result = await userService.changePassword(
-      userId,
+      email,
       currentPassword,
       newPassword
     );
@@ -61,7 +74,7 @@ export const getPublicProfile = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: publicId } = req.params;
 
-    const publicProfile = await userService.getById(publicId);
+    const publicProfile = await userService.getPublicProfile(publicId);
 
     return ResponseHandler.sendSuccess<PublicProfile>(res, publicProfile);
   }
@@ -87,18 +100,18 @@ export const toggleWatchlist = asyncHandler(
 
     const exists = await userService.checkInWatchlist(userId, productId);
     if (exists) {
-      await userService.removeFromWatchlist(userId, productId);
+      const result = await userService.removeFromWatchlist(userId, productId);
       return ResponseHandler.sendSuccess(
         res,
-        null,
+        result,
         200,
         "Product removed from watchlist"
       );
     } else {
-      await userService.addToWatchlist(userId, productId);
+      const result = await userService.addToWatchlist(userId, productId);
       return ResponseHandler.sendSuccess(
         res,
-        null,
+        result,
         200,
         "Product added to watchlist"
       );
@@ -122,7 +135,17 @@ export const getBiddingHistory = asyncHandler(
 
     const biddingHistory = await userService.getBiddingHistory(userId);
 
-    return ResponseHandler.sendSuccess<Bid[]>(res, biddingHistory);
+    return ResponseHandler.sendSuccess<MyAutoBid[]>(res, biddingHistory);
+  }
+);
+
+export const getBidderStats = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+
+    const stats = await userService.getBidderStats(userId);
+
+    return ResponseHandler.sendSuccess<UserStats>(res, stats);
   }
 );
 

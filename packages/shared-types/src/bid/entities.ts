@@ -19,7 +19,7 @@ export interface Bid {
  */
 export interface BidWithUser extends Bid {
   userName: string;
-  userAvatarUrl?: string;
+  ratingScore: number;
 }
 
 /**
@@ -33,4 +33,14 @@ export interface AutoBid {
   isActive: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
+}
+
+export interface MyAutoBid extends AutoBid {
+  product: {
+    name: string;
+    currentPrice: string | null; // Decimal as string
+    endTime: Date | string;
+    winnerId: string | null;
+    imageUrl: string | null;
+  };
 }

@@ -66,7 +66,7 @@ export type PaymentMethod = "BANK_TRANSFER" | "CREDIT_CARD" | "EWALLET";
 /**
  * Shipment provider types - matches backend shipmentProviderEnum
  */
-export type ShipmentProvider = "VNPOST" | "GHN" | "GHTK" | "JNT" | "OTHER";
+export type ShippingProvider = "VNPOST" | "GHN" | "GHTK" | "JNT";
 
 /**
  * OTP purpose types - matches backend otpPurposeEnum

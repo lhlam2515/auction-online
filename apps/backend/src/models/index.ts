@@ -5,6 +5,7 @@ export * from "./enums.model";
 export * from "./users.model";
 export * from "./products.model";
 export * from "./auction.model";
+export * from "./settings.model";
 export * from "./interactions.model";
 export * from "./order.model";
 export * from "./auth.model";

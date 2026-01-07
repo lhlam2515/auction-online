@@ -35,11 +35,11 @@ export const createProductSchema = z.object({
   startPrice: z.coerce
     .number()
     .positive({ error: "Start price must be positive" }),
+  freeToBid: z.boolean().default(true),
   stepPrice: z.coerce
     .number()
     .positive({ error: "Step price must be positive" }),
   buyNowPrice: z.coerce.number().positive().optional(),
-  startTime: z.iso.datetime(),
   endTime: z.iso.datetime(),
   images: z
     .array(z.string().url())
@@ -55,4 +55,8 @@ export const updateDescriptionSchema = z.object({
 
 export const autoExtendSchema = z.object({
   isAutoExtend: z.boolean(),
+});
+
+export const buyNowSchema = z.object({
+  id: z.uuid({ error: "Invalid product ID" }),
 });

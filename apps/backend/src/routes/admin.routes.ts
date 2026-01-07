@@ -18,14 +18,110 @@ router.use(authenticate, authorize("ADMIN"));
 router.get("/stats", adminController.getDashboardStats);
 
 /**
+ * Analytics Endpoints
+ */
+
+/**
+ * @route   GET /api/admin/analytics
+ * @desc    Get comprehensive analytics data (all metrics)
+ * @access  Private (Admin)
+ */
+router.get("/analytics", adminController.getFullAnalytics);
+
+/**
+ * @route   GET /api/admin/analytics/categories
+ * @desc    Get category insights (GMV by category, top categories)
+ * @access  Private (Admin)
+ */
+router.get("/analytics/categories", adminController.getCategoryInsights);
+
+/**
+ * @route   GET /api/admin/analytics/auction-health
+ * @desc    Get auction health metrics (success rate, bid density)
+ * @access  Private (Admin)
+ */
+router.get("/analytics/auction-health", adminController.getAuctionHealth);
+
+/**
+ * @route   GET /api/admin/analytics/operations
+ * @desc    Get operations metrics (seller funnel, transaction pipeline)
+ * @access  Private (Admin)
+ */
+router.get("/analytics/operations", adminController.getOperationsMetrics);
+
+/**
+ * @route   GET /api/admin/analytics/engagement
+ * @desc    Get engagement metrics (reputation distribution, bidding activity)
+ * @access  Private (Admin)
+ */
+router.get("/analytics/engagement", adminController.getEngagementMetrics);
+
+/**
+ * User Management
+ */
+
+/**
  * @route   GET /api/admin/users
- * @desc    Get all users with filters
+ * @desc    Get all users with filters and pagination
  * @access  Private (Admin)
  */
 router.get(
   "/users",
   validate({ query: adminValidation.getUsersSchema }),
   adminController.getUsers
+);
+
+/**
+ * @route   GET /api/admin/users/:id
+ * @desc    Get user details by ID
+ * @access  Private (Admin)
+ */
+router.get(
+  "/users/:id",
+  validate({ params: adminValidation.userIdSchema }),
+  adminController.getUserById
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id
+ * @desc    Update user information (fullName, address, birthDate)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateUserInfoSchema,
+  }),
+  adminController.updateUserInfo
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id/account-status
+ * @desc    Update account status (PENDING_VERIFICATION, ACTIVE, BANNED)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/account-status",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateAccountStatusSchema,
+  }),
+  adminController.updateAccountStatus
+);
+
+/**
+ * @route   PATCH /api/admin/users/:id/role
+ * @desc    Update user role (BIDDER, SELLER, ADMIN)
+ * @access  Private (Admin)
+ */
+router.patch(
+  "/users/:id/role",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.updateUserRoleSchema,
+  }),
+  adminController.updateUserRole
 );
 
 /**
@@ -43,14 +139,44 @@ router.patch(
 );
 
 /**
+ * @route   POST /api/admin/users
+ * @desc    Create a new user
+ * @access  Private (Admin)
+ */
+router.post(
+  "/users",
+  validate({
+    body: adminValidation.createUserSchema,
+  }),
+  adminController.createUser
+);
+
+/**
  * @route   POST /api/admin/users/:id/reset-password
  * @desc    Reset user password
  * @access  Private (Admin)
  */
 router.post(
   "/users/:id/reset-password",
-  validate({ params: adminValidation.userIdSchema }),
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.resetUserPasswordSchema,
+  }),
   adminController.resetUserPassword
+);
+
+/**
+ * @route   DELETE /api/admin/users/:id
+ * @desc    Delete user with business constraints validation
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/users/:id",
+  validate({
+    params: adminValidation.userIdSchema,
+    body: adminValidation.deleteUserSchema,
+  }),
+  adminController.deleteUser
 );
 
 /**
@@ -148,7 +274,6 @@ router.post(
   "/products/:id/suspend",
   validate({
     params: adminValidation.productIdSchema,
-    body: adminValidation.suspendProductSchema,
   }),
   adminController.suspendProduct
 );
@@ -187,6 +312,24 @@ router.delete(
   "/categories/:id",
   validate({ params: adminValidation.categoryIdSchema }),
   adminController.deleteCategory
+);
+
+/**
+ * @route   GET /api/admin/auction-settings
+ * @desc    Get auction settings
+ * @access  Private (Admin)
+ */
+router.get("/auction-settings", adminController.getAuctionSettings);
+
+/**
+ * @route   PUT /api/admin/auction-settings
+ * @desc    Update auction settings
+ * @access  Private (Admin)
+ */
+router.put(
+  "/auction-settings",
+  validate({ body: adminValidation.updateAuctionSettingsSchema }),
+  adminController.updateAuctionSettings
 );
 
 export default router;

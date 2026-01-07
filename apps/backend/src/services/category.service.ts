@@ -6,12 +6,17 @@ import type {
   PaginatedResponse,
 } from "@repo/shared-types";
 import { count, eq, inArray } from "drizzle-orm";
+import type { PostgresError } from "postgres";
 import slug from "slug";
 
 import { db } from "@/config/database";
 import { categories, products } from "@/models";
 import { BadRequestError, NotFoundError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
+
+type DbTransaction =
+  | typeof db
+  | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export class CategoryService {
   async getAll() {
@@ -22,218 +27,237 @@ export class CategoryService {
     const result = await db.query.categories.findFirst({
       where: eq(categories.id, categoryId),
     });
-    if (!result) throw new NotFoundError("Category");
+    if (!result) throw new NotFoundError("Không tìm thấy danh mục");
     return result;
   }
 
+  /**
+   * Lấy cây danh mục (dữ liệu phân cấp)
+   * Sử dụng thuật toán xây dựng cây từ danh sách phẳng với độ phức tạp O(n)
+   */
   async getTree(): Promise<CategoryTree[]> {
-    // build hierarchical category tree
+    // 1. Lấy toàn bộ dữ liệu 1 lần duy nhất (Flat list)
     const allCategories = await this.getAll();
-    return this.buildTree(allCategories);
+    if (allCategories.length === 0) return [];
+
+    // 2. Sử dụng Map để truy xuất O(1)
+    const categoryMap = new Map<string, CategoryTree>();
+    const roots: CategoryTree[] = [];
+
+    // Bước 2.1: Khởi tạo các node
+    allCategories.forEach((cat) => {
+      categoryMap.set(cat.id, {
+        ...cat,
+        children: [], // Khởi tạo mảng rỗng
+      });
+    });
+
+    // Bước 2.2: Ráp cha-con
+    allCategories.forEach((cat) => {
+      const node = categoryMap.get(cat.id)!;
+      if (cat.parentId) {
+        const parent = categoryMap.get(cat.parentId);
+        // Nếu cha tồn tại thì push vào children của cha
+        if (parent) {
+          parent.children!.push(node);
+        } else {
+          roots.push(node); // Xem như root nếu không tìm thấy cha (dữ liệu không nhất quán)
+        }
+      } else {
+        // Không có parentId -> Là root
+        roots.push(node);
+      }
+    });
+
+    return roots;
   }
 
   async getProductsByCategory(
     categoryId: string,
     params: GetCategoryProductsParams
   ): Promise<PaginatedResponse<Product>> {
-    // fetch products filtered by category
-    await this.getById(categoryId); // validate category exists
-    const { page = 1, limit = 20, sort } = params;
+    const categoryExists = await db.query.categories.findFirst({
+      where: eq(categories.id, categoryId),
+      columns: { id: true },
+    });
+    if (!categoryExists) throw new NotFoundError("Không tìm thấy danh mục");
 
-    // Calculate offset for pagination
+    const { page = 1, limit = 20, sort } = params;
     const offset = (page - 1) * limit;
 
     const childrenCategories = await db.query.categories.findMany({
       where: eq(categories.parentId, categoryId),
       columns: { id: true },
     });
-    const categoryIds = [
+
+    const targetCategoryIds = [
       categoryId,
       ...childrenCategories.map((cat) => cat.id),
     ];
 
-    const result = await db.query.products.findMany({
-      where: inArray(products.categoryId, categoryIds),
+    const whereCondition = inArray(products.categoryId, targetCategoryIds);
 
+    const dataPromise = db.query.products.findMany({
+      where: whereCondition,
       orderBy: (p, { asc, desc }) => {
-        if (sort === "price_asc") {
-          return [asc(p.startPrice)];
-        } else if (sort === "price_desc") {
-          return [desc(p.startPrice)];
-        } else if (sort === "ending_soon") {
-          return [asc(p.endTime)];
-        } else if (sort === "newest") {
-          return [desc(p.startTime)];
+        switch (sort) {
+          case "price_asc":
+            return [asc(p.startPrice)];
+          case "price_desc":
+            return [desc(p.startPrice)];
+          case "ending_soon":
+            return [asc(p.endTime)];
+          case "newest":
+            return [desc(p.startTime)];
+          default:
+            return [desc(p.createdAt)]; // Default sort an toàn
         }
-
-        return [];
       },
-
       limit,
       offset,
     });
 
-    const [{ value: total }] = await db
+    const countPromise = db
       .select({ value: count() })
       .from(products)
-      .where(inArray(products.categoryId, categoryIds));
+      .where(whereCondition);
 
-    return toPaginated(result, total, page, limit);
+    // Chạy song song 2 query
+    const [result, countResult] = await Promise.all([
+      dataPromise,
+      countPromise,
+    ]);
+
+    return toPaginated(result, countResult[0].value, page, limit);
   }
 
   async createCategory(name: string, parentId?: string): Promise<Category> {
-    let parentCategories = null;
-    if (parentId) {
-      parentCategories = await this.getById(parentId);
-    }
-    const level = parentCategories ? parentCategories.level + 1 : 0;
-    if (level >= 2) {
-      throw new BadRequestError("Cannot create category deeper than level 2");
-    }
+    return await db.transaction(async (tx) => {
+      let level = 0;
 
-    const slugifiedName = await this.slugifiedCategoryName(name);
+      if (parentId) {
+        const parent = await tx.query.categories.findFirst({
+          where: eq(categories.id, parentId),
+          columns: { id: true, level: true },
+        });
 
-    const [newCategory] = await db
-      .insert(categories)
-      .values({
-        name: name.trim(),
-        slug: slugifiedName,
-        parentId: parentId || null,
-        level,
-      })
-      .returning();
+        if (!parent) throw new NotFoundError("Không tìm thấy danh mục cha");
+        level = parent.level + 1;
+      }
 
-    return newCategory;
+      // Logic nghiệp vụ: Chặn độ sâu cây
+      if (level >= 2) {
+        throw new BadRequestError("Độ sâu danh mục tối đa là 2");
+      }
+
+      const slugifiedName = await this.generateUniqueSlug(name, tx);
+
+      const [newCategory] = await tx
+        .insert(categories)
+        .values({
+          name: name.trim(),
+          slug: slugifiedName,
+          parentId: parentId || null,
+          level,
+        })
+        .returning();
+
+      return newCategory;
+    });
   }
 
-  async updateCategory(
-    categoryId: string,
-    name?: string,
-    parentId?: string | null
-  ): Promise<Category> {
-    const category = await this.getById(categoryId);
+  async updateCategory(categoryId: string, name: string): Promise<Category> {
+    return await db.transaction(async (tx) => {
+      const category = await tx.query.categories.findFirst({
+        where: eq(categories.id, categoryId),
+      });
 
-    let isUpdated = false;
+      if (!category) throw new NotFoundError("Không tìm thấy danh mục");
 
-    // ----- Parent handling -----
-    let newParentId = category.parentId;
-    let newLevel = category.level;
+      const trimmedName = name.trim();
+      const isNameChanged = trimmedName !== category.name;
 
-    if (parentId !== undefined && parentId !== category.parentId) {
-      if (parentId === null) {
-        newParentId = null;
-        newLevel = 0;
-        isUpdated = true;
-      } else {
-        const parent = await this.getById(parentId);
+      if (!isNameChanged) return category;
 
-        if (parent.id === categoryId) {
-          throw new BadRequestError("Category cannot be its own parent");
-        }
+      const newSlug = await this.generateUniqueSlug(trimmedName, tx);
 
-        const level = parent.level + 1;
-        if (level >= 2) {
-          throw new BadRequestError("Cannot set category deeper than level 2");
-        }
+      const [updatedCategory] = await tx
+        .update(categories)
+        .set({
+          name: trimmedName,
+          slug: newSlug,
+          updatedAt: new Date(),
+        })
+        .where(eq(categories.id, categoryId))
+        .returning();
 
-        newParentId = parentId;
-        newLevel = level;
-        isUpdated = true;
-      }
-    }
-
-    // ----- Name + slug handling -----
-    const nameChanged =
-      name !== undefined && name.trim() !== category.name.trim();
-
-    const newName = nameChanged ? name! : category.name;
-    const newSlug = nameChanged
-      ? await this.slugifiedCategoryName(name!)
-      : category.slug;
-
-    if (nameChanged) {
-      isUpdated = true;
-    }
-
-    // ----- Update DB -----
-    const [updatedCategory] = await db
-      .update(categories)
-      .set({
-        name: newName,
-        slug: newSlug,
-        parentId: newParentId,
-        level: newLevel,
-        updatedAt: isUpdated ? new Date() : category.updatedAt,
-      })
-      .where(eq(categories.id, categoryId))
-      .returning();
-
-    return updatedCategory;
+      return updatedCategory;
+    });
   }
 
   async deleteCategory(categoryId: string): Promise<void> {
-    const category = await this.getById(categoryId);
+    try {
+      // Thử xóa trực tiếp
+      const deletedResult = await db
+        .delete(categories)
+        .where(eq(categories.id, categoryId))
+        .returning({ id: categories.id });
 
-    // Check for child categories
-    const childCount = await db
-      .select({ value: count() })
-      .from(categories)
-      .where(eq(categories.parentId, categoryId));
-    if (childCount[0].value > 0) {
-      throw new BadRequestError(
-        "Cannot delete category with existing sub-categories"
-      );
+      if (deletedResult.length === 0) {
+        throw new NotFoundError("Không tìm thấy danh mục");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      // Bắt lỗi ràng buộc khóa ngoại (Foreign Key Violation) từ Postgres
+      // Mã lỗi 23503: foreign_key_violation
+      const err = error.cause as PostgresError;
+      if (err.code === "23503") {
+        // Tùy vào tên constraint trong DB của bạn để thông báo chính xác
+        // products_category_id_categories_id_fk và categories_parent_id_categories_id_fk
+        const constraint = err.constraint_name || "";
+
+        if (constraint.includes("parent_id")) {
+          throw new BadRequestError(
+            "Không thể xóa danh mục chứa danh mục con."
+          );
+        }
+        if (
+          constraint.includes("product") ||
+          constraint.includes("category_id")
+        ) {
+          throw new BadRequestError("Không thể xóa danh mục chứa sản phẩm.");
+        }
+
+        throw new BadRequestError(
+          "Không thể xóa danh mục vì nó được tham chiếu bởi dữ liệu khác."
+        );
+      }
+
+      throw error;
     }
-
-    // Check for associated products
-    const productCount = await db
-      .select({ value: count() })
-      .from(products)
-      .where(eq(products.categoryId, categoryId));
-    if (productCount[0].value > 0) {
-      throw new BadRequestError(
-        "Cannot delete category with associated products"
-      );
-    }
-
-    // Proceed to delete
-    await db.delete(categories).where(eq(categories.id, categoryId));
   }
 
-  private async slugifiedCategoryName(name: string) {
+  private async generateUniqueSlug(name: string, tx: DbTransaction) {
     const baseSlug = slug(name);
-    let slugifiedName = baseSlug;
-    let i = 0;
-    while (true) {
-      const exists = await db.query.categories.findFirst({
-        where: eq(categories.slug, slugifiedName),
+    let candidateSlug = baseSlug;
+    let counter = 0;
+    const maxRetries = 100; // Circuit breaker
+
+    while (counter < maxRetries) {
+      const existing = await tx.query.categories.findFirst({
+        where: eq(categories.slug, candidateSlug),
+        columns: { id: true },
       });
-      if (!exists) break;
-      i += 1;
-      slugifiedName = `${baseSlug}-${i}`;
+
+      if (!existing) return candidateSlug;
+
+      counter++;
+      candidateSlug = `${baseSlug}-${counter}`;
     }
-    return slugifiedName;
-  }
 
-  private buildTree(
-    categories: any[],
-    parentId: string | null = null
-  ): CategoryTree[] {
-    // implement recursive tree building
-    const parentCategories = categories.filter(
-      (cat) => cat.parentId === parentId
+    throw new Error(
+      "Không thể tạo slug duy nhất cho danh mục sau nhiều lần thử"
     );
-
-    return parentCategories.map((parent) => {
-      const children = this.buildTree(categories, parent.id);
-      return {
-        id: parent.id,
-        name: parent.name,
-        slug: parent.slug,
-        level: parent.level,
-        children: children,
-      };
-    });
   }
 }
 

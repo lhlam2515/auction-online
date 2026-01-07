@@ -4,9 +4,14 @@ export const userIdSchema = z.object({
   userId: z.uuid({ error: "Invalid user ID" }),
 });
 
+export const orderIdSchema = z.object({
+  orderId: z.uuid({ error: "Invalid order ID" }),
+});
+
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 export const createRatingSchema = z.object({

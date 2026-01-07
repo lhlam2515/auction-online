@@ -7,7 +7,7 @@ import type { OrderStatus } from "../order/enums";
  * Backend validation: seller.validation.ts → getProductsSchema
  */
 export interface GetSellerProductsParams extends PaginationParams {
-  status?: ProductStatus;
+  status?: ProductStatus | "ENDED";
   // search?: string;
   // categoryId?: string;
 }

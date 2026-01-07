@@ -9,31 +9,18 @@ import type {
   OrderFeedbackRequest,
   MarkPaidRequest,
   PaginatedResponse,
+  RatingScore,
+  RatingWithUsers,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
 import { AuthRequest } from "@/middlewares/auth";
 import { asyncHandler } from "@/middlewares/error-handler";
+import { ratingService } from "@/services";
 import { orderService } from "@/services/order.service";
 import { ForbiddenError } from "@/utils/errors";
 import { toPaginated } from "@/utils/pagination";
 import { ResponseHandler } from "@/utils/response";
-
-export const createOrder = asyncHandler(
-  async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const { productId, winnerId, sellerId, finalPrice } = req.body;
-
-    const order = await orderService.createFromAuction(
-      productId,
-      winnerId,
-      sellerId,
-      finalPrice,
-      true // buyNow flag
-    );
-
-    return ResponseHandler.sendCreated<Order>(res, order);
-  }
-);
 
 export const getMyOrders = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
@@ -64,8 +51,8 @@ export const getOrderDetails = asyncHandler(
     const order = await orderService.getById(orderId);
 
     if (
-      order.winner.email !== req.user!.email &&
-      order.seller.email !== req.user!.email
+      !order ||
+      (order.winnerId !== req.user!.id && order.sellerId !== req.user!.id)
     ) {
       throw new ForbiddenError("Access to this order is denied");
     }
@@ -169,19 +156,47 @@ export const cancelOrder = asyncHandler(
   }
 );
 
+export const getOrderFeedbacks = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { id: userId } = req.user!;
+
+    const feedbacks = await ratingService.getByOrder(orderId, userId);
+
+    return ResponseHandler.sendSuccess<RatingWithUsers[]>(res, feedbacks);
+  }
+);
+
 export const leaveFeedback = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     const { id: orderId } = req.params;
     const { rating, comment } = req.body as OrderFeedbackRequest;
     const { id: userId } = req.user!;
 
-    const feedback = await orderService.leaveFeedback(
+    const feedback = await ratingService.createFeedback(
       orderId,
       userId,
       rating,
       comment
     );
 
-    return ResponseHandler.sendSuccess(res, feedback);
+    return ResponseHandler.sendCreated(res, feedback);
+  }
+);
+
+export const editFeedback = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: orderId } = req.params;
+    const { rating, comment } = req.body as OrderFeedbackRequest;
+    const { id: userId } = req.user!;
+
+    const updatedFeedback = await ratingService.updateFeedback(
+      orderId,
+      userId,
+      rating as RatingScore,
+      comment
+    );
+
+    return ResponseHandler.sendSuccess(res, updatedFeedback);
   }
 );

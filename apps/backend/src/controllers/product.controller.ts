@@ -12,6 +12,8 @@ import type {
   RelatedProductsParams,
   ProductListing,
   PaginatedResponse,
+  ProductDetails,
+  ProductSortOption,
 } from "@repo/shared-types";
 import { Response, NextFunction } from "express";
 
@@ -50,8 +52,8 @@ export const getProductDetails = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
     // Get product details
     const productId = req.params.id;
-    const product = await productService.getById(productId);
-    return ResponseHandler.sendSuccess<Product>(res, product);
+    const product = await productService.getProductDetailsById(productId);
+    return ResponseHandler.sendSuccess<ProductDetails>(res, product);
   }
 );
 
@@ -145,5 +147,25 @@ export const uploadImages = asyncHandler(
     );
 
     return ResponseHandler.sendSuccess<UploadImagesResponse>(res, urls, 201);
+  }
+);
+
+export const getWatchListByCard = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: userId } = req.user!;
+    const { sort } = req.query as unknown as { sort?: ProductSortOption };
+    const listCard = await productService.getWatchListByCard(userId, sort);
+    return ResponseHandler.sendSuccess<ProductListing[]>(res, listCard);
+  }
+);
+
+export const buyNow = asyncHandler(
+  async (req: AuthRequest, res: Response, _next: NextFunction) => {
+    const { id: productId } = req.params;
+    const { id: buyerId } = req.user!;
+
+    const result = await productService.buyNow(productId, buyerId);
+
+    return ResponseHandler.sendSuccess(res, { newOrderId: result.newOrderId });
   }
 );

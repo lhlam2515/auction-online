@@ -7,8 +7,9 @@ export interface ProductCore {
   id: string;
   name: string;
   slug: string; // SEO-friendly URL
-  sellerId: string;
+  sellerId: string | null; // Seller can be null if user deleted
   categoryId: string;
+  freeToBid: boolean;
   startPrice: string; // Decimal as string
   stepPrice: string; // Decimal as string
   buyNowPrice: string | null; // Decimal as string
@@ -34,7 +35,7 @@ export interface Product extends ProductCore {
  */
 export interface ProductListing extends Product {
   categoryName: string;
-  sellerName: string;
+  sellerName: string | null;
   sellerAvatarUrl: string | null;
   currentWinnerName: string | null; // masked name of highest bidder
   bidCount: number;
@@ -74,4 +75,14 @@ export interface ProductWatchList {
   userId: string;
   productId: string;
   createdAt: string;
+}
+
+export interface ProductDetails extends Product {
+  mainImageUrl: string;
+  categoryName: string;
+  sellerName: string;
+  sellerAvatarUrl: string | null;
+  sellerRatingScore: number; // Average rating of the seller
+  sellerRatingCount: number; // Total number of ratings for the seller
+  orderId: string | null;
 }

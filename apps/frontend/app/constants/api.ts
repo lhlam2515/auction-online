@@ -144,4 +144,5 @@ export const SUCCESS_MESSAGES = {
   REMOVE_WATCHLIST: "Đã xóa khỏi danh sách theo dõi!",
   SEND_MESSAGE: "Gửi tin nhắn thành công!",
   SUBMIT_RATING: "Gửi đánh giá thành công!",
+  UPGRADE_SELLER: "Gửi đơn tăng cấp thành công!",
 } as const;

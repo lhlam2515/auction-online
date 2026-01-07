@@ -15,6 +15,7 @@ export const users = pgTable(
     email: t.text("email").notNull(), // Synced from Supabase auth.users.email
     username: t.text("username").notNull().unique(), // Unique username
     fullName: t.text("full_name").notNull(),
+    birthDate: t.date("birth_date"),
     role: userRoleEnum("role").notNull().default("BIDDER"),
     accountStatus: accountStatusEnum("account_status")
       .notNull()
@@ -41,6 +42,17 @@ export const users = pgTable(
   (table) => [
     // Essential indexes only
     index("idx_users_email").on(table.email), // Login lookup
+    index("idx_users_username").on(table.username), // Username lookup
+
+    // Search indexes
+    index("idx_users_search_fts").using(
+      "gin",
+      sql`to_tsvector('simple', ${table.fullName} || ' ' || ${table.email} || ' ' || ${table.username})`
+    ),
+    index("idx_users_fullname_trgm").using(
+      "gin",
+      sql`${table.fullName} gin_trgm_ops`
+    ),
 
     // Business logic constraints
     check(
@@ -62,7 +74,9 @@ export const upgradeRequests = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     reason: t.text("reason"),
     status: requestStatusEnum("status").notNull().default("PENDING"),
-    processedBy: t.uuid("processed_by").references(() => users.id), // Admin who processed
+    processedBy: t
+      .uuid("processed_by")
+      .references(() => users.id, { onDelete: "set null" }), // Admin who processed
     createdAt: t
       .timestamp("created_at", { withTimezone: true })
       .notNull()
