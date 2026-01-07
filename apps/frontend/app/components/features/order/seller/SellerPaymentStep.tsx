@@ -88,7 +88,9 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
   };
 
   const paymentStatus = order.payment?.status || "PENDING";
+  const hasPaymentProof = !!order.payment?.paymentProofUrl;
   const isPaid = order.status === "PAID" && paymentStatus === "SUCCESS";
+  const isAwaitingConfirmation = hasPaymentProof && !isPaid;
 
   return (
     <Card>
@@ -101,22 +103,32 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
       <CardContent className="space-y-6">
         {/* Payment Status Alert */}
         <AlertSection
-          variant={isPaid ? "success" : "warning"}
-          icon={isPaid ? CheckCircle2 : Clock}
+          variant={
+            isPaid ? "success" : isAwaitingConfirmation ? "info" : "warning"
+          }
+          icon={
+            isPaid ? CheckCircle2 : isAwaitingConfirmation ? AlertCircle : Clock
+          }
           title={
-            isPaid ? "Thanh toán đã được xác nhận" : "Chờ xác nhận thanh toán"
+            isPaid
+              ? "Thanh toán đã được xác nhận"
+              : isAwaitingConfirmation
+                ? "Người mua đã tải lên ảnh minh chứng thanh toán"
+                : "Chờ người mua tải lên ảnh minh chứng"
           }
           description={
             isPaid
-              ? `Người mua đã thanh toán vào ${formatDate(
+              ? `Thanh toán đã được xác nhận vào ${formatDate(
                   order.payment?.paidAt || new Date()
                 )}. Vui lòng chuẩn bị hàng và bàn giao trong vòng 24-48 giờ.`
-              : "Người mua chưa hoàn tất thanh toán. Vui lòng đợi hoặc liên hệ với người mua để nhắc nhở."
+              : isAwaitingConfirmation
+                ? "Người mua đã tải lên ảnh minh chứng thanh toán. Vui lòng kiểm tra và xác nhận để tiếp tục quy trình."
+                : "Người mua chưa tải lên ảnh minh chứng thanh toán. Vui lòng đợi hoặc liên hệ với người mua để nhắc nhở."
           }
         />
 
         {/* Payment Details */}
-        {isPaid && order.payment && (
+        {(isPaid || isAwaitingConfirmation) && order.payment && (
           <PaymentInfoDisplay payment={order.payment} />
         )}
 
@@ -133,15 +145,45 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
         />
 
         {/* Action Buttons */}
-        {!isPaid ? (
+        {isPaid ? (
+          <AlertSection
+            variant="success"
+            icon={CheckCircle2}
+            title="Đã xác nhận thanh toán"
+            description="Bạn đã xác nhận nhận được thanh toán. Vui lòng chuẩn bị hàng và tiếp tục quy trình giao hàng."
+          />
+        ) : isAwaitingConfirmation ? (
+          <div className="flex justify-end gap-3 pt-4">
+            <ConfirmationDialog
+              trigger={
+                <Button variant="default">
+                  <CheckCircle2 className="mr-1 h-4 w-4" />
+                  Xác nhận đã nhận thanh toán
+                </Button>
+              }
+              variant="success"
+              title="Xác nhận thanh toán"
+              description="Bạn có chắc chắn đã nhận được thanh toán từ người mua không? Vui lòng kiểm tra kỹ ảnh minh chứng trước khi xác nhận. Sau khi xác nhận, bạn sẽ cần chuẩn bị hàng và bàn giao trong vòng 24-48 giờ."
+              confirmLabel="Xác nhận đã nhận tiền"
+              onConfirm={handleConfirmPayment}
+              isConfirming={isConfirming}
+            />
+          </div>
+        ) : (
           <div className="space-y-4">
             <AlertSection
               variant="warning"
               icon={AlertCircle}
-              title="Chưa thể bàn giao hàng"
+              title={
+                hasPaymentProof
+                  ? "Chờ xác nhận thanh toán"
+                  : "Chưa thể bàn giao hàng"
+              }
               description={
                 <>
-                  Vui lòng chờ người mua hoàn tất thanh toán trước khi tiếp tục.
+                  {hasPaymentProof
+                    ? "Người mua đã tải lên ảnh minh chứng thanh toán. Vui lòng kiểm tra và xác nhận."
+                    : "Vui lòng chờ người mua tải lên ảnh minh chứng thanh toán trước khi tiếp tục."}
                   {isOverdue && (
                     <span className="mt-2 block font-medium">
                       Đơn hàng đã quá 24 giờ. Bạn có thể hủy giao dịch nếu cần.
@@ -179,23 +221,6 @@ const SellerPaymentStep = ({ order, onSuccess }: SellerPaymentStepProps) => {
                 />
               </div>
             )}
-          </div>
-        ) : (
-          <div className="flex justify-end gap-3 pt-4">
-            <ConfirmationDialog
-              trigger={
-                <Button variant="default">
-                  <CheckCircle2 className="mr-1 h-4 w-4" />
-                  Xác nhận đã nhận thanh toán
-                </Button>
-              }
-              variant="success"
-              title="Xác nhận thanh toán"
-              description="Bạn có chắc chắn đã nhận được thanh toán từ người mua không? Sau khi xác nhận, bạn sẽ cần chuẩn bị hàng và bàn giao trong vòng 24-48 giờ."
-              confirmLabel="Xác nhận"
-              onConfirm={handleConfirmPayment}
-              isConfirming={isConfirming}
-            />
           </div>
         )}
       </CardContent>

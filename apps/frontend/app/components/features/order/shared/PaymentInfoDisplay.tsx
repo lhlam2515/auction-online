@@ -44,19 +44,36 @@ const PaymentInfoDisplay = ({ payment }: { payment: OrderPayment }) => {
             })}
           >
             {payment.status === "SUCCESS"
-              ? "Đã thanh toán"
+              ? "Đã xác nhận"
               : payment.status === "FAILED"
                 ? "Thanh toán thất bại"
-                : "Chờ xử lý"}
+                : payment.paymentProofUrl
+                  ? "Chờ người bán xác nhận"
+                  : "Chờ tải lên ảnh minh chứng"}
           </Badge>
         </div>
 
         {payment.transactionRef && (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-b pb-2">
             <span className="text-muted-foreground text-sm">Mã giao dịch</span>
             <span className="text-card-foreground font-mono text-sm font-medium">
               {payment.transactionRef}
             </span>
+          </div>
+        )}
+
+        {payment.paymentProofUrl && (
+          <div className="space-y-2">
+            <span className="text-muted-foreground text-sm">
+              Minh chứng thanh toán
+            </span>
+            <div className="border-border bg-muted/30 flex items-center justify-center overflow-hidden rounded-lg border-2">
+              <img
+                src={payment.paymentProofUrl}
+                alt="Payment proof"
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
           </div>
         )}
       </div>

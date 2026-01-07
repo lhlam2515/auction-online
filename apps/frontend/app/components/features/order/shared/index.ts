@@ -15,6 +15,7 @@ export {
 export { default as OrderTimelineItem } from "./OrderTimelineItem";
 export { default as PaymentInfoDisplay } from "./PaymentInfoDisplay";
 export { default as PaymentMethodOption } from "./PaymentMethodOption";
+export { default as PaymentProofUpload } from "./PaymentProofUpload";
 
 // Re-export shipping-info if it has exports
 export * from "./shipping-info";

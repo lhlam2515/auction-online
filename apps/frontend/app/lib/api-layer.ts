@@ -630,14 +630,19 @@ export const api = {
       apiCall<Order>("POST", `/orders/${orderId}/shipping`, data),
 
     /**
-     * Mark order as paid (Buyer)
+     * Mark order as paid with payment proof (Buyer)
      */
-    markPaid: (orderId: string, data: MarkPaidRequest) =>
-      apiCall<{ order: Order; payment: OrderPayment }>(
+    markPaid: (orderId: string, data: MarkPaidRequest | FormData) => {
+      const isFormData = data instanceof FormData;
+      return apiCall<{ order: Order; payment: OrderPayment }>(
         "POST",
         `/orders/${orderId}/mark-paid`,
-        data
-      ),
+        data,
+        isFormData
+          ? { headers: { "Content-Type": "multipart/form-data" } }
+          : undefined
+      );
+    },
 
     /**
      * Confirm payment received (Seller)
