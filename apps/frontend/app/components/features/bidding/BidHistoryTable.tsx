@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Gavel } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
 
+import { AppEmptyState } from "@/components/common";
 import { RatingBadge } from "@/components/common/badges";
 import { KickBidderDialog } from "@/components/features/seller";
 import { Badge } from "@/components/ui/badge";
@@ -110,10 +111,30 @@ const BidHistoryTable = ({
             Đang tải lịch sử đấu giá...
           </div>
         ) : bids.length === 0 ? (
-          <div className="text-muted-foreground py-8 text-center">
-            <Gavel className="mx-auto mb-2 h-12 w-12 opacity-50" />
-            <p>Chưa có lượt đấu giá nào</p>
-          </div>
+          <AppEmptyState
+            title="Chưa có lượt đấu giá nào"
+            description={
+              isSeller
+                ? "Bạn chưa có lượt đấu giá nào"
+                : "Hãy là người đầu tiên đặt giá cho sản phẩm này!"
+            }
+            icon={<Gavel />}
+            action={
+              !isSeller &&
+              product.status === "ACTIVE" && (
+                <Button
+                  onClick={() => {
+                    document
+                      .getElementById("bidding-section")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="cursor-pointer"
+                >
+                  Đặt giá ngay
+                </Button>
+              )
+            }
+          />
         ) : (
           <div className="rounded-md border">
             <Table>

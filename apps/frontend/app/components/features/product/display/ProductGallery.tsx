@@ -1,7 +1,11 @@
 import type { ProductListing } from "@repo/shared-types";
 import Autoplay from "embla-carousel-autoplay";
+import { Package, Search } from "lucide-react";
 import { useRef } from "react";
+import { Link } from "react-router";
 
+import { AppEmptyState } from "@/components/common";
+import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselItem,
@@ -9,6 +13,7 @@ import {
   CarouselNext,
   CarouselContent,
 } from "@/components/ui/carousel";
+import { APP_ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 import ProductCard, { ProductCardSkeleton } from "./ProductCard";
@@ -49,9 +54,20 @@ const ProductGallery = ({
 
   if (products.length === 0 && !loading) {
     return (
-      <p className="text-muted-foreground py-10 text-center italic">
-        Hiện không có sản phẩm phù hợp
-      </p>
+      <AppEmptyState
+        icon={<Package />}
+        title="Không tìm thấy sản phẩm"
+        description="Hiện không có sản phẩm nào phù hợp với danh mục này hoặc điều kiện bạn chọn."
+        action={
+          <Button asChild variant="default">
+            <Link to={APP_ROUTES.SEARCH}>
+              <Search className="mr-1 h-4 w-4" />
+              Khám phá sản phẩm khác
+            </Link>
+          </Button>
+        }
+        className={cn("my-4", className)}
+      />
     );
   }
 

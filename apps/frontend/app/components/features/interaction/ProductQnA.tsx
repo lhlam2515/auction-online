@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { z } from "zod";
 
-import { UserAvatar } from "@/components/common";
+import { UserAvatar, AppEmptyState } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api-layer";
@@ -140,10 +140,15 @@ const ProductQnA = ({
               Đang tải câu hỏi...
             </p>
           ) : questions.length === 0 ? (
-            <div className="text-muted-foreground py-8 text-center">
-              <MessageCircle className="mx-auto mb-2 h-12 w-12 opacity-50" />
-              <p>Chưa có câu hỏi nào</p>
-            </div>
+            <AppEmptyState
+              icon={<MessageCircle />}
+              title="Chưa có câu hỏi nào"
+              description={
+                isSeller
+                  ? "Sản phẩm của bạn chưa có câu hỏi nào từ người mua."
+                  : "Bạn có thắc mắc về sản phẩm? Đừng ngần ngại đặt câu hỏi cho người bán."
+              }
+            />
           ) : (
             questions.map((q) => (
               <div

@@ -68,13 +68,6 @@ const RatingSummaryCard = ({ summary, className }: RatingSummaryCardProps) => {
             </div>
           </div>
         </div>
-
-        {/* Empty state */}
-        {totalRatings === 0 && (
-          <div className="text-muted-foreground py-6 text-center text-sm">
-            Chưa có đánh giá nào
-          </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -3,6 +3,7 @@ import { Package } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 
+import { AppEmptyState } from "@/components/common";
 import { OrderStatusBadge } from "@/components/common/badges";
 import {
   Table,
@@ -37,6 +38,7 @@ type OrderTableProps = {
   actions?: OrderTableAction[];
   emptyMessage?: string;
   emptyIcon?: ReactNode;
+  emptyAction?: ReactNode;
   className?: string;
   onRowClick?: (order: OrderWithDetails) => void;
 };
@@ -128,6 +130,7 @@ const OrderTable = ({
   actions,
   emptyMessage = "Chưa có đơn hàng nào được tạo.",
   emptyIcon,
+  emptyAction,
   className,
   onRowClick,
 }: OrderTableProps) => {
@@ -135,19 +138,12 @@ const OrderTable = ({
 
   if (!orders || orders.length === 0) {
     return (
-      <div
-        className={cn(
-          "bg-muted/60 flex min-h-[200px] items-center justify-center rounded-lg border border-dashed",
-          className
-        )}
-      >
-        <div className="text-center">
-          {emptyIcon || (
-            <Package className="text-muted-foreground mx-auto h-10 w-10 opacity-50" />
-          )}
-          <p className="text-muted-foreground mt-2">{emptyMessage}</p>
-        </div>
-      </div>
+      <AppEmptyState
+        title={emptyMessage}
+        icon={emptyIcon || <Package />}
+        action={emptyAction}
+        className={className}
+      />
     );
   }
 

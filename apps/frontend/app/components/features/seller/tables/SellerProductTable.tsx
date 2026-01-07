@@ -1,5 +1,5 @@
 import type { ProductListing } from "@repo/shared-types";
-import { Edit, Eye } from "lucide-react";
+import { Edit } from "lucide-react";
 import { Link } from "react-router";
 
 import {
@@ -7,7 +7,9 @@ import {
   type ProductTableAction,
 } from "@/components/features/product/display";
 import { Button } from "@/components/ui/button";
-import { APP_ROUTES, SELLER_ROUTES } from "@/constants/routes";
+import { SELLER_ROUTES } from "@/constants/routes";
+
+import CreateProductButton from "../CreateProductButton";
 
 type SellerProductTableProps = {
   products: ProductListing[];
@@ -22,13 +24,15 @@ const SellerProductTable = ({
 }: SellerProductTableProps) => {
   const emptyMessage =
     type === "active"
-      ? "Danh sách sản phẩm đang đấu giá sẽ hiển thị ở đây"
-      : "Danh sách sản phẩm đã kết thúc phiên đấu giá sẽ hiển thị ở đây";
+      ? "Chưa có sản phẩm đấu giá nào đang hoạt động"
+      : "Chưa có sản phẩm đấu giá nào đã kết thúc";
 
   const displayMode = type === "active" ? "active" : "ended";
 
-  const actions: ProductTableAction[] = [
-    {
+  const actions: ProductTableAction<ProductListing>[] = [];
+
+  if (displayMode === "active") {
+    actions.push({
       key: "edit",
       render: (product: ProductListing) => (
         <Button variant="default" size="sm" asChild>
@@ -40,19 +44,8 @@ const SellerProductTable = ({
       ),
       hidden: (product: ProductListing) =>
         new Date(product.endTime) <= new Date(),
-    },
-    {
-      key: "view",
-      render: (product: ProductListing) => (
-        <Button variant="default" size="sm" asChild>
-          <Link to={APP_ROUTES.PRODUCT(product.id)}>
-            <Eye className="mr-2 h-4 w-4" />
-            Xem chi tiết
-          </Link>
-        </Button>
-      ),
-    },
-  ];
+    });
+  }
 
   return (
     <ProductTable
@@ -60,6 +53,7 @@ const SellerProductTable = ({
       displayMode={displayMode}
       actions={actions}
       emptyMessage={emptyMessage}
+      emptyAction={<CreateProductButton variant="default" size="sm" />}
       className={className}
     />
   );

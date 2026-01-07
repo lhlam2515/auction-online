@@ -1,8 +1,9 @@
 import type { AdminUserListItem } from "@repo/shared-types";
-import { User, Mail, Star, Calendar } from "lucide-react";
+import { User, Mail, Star, Calendar, RefreshCcw } from "lucide-react";
 
-import { UserAvatar } from "@/components/common";
+import { UserAvatar, AppEmptyState } from "@/components/common";
 import { RoleBadge, AccountStatusBadge } from "@/components/common/badges";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -42,14 +43,20 @@ const AdminUserTable = ({
 
   if (users.length === 0) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <User className="text-muted-foreground h-12 w-12 opacity-50" />
-          <p className="text-muted-foreground text-sm">
-            Không có người dùng nào
-          </p>
-        </div>
-      </div>
+      <AppEmptyState
+        title="Không tìm thấy người dùng"
+        description="Không có tài khoản nào phù hợp với điều kiện tìm kiếm của bạn."
+        icon={<User />}
+        action={
+          onRefresh && (
+            <Button onClick={onRefresh} className="cursor-pointer">
+              <RefreshCcw className="mr-1 h-4 w-4" />
+              Tải lại dữ liệu
+            </Button>
+          )
+        }
+        className={className}
+      />
     );
   }
 
