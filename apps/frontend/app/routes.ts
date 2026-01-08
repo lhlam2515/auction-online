@@ -14,6 +14,7 @@ export default [
     route("forgot-password", "routes/_auth/forgot-password/route.tsx"),
     route("reset-password", "routes/_auth/reset-password/route.tsx"),
   ]),
+  route("oauth/callback", "routes/_auth/oauth.callback/route.tsx"),
 
   layout("routes/_root/layout.tsx", [
     // 2. Marketing / Public Group (Main Layout)
