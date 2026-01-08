@@ -1,8 +1,8 @@
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Request, Response, NextFunction } from "express";
 
 import { db } from "@/config/database";
-import { users, products } from "@/models";
+import { users } from "@/models";
 import { sellerService } from "@/services";
 import { UserRole } from "@/types/model";
 import {
@@ -30,9 +30,12 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   try {
-    // SECURITY: Read token from httpOnly cookie
-    // This prevents XSS attacks from stealing the token via Authorization header
-    const token = req.cookies.accessToken;
+    // SECURITY: Read token from Authorization header (Bearer token)
+    // Token is stored in memory on frontend to prevent XSS attacks via localStorage
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.substring(7)
+      : null;
 
     if (!token) {
       throw new UnauthorizedError("No token provided");
