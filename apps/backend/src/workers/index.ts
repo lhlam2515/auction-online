@@ -36,19 +36,57 @@ const workerConfig: WorkerOptions = {
   drainDelay: 10000, // 10 giây
 };
 
+// Email Worker Config - Tối ưu cho xử lý email hàng loạt
+const emailWorkerConfig: WorkerOptions = {
+  connection: redisConnection,
+
+  // Email thường xử lý nhanh (1-3s), không cần check treo thường xuyên
+  stalledInterval: 60000,
+
+  // Lock Duration cho email ngắn hơn (30s là đủ)
+  // Email failed thường do network, không nên giữ lock quá lâu
+  lockDuration: 30000,
+
+  // Tắt metrics để giảm Redis operations
+  metrics: {
+    maxDataPoints: 0,
+  },
+
+  // CONCURRENCY CAO: Email I/O bound, có thể xử lý nhiều đồng thời
+  // Nodemailer pool đã config maxConnections: 5, maxMessages: 100
+  // Worker có thể handle nhiều hơn vì nodemailer tự quản lý pool
+  concurrency: 20,
+
+  // Khi hết email, check lại sau 5s
+  drainDelay: 5000,
+
+  // Rate limiting: Giới hạn số job/giây để tránh spam SMTP server
+  limiter: {
+    max: 10, // Tối đa 10 emails
+    duration: 1000, // Trong 1 giây (10 emails/s = 36,000 emails/hour)
+  },
+};
+
 export const startWorkers = () => {
   if (emailWorker && auctionTimerWorker && autoBidWorker) return; // Tránh khởi tạo 2 lần
 
   logger.info("⚙️ Starting Background Workers...");
 
-  // 1. EMAIL WORKER
+  // 1. EMAIL WORKER - Optimized for high throughput
   emailWorker = new Worker(
     QUEUE_NAMES.EMAIL,
     async (job: Job) => {
       const { to, subject, html } = job.data;
-      await emailService.processEmailJob(to, subject, html);
+
+      try {
+        await emailService.processEmailJob(to, subject, html);
+        logger.debug(`✉️ Email job #${job.id} completed successfully`);
+      } catch (error) {
+        logger.error(`❌ Email job #${job.id} failed:`, error);
+        throw error; // Ném lỗi để BullMQ biết và retry
+      }
     },
-    workerConfig
+    emailWorkerConfig // Sử dụng config riêng cho email
   );
 
   // 2. AUCTION TIMER WORKER
