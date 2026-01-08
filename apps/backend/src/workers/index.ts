@@ -36,34 +36,35 @@ const workerConfig: WorkerOptions = {
   drainDelay: 10000, // 10 giây
 };
 
-// Email Worker Config - Tối ưu cho xử lý email hàng loạt
+// Email Worker Config - Optimized for SendGrid HTTP API
 const emailWorkerConfig: WorkerOptions = {
   connection: redisConnection,
 
-  // Email thường xử lý nhanh (1-3s), không cần check treo thường xuyên
+  // SendGrid HTTP API nhanh hơn SMTP, không cần check treo thường xuyên
   stalledInterval: 60000,
 
-  // Lock Duration cho email ngắn hơn (30s là đủ)
-  // Email failed thường do network, không nên giữ lock quá lâu
-  lockDuration: 30000,
+  // Lock Duration cho email (20s là đủ cho HTTP API)
+  lockDuration: 20000,
 
   // Tắt metrics để giảm Redis operations
   metrics: {
     maxDataPoints: 0,
   },
 
-  // CONCURRENCY CAO: Email I/O bound, có thể xử lý nhiều đồng thời
-  // Nodemailer pool đã config maxConnections: 5, maxMessages: 100
-  // Worker có thể handle nhiều hơn vì nodemailer tự quản lý pool
-  concurrency: 20,
+  // CONCURRENCY CAO: SendGrid HTTP API có thể xử lý nhiều request đồng thời
+  // Tăng từ 20 (SMTP) lên 50 (HTTP API) để tận dụng tốc độ
+  concurrency: 50,
 
-  // Khi hết email, check lại sau 5s
-  drainDelay: 5000,
+  // Khi hết email, check lại sau 3s (nhanh hơn vì API nhanh)
+  drainDelay: 3000,
 
-  // Rate limiting: Giới hạn số job/giây để tránh spam SMTP server
+  // Rate limiting: SendGrid cho phép burst cao hơn SMTP
+  // Free tier: 100 emails/day
+  // Essentials: 100 emails/second
+  // Pro/Premier: Unlimited (với rate limit thấp)
   limiter: {
-    max: 10, // Tối đa 10 emails
-    duration: 1000, // Trong 1 giây (10 emails/s = 36,000 emails/hour)
+    max: 5, // Tối đa 5 emails
+    duration: 60000, // Trong 1 phút
   },
 };
 

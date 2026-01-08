@@ -1,8 +1,9 @@
 import type { OtpPurpose } from "@repo/shared-types";
+import type { MailDataRequired } from "@sendgrid/mail";
 
 import logger from "@/config/logger";
-import transporter, { MAILER_FROM, MailerTransporter } from "@/config/mailer";
 import { emailQueue } from "@/config/queue";
+import sendgrid, { SENDGRID_FROM_EMAIL } from "@/config/sendgrid";
 
 // Cấu hình nội dung cho OTP
 const OTP_CONTENT = {
@@ -33,23 +34,12 @@ const COLORS = {
 };
 
 class EmailService {
-  private transporter: MailerTransporter;
-  private mailerFrom: string = MAILER_FROM;
+  private fromEmail: string = SENDGRID_FROM_EMAIL;
 
   constructor() {
-    this.transporter = transporter;
-    this.verifyConnection();
-  }
-
-  private async verifyConnection() {
-    try {
-      const check = await this.transporter.verify();
-      if (check) {
-        logger.info(`✅ Mailer Configured & Ready with ${this.mailerFrom}`);
-      }
-    } catch (error) {
-      logger.error("❌ Email Server Connection Error:", error);
-    }
+    logger.info(
+      `✅ EmailService initialized with SendGrid sender: ${this.fromEmail}`
+    );
   }
 
   // ============================================================
@@ -897,19 +887,24 @@ class EmailService {
 
   async processEmailJob(to: string | string[], subject: string, html: string) {
     try {
-      await this.transporter.sendMail({
-        from: `"Sàn Đấu Giá" <${this.mailerFrom}>`,
-        to: Array.isArray(to) ? undefined : to,
-        bcc: Array.isArray(to) ? to : undefined,
+      const msg: MailDataRequired = {
+        to: Array.isArray(to) ? to : [to],
+        from: {
+          email: this.fromEmail,
+          name: "Sàn Đấu Giá",
+        },
         subject: subject,
         html: html,
-      });
+      };
+
+      await sendgrid.send(msg);
 
       logger.info(
-        `[Email Sent] To: ${Array.isArray(to) ? "Multiple Users" : to} | Subject: ${subject}`
+        `[Email Sent via SendGrid] To: ${Array.isArray(to) ? `${to.length} recipients` : to} | Subject: ${subject}`
       );
     } catch (error) {
-      logger.error(`[Email Failed] To: ${to}`, error);
+      logger.error(`[SendGrid Email Failed] To: ${to}`, error);
+      throw error;
     }
   }
 
