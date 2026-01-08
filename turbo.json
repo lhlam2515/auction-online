@@ -1,11 +1,24 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", "build/**"]
+      "outputs": ["dist/**", ".next/**", "build/**"],
+      "env": [
+        "VITE_*",
+        "PORT",
+        "LOG_LEVEL",
+        "DATABASE_URL",
+        "CAPTCHA_SECRET_KEY",
+        "CORS_ORIGIN",
+        "FRONTEND_URL",
+        "SUPABASE_*",
+        "MAILER_*",
+        "REDIS_URL"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
