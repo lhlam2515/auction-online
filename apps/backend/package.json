@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && resolve-tspaths",
     "dev": "tsx watch ./src/index.ts",
-    "start": "tsx ./src/index.ts",
+    "dev:start": "tsx ./src/index.ts",
+    "start": "node dist/src/index.js",
     "lint": "eslint \"src/**/*.ts\"",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -48,6 +49,7 @@
     "esbuild-register": "^3.6.0",
     "eslint": "^9.39.0",
     "eslint-import-resolver-typescript": "^4.4.4",
+    "resolve-tspaths": "^0.8.23",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2"
   }
