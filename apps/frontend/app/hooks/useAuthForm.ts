@@ -52,6 +52,7 @@ export const useAuthForm = <T extends FieldValues>({
 
       const result = (await onSubmit(data)) as ApiResponse<{
         user: UserAuthData;
+        accessToken?: string;
       } | null>;
 
       if (!result.success) {
@@ -65,8 +66,12 @@ export const useAuthForm = <T extends FieldValues>({
           ? SUCCESS_MESSAGES.LOGIN
           : SUCCESS_MESSAGES.REGISTER;
 
-      if (formType === "LOGIN" && result.data?.user) {
-        login(result.data.user); // Update the auth context
+      if (
+        formType === "LOGIN" &&
+        result.data?.user &&
+        result.data?.accessToken
+      ) {
+        login(result.data.user, result.data.accessToken); // Update the auth context with token
       }
 
       // Call onSuccess callback if provided

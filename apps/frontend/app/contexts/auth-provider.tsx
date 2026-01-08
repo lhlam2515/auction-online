@@ -4,13 +4,16 @@ import { useLocation } from "react-router";
 
 import { isAuthRoute } from "@/constants/routes";
 import { api } from "@/lib/api-layer";
+import { tokenManager } from "@/lib/handlers/token-manager";
 import logger from "@/lib/logger";
 
 interface AuthContextType {
   user: UserAuthData | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (user: UserAuthData) => void;
+  accessToken: string | null;
+  setAccessToken: (token: string | null) => void;
+  login: (user: UserAuthData, token: string) => void;
   logout: () => Promise<void>;
   refetchUser: () => Promise<void>;
 }
@@ -25,6 +28,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const location = useLocation();
   const [user, setUser] = React.useState<UserAuthData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  // SECURITY: Store accessToken in memory (React state) instead of localStorage
+  // This prevents XSS attacks from stealing the token
+  const [accessToken, setAccessToken] = React.useState<string | null>(null);
 
   const initializeAuth = React.useCallback(async () => {
     try {
@@ -56,8 +62,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [initializeAuth, location.pathname]);
 
   // Login user
-  const login = React.useCallback((userData: UserAuthData) => {
+  const login = React.useCallback((userData: UserAuthData, token: string) => {
     setUser(userData);
+    setAccessToken(token);
+    tokenManager.setToken(token);
     logger.info("User logged in", { userId: userData.id });
   }, []);
 
@@ -69,6 +77,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       logger.error("Logout API failed", error);
     } finally {
       setUser(null);
+      setAccessToken(null);
+      tokenManager.clearToken();
       logger.info("User logged out");
     }
   }, []);
@@ -93,6 +103,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     isAuthenticated: !!user,
     isLoading,
+    accessToken,
+    setAccessToken,
     login,
     logout,
     refetchUser,

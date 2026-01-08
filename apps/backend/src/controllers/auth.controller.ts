@@ -54,30 +54,35 @@ export const login = asyncHandler(
       password
     );
 
-    // SECURITY: Store tokens in httpOnly cookies
-    // This prevents XSS attacks from stealing the tokens via localStorage
-    setAuthCookies(res, accessToken, refreshToken);
+    // SECURITY: Store ONLY refreshToken in httpOnly cookie
+    // accessToken will be sent in response body for client-side memory storage
+    setAuthCookies(res, undefined, refreshToken);
 
-    return ResponseHandler.sendSuccess<{ user: UserAuthData }>(res, { user });
+    return ResponseHandler.sendSuccess<{
+      user: UserAuthData;
+      accessToken: string;
+    }>(res, { user, accessToken });
   }
 );
 
 export const logout = asyncHandler(
   async (req: AuthRequest, res: Response, _next: NextFunction) => {
-    const accessToken = req.cookies["accessToken"];
+    // Get accessToken from Authorization header instead of cookies
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.substring(7)
+      : null;
 
     // Nếu có access token, gọi Supabase admin.signOut để vô hiệu hóa token
     if (accessToken) {
       const result = await authService.logout(accessToken);
 
-      res.clearCookie("accessToken", { path: "/api/v1" });
       res.clearCookie("refreshToken", { path: "/api/v1/auth" });
 
       return ResponseHandler.sendSuccess(res, null, 200, result.message);
     }
 
     // Nếu không có token, vẫn clear cookies (client-side logout)
-    res.clearCookie("accessToken", { path: "/api/v1" });
     res.clearCookie("refreshToken", { path: "/api/v1/auth" });
 
     return ResponseHandler.sendSuccess(res, null, 200, "Đăng xuất thành công.");
@@ -94,10 +99,13 @@ export const refreshToken = asyncHandler(
 
     const result = await authService.refreshToken(refreshToken);
 
-    setAuthCookies(res, result.accessToken, result.refreshToken);
+    // SECURITY: Store ONLY refreshToken in httpOnly cookie
+    setAuthCookies(res, undefined, result.refreshToken);
 
-    // Return empty response - token is in the cookie
-    return ResponseHandler.sendNoContent(res);
+    // Return accessToken in response body for client-side memory storage
+    return ResponseHandler.sendSuccess<{ accessToken: string }>(res, {
+      accessToken: result.accessToken,
+    });
   }
 );
 
@@ -173,8 +181,12 @@ export const handleOAuthCallback = asyncHandler(
     const { accessToken, refreshToken } =
       await authService.handleOAuthCallback(code);
 
-    setAuthCookies(res, accessToken, refreshToken);
+    // SECURITY: Store ONLY refreshToken in httpOnly cookie
+    setAuthCookies(res, undefined, refreshToken);
 
-    res.redirect(process.env.FRONTEND_URL!);
+    // Redirect with accessToken as query parameter for frontend to capture
+    // Frontend will store it in memory and then clean the URL
+    const redirectUrl = `${process.env.FRONTEND_URL}/oauth/callback?token=${encodeURIComponent(accessToken)}`;
+    res.redirect(redirectUrl);
   }
 );

@@ -160,7 +160,11 @@ export const api = {
      * User login
      */
     login: (data: LoginRequest) =>
-      apiCall<{ user: UserAuthData }>("POST", "/auth/login", data),
+      apiCall<{ user: UserAuthData; accessToken: string }>(
+        "POST",
+        "/auth/login",
+        data
+      ),
 
     /**
      * User logout
@@ -170,7 +174,8 @@ export const api = {
     /**
      * Refresh authentication token
      */
-    refreshToken: () => apiCall("POST", "/auth/refresh-token"),
+    refreshToken: () =>
+      apiCall<{ accessToken: string }>("POST", "/auth/refresh-token"),
 
     /**
      * Request password reset

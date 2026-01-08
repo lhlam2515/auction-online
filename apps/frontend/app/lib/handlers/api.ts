@@ -4,6 +4,8 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 
+import { tokenManager } from "./token-manager";
+
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
@@ -39,13 +41,17 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  // Enable credentials to automatically send/receive httpOnly cookies
-  // This ensures the accessToken stored in httpOnly cookies is sent with every request
+  // Enable credentials to send/receive httpOnly cookies (for refreshToken)
   withCredentials: true,
 });
 
 apiClient.interceptors.request.use(
   (config) => {
+    // SECURITY: Add accessToken from memory to Authorization header
+    const token = tokenManager.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -84,16 +90,23 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      await axios.post(
-        `${API_BASE_URL}/auth/refresh-token`,
-        {},
-        { withCredentials: true }
-      );
+      const response = await axios.post<{
+        success: boolean;
+        data: { accessToken: string };
+      }>(`${API_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
+
+      // Store new accessToken in memory
+      if (response.data?.success && response.data.data?.accessToken) {
+        tokenManager.setToken(response.data.data.accessToken);
+      }
 
       processQueue(); // Success!
       return apiClient(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError); // Fail tất cả các request đang chờ
+
+      // Clear token on refresh failure
+      tokenManager.clearToken();
 
       // Tùy biến: Chỉ redirect nếu không phải môi trường SSR
       if (typeof window !== "undefined") {
