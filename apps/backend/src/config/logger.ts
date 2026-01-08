@@ -15,7 +15,7 @@ const consoleFormat = combine(
     const metaStr = Object.keys(meta).length
       ? JSON.stringify(meta, null, 2)
       : "";
-    return `${level}: ${message} ${metaStr}`;
+    return `[${timestamp}] ${level}: ${message} ${metaStr}`;
   })
 );
 
@@ -47,7 +47,10 @@ const logger = winston.createLogger({
 });
 
 // Console transport for non-production
-if (process.env.NODE_ENV !== "production") {
+if (
+  process.env.NODE_ENV !== "production" ||
+  process.env.MONITORING === "true"
+) {
   logger.add(
     new winston.transports.Console({
       format: consoleFormat,
