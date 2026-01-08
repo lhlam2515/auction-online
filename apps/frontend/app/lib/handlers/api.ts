@@ -64,8 +64,8 @@ apiClient.interceptors.response.use(
 
     // 2. Tránh refresh token cho chính API login/logout
     if (
-      originalRequest.url?.includes("/auth/login") ||
-      originalRequest.url?.includes("/auth/register")
+      originalRequest.url?.includes("/auth") &&
+      !originalRequest.url?.includes("/refresh-token")
     ) {
       return Promise.reject(error);
     }
