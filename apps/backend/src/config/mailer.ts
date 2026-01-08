@@ -31,11 +31,12 @@ const transporter = nodemailer.createTransport({
   // Giúp tránh connection stale và clean memory
   maxMessages: 100, // Giữ nguyên
 
-  // Timeout cho idle connections (ms) - Đóng connection không dùng sau 10s
-  socketTimeout: 10000,
+  // Timeout cho idle connections (ms)
+  socketTimeout: 30000,
 
   // Thời gian chờ kết nối SMTP server
-  connectionTimeout: 5000,
+  connectionTimeout: 20000,
+  greetingTimeout: 15000,
 
   // Tự động retry khi gửi failed (Lớp retry của nodemailer, khác với BullMQ retry)
   // Set false vì đã có retry ở BullMQ level
@@ -45,6 +46,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.MAILER_USER,
     pass: process.env.MAILER_PASS,
   },
+  dnsV6: false,
 } as nodemailer.TransportOptions);
 
 export const MAILER_FROM = process.env.MAILER_FROM as string;
